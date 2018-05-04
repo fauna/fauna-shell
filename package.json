@@ -1,0 +1,55 @@
+{
+  "name": "fauna-shell",
+  "description": "tool to access fauna-db",
+  "version": "0.0.1",
+  "author": "Alvaro Videla",
+  "bin": {
+    "fauna-shell": "./bin/run"
+  },
+  "bugs": "https://github.com/fauna/fauna-shell/issues",
+  "dependencies": {
+    "@oclif/command": "1",
+    "@oclif/config": "1",
+    "@oclif/plugin-help": "1",
+    "faunadb": "^2.0.0"
+  },
+  "devDependencies": {
+    "@oclif/dev-cli": "1",
+    "@oclif/test": "1",
+    "chai": "4",
+    "eslint": "4",
+    "eslint-config-oclif": "1",
+    "globby": "8",
+    "mocha": "5",
+    "nyc": "11"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "files": [
+    "/bin",
+    "/oclif.manifest.json",
+    "/src"
+  ],
+  "homepage": "https://github.com/fauna/fauna-shell",
+  "keywords": [
+    "oclif"
+  ],
+  "license": "MIT",
+  "main": "src/index.js",
+  "oclif": {
+    "commands": "./src/commands",
+    "bin": "fauna-shell",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
+  },
+  "repository": "fauna/fauna-shell",
+  "scripts": {
+    "postpack": "rm -f oclif.manifest.json",
+    "posttest": "eslint .",
+    "prepack": "oclif-dev manifest && oclif-dev readme",
+    "test": "nyc mocha --forbid-only \"test/**/*.test.js\"",
+    "version": "oclif-dev readme && git add README.md"
+  }
+}
