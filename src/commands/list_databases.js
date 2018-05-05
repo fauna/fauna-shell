@@ -25,13 +25,6 @@ class ListDatabasesCommand extends Command {
 	  this.log(rootKey);
 	  const log = this.log;
 	  var client = new faunadb.Client({ secret: rootKey });
-	  client.query(q.Paginate(q.Databases(null)))
-	  .then(function(res) {
-		  log(res);
-	  }).catch(function(error) {
-		  log(error);
-	  });
-	  
 	  var helper = client.paginate(q.Databases(null));
 	  helper.each(function(page) {
 		  log(page);
