@@ -13,7 +13,7 @@ function getConfigFile() {
 function getRootKey(fileName) {
 	return new Promise(function(resolve, reject){
 		fs.readFile(fileName, 'utf8', (err, data) => {
-			err ? reject(err) : resolve(data);
+			err ? reject(err) : resolve(data.trim());
 		});
 	});
 }
