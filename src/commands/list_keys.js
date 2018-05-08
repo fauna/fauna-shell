@@ -1,26 +1,21 @@
 const {Command, flags} = require('@oclif/command')
-
-const {getRootKey, getConfigFile} = require('../lib/misc.js')
+const FaunaCommand = require('../lib/fauna_command.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
-class ListKeysCommand extends Command {
+class ListKeysCommand extends FaunaCommand {
 	async run() {
 		const {flags} = this.parse(ListKeysCommand);
 		const name = flags.name || 'default';
 		const log = this.log;
-		getRootKey(getConfigFile())
-		.then(function (rootKey) {
-			var client = new faunadb.Client({ secret: rootKey });
-	  
+		
+		this.withClient(function(client) {
+			log('listing keys')
 			var helper = client.paginate(q.Keys(null));
 			helper.each(function(page) {
 				log(page);
 			});
-		})
-	  .catch(function(error) {
-		  log(error);
-	  })
+		});
 	}
 }
 

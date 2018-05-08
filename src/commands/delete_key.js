@@ -1,19 +1,16 @@
 const {Command, flags} = require('@oclif/command')
-
-const {getRootKey, getConfigFile} = require('../lib/misc.js')
+const FaunaCommand = require('../lib/fauna_command.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
-class DeleteKeyCommand extends Command {
+class DeleteKeyCommand extends FaunaCommand {
   async run() {
 	  const {flags} = this.parse(DeleteKeyCommand);
 	  const key = flags.key || 'default';
 	  const log = this.log;
 	  
-	  getRootKey(getConfigFile())
-	  .then(function(rootKey) {
+		this.withClient(function(client) {
 		  log(`deleting key ${key}`);
-		  var client = new faunadb.Client({ secret: rootKey });
 		  client.query(q.Delete(q.Ref(q.Keys(null), key)))
 		  .then(function(res) {
 			  log(res);
@@ -21,10 +18,7 @@ class DeleteKeyCommand extends Command {
 		  .catch(function(error) {
 			  log(error);
 		  });
-	  })
-	  .catch(function(error) {
-		  log(error);
-	  });
+		});
   }
 }
 

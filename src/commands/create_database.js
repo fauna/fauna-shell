@@ -1,19 +1,16 @@
 const {Command, flags} = require('@oclif/command')
-
-const {getRootKey, getConfigFile} = require('../lib/misc.js')
+const FaunaCommand = require('../lib/fauna_command.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
-class CreateDatabaseCommand extends Command {
+class CreateDatabaseCommand extends FaunaCommand {
   async run() {
 	  const {flags} = this.parse(CreateDatabaseCommand);
 	  const name = flags.name || 'default';
 	  const log = this.log;
 	  
-	  getRootKey(getConfigFile())
-	  .then(function(rootKey) {
+		this.withClient(function(client) {
 		  log(`creating database ${name}`);
-		  var client = new faunadb.Client({ secret: rootKey });
 		  client.query(q.CreateDatabase({ name: name }))
 		  .then(function(res) {
 			  log(res);
@@ -21,10 +18,7 @@ class CreateDatabaseCommand extends Command {
 		  .catch(function(error) {
 			  log(error);
 		  });
-	  })
-	  .catch(function(error) {
-		  log(error);
-	  });
+		});
   }
 }
 
