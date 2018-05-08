@@ -1,4 +1,4 @@
-const {Command, flags} = require('@oclif/command')
+const {Command} = require('@oclif/command')
 
 const {getRootKey, getConfigFile} = require('../lib/misc.js')
 const faunadb = require('faunadb');
