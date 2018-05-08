@@ -1,22 +1,8 @@
 const {Command, flags} = require('@oclif/command')
 
+const {getRootKey, getConfigFile} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
-const os = require('os');
-const path = require('path');
-const fs = require('fs')
-
-function getConfigFile() {
-	return path.join(os.homedir(), '.fauna-shell');
-}
-
-function getRootKey(fileName) {
-	return new Promise(function(resolve, reject){
-		fs.readFile(fileName, 'utf8', (err, data) => {
-			err ? reject(err) : resolve(data);
-		});
-	});
-}
 
 class DeleteDatabaseCommand extends Command {
   async run() {
