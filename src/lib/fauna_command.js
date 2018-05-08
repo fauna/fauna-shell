@@ -5,10 +5,16 @@ const faunadb = require('faunadb');
 const q = faunadb.query;
 
 class FaunaCommand extends Command {
-	withClient(f) {
+			
+	withClient(f, dbScope, role) {
 		getRootKey(getConfigFile())
 		.then(function (rootKey) {
-			var client = new faunadb.Client({ secret: rootKey });
+			var secret = rootKey;	
+			if (dbScope !== undefined && role !== undefined) {
+				secret = rootKey + ":" + dbScope + ":" + role;
+			}
+			
+			var client = new faunadb.Client({ secret: secret });
 			f(client);
 		})
 	}
