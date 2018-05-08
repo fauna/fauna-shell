@@ -1,7 +1,5 @@
 const {Command, flags} = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna_command.js')
-
-const {getRootKey, getConfigFile} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
