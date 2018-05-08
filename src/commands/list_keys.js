@@ -11,7 +11,6 @@ class ListKeysCommand extends Command {
 		const log = this.log;
 		getRootKey(getConfigFile())
 		.then(function (rootKey) {
-			log(rootKey);
 			var client = new faunadb.Client({ secret: rootKey });
 	  
 			var helper = client.paginate(q.Keys(null));
