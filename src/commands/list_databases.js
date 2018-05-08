@@ -8,7 +8,8 @@ class ListDatabasesCommand extends FaunaCommand {
 	  const {flags} = this.parse(ListDatabasesCommand);
 	  const name = flags.name || 'default';
 		const log = this.log;
-		this.withClient(function (client) {
+		
+		this.withClient(function(client) {
 		  var helper = client.paginate(q.Databases(null));
 		  helper.each(function(page) {
 			  log(page);
