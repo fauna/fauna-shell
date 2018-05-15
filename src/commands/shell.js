@@ -12,37 +12,29 @@ class ShellCommand extends FaunaCommand {
 	  
 		this.withClient(function(client) {
 		  log(`starting shell for database ${name}`);
-			const r	= repl.start('faunadb> ');
+			
+			const r	= repl.start({
+				prompt: 'faunadb> '
+			});
+			
 			const query = function (exp) {
 				client.query(exp)
 				.then(function(res) {
-					log(res);
+					console.log(res);
 					r.displayPrompt();
 				})
 				.catch(function(error) {
-					log(error);
+					console.log(error);
 					r.displayPrompt();
 				});
 			};
 			
 			Object.assign(r.context, q);
 			
-			// Object.defineProperty(r.context, 'q', {
-			//   configurable: false,
-			//   enumerable: true,
-			//   value: q
-			// });
-			
 			Object.defineProperty(r.context, 'query', {
 			  configurable: false,
 			  enumerable: true,
 			  value: query
-			});
-			
-			Object.defineProperty(r.context, 'paginate', {
-			  configurable: false,
-			  enumerable: true,
-			  value: client.paginate
 			});
 		});
   }
