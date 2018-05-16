@@ -5,8 +5,6 @@ const q = faunadb.query;
 
 class ListKeysCommand extends FaunaCommand {
 	async run() {
-		const {flags} = this.parse(ListKeysCommand);
-		const name = flags.name || 'default';
 		const log = this.log;
 		
 		this.withClient(function(client) {
@@ -20,9 +18,11 @@ class ListKeysCommand extends FaunaCommand {
 }
 
 ListKeysCommand.description = `
-Describe the command here
-...
-Extra documentation goes here
+Lists top level keys
 `
+
+ListKeysCommand.examples = [
+	'$ fauna-shell list-keys'
+]
 
 module.exports = ListKeysCommand
