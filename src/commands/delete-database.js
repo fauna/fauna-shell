@@ -23,7 +23,7 @@ class DeleteDatabaseCommand extends FaunaCommand {
 }
 
 DeleteDatabaseCommand.description = `
-Deletes a FaunaDB database
+Deletes a database
 `
 
 DeleteDatabaseCommand.examples = [

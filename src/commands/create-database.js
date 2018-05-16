@@ -23,7 +23,7 @@ class CreateDatabaseCommand extends FaunaCommand {
 }
 
 CreateDatabaseCommand.description = `
-Creates a FaunaDB database
+Creates a database
 `
 
 CreateDatabaseCommand.examples = [
