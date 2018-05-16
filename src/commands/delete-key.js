@@ -5,8 +5,8 @@ const q = faunadb.query;
 
 class DeleteKeyCommand extends FaunaCommand {
   async run() {
-	  const {flags} = this.parse(DeleteKeyCommand);
-	  const key = flags.key || 'default';
+	  const {args} = this.parse(DeleteKeyCommand);
+	  const key = args.key || 'default';
 	  const log = this.log;
 	  
 		this.withClient(function(client) {
@@ -23,13 +23,15 @@ class DeleteKeyCommand extends FaunaCommand {
 }
 
 DeleteKeyCommand.description = `
-Describe the command here
-...
-Extra documentation goes here
+Deletes a key
 `
 
-DeleteKeyCommand.flags = {
-  key: flags.string({char: 'k', description: 'key name'}),
-}
+DeleteKeyCommand.examples = [
+	'$ fauna-shell delete-key [KEYNAME]'
+]
+
+DeleteKeyCommand.args = [
+	{key: 'keyname'},
+]
 
 module.exports = DeleteKeyCommand
