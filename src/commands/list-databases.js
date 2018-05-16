@@ -13,7 +13,7 @@ class ListDatabasesCommand extends FaunaCommand {
 		  helper.each(function(page) {
 			  log(page);
 		  });
-		})
+		});
   }
 }
 
