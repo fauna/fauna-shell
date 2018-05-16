@@ -5,11 +5,10 @@ const q = faunadb.query;
 
 class ListDatabasesCommand extends FaunaCommand {
   async run() {
-	  const {flags} = this.parse(ListDatabasesCommand);
-	  const name = flags.name || 'default';
 		const log = this.log;
 		
 		this.withClient(function(client) {
+			log(`listing databases`);
 		  var helper = client.paginate(q.Databases(null));
 		  helper.each(function(page) {
 			  log(page);
@@ -19,9 +18,11 @@ class ListDatabasesCommand extends FaunaCommand {
 }
 
 ListDatabasesCommand.description = `
-Describe the command here
-...
-Extra documentation goes here
+Lists top level databases
 `
+
+ListDatabasesCommand.examples = [
+	'$ fauna-shell list-databases'
+]
 
 module.exports = ListDatabasesCommand

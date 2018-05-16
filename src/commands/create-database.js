@@ -5,8 +5,8 @@ const q = faunadb.query;
 
 class CreateDatabaseCommand extends FaunaCommand {
   async run() {
-	  const {flags} = this.parse(CreateDatabaseCommand);
-	  const name = flags.name || 'default';
+		const {args} = this.parse(CreateDatabaseCommand);
+	  const name = args.name || 'default';
 	  const log = this.log;
 	  
 		this.withClient(function(client) {
@@ -23,13 +23,15 @@ class CreateDatabaseCommand extends FaunaCommand {
 }
 
 CreateDatabaseCommand.description = `
-Describe the command here
-...
-Extra documentation goes here
+Creates a FaunaDB database
 `
 
-CreateDatabaseCommand.flags = {
-  name: flags.string({char: 'n', description: 'database name'}),
-}
+CreateDatabaseCommand.examples = [
+	'$ fauna-shell create-database [DBNAME]'
+]
+
+CreateDatabaseCommand.args = [
+	{name: 'dbname'},
+]
 
 module.exports = CreateDatabaseCommand
