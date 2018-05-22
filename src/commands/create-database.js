@@ -26,7 +26,7 @@ Creates a database
 `
 
 CreateDatabaseCommand.examples = [
-	'$ fauna-shell create-database [DBNAME]'
+	'$ fauna-shell create-database dbname'
 ]
 
 CreateDatabaseCommand.args = [

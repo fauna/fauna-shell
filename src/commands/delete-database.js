@@ -26,7 +26,7 @@ Deletes a database
 `
 
 DeleteDatabaseCommand.examples = [
-	'$ fauna-shell delete-database [DBNAME]'
+	'$ fauna-shell delete-database dbname'
 ]
 
 DeleteDatabaseCommand.args = [
