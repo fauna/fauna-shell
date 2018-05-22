@@ -5,12 +5,12 @@ const q = faunadb.query;
 class DeleteKeyCommand extends FaunaCommand {
   async run() {
 	  const {args} = this.parse(DeleteKeyCommand);
-	  const key = args.key || 'default';
+	  const keyname = args.keyname;
 	  const log = this.log;
 	  
 		this.withClient(function(client) {
-		  log(`deleting key ${key}`);
-		  client.query(q.Delete(q.Ref(q.Keys(null), key)))
+		  log(`deleting key ${keyname}`);
+		  client.query(q.Delete(q.Ref(q.Keys(null), keyname)))
 		  .then(function(res) {
 			  log(res);
 		  })
