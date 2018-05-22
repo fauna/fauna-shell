@@ -30,7 +30,11 @@ DeleteDatabaseCommand.examples = [
 ]
 
 DeleteDatabaseCommand.args = [
-	{name: 'dbname'},
+	{
+		name: 'dbname', 
+		required: true, 
+		description: 'database name'
+	},
 ]
 
 module.exports = DeleteDatabaseCommand

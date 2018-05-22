@@ -30,7 +30,11 @@ CreateDatabaseCommand.examples = [
 ]
 
 CreateDatabaseCommand.args = [
-	{name: 'dbname'},
+	{
+		name: 'dbname', 
+		required: true, 
+		description: 'database name'
+	},
 ]
 
 module.exports = CreateDatabaseCommand
