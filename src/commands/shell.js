@@ -4,18 +4,20 @@ const q = faunadb.query;
 const repl = require('repl');
 
 class ShellCommand extends FaunaCommand {
-  async run() {
-	  const {flags} = this.parse(ShellCommand);
-	  const name = flags.name || 'default';
-	  const log = this.log;
-	  
+	async run() {
+		const {args} = this.parse(ShellCommand);
+		const dbscope = args.dbname;
+		const role = 'admin';
+		const log = this.log;
+
 		this.withClient(function(client) {
-		  log(`starting shell for database ${name}`);
-			
+			log(`starting shell for database ${dbscope}`);
+
 			const r	= repl.start({
-				prompt: 'faunadb> '
+				prompt: 'faunadb> ',
+				ignoreUndefined: true
 			});
-			
+
 			const query = function (exp) {
 				client.query(exp)
 				.then(function(res) {
@@ -27,26 +29,32 @@ class ShellCommand extends FaunaCommand {
 					r.displayPrompt();
 				});
 			};
-			
+
 			Object.assign(r.context, q);
-			
+
 			Object.defineProperty(r.context, 'query', {
-			  configurable: false,
-			  enumerable: true,
-			  value: query
+				configurable: false,
+				enumerable: true,
+				value: query
 			});
-		});
+		}, dbscope, role);
   }
 }
 
 ShellCommand.description = `
 Starts a FaunaDB shell
-...
-Extra documentation goes here
 `
 
-ShellCommand.flags = {
-  name: flags.string({char: 'd', description: 'database name'}),
-}
+ShellCommand.examples = [
+	'$ fauna-shell dbname'
+]
+
+ShellCommand.args = [
+	{
+		name: 'dbname', 
+		required: true, 
+		description: 'database name'
+	},
+]
 
 module.exports = ShellCommand
