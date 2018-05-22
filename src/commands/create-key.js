@@ -24,17 +24,26 @@ class CreateDatabaseCommand extends FaunaCommand {
   }
 }
 
-CreateDatabaseCommand.description = `
+CreateKeyCommand.description = `
 Creates a key for the specified database
 `
 
-CreateDatabaseCommand.examples = [
-	'$ fauna-shell create-key [DBNAME] [ROLE]'
+CreateKeyCommand.examples = [
+	'$ fauna-shell create-key dbname admin'
 ]
 
-CreateDatabaseCommand.args = [
-	{name: 'dbname'},
-	{role: 'role'}
+CreateKeyCommand.args = [
+	{
+		name: 'dbname', 
+		required: true, 
+		description: 'database name'
+	},
+	{
+		name: 'role',
+		description: 'key user role',
+		default: 'admin',
+		options: ['admin', 'server', 'server-readonly', 'client']
+	}
 ]
 
-module.exports = CreateDatabaseCommand
+module.exports = CreateKeyCommand

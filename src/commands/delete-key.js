@@ -26,11 +26,15 @@ Deletes a key
 `
 
 DeleteKeyCommand.examples = [
-	'$ fauna-shell delete-key [KEYNAME]'
+	'$ fauna-shell delete-key 123456789012345678'
 ]
 
 DeleteKeyCommand.args = [
-	{key: 'keyname'},
+	{
+		name: 'keyname', 
+		required: true, 
+		description: 'key name'
+	},
 ]
 
 module.exports = DeleteKeyCommand
