@@ -4,13 +4,13 @@ const q = faunadb.query;
 
 class CreateDatabaseCommand extends FaunaCommand {
   async run() {
-		const {args} = this.parse(CreateDatabaseCommand);
-	  const name = args.name || 'default';
+		const {args} = this.parse(CreateDatabaseCommand);	
+	  const dbname = args.dbname; 
 	  const log = this.log;
 	  
 		this.withClient(function(client) {
-		  log(`creating database ${name}`);
-		  client.query(q.CreateDatabase({ name: name }))
+		  log(`creating database ${dbname}`);
+		  client.query(q.CreateDatabase({ name: dbname }))
 		  .then(function(res) {
 			  log(res);
 		  })

@@ -5,12 +5,12 @@ const q = faunadb.query;
 class DeleteDatabaseCommand extends FaunaCommand {
   async run() {
 	  const {args} = this.parse(DeleteDatabaseCommand);
-	  const name = args.name || 'default';
+	  const dbname = args.dbname;
 	  const log = this.log;
 		
 	  this.withClient(function(client) {
-		  log(`deleting database ${name}`);
-		  client.query(q.Delete(q.Database(name)))
+		  log(`deleting database ${dbname}`);
+		  client.query(q.Delete(q.Database(dbname)))
 		  .then(function(res) {
 			  log(res);
 		  })
