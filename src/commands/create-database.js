@@ -32,7 +32,7 @@ CreateDatabaseCommand.examples = [
 CreateDatabaseCommand.args = [
 	{
 		name: 'dbname', 
-		required: true, 
+		required: true,
 		description: 'database name'
 	},
 ]
