@@ -245,11 +245,11 @@ USAGE
 # Commands
 <!-- commands -->
 * [`fauna shell DBNAME`](#fauna-shell-dbname)
-* [`fauna create-database`](#fauna-create-database-dbname)
-* [`fauna delete-database`](#fauna-delete-database-dbname)
+* [`fauna create-database DBNAME`](#fauna-create-database-dbname)
+* [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
 * [`fauna list-databases`](#fauna-list-databases)
-* [`fauna create-key`](#fauna-create-key-dbname-role)
-* [`fauna delete-key`](#fauna-delete-key-dbname)
+* [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
+* [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
 * [`fauna list-keys`](#fauna-list-keys)
 * [`fauna help [COMMAND]`](#fauna-help-command)
 
