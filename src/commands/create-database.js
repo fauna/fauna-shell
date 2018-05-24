@@ -7,7 +7,6 @@ class CreateDatabaseCommand extends FaunaCommand {
 		const {args} = this.parse(CreateDatabaseCommand);	
 	  const dbname = args.dbname; 
 	  const log = this.log;
-	  
 		this.withClient(function(client) {
 		  log(`creating database ${dbname}`);
 		  client.query(q.CreateDatabase({ name: dbname }))
@@ -15,7 +14,7 @@ class CreateDatabaseCommand extends FaunaCommand {
 			  log(res);
 		  })
 		  .catch(function(error) {
-			  log(error);
+			  log("Error:", error.message);
 		  });
 		});
   }

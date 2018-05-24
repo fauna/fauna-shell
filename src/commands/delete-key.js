@@ -15,7 +15,7 @@ class DeleteKeyCommand extends FaunaCommand {
 			  log(res);
 		  })
 		  .catch(function(error) {
-			  log(error);
+			  log("Error:", error.message);
 		  });
 		});
   }

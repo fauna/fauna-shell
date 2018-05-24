@@ -21,11 +21,11 @@ class ShellCommand extends FaunaCommand {
 			const query = function (exp) {
 				client.query(exp)
 				.then(function(res) {
-					console.log(res);
+					console.log("\n", res);
 					r.displayPrompt();
 				})
 				.catch(function(error) {
-					console.log(error);
+					console.log("\n", "Error:", error.message);
 					r.displayPrompt();
 				});
 			};
