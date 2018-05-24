@@ -1,10 +1,5 @@
 fauna
 =====
-
-This tools gives you access to [FaunaDB](http://fauna.com/) directly from your CLI. 
-
-It also includes a REPL so you can issue queries to FaunaDB from your CLI without the need of instally additional libraries.
-
 <!-- [![Version](https://img.shields.io/npm/v/fauna.svg)](https://npmjs.org/package/fauna)
 [![CircleCI](https://circleci.com/gh/fauna/fauna/tree/master.svg?style=shield)](https://circleci.com/gh/fauna/fauna/tree/master)
 [![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/fauna/fauna?branch=master&svg=true)](https://ci.appveyor.com/project/fauna/fauna/branch/master)
@@ -12,14 +7,85 @@ It also includes a REPL so you can issue queries to FaunaDB from your CLI withou
 [![Downloads/week](https://img.shields.io/npm/dw/fauna.svg)](https://npmjs.org/package/fauna)
 [![License](https://img.shields.io/npm/l/fauna.svg)](https://github.com/fauna/fauna/blob/master/package.json) -->
 
+This tools gives you access to [FaunaDB](http://fauna.com/) directly from your CLI. 
+
+It also includes a REPL so you can issue queries to FaunaDB from your CLI without the need of instally additional libraries.
+
+It allows you to do things like creating databases directly from the command line:
+
+```sh-session
+$ fauna create-database my_app
+creating database my_app
+{ ref: Ref(id=my_app, class=Ref(id=databases)),
+  ts: 1527202906492280,
+  name: 'my_app' }
+```
+
+And then listing your databases:
+
+```sh-session
+$ fauna list-databases        
+listing databases
+[ Ref(id=my_app, class=Ref(id=databases)),
+  Ref(id=my_second_app, class=Ref(id=databases)),
+  Ref(id=my_other_app, class=Ref(id=databases)) ]
+```
+
+You can also delete a particular database:
+
+```sh-session
+$ fauna delete-database my_other_app
+deleting database my_other_app
+{ ref: Ref(id=my_other_app, class=Ref(id=databases)),
+  ts: 1527202988832864,
+  name: 'my_other_app' }
+```
+
+You can also `create`, `list`, and `delete` _keys_.
+
+This is how you create a key for the database `my_app`:
+
+```sh-session
+$ fauna create-key my_app
+creating key for database my_app with role admin
+{ ref: Ref(id=200219648752353792, class=Ref(id=keys)),
+  ts: 1527203186632830,
+  database: Ref(id=my_app, class=Ref(id=databases)),
+  role: 'admin',
+  secret: 'fnACx1K1sPACABUvNQMZjWNZgsKUVo83btQy0i1x',
+  hashed_secret: '************************************************************' }
+```
+
+This is how to list keys (the results may differ from what you see in your instance of FaunaDB)
+
+```sh-session
+$ fauna list-keys
+listing keys
+[ Ref(id=200219648752353792, class=Ref(id=keys)),
+  Ref(id=200219702370238976, class=Ref(id=keys)) ]
+```
+
+And then delete the key with id: `200219702370238976`:
+
+```sh-session
+./bin/run delete-key 200219702370238976
+deleting key 200219702370238976
+{ ref: Ref(id=200219702370238976, class=Ref(id=keys)),
+  ts: 1527203237774958,
+  database: Ref(id=my_second_app, class=Ref(id=databases)),
+  role: 'admin',
+  hashed_secret: '************************************************************' }
+```
+
 <!-- toc -->
-* [Usage](#usage)
+* [Installation](#Usage)
+* [Usage](#Usage)
 * [Commands](#commands)
 <!-- tocstop -->
-# Usage
-<!-- usage -->
+# Installation
+<!-- installation -->
 ```sh-session
-$ npm install -g fauna
+$ npm install -g fauna-cli
 $ fauna COMMAND
 running command...
 $ fauna (-v|--version|version)
@@ -29,7 +95,7 @@ USAGE
   $ fauna COMMAND
 ...
 ```
-<!-- usagestop -->
+<!-- installationstop -->
 # Commands
 <!-- commands -->
 * [`fauna shell DBNAME`](#fauna-shell-dbname)
@@ -173,67 +239,3 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v1.2.10/src/commands/help.ts)_
 <!-- commandsstop -->
-
-
-
-./bin/run create-database my_app
-query(CreateDatabase({ name: "my_app" }));
-
-./bin/run create-key my_app server
-query(
-  CreateKey(
-    { database: Database("my_app"), role: "server" }));
-
-query(CreateClass({ name: "posts" }))
-
-query(
-  CreateIndex(
-    {
-      name: "posts_by_title",
-      source: Class("posts"),
-      terms: [{ field: ["data", "title"] }]
-    }))
-		
-query(
-  CreateIndex(
-    {
-      name: "posts_by_tags_with_title",
-      source: Class("posts"),
-      terms: [{ field: ["data", "tags"] }],
-      values: [{ field: ["data", "title"] }]
-    }))
-		
-query(
-  Create(
-    Class("posts"),
-    { data: { title: "What I had for breakfast .." } }))
-		
-query(
-	Map(
-		[
-			"My cat and other marvels",
-			"Pondering during a commute",
-			"Deep meanings in a latte"
-		],
-		Lambda("post_title", 
-		  Create(
-				Class("posts"), { data: { title: Var("post_title") } }
-			))
-		))
-		
-query(Get(Ref("classes/posts/200196258555494912")));
-
-query(
-  Update(
-    Ref("classes/posts/200209136159293952"),
-    { data: { tags: ["pet", "cute"] } }));
-		
-query(
-  Replace(
-    Ref("classes/posts/200209136159293952"),
-    { data: { title: "My dog and other marvels" } }));
-		
-query(Delete(Ref("classes/posts/200209136159293952")));
-
-
-query(Get(Ref("classes/posts/200209136159293952")));
