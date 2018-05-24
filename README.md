@@ -226,6 +226,8 @@ faunadb>
  Error: instance not found
 ```
 
+Finally you can exit the _shell_ by pressing `ctrl+d`.
+
 # Installation
 <!-- installation -->
 ```sh-session
