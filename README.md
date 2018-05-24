@@ -32,13 +32,13 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`fauna shell DBNAME`](#fauna-shell-command)
-* [`fauna create-database`](#fauna-create-database-command)
-* [`fauna delete-database`](#fauna-delete-database-command)
-* [`fauna list-databases`](#fauna-list-databases-command)
-* [`fauna create-key`](#fauna-create-key-command)
-* [`fauna delete-key`](#fauna-delete-key-command)
-* [`fauna list-keys`](#fauna-list-keus-command)
+* [`fauna shell DBNAME`](#fauna-shell-dbname)
+* [`fauna create-database`](#fauna-create-database-dbname)
+* [`fauna delete-database`](#fauna-delete-database-dbname)
+* [`fauna list-databases`](#fauna-list-databases)
+* [`fauna create-key`](#fauna-create-key-dbname-role)
+* [`fauna delete-key`](#fauna-delete-key-dbname)
+* [`fauna list-keys`](#fauna-list-keys)
 * [`fauna help [COMMAND]`](#fauna-help-command)
 
 ## `fauna shell DBNAME`
@@ -107,7 +107,7 @@ EXAMPLE
   $ fauna list-databases
 ```
 
-## `fauna create-key`
+## `fauna create-key DBNAME [ROLE]`
 
 ```
 USAGE
@@ -125,7 +125,7 @@ EXAMPLE
   $ fauna create-key dbname admin
 ```
 
-## `fauna delete-key`
+## `fauna delete-key KEYNAME`
 
 ```
 USAGE
