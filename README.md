@@ -11,11 +11,17 @@ This tools gives you access to [FaunaDB](http://fauna.com/) directly from your C
 
 It also includes a [Shell](#shell) so you can issue queries to FaunaDB without the need of install additional libraries.
 
+You can install it via npm like this:
+
+```sh-session
+$ npm install -g fauna-shell
+```
+
 <!-- toc -->
 * [Usage](#usage)
 * [Shell](#shell)
-* [Installation](#installation)
-* [Commands](#commands)
+* [Command details](#details)
+* [List of Commands](#commands)
 <!-- tocstop -->
 
 # Usage
@@ -246,10 +252,9 @@ faunadb>
 
 Finally you can exit the _shell_ by pressing `ctrl+d`.
 
-# Installation
-<!-- installation -->
+# Command Details
+<!-- details -->
 ```sh-session
-$ npm install -g fauna-shell
 $ fauna COMMAND
 running command...
 $ fauna (-v|--version|version)
@@ -259,8 +264,8 @@ USAGE
   $ fauna COMMAND
 ...
 ```
-<!-- installationstop -->
-# Commands
+<!-- detailsstop -->
+# List of Commands
 <!-- commands -->
 * [`fauna create-database DBNAME`](#fauna-create-database-dbname)
 * [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
