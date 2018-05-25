@@ -22,6 +22,16 @@ It also includes a [Shell](#shell) so you can issue queries to FaunaDB without t
 
 The tool allows you to do things like _creating_, _deleting_ and _listings_ databases.
 
+First lets create a file with our FaunaDB key so the shell has access to our account. If you don't have an account, you can create a free account [here](https://fauna.com/sign-up).
+
+Run the following command by replacing `YOUR_FAUNADB_KEY` with the actual key from your [FaunaDB Cloud](https://dashboard.fauna.com/) account.
+
+```sh-session
+$ echo YOUR_FAUNADB_KEY > ~/.fauna-shell
+```
+
+The `fauna` tool will read our key from that file and then use it to authenticate against the [FaunaDB Cloud](https://dashboard.fauna.com/).
+
 This is how you can create a database called `my_app`:
 
 ```sh-session
@@ -252,24 +262,24 @@ USAGE
 <!-- installationstop -->
 # Commands
 <!-- commands -->
-* [`fauna-shell create-database DBNAME`](#fauna-shell-create-database-dbname)
-* [`fauna-shell create-key DBNAME [ROLE]`](#fauna-shell-create-key-dbname-role)
-* [`fauna-shell create_class`](#fauna-shell-create-class)
-* [`fauna-shell db [ACTION] [DBNAME]`](#fauna-shell-db-action-dbname)
-* [`fauna-shell delete-database DBNAME`](#fauna-shell-delete-database-dbname)
-* [`fauna-shell delete-key KEYNAME`](#fauna-shell-delete-key-keyname)
-* [`fauna-shell help [COMMAND]`](#fauna-shell-help-command)
-* [`fauna-shell list-databases`](#fauna-shell-list-databases)
-* [`fauna-shell list-keys`](#fauna-shell-list-keys)
-* [`fauna-shell shell DBNAME`](#fauna-shell-shell-dbname)
+* [`fauna create-database DBNAME`](#fauna-create-database-dbname)
+* [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
+* [`fauna create_class`](#fauna-create-class)
+* [`fauna db [ACTION] [DBNAME]`](#fauna-db-action-dbname)
+* [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
+* [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
+* [`fauna help [COMMAND]`](#fauna-help-command)
+* [`fauna list-databases`](#fauna-list-databases)
+* [`fauna list-keys`](#fauna-list-keys)
+* [`fauna shell DBNAME`](#fauna-shell-dbname)
 
-## `fauna-shell create-database DBNAME`
+## `fauna create-database DBNAME`
 
 Creates a database
 
 ```
 USAGE
-  $ fauna-shell create-database DBNAME
+  $ fauna create-database DBNAME
 
 ARGUMENTS
   DBNAME  database name
@@ -284,13 +294,13 @@ EXAMPLE
 
 _See code: [src/commands/create-database.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/create-database.js)_
 
-## `fauna-shell create-key DBNAME [ROLE]`
+## `fauna create-key DBNAME [ROLE]`
 
 Creates a key for the specified database
 
 ```
 USAGE
-  $ fauna-shell create-key DBNAME [ROLE]
+  $ fauna create-key DBNAME [ROLE]
 
 ARGUMENTS
   DBNAME  database name
@@ -306,13 +316,13 @@ EXAMPLE
 
 _See code: [src/commands/create-key.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/create-key.js)_
 
-## `fauna-shell create_class`
+## `fauna create_class`
 
 Describe the command here
 
 ```
 USAGE
-  $ fauna-shell create_class
+  $ fauna create_class
 
 OPTIONS
   -d, --database=database  database name
@@ -326,13 +336,13 @@ DESCRIPTION
 
 _See code: [src/commands/create_class.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/create_class.js)_
 
-## `fauna-shell db [ACTION] [DBNAME]`
+## `fauna db [ACTION] [DBNAME]`
 
 Describe the command here
 
 ```
 USAGE
-  $ fauna-shell db [ACTION] [DBNAME]
+  $ fauna db [ACTION] [DBNAME]
 
 DESCRIPTION
   Describe the command here
@@ -342,13 +352,13 @@ DESCRIPTION
 
 _See code: [src/commands/db.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/db.js)_
 
-## `fauna-shell delete-database DBNAME`
+## `fauna delete-database DBNAME`
 
 Deletes a database
 
 ```
 USAGE
-  $ fauna-shell delete-database DBNAME
+  $ fauna delete-database DBNAME
 
 ARGUMENTS
   DBNAME  database name
@@ -363,13 +373,13 @@ EXAMPLE
 
 _See code: [src/commands/delete-database.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/delete-database.js)_
 
-## `fauna-shell delete-key KEYNAME`
+## `fauna delete-key KEYNAME`
 
 Deletes a key
 
 ```
 USAGE
-  $ fauna-shell delete-key KEYNAME
+  $ fauna delete-key KEYNAME
 
 ARGUMENTS
   KEYNAME  key name
@@ -384,13 +394,13 @@ EXAMPLE
 
 _See code: [src/commands/delete-key.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/delete-key.js)_
 
-## `fauna-shell help [COMMAND]`
+## `fauna help [COMMAND]`
 
-display help for fauna-shell
+display help for fauna
 
 ```
 USAGE
-  $ fauna-shell help [COMMAND]
+  $ fauna help [COMMAND]
 
 ARGUMENTS
   COMMAND  command to show help for
@@ -401,13 +411,13 @@ OPTIONS
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v1.2.11/src/commands/help.ts)_
 
-## `fauna-shell list-databases`
+## `fauna list-databases`
 
 Lists top level databases
 
 ```
 USAGE
-  $ fauna-shell list-databases
+  $ fauna list-databases
 
 DESCRIPTION
   Lists top level databases
@@ -419,13 +429,13 @@ EXAMPLE
 
 _See code: [src/commands/list-databases.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/list-databases.js)_
 
-## `fauna-shell list-keys`
+## `fauna list-keys`
 
 Lists top level keys
 
 ```
 USAGE
-  $ fauna-shell list-keys
+  $ fauna list-keys
 
 DESCRIPTION
   Lists top level keys
@@ -437,13 +447,13 @@ EXAMPLE
 
 _See code: [src/commands/list-keys.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/list-keys.js)_
 
-## `fauna-shell shell DBNAME`
+## `fauna shell DBNAME`
 
 Starts a FaunaDB shell
 
 ```
 USAGE
-  $ fauna-shell shell DBNAME
+  $ fauna shell DBNAME
 
 ARGUMENTS
   DBNAME  database name
