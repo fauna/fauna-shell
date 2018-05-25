@@ -249,7 +249,7 @@ Finally you can exit the _shell_ by pressing `ctrl+d`.
 # Installation
 <!-- installation -->
 ```sh-session
-$ npm install -g fauna-cli
+$ npm install -g fauna-shell
 $ fauna COMMAND
 running command...
 $ fauna (-v|--version|version)
