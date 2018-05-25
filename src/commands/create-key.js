@@ -3,25 +3,14 @@ const faunadb = require('faunadb');
 const q = faunadb.query;
 
 class CreateKeyCommand extends FaunaCommand {
-  async run() {
+	async run() {
 		const {args} = this.parse(CreateKeyCommand);
-	  const dbname = args.dbname;
+		const dbname = args.dbname;
 		const role = args.role;
-	  const log = this.log;
-	  
-		this.withClient(function(client) {
-		  log(`creating key for database ${dbname} with role ${role}`);
-			
-			client.query(
-			  q.CreateKey(
-			    { database: q.Database(dbname), role: role }))
-		  .then(function(res) {
-			  log(res);
-		  })
-		  .catch(function(error) {
-			  log("Error:", error.message);
-		  });
-		});
+		this.query(
+			q.CreateKey({ database: q.Database(dbname), role: role }),
+			`creating key for database ${dbname} with role ${role}`
+		);
   }
 }
 

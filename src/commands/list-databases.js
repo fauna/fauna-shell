@@ -4,15 +4,10 @@ const q = faunadb.query;
 
 class ListDatabasesCommand extends FaunaCommand {
   async run() {
-		const log = this.log;
-		
-		this.withClient(function(client) {
-			log(`listing databases`);
-		  var helper = client.paginate(q.Databases(null));
-		  helper.each(function(page) {
-			  log(page);
-		  });
-		});
+		this.paginate(
+			q.Databases(null),
+			'listing databases'
+		);
   }
 }
 

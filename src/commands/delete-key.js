@@ -7,17 +7,10 @@ class DeleteKeyCommand extends FaunaCommand {
 	  const {args} = this.parse(DeleteKeyCommand);
 	  const keyname = args.keyname;
 	  const log = this.log;
-	  
-		this.withClient(function(client) {
-		  log(`deleting key ${keyname}`);
-		  client.query(q.Delete(q.Ref(q.Keys(null), keyname)))
-		  .then(function(res) {
-			  log(res);
-		  })
-		  .catch(function(error) {
-			  log("Error:", error.message);
-		  });
-		});
+		this.query(
+			q.Delete(q.Ref(q.Keys(null), keyname)),
+			`deleting key ${keyname}`
+		);
   }
 }
 
