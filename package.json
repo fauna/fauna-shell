@@ -1,7 +1,7 @@
 {
   "name": "fauna-shell",
   "description": "faunadb shell",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Alvaro Videla",
   "bin": {
     "fauna": "./bin/run"
@@ -34,7 +34,12 @@
   ],
   "homepage": "https://github.com/fauna/fauna-shell",
   "keywords": [
-    "fauna", "faunadb", "shell", "database", "nosql", "oclif"
+    "fauna",
+    "faunadb",
+    "shell",
+    "database",
+    "nosql",
+    "oclif"
   ],
   "license": "MPL-2.0",
   "main": "src/index.js",
