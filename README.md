@@ -179,7 +179,7 @@ faunadb>
     data: { title: 'Deep meanings in a latte' } } ]
 ```
 
-
+Now let's try to fetch our post about _latte_. We need to access it by _id_ like this:
 
 ```javascript
 faunadb> query(Get(Ref("classes/posts/200221673471869440")))
@@ -188,6 +188,8 @@ faunadb>
   ts: 1527205117556412,
   data: { title: 'Deep meanings in a latte' } }
 ```
+
+Now let's update our post about our cat, by adding some tags:
 
 ```javascript
 faunadb> query(
@@ -199,6 +201,8 @@ faunadb>
   ts: 1527205328606603,
   data: { title: 'My cat and other marvels', tags: [ 'pet', 'cute' ] } }
 ```
+
+And now let's try to change the content of that post:
 
 ```javascript
 faunadb> query(
@@ -212,6 +216,8 @@ faunadb>
 
 ```
 
+Now let's try to delete our post about _latte_:
+
 ```javascript
 faunadb> query(Delete(Ref("classes/posts/200221673471869440")))
 faunadb>
@@ -219,6 +225,8 @@ faunadb>
   ts: 1527205117556412,
   data: { title: 'Deep meanings in a latte' } }
 ```
+
+If we try to fetch it, we will receive an error:
 
 ```javascript
 faunadb> query(Get(Ref("classes/posts/200221673471869440")))
