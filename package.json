@@ -34,7 +34,7 @@
   ],
   "homepage": "https://github.com/fauna/fauna-shell",
   "keywords": [
-    "oclif"
+    "fauna", "faunadb", "shell", "database", "nosql", "oclif"
   ],
   "license": "MIT",
   "main": "src/index.js",
