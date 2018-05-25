@@ -4,13 +4,14 @@
   "version": "0.0.1",
   "author": "Alvaro Videla",
   "bin": {
-    "fauna-shell": "./bin/run"
+    "fauna": "./bin/run"
   },
   "bugs": "https://github.com/fauna/fauna-shell/issues",
   "dependencies": {
     "@oclif/command": "1",
     "@oclif/config": "1",
     "@oclif/plugin-help": "1",
+		"globby": "8",
     "faunadb": "^2.0.0"
   },
   "devDependencies": {
