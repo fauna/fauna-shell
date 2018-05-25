@@ -32,6 +32,17 @@ class FaunaCommand extends Command {
 		  });
 		});
 	}
+	
+	paginate(queryExpr, logMsg) {
+		const log = this.log;
+		this.withClient(function(client) {
+			log(logMsg);
+			var helper = client.paginate(queryExpr);
+			helper.each(function(page) {
+				log(page);
+			});
+		});
+	}
 }
 
 module.exports = FaunaCommand;
