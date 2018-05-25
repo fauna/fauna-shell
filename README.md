@@ -264,8 +264,6 @@ USAGE
 <!-- commands -->
 * [`fauna create-database DBNAME`](#fauna-create-database-dbname)
 * [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
-* [`fauna create_class`](#fauna-create-class)
-* [`fauna db [ACTION] [DBNAME]`](#fauna-db-action-dbname)
 * [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
 * [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
 * [`fauna help [COMMAND]`](#fauna-help-command)
@@ -315,42 +313,6 @@ EXAMPLE
 ```
 
 _See code: [src/commands/create-key.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/create-key.js)_
-
-## `fauna create_class`
-
-Describe the command here
-
-```
-USAGE
-  $ fauna create_class
-
-OPTIONS
-  -d, --database=database  database name
-  -n, --name=name          class name
-
-DESCRIPTION
-  Describe the command here
-  ...
-  Extra documentation goes here
-```
-
-_See code: [src/commands/create_class.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/create_class.js)_
-
-## `fauna db [ACTION] [DBNAME]`
-
-Describe the command here
-
-```
-USAGE
-  $ fauna db [ACTION] [DBNAME]
-
-DESCRIPTION
-  Describe the command here
-  ...
-  Extra documentation goes here
-```
-
-_See code: [src/commands/db.js](https://github.com/fauna/fauna-shell/blob/v0.0.1/src/commands/db.js)_
 
 ## `fauna delete-database DBNAME`
 
