@@ -18,6 +18,20 @@ class FaunaCommand extends Command {
 			f(client);
 		})
 	}
+	
+	query(queryExpr, logMsg) {
+		const log = this.log;
+		this.withClient(function(client) {
+		  log(logMsg);
+		  client.query(queryExpr)
+		  .then(function(res) {
+			  log(res);
+		  })
+		  .catch(function(error) {
+			  log("Error:", error.message);
+		  });
+		});
+	}
 }
 
 module.exports = FaunaCommand;
