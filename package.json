@@ -39,7 +39,7 @@
   "main": "src/index.js",
   "oclif": {
     "commands": "./src/commands",
-    "bin": "fauna-shell",
+    "bin": "fauna",
     "plugins": [
       "@oclif/plugin-help"
     ]
