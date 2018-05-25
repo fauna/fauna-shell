@@ -1,7 +1,7 @@
 {
   "name": "fauna-shell",
   "description": "faunadb shell",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Alvaro Videla",
   "bin": {
     "fauna": "./bin/run"
@@ -11,7 +11,7 @@
     "@oclif/command": "1",
     "@oclif/config": "1",
     "@oclif/plugin-help": "1",
-		"globby": "8",
+    "globby": "8",
     "faunadb": "^2.0.0"
   },
   "devDependencies": {
