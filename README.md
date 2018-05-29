@@ -35,6 +35,11 @@ Run the following command by replacing `YOUR_FAUNADB_KEY` with the actual key fr
 ```sh-session
 $ echo YOUR_FAUNADB_KEY > ~/.fauna-shell
 ```
+You can override the value set in that file via the `FAUNA_SECRET_KEY` environment variable like this: 
+
+```sh-session
+export FAUNA_SECRET_KEY=YOUR_FAUNADB_KEY
+```
 
 The `fauna` tool will read our key from that file and then use it to authenticate against the [FaunaDB Cloud](https://dashboard.fauna.com/).
 

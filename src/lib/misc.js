@@ -10,8 +10,12 @@ exports.getConfigFile = function() {
 
 exports.getRootKey = function(fileName) {
 	return new Promise(function(resolve, reject){
-		fs.readFile(fileName, 'utf8', (err, data) => {
-			err ? reject(err) : resolve(data.trim());
-		});
+		if (process.env.FAUNA_SECRET_KEY) {
+			resolve(process.env.FAUNA_SECRET_KEY);
+		} else {
+			fs.readFile(fileName, 'utf8', (err, data) => {
+				err ? reject(err) : resolve(data.trim());
+			});
+		}
 	});
 }
