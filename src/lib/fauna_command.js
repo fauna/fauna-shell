@@ -19,7 +19,9 @@ class FaunaCommand extends Command {
 			f(client);
 		}).catch(function(err) {
 			if (err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2) {
-				log(`Error: File ${err.path} not found. \nYou must create as explained in the project README.`);
+				log(`Error: File ${err.path} not found. \nYou must create one as explained in the project README.`);
+			} else {
+				log(err);
 			}
 		})
 	}
