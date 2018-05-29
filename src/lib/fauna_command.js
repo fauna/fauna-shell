@@ -7,6 +7,7 @@ const q = faunadb.query;
 class FaunaCommand extends Command {
 			
 	withClient(f, dbScope, role) {
+		const log = this.log
 		getRootKey(getConfigFile())
 		.then(function (rootKey) {
 			var secret = rootKey;	
@@ -16,6 +17,10 @@ class FaunaCommand extends Command {
 			
 			var client = new faunadb.Client({ secret: secret });
 			f(client);
+		}).catch(function(err) {
+			if (err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2) {
+				log(`Error: File ${err.path} not found. \nYou must create as explained in the project README.`);
+			}
 		})
 	}
 	
