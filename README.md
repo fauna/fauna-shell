@@ -22,6 +22,7 @@ $ npm install -g fauna-shell
 * [Shell](#shell)
 * [Command Details](#command-details)
 * [Connecting to your local FaunaDB instance](#connecting-to-your-local-fauna-db-instance)
+* [Providing your FaunaDB Key via Environment Variables](#providing-your-fauna-db-key-via-environment-variables)
 * [List of Commands](#list-of-commands)
 <!-- tocstop -->
 
@@ -35,11 +36,6 @@ Run the following command by replacing `YOUR_FAUNADB_KEY` with the actual key fr
 
 ```sh-session
 $ echo YOUR_FAUNADB_KEY > ~/.fauna-shell
-```
-You can override the value set in that file via the `FAUNA_SECRET_KEY` environment variable like this: 
-
-```sh-session
-export FAUNA_SECRET_KEY=YOUR_FAUNADB_KEY
 ```
 
 The `fauna` tool will read our key from that file and then use it to authenticate against the [FaunaDB Cloud](https://dashboard.fauna.com/).
@@ -282,6 +278,16 @@ OPTIONS
   --scheme=https|http  [default: https] Connection scheme.
   --timeout=timeout    [default: 80] Connection timeout in milliseconds
 ```
+
+# Providing your FaunaDB Key via Environment Variables
+
+You can override the value set in that file via the `FAUNA_SECRET_KEY` environment variable like this: 
+
+```sh-session
+export FAUNA_SECRET_KEY=YOUR_FAUNADB_KEY
+```
+
+The `FAUNA_SECRET_KEY` environment variable has precedence over what's defined in the `.fauna-shell` file.
 
 <!-- detailsstop -->
 # List of Commands
