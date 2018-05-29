@@ -4,8 +4,7 @@ const q = faunadb.query;
 
 class DeleteDatabaseCommand extends FaunaCommand {
   async run() {
-	  const {args} = this.parse(DeleteDatabaseCommand);
-	  const dbname = args.dbname;
+		const dbname = this.args.dbname; 
 		this.query(
 			q.Delete(q.Database(dbname)), 
 			`deleting database ${dbname}`
@@ -20,6 +19,10 @@ Deletes a database
 DeleteDatabaseCommand.examples = [
 	'$ fauna-shell delete-database dbname'
 ]
+
+DeleteDatabaseCommand.flags = {
+	...FaunaCommand.flags
+}
 
 DeleteDatabaseCommand.args = [
 	{

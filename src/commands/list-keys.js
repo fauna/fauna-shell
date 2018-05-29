@@ -19,4 +19,8 @@ ListKeysCommand.examples = [
 	'$ fauna-shell list-keys'
 ]
 
+ListKeysCommand.flags = {
+	...FaunaCommand.flags
+}
+
 module.exports = ListKeysCommand

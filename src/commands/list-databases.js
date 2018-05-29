@@ -19,4 +19,8 @@ ListDatabasesCommand.examples = [
 	'$ fauna-shell list-databases'
 ]
 
+ListDatabasesCommand.flags = {
+	...FaunaCommand.flags
+}
+
 module.exports = ListDatabasesCommand

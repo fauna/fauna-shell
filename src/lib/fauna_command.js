@@ -1,21 +1,34 @@
-const {Command} = require('@oclif/command')
-
+const {Command, flags} = require('@oclif/command')
 const {getRootKey, getConfigFile} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
 class FaunaCommand extends Command {
+	
+	async init() {
+		const {flags: f, args: a} = this.parse(this.constructor)
+		this.flags = f;
+		this.args = a;
+	}
 			
 	withClient(f, dbScope, role) {
 		const log = this.log
+		const connectionOptions = {
+			domain: this.flags.domain,
+			scheme: this.flags.scheme,
+			port: this.flags.port,
+			timeout: this.flags.timeout
+		};
+		
 		getRootKey(getConfigFile())
 		.then(function (rootKey) {
-			var secret = rootKey;	
+			var secret = rootKey;
 			if (dbScope !== undefined && role !== undefined) {
 				secret = rootKey + ":" + dbScope + ":" + role;
 			}
 			
-			var client = new faunadb.Client({ secret: secret });
+			connectionOptions.secret = secret;
+			var client = new faunadb.Client(connectionOptions);
 			f(client);
 		}).catch(function(err) {
 			if (err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2) {
@@ -50,6 +63,26 @@ class FaunaCommand extends Command {
 			});
 		});
 	}
+}
+
+FaunaCommand.flags = {
+	domain: flags.string({
+    description: 'FaunaDB server domain',
+    default: 'db.fauna.com',
+  }),
+	scheme: flags.string({
+    description: 'Connection scheme.',
+		options: ['https', 'http'],
+		default: 'https',
+  }),
+	port: flags.string({
+    description: 'Connection port',
+    default: 443,
+  }),
+	timeout: flags.string({
+    description: 'Connection timeout in milliseconds',
+		default: 80,
+  })
 }
 
 module.exports = FaunaCommand;

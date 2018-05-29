@@ -4,8 +4,7 @@ const q = faunadb.query;
 
 class CreateDatabaseCommand extends FaunaCommand {
   async run() {
-		const {args} = this.parse(CreateDatabaseCommand);	
-	  const dbname = args.dbname; 
+	  const dbname = this.args.dbname; 
 		this.query(
 			q.CreateDatabase({ name: dbname }), 
 			`creating database ${dbname}`
@@ -20,6 +19,10 @@ Creates a database
 CreateDatabaseCommand.examples = [
 	'$ fauna-shell create-database dbname'
 ]
+
+CreateDatabaseCommand.flags = {
+	...FaunaCommand.flags
+}
 
 CreateDatabaseCommand.args = [
 	{

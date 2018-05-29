@@ -4,8 +4,7 @@ const q = faunadb.query;
 
 class DeleteKeyCommand extends FaunaCommand {
   async run() {
-	  const {args} = this.parse(DeleteKeyCommand);
-	  const keyname = args.keyname;
+	  const keyname = this.args.keyname;
 	  const log = this.log;
 		this.query(
 			q.Delete(q.Ref(q.Keys(null), keyname)),
@@ -21,6 +20,10 @@ Deletes a key
 DeleteKeyCommand.examples = [
 	'$ fauna-shell delete-key 123456789012345678'
 ]
+
+DeleteKeyCommand.flags = {
+	...FaunaCommand.flags
+}
 
 DeleteKeyCommand.args = [
 	{

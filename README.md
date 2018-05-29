@@ -287,6 +287,12 @@ USAGE
 ARGUMENTS
   DBNAME  database name
 
+OPTIONS
+  --domain=domain      [default: db.fauna.com] FaunaDB server domain
+  --port=port          [default: 443] Connection port
+  --scheme=https|http  [default: https] Connection scheme.
+  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+
 DESCRIPTION
   Creates a database
 
@@ -309,6 +315,12 @@ ARGUMENTS
   DBNAME  database name
   ROLE    [default: admin] key user role
 
+OPTIONS
+  --domain=domain      [default: db.fauna.com] FaunaDB server domain
+  --port=port          [default: 443] Connection port
+  --scheme=https|http  [default: https] Connection scheme.
+  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+
 DESCRIPTION
   Creates a key for the specified database
 
@@ -330,6 +342,12 @@ USAGE
 ARGUMENTS
   DBNAME  database name
 
+OPTIONS
+  --domain=domain      [default: db.fauna.com] FaunaDB server domain
+  --port=port          [default: 443] Connection port
+  --scheme=https|http  [default: https] Connection scheme.
+  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+
 DESCRIPTION
   Deletes a database
 
@@ -350,6 +368,12 @@ USAGE
 
 ARGUMENTS
   KEYNAME  key name
+
+OPTIONS
+  --domain=domain      [default: db.fauna.com] FaunaDB server domain
+  --port=port          [default: 443] Connection port
+  --scheme=https|http  [default: https] Connection scheme.
+  --timeout=timeout    [default: 80] Connection timeout in milliseconds
 
 DESCRIPTION
   Deletes a key
@@ -386,6 +410,12 @@ Lists top level databases
 USAGE
   $ fauna list-databases
 
+OPTIONS
+  --domain=domain      [default: db.fauna.com] FaunaDB server domain
+  --port=port          [default: 443] Connection port
+  --scheme=https|http  [default: https] Connection scheme.
+  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+
 DESCRIPTION
   Lists top level databases
 
@@ -403,6 +433,12 @@ Lists top level keys
 ```
 USAGE
   $ fauna list-keys
+
+OPTIONS
+  --domain=domain      [default: db.fauna.com] FaunaDB server domain
+  --port=port          [default: 443] Connection port
+  --scheme=https|http  [default: https] Connection scheme.
+  --timeout=timeout    [default: 80] Connection timeout in milliseconds
 
 DESCRIPTION
   Lists top level keys
@@ -424,6 +460,12 @@ USAGE
 
 ARGUMENTS
   DBNAME  database name
+
+OPTIONS
+  --domain=domain      [default: db.fauna.com] FaunaDB server domain
+  --port=port          [default: 443] Connection port
+  --scheme=https|http  [default: https] Connection scheme.
+  --timeout=timeout    [default: 80] Connection timeout in milliseconds
 
 DESCRIPTION
   Starts a FaunaDB shell

@@ -5,8 +5,7 @@ const repl = require('repl');
 
 class ShellCommand extends FaunaCommand {
 	async run() {
-		const {args} = this.parse(ShellCommand);
-		const dbscope = args.dbname;
+		const dbscope = this.args.dbname;
 		const role = 'admin';
 		const log = this.log;
 
@@ -48,6 +47,10 @@ Starts a FaunaDB shell
 ShellCommand.examples = [
 	'$ fauna-shell dbname'
 ]
+
+ShellCommand.flags = {
+	...FaunaCommand.flags
+}
 
 ShellCommand.args = [
 	{
