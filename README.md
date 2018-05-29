@@ -21,6 +21,7 @@ $ npm install -g fauna-shell
 * [Usage](#usage)
 * [Shell](#shell)
 * [Command Details](#command-details)
+* [Connecting to your local FaunaDB instance](#connecting-to-your-local-fauna-db-instance)
 * [List of Commands](#list-of-commands)
 <!-- tocstop -->
 
@@ -319,7 +320,7 @@ EXAMPLE
   $ fauna-shell create-database dbname
 ```
 
-_See code: [src/commands/create-database.js](https://github.com/fauna/fauna-shell/blob/v0.0.4/src/commands/create-database.js)_
+_See code: [src/commands/create-database.js](https://github.com/fauna/fauna-shell/blob/v0.0.5/src/commands/create-database.js)_
 
 ## `fauna create-key DBNAME [ROLE]`
 
@@ -347,7 +348,7 @@ EXAMPLE
   $ fauna-shell create-key dbname admin
 ```
 
-_See code: [src/commands/create-key.js](https://github.com/fauna/fauna-shell/blob/v0.0.4/src/commands/create-key.js)_
+_See code: [src/commands/create-key.js](https://github.com/fauna/fauna-shell/blob/v0.0.5/src/commands/create-key.js)_
 
 ## `fauna delete-database DBNAME`
 
@@ -374,7 +375,7 @@ EXAMPLE
   $ fauna-shell delete-database dbname
 ```
 
-_See code: [src/commands/delete-database.js](https://github.com/fauna/fauna-shell/blob/v0.0.4/src/commands/delete-database.js)_
+_See code: [src/commands/delete-database.js](https://github.com/fauna/fauna-shell/blob/v0.0.5/src/commands/delete-database.js)_
 
 ## `fauna delete-key KEYNAME`
 
@@ -401,7 +402,7 @@ EXAMPLE
   $ fauna-shell delete-key 123456789012345678
 ```
 
-_See code: [src/commands/delete-key.js](https://github.com/fauna/fauna-shell/blob/v0.0.4/src/commands/delete-key.js)_
+_See code: [src/commands/delete-key.js](https://github.com/fauna/fauna-shell/blob/v0.0.5/src/commands/delete-key.js)_
 
 ## `fauna help [COMMAND]`
 
@@ -442,7 +443,7 @@ EXAMPLE
   $ fauna-shell list-databases
 ```
 
-_See code: [src/commands/list-databases.js](https://github.com/fauna/fauna-shell/blob/v0.0.4/src/commands/list-databases.js)_
+_See code: [src/commands/list-databases.js](https://github.com/fauna/fauna-shell/blob/v0.0.5/src/commands/list-databases.js)_
 
 ## `fauna list-keys`
 
@@ -466,7 +467,7 @@ EXAMPLE
   $ fauna-shell list-keys
 ```
 
-_See code: [src/commands/list-keys.js](https://github.com/fauna/fauna-shell/blob/v0.0.4/src/commands/list-keys.js)_
+_See code: [src/commands/list-keys.js](https://github.com/fauna/fauna-shell/blob/v0.0.5/src/commands/list-keys.js)_
 
 ## `fauna shell DBNAME`
 
@@ -493,5 +494,5 @@ EXAMPLE
   $ fauna-shell dbname
 ```
 
-_See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.0.4/src/commands/shell.js)_
+_See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.0.5/src/commands/shell.js)_
 <!-- commandsstop -->
