@@ -109,11 +109,11 @@ deleting key 200219702370238976
   hashed_secret: '************************************************************' }
 ```
 
-See [Commands](#commands) for a list of commnads and help on their usage.
+See [Commands](#commands) for a list of commands and help on their usage.
 
 # Shell
 
-The Fauna Shell lets you issue queries directly to your FaunaDB instance without the need for installing additinal libraries.
+The Fauna Shell lets you issue queries directly to your FaunaDB instance without the need for installing additional libraries.
 
 Let's create a database and then we'll jump straight into the Shell to start playing with FaunaDB's data model.
 
@@ -129,7 +129,7 @@ starting shell for database my_app
 faunadb>
 ```
 
-Once you have the prompt ready, you can start issues queries against your FaunaDB instance. (Note that the results shown here might vary from the ones ytou see while running the examples).
+Once you have the prompt ready, you can start issues queries against your FaunaDB instance. (Note that the results shown here might vary from the ones you see while running the examples).
 
 ```javascript
 faunadb> query(CreateClass({ name: "posts" }))
@@ -269,6 +269,19 @@ USAGE
   $ fauna COMMAND
 ...
 ```
+
+# Connecting to your local FaunaDB instance
+
+All the commands support the following options, in case you want them to connect to your local FaunaDB instance.
+
+```
+OPTIONS
+  --domain=domain      [default: db.fauna.com] FaunaDB server domain
+  --port=port          [default: 443] Connection port
+  --scheme=https|http  [default: https] Connection scheme.
+  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+```
+
 <!-- detailsstop -->
 # List of Commands
 <!-- commands -->
