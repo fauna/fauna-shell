@@ -97,7 +97,7 @@ listing keys
 And then delete the key with id: `200219702370238976`:
 
 ```sh-session
-./bin/run delete-key 200219702370238976
+fauna delete-key 200219702370238976
 deleting key 200219702370238976
 { ref: Ref(id=200219702370238976, class=Ref(id=keys)),
   ts: 1527203237774958,
