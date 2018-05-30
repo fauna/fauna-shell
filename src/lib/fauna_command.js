@@ -1,5 +1,5 @@
 const {Command, flags} = require('@oclif/command')
-const {getRootKey, getConfigFile} = require('../lib/misc.js')
+const {readFile, getConfigFile, buildConnectionOptions} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
@@ -13,30 +13,24 @@ class FaunaCommand extends Command {
 			
 	withClient(f, dbScope, role) {
 		const log = this.log
-		const connectionOptions = {
-			domain: this.flags.domain,
-			scheme: this.flags.scheme,
-			port: this.flags.port,
-			timeout: this.flags.timeout
-		};
-		
-		getRootKey(getConfigFile())
-		.then(function (rootKey) {
-			var secret = rootKey;
-			if (dbScope !== undefined && role !== undefined) {
-				secret = rootKey + ":" + dbScope + ":" + role;
-			}
-			
-			connectionOptions.secret = secret;
+		const cmdFlags = this.flags;
+		readFile(getConfigFile())
+		.then(function(configData) {
+			return buildConnectionOptions(configData, cmdFlags, dbScope, role)
+		})
+		.then(function(connectionOptions) {
 			var client = new faunadb.Client(connectionOptions);
+			//TODO this should return a Promise
 			f(client);
-		}).catch(function(err) {
+		})
+		.catch(function(err) {
+			//TODO this should reject instead of logging
 			if (err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2) {
 				log(`Error: File ${err.path} not found. \nYou must create one as explained in the project README.`);
 			} else {
 				log(err);
 			}
-		})
+		});
 	}
 	
 	query(queryExpr, logMsg) {
@@ -68,21 +62,20 @@ class FaunaCommand extends Command {
 FaunaCommand.flags = {
 	domain: flags.string({
     description: 'FaunaDB server domain',
-    default: 'db.fauna.com',
   }),
 	scheme: flags.string({
-    description: 'Connection scheme.',
+    description: 'Connection scheme',
 		options: ['https', 'http'],
-		default: 'https',
   }),
 	port: flags.string({
     description: 'Connection port',
-    default: 443,
   }),
 	timeout: flags.string({
     description: 'Connection timeout in milliseconds',
-		default: 80,
-  })
+  }),
+	secret: flags.string({
+		description: 'FaunaDB secret key',
+  }),
 }
 
 module.exports = FaunaCommand;

@@ -35,7 +35,7 @@ First lets create a file with our FaunaDB key so the shell has access to our acc
 Run the following command by replacing `YOUR_FAUNADB_KEY` with the actual key from your [FaunaDB Cloud](https://dashboard.fauna.com/) account.
 
 ```sh-session
-$ echo YOUR_FAUNADB_KEY > ~/.fauna-shell
+$ echo "secret=YOUR_FAUNADB_KEY" >> ~/.fauna-shell
 ```
 
 The `fauna` tool will read our key from that file and then use it to authenticate against the [FaunaDB Cloud](https://dashboard.fauna.com/).
@@ -269,25 +269,36 @@ USAGE
 
 # Connecting to your local FaunaDB instance
 
-All the commands support the following options, in case you want them to connect to your local FaunaDB instance.
+All the commands support the following options. You can specify them if you want to connect to your local FaunaDB instance.
 
 ```
 OPTIONS
   --domain=domain      [default: db.fauna.com] FaunaDB server domain
   --port=port          [default: 443] Connection port
-  --scheme=https|http  [default: https] Connection scheme.
+  --scheme=https|http  [default: https] Connection scheme
+	--secret=secret      FaunaDB secret key
   --timeout=timeout    [default: 80] Connection timeout in milliseconds
 ```
 
-# Providing your FaunaDB Key via Environment Variables
-
-You can override the value set in that file via the `FAUNA_SECRET_KEY` environment variable like this: 
+They can be used like this:
 
 ```sh-session
-export FAUNA_SECRET_KEY=YOUR_FAUNADB_KEY
+fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secret=YOUR_FAUNA_SECRET_KEY --timeout=42 
 ```
 
-The `FAUNA_SECRET_KEY` environment variable has precedence over what's defined in the `.fauna-shell` file.
+You can also save them in the .fauna-shell configuration file like this:
+
+```ini
+domain=127.0.0.1
+port=8443
+scheme=http
+timeout=42
+secret=YOUR_FAUNA_SECRET_KEY
+```
+
+Options provided via the CLI will override the values set in the `.fauna-shell` config file.
+
+Any options that are not specified either via the `.fauna-shell` config file or the CLI will be set to the defaults offered by the [faunadb-js client](https://github.com/fauna/faunadb-js).
 
 <!-- detailsstop -->
 # List of Commands
@@ -313,10 +324,11 @@ ARGUMENTS
   DBNAME  database name
 
 OPTIONS
-  --domain=domain      [default: db.fauna.com] FaunaDB server domain
-  --port=port          [default: 443] Connection port
-  --scheme=https|http  [default: https] Connection scheme.
-  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Creates a database
@@ -341,10 +353,11 @@ ARGUMENTS
   ROLE    [default: admin] key user role
 
 OPTIONS
-  --domain=domain      [default: db.fauna.com] FaunaDB server domain
-  --port=port          [default: 443] Connection port
-  --scheme=https|http  [default: https] Connection scheme.
-  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Creates a key for the specified database
@@ -368,10 +381,11 @@ ARGUMENTS
   DBNAME  database name
 
 OPTIONS
-  --domain=domain      [default: db.fauna.com] FaunaDB server domain
-  --port=port          [default: 443] Connection port
-  --scheme=https|http  [default: https] Connection scheme.
-  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Deletes a database
@@ -395,10 +409,11 @@ ARGUMENTS
   KEYNAME  key name
 
 OPTIONS
-  --domain=domain      [default: db.fauna.com] FaunaDB server domain
-  --port=port          [default: 443] Connection port
-  --scheme=https|http  [default: https] Connection scheme.
-  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Deletes a key
@@ -436,10 +451,11 @@ USAGE
   $ fauna list-databases
 
 OPTIONS
-  --domain=domain      [default: db.fauna.com] FaunaDB server domain
-  --port=port          [default: 443] Connection port
-  --scheme=https|http  [default: https] Connection scheme.
-  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Lists top level databases
@@ -460,10 +476,11 @@ USAGE
   $ fauna list-keys
 
 OPTIONS
-  --domain=domain      [default: db.fauna.com] FaunaDB server domain
-  --port=port          [default: 443] Connection port
-  --scheme=https|http  [default: https] Connection scheme.
-  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Lists top level keys
@@ -487,10 +504,11 @@ ARGUMENTS
   DBNAME  database name
 
 OPTIONS
-  --domain=domain      [default: db.fauna.com] FaunaDB server domain
-  --port=port          [default: 443] Connection port
-  --scheme=https|http  [default: https] Connection scheme.
-  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Starts a FaunaDB shell
