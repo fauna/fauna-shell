@@ -5,11 +5,38 @@ const ini = require('ini');
 
 var exports = module.exports = {};
 
-exports.getConfigFile = function() {
+exports.buildConnectionOptions = function (cmdFlags, dbScope, role) {
+	return new Promise(function(resolve, reject) {
+		readFile(getConfigFile())
+		.then(function(configData) {
+			const config = ini.parse(configData);
+			const connectionOptions = Object.assign(config, cmdFlags);
+			//TODO refactor duplicated code
+			if (connectionOptions.secret) {
+				resolve(maybeScopeKey(connectionOptions, dbScope, role));
+			} else {
+				reject("You must specify a secret key to connect to FaunaDB");
+			}
+		})
+		.catch(function(err) {
+			if (err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2) {
+				if (cmdFlags.secret) {
+					resolve(maybeScopeKey(connectionOptions, dbScope, role))
+				} else {
+					reject("You must specify a secret key to connect to FaunaDB");
+				}
+			} else {
+				reject(err);
+			}
+		})
+	})
+}
+
+getConfigFile = function() {
 	return path.join(os.homedir(), '.fauna-shell');
 }
 
-exports.readFile = function(fileName) {
+readFile = function(fileName) {
   return new Promise(function(resolve, reject) {
     fs.readFile(fileName, 'utf8', (err, data) => {
 			err ? reject(err) : resolve(data);
@@ -17,23 +44,10 @@ exports.readFile = function(fileName) {
   })
 }
 
-exports.buildConnectionOptions = function (configData, cmdFlags, dbScope, role) {
-	const config = ini.parse(configData);
-	const connectionOptions = Object.assign(config, cmdFlags);
-	return new Promise(function(resolve, reject) {
-		if (connectionOptions.secret) {
-			connectionOptions.secret = maybeScopeKey(connectionOptions.secret, dbScope, role);
-			resolve(connectionOptions);
-		} else {
-			reject("You must specify a secret key to connet to FaunaDB");
-		}
-	})
-}
-
-function maybeScopeKey(secret, dbScope, role) {
-	res = secret;
+function maybeScopeKey(config, dbScope, role) {
+	scopedSecret = config.secret;
 	if (dbScope !== undefined && role !== undefined) {
-		res = secret + ":" + dbScope + ":" + role;
+		scopedSecret = config.secret + ":" + dbScope + ":" + role;
 	}
-	return res;
+	return Object.assign(config, {secret: scopedSecret});
 }
