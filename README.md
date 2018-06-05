@@ -285,7 +285,7 @@ They can be used like this:
 fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secret=YOUR_FAUNA_SECRET_KEY --timeout=42 
 ```
 
-You can also save them in the .fauna-shell configuration file like this:
+You can also save them in the `.fauna-shell` configuration file like this:
 
 ```ini
 domain=127.0.0.1
