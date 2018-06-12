@@ -29,15 +29,21 @@ $ npm install -g fauna-shell
 
 The tool allows you to do things like _creating_, _deleting_ and _listings_ databases.
 
-First lets create a file with our FaunaDB key so the shell has access to our account. If you don't have an account, you can create a free account [here](https://fauna.com/sign-up).
+First lets configure an endpoint to connec to the FaunaDB cloud. (If you don't have an account, you can create a free account [here](https://fauna.com/sign-up)). 
 
-Run the following command by replacing `YOUR_FAUNADB_KEY` with the actual key from your [FaunaDB Cloud](https://dashboard.fauna.com/) account.
+Let's run the following command:
 
 ```sh-session
-$ echo "secret=YOUR_FAUNADB_KEY" >> ~/.fauna-shell
+$ fauna add-endpoint "https://db.fauna.com"
+Endpoint Key: ****************************************
+Endpoint Alias [db.fauna.com]: cloud
 ```
 
-The `fauna` tool will read our key from that file and then use it to authenticate against the [FaunaDB Cloud](https://dashboard.fauna.com/).
+When you are prompted for your `Endpoint Key` enter actual key from your [FaunaDB Cloud](https://dashboard.fauna.com/) account.
+
+The _Endpoint Alias_ should be a name that helps you remember the purpose of this endpoint, in this case we use `cloud`.
+
+Now that we have an endpoint to connect to we can try to create a database to start playing with FaunaDB.
 
 This is how you can create a database called `my_app`:
 
@@ -266,9 +272,62 @@ USAGE
 ...
 ```
 
-# Connecting to your local FaunaDB instance
+# Connecting to different endpoints
 
-All the commands support the following options. You can specify them if you want to connect to your local FaunaDB instance.
+We can add endpoints by calling the following command `add-endpoint`. We will be prompted to enter the authentication key and an alias for the endpoint.
+
+```sh-session
+$ fauna add-endpoint "https://db.fauna.com"
+Endpoint Key: ****************************************
+Endpoint Alias [db.fauna.com]: cloud
+```
+
+If we have defined many endpoints, we could set one of them as the default one with the `default-endpoint` command:
+
+```sh-session
+$ fauna default-endpoint cloud
+```
+
+The _default endpoint_ will be used by the shell to connect to FaunaDB.
+
+Endpoints can be listed with the `list-endpoints` command like this:
+
+```sh-session
+$ fauna list-endpoints
+localhost
+cloud *
+cluster-us-east
+```
+
+Theere we see that the `cloud` endpoint has a `*` next to its name, meaning that it's the current default one.
+
+Finally, endpints will be saved to a `~/.fauna-shell` file like this:
+
+```ini
+[localhost]
+domain=127.0.0.1
+port=8443
+scheme=http
+secret=the_secret
+enabled=false
+
+[cloud]
+domain=db.fauna.com
+scheme=https
+secret=FAUNA_SECRET_KEY
+enabled=true
+
+[cluster-us-east]
+domain=cluster-us-east.example.com
+port=443
+scheme=https
+secret=OTHER_FAUNA_SECRET
+enabled=false
+```
+
+# Overriding Connection Parameters
+
+Most commands support the following options. You can specify them if you want to connect to your local FaunaDB instance.
 
 ```
 OPTIONS
@@ -285,16 +344,6 @@ They can be used like this:
 fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secret=YOUR_FAUNA_SECRET_KEY --timeout=42 
 ```
 
-You can also save them in the `.fauna-shell` configuration file like this:
-
-```ini
-domain=127.0.0.1
-port=8443
-scheme=http
-timeout=42
-secret=YOUR_FAUNA_SECRET_KEY
-```
-
 Options provided via the CLI will override the values set in the `.fauna-shell` config file.
 
 Any options that are not specified either via the `.fauna-shell` config file or the CLI will be set to the defaults offered by the [faunadb-js client](https://github.com/fauna/faunadb-js).
@@ -302,14 +351,38 @@ Any options that are not specified either via the `.fauna-shell` config file or 
 <!-- detailsstop -->
 # List of Commands
 <!-- commands -->
+* [`fauna add-endpoint ENDPOINT`](#fauna-add-endpoint-endpoint)
 * [`fauna create-database DBNAME`](#fauna-create-database-dbname)
 * [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
+* [`fauna default-endpoint ENDPOINT_ALIAS`](#fauna-default-endpoint-endpoint-alias)
 * [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
 * [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
 * [`fauna help [COMMAND]`](#fauna-help-command)
 * [`fauna list-databases`](#fauna-list-databases)
+* [`fauna list-endpoints`](#fauna-list-endpoints)
 * [`fauna list-keys`](#fauna-list-keys)
 * [`fauna shell DBNAME`](#fauna-shell-dbname)
+
+## `fauna add-endpoint ENDPOINT`
+
+Adds a connection endpoint for FaunaDB
+
+```
+USAGE
+  $ fauna add-endpoint ENDPOINT
+
+ARGUMENTS
+  ENDPOINT  FaunaDB server endpoint
+
+DESCRIPTION
+  Adds a connection endpoint for FaunaDB
+
+
+EXAMPLE
+  $ fauna-shell add-endpoint https://db.fauna.com:443
+```
+
+_See code: [src/commands/add-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.0.7/src/commands/add-endpoint.js)_
 
 ## `fauna create-database DBNAME`
 
@@ -321,13 +394,6 @@ USAGE
 
 ARGUMENTS
   DBNAME  database name
-
-OPTIONS
-  --domain=domain      FaunaDB server domain
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
-  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Creates a database
@@ -351,13 +417,6 @@ ARGUMENTS
   DBNAME  database name
   ROLE    [default: admin] key user role
 
-OPTIONS
-  --domain=domain      FaunaDB server domain
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
-  --timeout=timeout    Connection timeout in milliseconds
-
 DESCRIPTION
   Creates a key for the specified database
 
@@ -367,6 +426,27 @@ EXAMPLE
 ```
 
 _See code: [src/commands/create-key.js](https://github.com/fauna/fauna-shell/blob/v0.0.7/src/commands/create-key.js)_
+
+## `fauna default-endpoint ENDPOINT_ALIAS`
+
+Sets an endpoint as the default one
+
+```
+USAGE
+  $ fauna default-endpoint ENDPOINT_ALIAS
+
+ARGUMENTS
+  ENDPOINT_ALIAS  FaunaDB server endpoint
+
+DESCRIPTION
+  Sets an endpoint as the default one
+
+
+EXAMPLE
+  $ fauna-shell default-endpoint endpoint
+```
+
+_See code: [src/commands/default-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.0.7/src/commands/default-endpoint.js)_
 
 ## `fauna delete-database DBNAME`
 
@@ -378,13 +458,6 @@ USAGE
 
 ARGUMENTS
   DBNAME  database name
-
-OPTIONS
-  --domain=domain      FaunaDB server domain
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
-  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Deletes a database
@@ -406,13 +479,6 @@ USAGE
 
 ARGUMENTS
   KEYNAME  key name
-
-OPTIONS
-  --domain=domain      FaunaDB server domain
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
-  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Deletes a key
@@ -449,13 +515,6 @@ Lists top level databases
 USAGE
   $ fauna list-databases
 
-OPTIONS
-  --domain=domain      FaunaDB server domain
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
-  --timeout=timeout    Connection timeout in milliseconds
-
 DESCRIPTION
   Lists top level databases
 
@@ -466,6 +525,24 @@ EXAMPLE
 
 _See code: [src/commands/list-databases.js](https://github.com/fauna/fauna-shell/blob/v0.0.7/src/commands/list-databases.js)_
 
+## `fauna list-endpoints`
+
+Lists FaunaDB connection endpoints
+
+```
+USAGE
+  $ fauna list-endpoints
+
+DESCRIPTION
+  Lists FaunaDB connection endpoints
+
+
+EXAMPLE
+  $ fauna-shell list-endpoints
+```
+
+_See code: [src/commands/list-endpoints.js](https://github.com/fauna/fauna-shell/blob/v0.0.7/src/commands/list-endpoints.js)_
+
 ## `fauna list-keys`
 
 Lists top level keys
@@ -473,13 +550,6 @@ Lists top level keys
 ```
 USAGE
   $ fauna list-keys
-
-OPTIONS
-  --domain=domain      FaunaDB server domain
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
-  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Lists top level keys
@@ -501,13 +571,6 @@ USAGE
 
 ARGUMENTS
   DBNAME  database name
-
-OPTIONS
-  --domain=domain      FaunaDB server domain
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
-  --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
   Starts a FaunaDB shell
