@@ -9,7 +9,7 @@ fauna-shell
 
 This tools gives you access to [FaunaDB](http://fauna.com/) directly from your CLI. 
 
-It also includes a [Shell](#shell) so you can issue queries to FaunaDB without the need of install additional libraries.
+It also includes a [Shell](#shell) so you can issue queries to FaunaDB without needing to install additional libraries.
 
 You can install it via npm like this:
 
@@ -27,9 +27,9 @@ $ npm install -g fauna-shell
 
 # Usage
 
-The tool allows you to do things like _creating_, _deleting_ and _listings_ databases.
+The **fauna-shell** allows you to do things like _creating_, _deleting_ and _listings_ databases.
 
-First lets configure an endpoint to connec to the FaunaDB cloud. (If you don't have an account, you can create a free account [here](https://fauna.com/sign-up)). 
+First lets configure an endpoint to connect to the FaunaDB cloud. (If you don't have an account, you can create a free account [here](https://fauna.com/sign-up)). 
 
 Let's run the following command:
 
@@ -301,7 +301,7 @@ cluster-us-east
 
 Theere we see that the `cloud` endpoint has a `*` next to its name, meaning that it's the current default one.
 
-Finally, endpints will be saved to a `~/.fauna-shell` file like this:
+Finally, endpoints will be saved to a `~/.fauna-shell` file like this:
 
 ```ini
 [localhost]
