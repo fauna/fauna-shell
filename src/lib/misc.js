@@ -3,9 +3,7 @@ const path = require('path');
 const fs = require('fs')
 const ini = require('ini');
 
-var exports = module.exports = {};
-
-exports.buildConnectionOptions = function (cmdFlags, dbScope, role) {
+function buildConnectionOptions(cmdFlags, dbScope, role) {
 	return new Promise(function(resolve, reject) {
 		readFile(getConfigFile())
 		.then(function(configData) {
@@ -32,11 +30,11 @@ exports.buildConnectionOptions = function (cmdFlags, dbScope, role) {
 	})
 }
 
-getConfigFile = function() {
+function getConfigFile() {
 	return path.join(os.homedir(), '.fauna-shell');
 }
 
-readFile = function(fileName) {
+function readFile(fileName) {
   return new Promise(function(resolve, reject) {
     fs.readFile(fileName, 'utf8', (err, data) => {
 			err ? reject(err) : resolve(data);
@@ -51,3 +49,9 @@ function maybeScopeKey(config, dbScope, role) {
 	}
 	return Object.assign(config, {secret: scopedSecret});
 }
+
+module.exports = {
+	buildConnectionOptions: buildConnectionOptions,
+	getConfigFile: getConfigFile,
+	readFile: readFile
+};
