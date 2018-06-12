@@ -8,7 +8,26 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 		readFile(getConfigFile())
 		.then(function(configData) {
 			const config = ini.parse(configData);
-			const connectionOptions = Object.assign(config, cmdFlags);
+			var endpoint;
+			var keys = Object.keys(config);
+			if (keys.length == 0) {
+				endpoint = {}
+			} else {
+				var found = false
+				keys.forEach(function(key) {
+					if (config[key].enabled === true) {
+						endpoint = config[key]
+						found = true;
+					}
+				});
+				if (!found) {
+					endpoint = config[keys[0]];
+				}
+				// we don't want this option going all the way to connection creation.
+				delete endpoint.enabled;
+			}
+			
+			const connectionOptions = Object.assign(endpoint, cmdFlags);
 			//TODO refactor duplicated code
 			if (connectionOptions.secret) {
 				resolve(maybeScopeKey(connectionOptions, dbScope, role));
