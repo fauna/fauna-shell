@@ -12,11 +12,7 @@ class DefaultEndpointCommand extends FaunaCommand {
 		const setDefaultEndpoint = function(configData, endpoint) {
 			const config = configData ? ini.parse(configData) : {}
 			if (config[endpoint]) {
-				var keys = Object.keys(config);
-				keys.forEach(function(key) {
-					config[key].enabled = false
-				})
-				config[endpoint].enabled = true
+				config['default'] = endpoint
 				fs.writeFileSync(getConfigFile(), ini.stringify(config))
 				log(`Endpoint ${endpoint} set as default endpoint.`);
 			} else {

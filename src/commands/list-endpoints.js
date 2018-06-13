@@ -10,8 +10,11 @@ class ListEndpointCommand extends FaunaCommand {
 			const config = configData ? ini.parse(configData) : {}
 			var keys = Object.keys(config);
 			keys.forEach(function(endpoint) {
+				if (endpoint == 'default') {
+					return; //in JS return skips this iteration.
+				}
 				var enabled = "";
-				if (config[endpoint].enabled) {
+				if (endpoint == config['default']) {
 					enabled = "*"
 				}
 				log(`${endpoint} ${enabled}`)

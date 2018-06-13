@@ -17,13 +17,18 @@ class AddEndpointCommand extends FaunaCommand {
 		const secret = await cli.prompt('Endpoint Key', {type: 'hide'})	
 		const alias = await cli.prompt('Endpoint Alias', {default: endpoint.hostname})
 		
+		if (alias == 'default') {
+			this.error("The word 'default' cannot be usded as an alias.")
+			this.exit(1)
+		}
+		
 		const handleConfig = function(configData, endpoint, secret) {
 			const config = configData ? ini.parse(configData) : {}
 			
 			// if we don't have any endopints, then the new one will be enabled
 			var enabled = Object.keys(config).length == 0 ? true : false
 			// if the endpoint already exists, we might need to keep it enabled if it was
-			if (config[alias] && config[alias].enabled) {
+			if (config['default'] == alias) {
 				enabled = true;
 			}
 			
@@ -34,7 +39,11 @@ class AddEndpointCommand extends FaunaCommand {
 			port = port === null ? null : {port}
 			scheme = scheme === null ? null : {scheme}
 			config[alias] = {}
-			Object.assign(config[alias], domain, port, scheme, {secret}, {enabled});
+			if (enabled) {
+				config['default'] = alias;
+			}
+			
+			Object.assign(config[alias], domain, port, scheme, {secret})
 			fs.writeFileSync(getConfigFile(), ini.stringify(config))
 		}
 		
