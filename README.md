@@ -305,25 +305,24 @@ Theere we see that the `cloud` endpoint has a `*` next to its name, meaning that
 Finally, endpoints will be saved to a `~/.fauna-shell` file like this:
 
 ```ini
+default=cloud
+
 [localhost]
 domain=127.0.0.1
 port=8443
 scheme=http
 secret=the_secret
-enabled=false
 
 [cloud]
 domain=db.fauna.com
 scheme=https
 secret=FAUNA_SECRET_KEY
-enabled=true
 
 [cluster-us-east]
 domain=cluster-us-east.example.com
 port=443
 scheme=https
 secret=OTHER_FAUNA_SECRET
-enabled=false
 ```
 
 # Overriding Connection Parameters
