@@ -16,31 +16,28 @@ class ShellCommand extends FaunaCommand {
 				if (exists) {
 					withClient(function(client) {
 						log(`starting shell for database ${dbscope}`);
+						
+						var defaultEval;
+
+						function replEvalPromise(cmd, ctx, filename, cb) {
+							defaultEval(cmd, ctx, filename, function(error, result) {
+								if (!error) {
+									return client.query(result).then(response => cb(error, response));
+								} else {
+									return cb(error, result)
+								}
+							});
+						}
 
 						const r	= repl.start({
 							prompt: 'faunadb> ',
 							ignoreUndefined: true
 						});
-
-						const query = function (exp) {
-							client.query(exp)
-							.then(function(res) {
-								console.log("\n", res);
-								r.displayPrompt();
-							})
-							.catch(function(error) {
-								console.log("\n", "Error:", error.message);
-								r.displayPrompt();
-							});
-						};
+						
+						defaultEval = r.eval;
+						r.eval = replEvalPromise;
 
 						Object.assign(r.context, q);
-
-						Object.defineProperty(r.context, 'query', {
-							configurable: false,
-							enumerable: true,
-							value: query
-						});
 					}, dbscope, role);
 				} else {
 					console.log(`Database '${dbscope}' doesn't exist`)

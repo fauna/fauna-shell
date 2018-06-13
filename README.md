@@ -135,7 +135,7 @@ faunadb>
 Once you have the prompt ready, you can start issues queries against your FaunaDB instance. (Note that the results shown here might vary from the ones you see while running the examples).
 
 ```javascript
-faunadb> query(CreateClass({ name: "posts" }))
+faunadb> CreateClass({ name: "posts" })
 faunadb>
  { ref: Ref(id=posts, class=Ref(id=classes)),
   ts: 1527204921493935,
@@ -146,13 +146,12 @@ faunadb>
 Let's create an index for our _posts_.
 
 ```javascript
-faunadb> query(
-  CreateIndex(
+faunadb> CreateIndex(
     {
       name: "posts_by_title",
       source: Class("posts"),
       terms: [{ field: ["data", "title"] }]
-    }))
+    })
 faunadb>
  { ref: Ref(id=posts_by_title, class=Ref(id=indexes)),
  ts: 1527204953090934,
@@ -166,10 +165,9 @@ faunadb>
 Let's insert a _post_ item:
 
 ```javascript
-faunadb> query(
-  Create(
+faunadb> Create(
     Class("posts"),
-    { data: { title: "What I had for breakfast .." } }))
+    { data: { title: "What I had for breakfast .." } })
 faunadb>
  { ref: Ref(id=200221588659896832, class=Ref(id=posts, class=Ref(id=classes))),
   ts: 1527205036673645,
@@ -179,8 +177,7 @@ faunadb>
 We can also insert items in bulk by using the `Map` function.
 
 ```javascript
-faunadb> query(
-	Map(
+faunadb> Map(
 		[
 			"My cat and other marvels",
 			"Pondering during a commute",
@@ -190,7 +187,7 @@ faunadb> query(
 		  Create(
 				Class("posts"), { data: { title: Var("post_title") } }
 			))
-		))
+		)
 faunadb>
  [ { ref: Ref(id=200221673472919040, class=Ref(id=posts, class=Ref(id=classes))),
     ts: 1527205117556412,
@@ -206,7 +203,7 @@ faunadb>
 Now let's try to fetch our post about _latte_. We need to access it by _id_ like this:
 
 ```javascript
-faunadb> query(Get(Ref("classes/posts/200221673471869440")))
+faunadb> Get(Ref("classes/posts/200221673471869440"))
 faunadb>
  { ref: Ref(id=200221673471869440, class=Ref(id=posts, class=Ref(id=classes))),
   ts: 1527205117556412,
@@ -216,10 +213,9 @@ faunadb>
 Now let's update our post about our cat, by adding some tags:
 
 ```javascript
-faunadb> query(
-  Update(
+faunadb> Update(
     Ref("classes/posts/200221673472919040"),
-    { data: { tags: ["pet", "cute"] } }))
+    { data: { tags: ["pet", "cute"] } })
 faunadb>
 { ref: Ref(id=200221673472919040, class=Ref(id=posts, class=Ref(id=classes))),
   ts: 1527205328606603,
@@ -229,10 +225,9 @@ faunadb>
 And now let's try to change the content of that post:
 
 ```javascript
-faunadb> query(
-  Replace(
+faunadb> Replace(
     Ref("classes/posts/200221673472919040"),
-    { data: { title: "My dog and other marvels" } }))
+    { data: { title: "My dog and other marvels" } })
  { ref: Ref(id=200221673472919040, class=Ref(id=posts, class=Ref(id=classes))),
   ts: 1527205345816901,
   data: { title: 'My dog and other marvels' } }
@@ -243,7 +238,7 @@ faunadb>
 Now let's try to delete our post about _latte_:
 
 ```javascript
-faunadb> query(Delete(Ref("classes/posts/200221673471869440")))
+faunadb> Delete(Ref("classes/posts/200221673471869440"))
 faunadb>
  { ref: Ref(id=200221673471869440, class=Ref(id=posts, class=Ref(id=classes))),
   ts: 1527205117556412,
@@ -253,7 +248,7 @@ faunadb>
 If we try to fetch it, we will receive an error:
 
 ```javascript
-faunadb> query(Get(Ref("classes/posts/200221673471869440")))
+faunadb> Get(Ref("classes/posts/200221673471869440"))
 faunadb>
  Error: instance not found
 ```
