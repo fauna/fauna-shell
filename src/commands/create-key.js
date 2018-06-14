@@ -4,8 +4,8 @@ const q = faunadb.query;
 
 class CreateKeyCommand extends FaunaCommand {
 	async run() {
-		const dbname = this.args.dbname; 
-		const role = this.args.role;
+		const dbname = this.args.dbname;
+		const role = this.args.role || 'admin';
 		this.query(
 			q.CreateKey({ database: q.Database(dbname), role: role }),
 			`creating key for database ${dbname} with role ${role}`
@@ -34,7 +34,6 @@ CreateKeyCommand.args = [
 	{
 		name: 'role',
 		description: 'key user role',
-		default: 'admin',
 		options: ['admin', 'server', 'server-readonly', 'client']
 	}
 ]
