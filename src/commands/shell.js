@@ -22,7 +22,14 @@ class ShellCommand extends FaunaCommand {
 						function replEvalPromise(cmd, ctx, filename, cb) {
 							defaultEval(cmd, ctx, filename, function(error, result) {
 								if (!error) {
-									return client.query(result).then(response => cb(error, response));
+									return client.query(result)
+									       .then(function(response) {
+													 return cb(error, response)
+									       }) 
+									       .catch(function(error) {
+													 log("Error:", error.message);
+													 return cb()
+									       });
 								} else {
 									return cb(error, result)
 								}
