@@ -11,6 +11,7 @@
     "@oclif/command": "1",
     "@oclif/config": "1",
     "@oclif/plugin-help": "1",
+    "cli-table": "^0.3.1",
     "cli-ux": "^4.6.1",
     "faunadb": "^2.0.0",
     "globby": "8",

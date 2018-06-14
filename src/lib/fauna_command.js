@@ -40,13 +40,24 @@ class FaunaCommand extends Command {
 		});
 	}
 	
-	paginate(queryExpr, logMsg) {
+	paginate(queryExpr, logMsg, emptyMessage) {
 		const log = this.log;
 		this.withClient(function(client) {
 			log(logMsg);
+			var results = [];
 			var helper = client.paginate(queryExpr);
 			helper.each(function(page) {
-				log(page);
+				results.push(page)
+			}).then(function(done) {
+				if (results.length > 0) {
+					var tmp = [].concat.apply([], results)
+					tmp.sort()
+					tmp.forEach(function(item) {
+						log(item.id);
+					})
+				} else {
+					log(emptyMessage)
+				}
 			});
 		});
 	}

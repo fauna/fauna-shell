@@ -6,7 +6,8 @@ class ListDatabasesCommand extends FaunaCommand {
   async run() {
 		this.paginate(
 			q.Databases(null),
-			'listing databases'
+			'listing databases',
+			'No databases created'
 		);
   }
 }
