@@ -1,13 +1,25 @@
 const FaunaCommand = require('../lib/fauna_command.js')
+const {errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
 class DeleteDatabaseCommand extends FaunaCommand {
   async run() {
-		const dbname = this.args.dbname; 
-		this.query(
+		const log = this.log
+		const dbname = this.args.dbname;
+		this.query2(
 			q.Delete(q.Database(dbname)), 
-			`deleting database ${dbname}`
+			`deleting database ${dbname}`,
+			function(success) {
+				log(`database '${dbname}' deleted`);
+			},
+			function(error) {
+				if (error.message == 'invalid ref') {
+					errorOut(`Database '${dbname}' not found`, 1)
+				} else {
+					errorOut(`Error: ${error.message}`, 1)
+				}
+			}
 		);
   }
 }
