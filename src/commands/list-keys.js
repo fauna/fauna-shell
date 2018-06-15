@@ -1,4 +1,5 @@
 const FaunaCommand = require('../lib/fauna_command.js')
+const {errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 const Table = require('cli-table');
@@ -43,7 +44,7 @@ class ListKeysCommand extends FaunaCommand {
 				}
 		  })
 		  .catch(function(error) {
-			  log("Error:", error.message);
+			  errorOut(`"Error: ${error.message}`, 1);
 		  });
 		});
 	}

@@ -1,5 +1,5 @@
 const {flags} = require('@oclif/command')
-const {readFile, getConfigFile} = require('../lib/misc.js')
+const {readFile, getConfigFile, errorOut} = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna_command.js')
 const ini = require('ini')
 const fs = require('fs')
@@ -16,7 +16,7 @@ class DefaultEndpointCommand extends FaunaCommand {
 				fs.writeFileSync(getConfigFile(), ini.stringify(config))
 				log(`Endpoint ${endpoint} set as default endpoint.`);
 			} else {
-				log(`Endpoint ${endpoint} doesn't exist.`);
+				errorOut(`Endpoint ${endpoint} doesn't exist.`, 1);
 			}
 		}
 
@@ -26,9 +26,9 @@ class DefaultEndpointCommand extends FaunaCommand {
 		})
 		.catch(function(err) {
 			if (err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2) {
-				console.log(`There's no endpoint defined.\nSee fauna add-endpoint --help for more details.`)
+				errorOut(`There's no endpoint defined.\nSee fauna add-endpoint --help for more details.`, 1)
 			} else {
-				console.log(err)
+				errorOut(err, 1)
 			}
 		});
 	}

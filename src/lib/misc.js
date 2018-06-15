@@ -48,6 +48,11 @@ function readFile(fileName) {
   })
 }
 
+function errorOut(msg, code) {
+	process.stderr.write(`${msg}\n`)
+	process.exit(code)
+}
+
 function maybeScopeKey(config, dbScope, role) {
 	scopedSecret = config.secret;
 	if (dbScope !== undefined && role !== undefined) {
@@ -59,5 +64,6 @@ function maybeScopeKey(config, dbScope, role) {
 module.exports = {
 	buildConnectionOptions: buildConnectionOptions,
 	getConfigFile: getConfigFile,
-	readFile: readFile
+	readFile: readFile,
+	errorOut: errorOut
 };

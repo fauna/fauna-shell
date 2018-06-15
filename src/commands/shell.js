@@ -1,4 +1,5 @@
 const FaunaCommand = require('../lib/fauna_command.js')
+const {errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 const repl = require('repl');
@@ -47,11 +48,11 @@ class ShellCommand extends FaunaCommand {
 						Object.assign(r.context, q);
 					}, dbscope, role);
 				} else {
-					console.log(`Database '${dbscope}' doesn't exist`)
+					errorOut(`Database '${dbscope}' doesn't exist`, 1)
 				}
 			})
 			.catch(function(err) {
-				log(err);
+				errorOut(err, 1)
 			})
 		})
   }

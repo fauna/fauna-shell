@@ -1,5 +1,5 @@
 const {cli} = require('cli-ux')
-const {readFile, getConfigFile} = require('../lib/misc.js')
+const {readFile, getConfigFile, errorOut} = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna_command.js')
 const ini = require('ini')
 const url = require('url')
@@ -10,16 +10,14 @@ class AddEndpointCommand extends FaunaCommand {
 		//TODO improve error handling or validate URL
 		const endpoint = url.parse(this.args.endpoint)
 		if (!endpoint.hostname) {
-			this.error("you must provide a valid endpoint")
-			this.exit(1)
+			errorOut("you must provide a valid endpoint", 1)
 		}
 		
 		const secret = await cli.prompt('Endpoint Key', {type: 'hide'})	
 		const alias = await cli.prompt('Endpoint Alias', {default: endpoint.hostname})
 		
 		if (alias == 'default') {
-			this.error("The word 'default' cannot be usded as an alias.")
-			this.exit(1)
+			errorOut("The word 'default' cannot be usded as an alias.", 1)
 		}
 		
 		const handleConfig = function(configData, endpoint, secret) {
@@ -55,7 +53,7 @@ class AddEndpointCommand extends FaunaCommand {
 			if (err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2) {
 				handleConfig("", endpoint, secret)
 			} else {
-				console.log(err)
+				errorOut(err, 1)
 			}
 		});
 	}

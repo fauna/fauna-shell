@@ -1,5 +1,5 @@
 const {Command, flags} = require('@oclif/command')
-const {buildConnectionOptions} = require('../lib/misc.js')
+const {buildConnectionOptions, errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
@@ -22,7 +22,7 @@ class FaunaCommand extends Command {
 			f(client);
 		})
 		.catch(function(err) {
-			log(err);
+			errorOut(err, 1)
 		});
 	}
 	
@@ -35,7 +35,7 @@ class FaunaCommand extends Command {
 			  log(res);
 		  })
 		  .catch(function(error) {
-			  log("Error:", error.message);
+				errorOut(`Error: ${error.message}`, 1)
 		  });
 		});
 	}
