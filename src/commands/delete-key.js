@@ -1,4 +1,5 @@
 const FaunaCommand = require('../lib/fauna_command.js')
+const {errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
@@ -6,9 +7,19 @@ class DeleteKeyCommand extends FaunaCommand {
   async run() {
 	  const keyname = this.args.keyname;
 	  const log = this.log;
-		this.query(
+		this.query2(
 			q.Delete(q.Ref(q.Keys(null), keyname)),
-			`deleting key ${keyname}`
+			`deleting key ${keyname}`,
+			function(success) {
+				log(`key ${success.ref.id} deleted`)
+			},
+			function(error) {
+				if (error.message == 'instance not found') {
+					errorOut(`Key ${keyname} not found`, 1)
+				} else {
+					errorOut(error.message, 1)
+				}
+			}
 		);
   }
 }
