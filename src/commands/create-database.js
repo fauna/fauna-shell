@@ -1,14 +1,40 @@
 const FaunaCommand = require('../lib/fauna_command.js')
+const {errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
+function successMessage(database) {
+	return `
+created database '${database}'
+
+To start a shell with your new database, run:
+
+	fauna shell '${database}'
+
+Or, to create an application key for your database, run:
+
+	fauna create-key '${database}'
+`
+}
+
 class CreateDatabaseCommand extends FaunaCommand {
   async run() {
-	  const dbname = this.args.dbname; 
-		this.query(
-			q.CreateDatabase({ name: dbname }), 
-			`creating database ${dbname}`
-		);
+		const log = this.log
+	  const dbname = this.args.dbname;
+		this.query2(
+			q.CreateDatabase({ name: dbname }),
+			`creating database ${dbname}`,
+			function(success) {
+				log(successMessage(dbname))
+			},
+			function(error) {
+				if (error.message == 'instance not unique') {
+					errorOut(`Database '${dbname}' already exists.`, 1)
+				} else {
+					errorOut(`Error: ${error.message}`, 1)
+				}
+			}
+		)
   }
 }
 

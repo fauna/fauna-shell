@@ -40,6 +40,16 @@ class FaunaCommand extends Command {
 		});
 	}
 	
+	query2(queryExpr, logMsg, success, failure) {
+		const log = this.log;
+		this.withClient(function(client) {
+		  log(logMsg);
+		  client.query(queryExpr)
+		  .then(success)
+		  .catch(failure);
+		});
+	}
+	
 	paginate(queryExpr, logMsg, emptyMessage) {
 		const log = this.log;
 		this.withClient(function(client) {
