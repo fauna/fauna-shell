@@ -42,7 +42,7 @@ class AddEndpointCommand extends FaunaCommand {
 			}
 			
 			Object.assign(config[alias], domain, port, scheme, {secret})
-			fs.writeFileSync(getConfigFile(), ini.stringify(config))
+			fs.writeFileSync(getConfigFile(), ini.stringify(config), {mode: 0o700})
 		}
 		
 		readFile(getConfigFile())

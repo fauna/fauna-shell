@@ -13,7 +13,7 @@ class DefaultEndpointCommand extends FaunaCommand {
 			const config = configData ? ini.parse(configData) : {}
 			if (config[endpoint]) {
 				config['default'] = endpoint
-				fs.writeFileSync(getConfigFile(), ini.stringify(config))
+				fs.writeFileSync(getConfigFile(), ini.stringify(config), {mode: 0o700})
 				log(`Endpoint ${endpoint} set as default endpoint.`);
 			} else {
 				errorOut(`Endpoint ${endpoint} doesn't exist.`, 1);
