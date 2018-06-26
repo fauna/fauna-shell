@@ -3,6 +3,7 @@ const {errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 const repl = require('repl');
+const { stringify } = require('../lib/stringify.js')
 
 class ShellCommand extends FaunaCommand {
 	async run() {
@@ -25,7 +26,8 @@ class ShellCommand extends FaunaCommand {
 								if (!error) {
 									return client.query(result)
 									       .then(function(response) {
-													 return cb(error, response)
+													 console.log(stringify(response));
+													 return cb(error)
 									       }) 
 									       .catch(function(error) {
 													 log("Error:", error.message);
