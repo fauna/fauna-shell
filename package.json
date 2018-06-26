@@ -23,7 +23,6 @@
     "chai": "4",
     "eslint": "4",
     "eslint-config-oclif": "1",
-    "globby": "8",
     "mocha": "5",
     "nyc": "11"
   },
