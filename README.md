@@ -51,29 +51,34 @@ This is how you can create a database called `my_app`:
 ```sh-session
 $ fauna create-database my_app
 creating database my_app
-{ ref: Ref(id=my_app, class=Ref(id=databases)),
-  ts: 1527202906492280,
-  name: 'my_app' }
+
+created database 'my_app'
+
+To start a shell with your new database, run:
+
+	fauna shell 'my_app'
+
+Or, to create an application key for your database, run:
+
+	fauna create-key 'my_app'
 ```
 
 And then listing your databases:
 
 ```sh-session
-$ fauna list-databases        
+$ fauna list-databases
 listing databases
-[ Ref(id=my_app, class=Ref(id=databases)),
-  Ref(id=my_second_app, class=Ref(id=databases)),
-  Ref(id=my_other_app, class=Ref(id=databases)) ]
+my_app
+my_second_app
+my_other_app
 ```
 
 You can also delete a particular database:
 
 ```sh-session
 $ fauna delete-database my_other_app
-deleting database my_other_app
-{ ref: Ref(id=my_other_app, class=Ref(id=databases)),
-  ts: 1527202988832864,
-  name: 'my_other_app' }
+deleting database 'my_other_app'
+database 'my_other_app' deleted
 ```
 
 You can also `create`, `list`, and `delete` _keys_.
@@ -82,13 +87,14 @@ This is how you create a key for the database `my_app`:
 
 ```sh-session
 $ fauna create-key my_app
-creating key for database my_app with role admin
-{ ref: Ref(id=200219648752353792, class=Ref(id=keys)),
-  ts: 1527203186632830,
-  database: Ref(id=my_app, class=Ref(id=databases)),
-  role: 'admin',
-  secret: 'fnACx1K1sPACABUvNQMZjWNZgsKUVo83btQy0i1x',
-  hashed_secret: '************************************************************' }
+creating key for database 'my_app' with role 'admin'
+
+created key for database 'my_app' with role 'admin'.
+secret: ****************************************
+
+To access 'my_app' with this key, create a client using 
+the driver library for your language of choice using 
+the above secret.
 ```
 
 This is how to list keys (the results may differ from what you see in your instance of FaunaDB)
@@ -96,8 +102,11 @@ This is how to list keys (the results may differ from what you see in your insta
 ```sh-session
 $ fauna list-keys
 listing keys
-[ Ref(id=200219648752353792, class=Ref(id=keys)),
-  Ref(id=200219702370238976, class=Ref(id=keys)) ]
+Key ID               Database             Role                
+203269476002562560   my_app               admin               
+203269731203940864   my_app               admin               
+203269732275585536   my_app               admin               
+203269735610057216   test                 admin
 ```
 
 And then delete the key with id: `200219702370238976`:
@@ -105,11 +114,7 @@ And then delete the key with id: `200219702370238976`:
 ```sh-session
 fauna delete-key 200219702370238976
 deleting key 200219702370238976
-{ ref: Ref(id=200219702370238976, class=Ref(id=keys)),
-  ts: 1527203237774958,
-  database: Ref(id=my_second_app, class=Ref(id=databases)),
-  role: 'admin',
-  hashed_secret: '************************************************************' }
+key 200219702370238976 deleted
 ```
 
 See [Commands](#commands) for a list of commands and help on their usage.
@@ -137,10 +142,12 @@ Once you have the prompt ready, you can start issues queries against your FaunaD
 ```javascript
 faunadb> CreateClass({ name: "posts" })
 faunadb>
- { ref: Ref(id=posts, class=Ref(id=classes)),
-  ts: 1527204921493935,
-  history_days: 30,
-  name: 'posts' }
+{
+  "ref": Class("posts"),
+  "ts": 1530112459345314,
+  "history_days": 30,
+  "name": "posts"
+}
 ```
 
 Let's create an index for our _posts_.
@@ -153,13 +160,22 @@ faunadb> CreateIndex(
       terms: [{ field: ["data", "title"] }]
     })
 faunadb>
- { ref: Ref(id=posts_by_title, class=Ref(id=indexes)),
- ts: 1527204953090934,
- active: false,
- partitions: 1,
- name: 'posts_by_title',
- source: Ref(id=posts, class=Ref(id=classes)),
- terms: [ { field: [Array] } ] }
+{
+  "ref": Index("posts_by_title"),
+  "ts": 1530112490241958,
+  "active": false,
+  "partitions": 1,
+  "name": "posts_by_title",
+  "source": Class("posts"),
+  "terms": [
+    {
+      "field": [
+        "data",
+        "title"
+      ]
+    }
+  ]
+}
 ```
 
 Let's insert a _post_ item:
@@ -169,9 +185,13 @@ faunadb> Create(
     Class("posts"),
     { data: { title: "What I had for breakfast .." } })
 faunadb>
- { ref: Ref(id=200221588659896832, class=Ref(id=posts, class=Ref(id=classes))),
-  ts: 1527205036673645,
-  data: { title: 'What I had for breakfast ..' } }
+{
+  "ref": Ref(Class("posts"), "203270302096949760"),
+  "ts": 1530112516389297,
+  "data": {
+    "title": "What I had for breakfast .."
+  }
+}
 ```
 
 We can also insert items in bulk by using the `Map` function.
@@ -189,48 +209,77 @@ faunadb> Map(
 			))
 		)
 faunadb>
- [ { ref: Ref(id=200221673472919040, class=Ref(id=posts, class=Ref(id=classes))),
-    ts: 1527205117556412,
-    data: { title: 'My cat and other marvels' } },
-  { ref: Ref(id=200221673472918016, class=Ref(id=posts, class=Ref(id=classes))),
-    ts: 1527205117556412,
-    data: { title: 'Pondering during a commute' } },
-  { ref: Ref(id=200221673471869440, class=Ref(id=posts, class=Ref(id=classes))),
-    ts: 1527205117556412,
-    data: { title: 'Deep meanings in a latte' } } ]
+[
+  {
+    "ref": Ref(Class("posts"), "203270317027623424"),
+    "ts": 1530112530627575,
+    "data": {
+      "title": "My cat and other marvels"
+    }
+  },
+  {
+    "ref": Ref(Class("posts"), "203270317027624448"),
+    "ts": 1530112530627575,
+    "data": {
+      "title": "Pondering during a commute"
+    }
+  },
+  {
+    "ref": Ref(Class("posts"), "203270317028672000"),
+    "ts": 1530112530627575,
+    "data": {
+      "title": "Deep meanings in a latte"
+    }
+  }
+]
 ```
 
 Now let's try to fetch our post about _latte_. We need to access it by _id_ like this:
 
 ```javascript
-faunadb> Get(Ref("classes/posts/200221673471869440"))
-faunadb>
- { ref: Ref(id=200221673471869440, class=Ref(id=posts, class=Ref(id=classes))),
-  ts: 1527205117556412,
-  data: { title: 'Deep meanings in a latte' } }
+faunadb> Get(Ref(Class("posts"),"203270317028672000"))
+{
+  "ref": Ref(Class("posts"), "203270317028672000"),
+  "ts": 1530112530627575,
+  "data": {
+    "title": "Deep meanings in a latte"
+  }
+}
 ```
 
 Now let's update our post about our cat, by adding some tags:
 
 ```javascript
 faunadb> Update(
-    Ref("classes/posts/200221673472919040"),
+    Ref(Class("posts"), "203270317027623424"),
     { data: { tags: ["pet", "cute"] } })
 faunadb>
-{ ref: Ref(id=200221673472919040, class=Ref(id=posts, class=Ref(id=classes))),
-  ts: 1527205328606603,
-  data: { title: 'My cat and other marvels', tags: [ 'pet', 'cute' ] } }
+{
+  "ref": Ref(Class("posts"), "203270317027623424"),
+  "ts": 1530112657679644,
+  "data": {
+    "title": "My cat and other marvels",
+    "tags": [
+      "pet",
+      "cute"
+    ]
+  }
+}
 ```
 
 And now let's try to change the content of that post:
 
 ```javascript
 faunadb> Replace(
-    Ref("classes/posts/200221673472919040"),
+    Ref(Class("posts"), "203270317027623424"),
     { data: { title: "My dog and other marvels" } })
- { ref: Ref(id=200221673472919040, class=Ref(id=posts, class=Ref(id=classes))),
-  ts: 1527205345816901,
-  data: { title: 'My dog and other marvels' } }
+{
+  "ref": Ref(Class("posts"), "203270317027623424"),
+  "ts": 1530112733994661,
+  "data": {
+    "title": "My dog and other marvels"
+  }
+}
 faunadb>
 
 ```
@@ -238,17 +287,21 @@ faunadb>
 Now let's try to delete our post about _latte_:
 
 ```javascript
-faunadb> Delete(Ref("classes/posts/200221673471869440"))
+faunadb> Delete(Ref(Class("posts"), "203270317028672000"))
 faunadb>
- { ref: Ref(id=200221673471869440, class=Ref(id=posts, class=Ref(id=classes))),
-  ts: 1527205117556412,
-  data: { title: 'Deep meanings in a latte' } }
+{
+  "ref": Ref(Class("posts"), "203270317028672000"),
+  "ts": 1530112530627575,
+  "data": {
+    "title": "Deep meanings in a latte"
+  }
+}
 ```
 
 If we try to fetch it, we will receive an error:
 
 ```javascript
-faunadb> Get(Ref("classes/posts/200221673471869440"))
+faunadb> Get(Ref(Class("posts"), "203270317028672000"))
 faunadb>
  Error: instance not found
 ```
