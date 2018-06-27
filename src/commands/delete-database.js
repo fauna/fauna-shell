@@ -9,7 +9,7 @@ class DeleteDatabaseCommand extends FaunaCommand {
 		const dbname = this.args.dbname;
 		this.query2(
 			q.Delete(q.Database(dbname)), 
-			`deleting database ${dbname}`,
+			`deleting database '${dbname}'`,
 			function(success) {
 				log(`database '${dbname}' deleted`);
 			},
