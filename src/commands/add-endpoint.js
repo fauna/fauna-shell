@@ -1,57 +1,31 @@
 const {cli} = require('cli-ux')
-const {readFile, getConfigFile, errorOut} = require('../lib/misc.js')
+const {fileNotFound, handleConfigOrError, readFile, getConfigFile, errorOut} = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna_command.js')
-const ini = require('ini')
 const url = require('url')
-const fs = require('fs')
 
 class AddEndpointCommand extends FaunaCommand {
 	async run() {
-		//TODO improve error handling or validate URL
-		const endpoint = url.parse(this.args.endpoint)
-		if (!endpoint.hostname) {
-			errorOut("you must provide a valid endpoint", 1)
+		const endpoint = this.args.endpoint;
+		
+		const parsedEndpoint = url.parse(endpoint);
+		if (!parsedEndpoint.hostname) {
+			throw "You must provide a valid endpoint.";
 		}
+
+		const secret = await cli.prompt('Endpoint Key', {type: 'hide', timeout: 1})	
+		const alias = await cli.prompt('Endpoint Alias', {default: parsedEndpoint.hostname, timeout: 1})
 		
-		const secret = await cli.prompt('Endpoint Key', {type: 'hide'})	
-		const alias = await cli.prompt('Endpoint Alias', {default: endpoint.hostname})
-		
-		if (alias == 'default') {
-			errorOut("The word 'default' cannot be usded as an alias.", 1)
-		}
-		
-		const handleConfig = function(configData, endpoint, secret) {
-			const config = configData ? ini.parse(configData) : {}
-			
-			// if we don't have any endopints, then the new one will be enabled
-			var enabled = Object.keys(config).length == 0 ? true : false
-			// if the endpoint already exists, we might need to keep it enabled if it was
-			if (config['default'] == alias) {
-				enabled = true;
-			}
-			
-			var domain = endpoint.hostname;
-			var port = endpoint.port;
-			var scheme = endpoint.protocol.slice(0, -1) //the scheme is parsed as 'http:'
-		  domain = domain === null ? null : {domain}
-			port = port === null ? null : {port}
-			scheme = scheme === null ? null : {scheme}
-			config[alias] = {}
-			if (enabled) {
-				config['default'] = alias;
-			}
-			
-			Object.assign(config[alias], domain, port, scheme, {secret})
-			fs.writeFileSync(getConfigFile(), ini.stringify(config), {mode: 0o700})
+		if (alias == 'default' || alias == 'cloud') {
+			errorOut(`The word '${alias}' cannot be usded as an alias.`, 1)
 		}
 		
 		readFile(getConfigFile())
 		.then(function(configData) {
-			handleConfig(configData, endpoint, secret)
+			handleConfigOrError(configData, endpoint, secret, alias)
 		})
 		.catch(function(err) {
-			if (err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2) {
-				handleConfig("", endpoint, secret)
+			if (fileNotFound(err)) {
+				handleConfigOrError("", endpoint, secret, alias)
 			} else {
 				errorOut(err, 1)
 			}
