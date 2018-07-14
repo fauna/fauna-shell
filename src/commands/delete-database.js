@@ -29,7 +29,7 @@ Deletes a database
 `
 
 DeleteDatabaseCommand.examples = [
-	'$ fauna-shell delete-database dbname'
+	'$ fauna delete-database dbname'
 ]
 
 DeleteDatabaseCommand.flags = {

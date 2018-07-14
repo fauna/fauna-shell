@@ -29,7 +29,7 @@ Deletes a key
 `
 
 DeleteKeyCommand.examples = [
-	'$ fauna-shell delete-key 123456789012345678'
+	'$ fauna delete-key 123456789012345678'
 ]
 
 DeleteKeyCommand.flags = {

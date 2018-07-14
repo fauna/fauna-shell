@@ -35,7 +35,7 @@ Lists FaunaDB connection endpoints
 `
 
 ListEndpointCommand.examples = [
-	'$ fauna-shell list-endpoints'
+	'$ fauna list-endpoints'
 ]
 
 FaunaCommand.flags = {

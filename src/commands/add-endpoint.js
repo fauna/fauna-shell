@@ -38,7 +38,7 @@ Adds a connection endpoint for FaunaDB
 `
 
 AddEndpointCommand.examples = [
-	'$ fauna-shell add-endpoint https://db.fauna.com:443'
+	'$ fauna add-endpoint https://db.fauna.com:443'
 ]
 
 FaunaCommand.flags = {

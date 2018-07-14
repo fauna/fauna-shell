@@ -17,7 +17,7 @@ Lists top level databases
 `
 
 ListDatabasesCommand.examples = [
-	'$ fauna-shell list-databases'
+	'$ fauna list-databases'
 ]
 
 ListDatabasesCommand.flags = {

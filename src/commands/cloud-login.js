@@ -49,7 +49,7 @@ class CloudLoginCommand extends FaunaCommand {
 }
 
 CloudLoginCommand.description = `
-Adds a cloud endpoint for FaunaDB
+Adds the FaunaDB Cloud endpoint
 `
 
 CloudLoginCommand.examples = [

@@ -39,7 +39,7 @@ Sets an endpoint as the default one
 `
 
 DefaultEndpointCommand.examples = [
-	'$ fauna-shell default-endpoint endpoint'
+	'$ fauna default-endpoint endpoint'
 ]
 
 FaunaCommand.flags = {

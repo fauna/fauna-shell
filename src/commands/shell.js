@@ -68,7 +68,7 @@ Starts a FaunaDB shell
 `
 
 ShellCommand.examples = [
-	'$ fauna-shell dbname'
+	'$ fauna shell dbname'
 ]
 
 ShellCommand.flags = {

@@ -55,7 +55,7 @@ Lists top level keys
 `
 
 ListKeysCommand.examples = [
-	'$ fauna-shell list-keys'
+	'$ fauna list-keys'
 ]
 
 ListKeysCommand.flags = {

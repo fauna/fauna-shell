@@ -50,7 +50,7 @@ Creates a key for the specified database
 `
 
 CreateKeyCommand.examples = [
-	'$ fauna-shell create-key dbname admin'
+	'$ fauna create-key dbname admin'
 ]
 
 CreateKeyCommand.flags = {

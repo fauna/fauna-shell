@@ -43,7 +43,7 @@ Creates a database
 `
 
 CreateDatabaseCommand.examples = [
-	'$ fauna-shell create-database dbname'
+	'$ fauna create-database dbname'
 ]
 
 CreateDatabaseCommand.flags = {
