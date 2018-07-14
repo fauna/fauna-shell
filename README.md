@@ -30,21 +30,17 @@ $ npm install -g fauna-shell
 
 The **fauna-shell** allows you to do things like _creating_, _deleting_ and _listings_ databases.
 
-First lets configure an endpoint to connect to the FaunaDB cloud. (If you don't have an account, you can create a free account [here](https://fauna.com/sign-up)). 
+First lets configure our connection to the FaunaDB cloud. (If you don't have an account, you can create a free account [here](https://fauna.com/sign-up)).
 
 Let's run the following command:
 
 ```sh-session
-$ fauna add-endpoint "https://db.fauna.com"
-Endpoint Key: ****************************************
-Endpoint Alias [db.fauna.com]: cloud
+$ fauna cloud-login
 ```
 
-When you are prompted for your `Endpoint Key` enter actual key from your [FaunaDB Cloud](https://dashboard.fauna.com/) account.
+You will be prompted for your `email` and `password` from your [FaunaDB Cloud](https://dashboard.fauna.com/) account.
 
-The _Endpoint Alias_ should be a name that helps you remember the purpose of this endpoint, in this case we use `cloud`.
-
-Now that we have an endpoint to connect to we can try to create a database to start playing with FaunaDB.
+Now that we have an endpoint to connect to we can try to create a database to start playing with FaunaDB. See [connecting to different endpoints](#connecting-to-different-endpoints).
 
 This is how you can create a database called `my_app`:
 
@@ -326,10 +322,12 @@ USAGE
 We can add endpoints by calling the following command `add-endpoint`. We will be prompted to enter the authentication key and an alias for the endpoint.
 
 ```sh-session
-$ fauna add-endpoint "https://db.fauna.com"
+$ fauna add-endpoint "https://example.com"
 Endpoint Key: ****************************************
-Endpoint Alias [db.fauna.com]: cloud
+Endpoint Alias [example.com]: example_alias
 ```
+
+The _Endpoint Alias_ should be a name that helps you remember the purpose of this endpoint.
 
 If we have defined many endpoints, we could set one of them as the default one with the `default-endpoint` command:
 
