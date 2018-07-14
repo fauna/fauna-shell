@@ -398,6 +398,7 @@ Any options that are not specified either via the `.fauna-shell` config file or 
 # List of Commands
 <!-- commands -->
 * [`fauna add-endpoint ENDPOINT`](#fauna-add-endpoint-endpoint)
+* [`fauna cloud-login`](#fauna-cloud-login)
 * [`fauna create-database DBNAME`](#fauna-create-database-dbname)
 * [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
 * [`fauna default-endpoint ENDPOINT_ALIAS`](#fauna-default-endpoint-endpoint-alias)
@@ -425,10 +426,28 @@ DESCRIPTION
 
 
 EXAMPLE
-  $ fauna-shell add-endpoint https://db.fauna.com:443
+  $ fauna add-endpoint https://db.fauna.com:443
 ```
 
-_See code: [src/commands/add-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.1.3/src/commands/add-endpoint.js)_
+_See code: [src/commands/add-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/add-endpoint.js)_
+
+## `fauna cloud-login`
+
+Adds the FaunaDB Cloud endpoint
+
+```
+USAGE
+  $ fauna cloud-login
+
+DESCRIPTION
+  Adds the FaunaDB Cloud endpoint
+
+
+EXAMPLE
+  $ fauna cloud-login
+```
+
+_See code: [src/commands/cloud-login.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/cloud-login.js)_
 
 ## `fauna create-database DBNAME`
 
@@ -446,10 +465,10 @@ DESCRIPTION
 
 
 EXAMPLE
-  $ fauna-shell create-database dbname
+  $ fauna create-database dbname
 ```
 
-_See code: [src/commands/create-database.js](https://github.com/fauna/fauna-shell/blob/v0.1.3/src/commands/create-database.js)_
+_See code: [src/commands/create-database.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/create-database.js)_
 
 ## `fauna create-key DBNAME [ROLE]`
 
@@ -468,10 +487,10 @@ DESCRIPTION
 
 
 EXAMPLE
-  $ fauna-shell create-key dbname admin
+  $ fauna create-key dbname admin
 ```
 
-_See code: [src/commands/create-key.js](https://github.com/fauna/fauna-shell/blob/v0.1.3/src/commands/create-key.js)_
+_See code: [src/commands/create-key.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/create-key.js)_
 
 ## `fauna default-endpoint ENDPOINT_ALIAS`
 
@@ -489,10 +508,10 @@ DESCRIPTION
 
 
 EXAMPLE
-  $ fauna-shell default-endpoint endpoint
+  $ fauna default-endpoint endpoint
 ```
 
-_See code: [src/commands/default-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.1.3/src/commands/default-endpoint.js)_
+_See code: [src/commands/default-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/default-endpoint.js)_
 
 ## `fauna delete-database DBNAME`
 
@@ -510,10 +529,10 @@ DESCRIPTION
 
 
 EXAMPLE
-  $ fauna-shell delete-database dbname
+  $ fauna delete-database dbname
 ```
 
-_See code: [src/commands/delete-database.js](https://github.com/fauna/fauna-shell/blob/v0.1.3/src/commands/delete-database.js)_
+_See code: [src/commands/delete-database.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/delete-database.js)_
 
 ## `fauna delete-key KEYNAME`
 
@@ -531,10 +550,10 @@ DESCRIPTION
 
 
 EXAMPLE
-  $ fauna-shell delete-key 123456789012345678
+  $ fauna delete-key 123456789012345678
 ```
 
-_See code: [src/commands/delete-key.js](https://github.com/fauna/fauna-shell/blob/v0.1.3/src/commands/delete-key.js)_
+_See code: [src/commands/delete-key.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/delete-key.js)_
 
 ## `fauna help [COMMAND]`
 
@@ -566,10 +585,10 @@ DESCRIPTION
 
 
 EXAMPLE
-  $ fauna-shell list-databases
+  $ fauna list-databases
 ```
 
-_See code: [src/commands/list-databases.js](https://github.com/fauna/fauna-shell/blob/v0.1.3/src/commands/list-databases.js)_
+_See code: [src/commands/list-databases.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/list-databases.js)_
 
 ## `fauna list-endpoints`
 
@@ -584,10 +603,10 @@ DESCRIPTION
 
 
 EXAMPLE
-  $ fauna-shell list-endpoints
+  $ fauna list-endpoints
 ```
 
-_See code: [src/commands/list-endpoints.js](https://github.com/fauna/fauna-shell/blob/v0.1.3/src/commands/list-endpoints.js)_
+_See code: [src/commands/list-endpoints.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/list-endpoints.js)_
 
 ## `fauna list-keys`
 
@@ -602,10 +621,10 @@ DESCRIPTION
 
 
 EXAMPLE
-  $ fauna-shell list-keys
+  $ fauna list-keys
 ```
 
-_See code: [src/commands/list-keys.js](https://github.com/fauna/fauna-shell/blob/v0.1.3/src/commands/list-keys.js)_
+_See code: [src/commands/list-keys.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/list-keys.js)_
 
 ## `fauna shell DBNAME`
 
@@ -623,8 +642,8 @@ DESCRIPTION
 
 
 EXAMPLE
-  $ fauna-shell dbname
+  $ fauna shell dbname
 ```
 
-_See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.1.3/src/commands/shell.js)_
+_See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.2.0/src/commands/shell.js)_
 <!-- commandsstop -->
