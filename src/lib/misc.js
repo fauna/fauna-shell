@@ -72,6 +72,8 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 			var keys = Object.keys(config);
 			if (config.hasOwnProperty('default') && config.hasOwnProperty(config['default'])) {
 				endpoint = config[config['default']]
+			} else {
+				reject("You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS' or run fauna --help to see a list of commands.");
 			}
 			
 			const connectionOptions = Object.assign(endpoint, cmdFlags);
