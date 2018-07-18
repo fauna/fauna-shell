@@ -85,9 +85,9 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 			}
 		})
 		.catch(function(err) {
-			if (err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2) {
+			if (fileNotFound(err)) {
 				if (cmdFlags.secret) {
-					resolve(maybeScopeKey(connectionOptions, dbScope, role))
+					resolve(maybeScopeKey(connectionOptions, dbScope, role));
 				} else {
 					reject("You must specify a secret key to connect to FaunaDB");
 				}
