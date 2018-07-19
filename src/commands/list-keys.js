@@ -28,7 +28,7 @@ function compareByDBName(a, b) {
 class ListKeysCommand extends FaunaCommand {
 	async run() {
 		const log = this.log;
-		this.withClient(function(client) {
+		this.withClient(function(client, endpoint) {
 		  log('listing keys');
 		  client.query(q.Map(q.Paginate(q.Keys(null), { size: 1000 }), q.Lambda("x", q.Get(q.Var("x")))))
 		  .then(function(res) {

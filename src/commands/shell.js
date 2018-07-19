@@ -12,13 +12,13 @@ class ShellCommand extends FaunaCommand {
 		const log = this.log;
 		const withClient = this.withClient.bind(this)
 
-		this.withClient(function(testDbClient) {
+		this.withClient(function(testDbClient, _endpoint) {
 			testDbClient.query(q.Exists(q.Database(dbscope)))
 			.then(function(exists) {
 				if (exists) {
-					withClient(function(client) {
-						log(`starting shell for database ${dbscope}`);
-						
+					withClient(function(client, endpoint) {
+						log(`Starting shell for database ${dbscope}.`);
+						log(`Connected to ${endpoint.scheme}://${endpoint.domain}:${endpoint.port}`);
 						var defaultEval;
 
 						function replEvalPromise(cmd, ctx, filename, cb) {
@@ -43,7 +43,7 @@ class ShellCommand extends FaunaCommand {
 						}
 
 						const r	= repl.start({
-							prompt: 'faunadb> ',
+							prompt: `${dbscope}> `,
 							ignoreUndefined: true
 						});
 						

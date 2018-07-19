@@ -19,7 +19,7 @@ class FaunaCommand extends Command {
 		.then(function(connectionOptions) {
 			var client = new faunadb.Client(connectionOptions);
 			//TODO this should return a Promise
-			f(client);
+			f(client, connectionOptions);
 		})
 		.catch(function(err) {
 			errorOut(err, 1)
@@ -28,7 +28,7 @@ class FaunaCommand extends Command {
 	
 	query(queryExpr, logMsg) {
 		const log = this.log;
-		this.withClient(function(client) {
+		this.withClient(function(client, endpoint) {
 		  log(logMsg);
 		  client.query(queryExpr)
 		  .then(function(res) {
@@ -42,7 +42,7 @@ class FaunaCommand extends Command {
 	
 	query2(queryExpr, logMsg, success, failure) {
 		const log = this.log;
-		this.withClient(function(client) {
+		this.withClient(function(client, endpoint) {
 		  log(logMsg);
 		  client.query(queryExpr)
 		  .then(success)
@@ -52,7 +52,7 @@ class FaunaCommand extends Command {
 	
 	paginate(queryExpr, logMsg, emptyMessage) {
 		const log = this.log;
-		this.withClient(function(client) {
+		this.withClient(function(client, endpoint) {
 			log(logMsg);
 			var results = [];
 			var helper = client.paginate(queryExpr);
