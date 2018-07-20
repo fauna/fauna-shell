@@ -12,8 +12,8 @@ class AddEndpointCommand extends FaunaCommand {
 			throw "You must provide a valid endpoint.";
 		}
 
-		const secret = await cli.prompt('Endpoint Key', {type: 'hide', timeout: 1})	
-		const alias = await cli.prompt('Endpoint Alias', {default: parsedEndpoint.hostname, timeout: 1})
+		const secret = await cli.prompt('Endpoint Key', {type: 'hide', timeout: 120000})	
+		const alias = await cli.prompt('Endpoint Alias', {default: parsedEndpoint.hostname, timeout: 120000})
 		
 		if (alias == 'default' || alias == 'cloud') {
 			errorOut(`The word '${alias}' cannot be usded as an alias.`, 1)
