@@ -1,4 +1,4 @@
-const {readFile, getConfigFile, errorOut} = require('../lib/misc.js')
+const {fileNotFound, readFile, getConfigFile, errorOut} = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna_command.js')
 const ini = require('ini')
 
@@ -21,8 +21,8 @@ class ListEndpointCommand extends FaunaCommand {
 			})
 		})
 		.catch(function(err) {
-			if (err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2) {
-				errorOut("No endpoints defined.", 1)
+			if (fileNotFound(err)) {
+				errorOut(`No endpoint's defined.\nSee fauna add-endpoint --help for more details.`, 1)
 			} else {
 				errorOut(err, 1)
 			}
