@@ -5,6 +5,13 @@ const q = faunadb.query;
 const repl = require('repl');
 const { stringify } = require('../lib/stringify.js')
 
+function isRecoverableError(error) {
+  if (error.name === 'SyntaxError') {
+    return /^(Unexpected end of input|Unexpected token)/.test(error.message);
+  }
+  return false;
+}
+
 class ShellCommand extends FaunaCommand {
 	async run() {
 		const dbscope = this.args.dbname;
@@ -37,7 +44,11 @@ class ShellCommand extends FaunaCommand {
 													 return cb()
 									       });
 								} else {
-									return cb(error, result)
+									if (isRecoverableError(error)) {
+										return cb(new repl.Recoverable(error));
+									} else {
+										return cb(error, result)
+									}
 								}
 							});
 						}
