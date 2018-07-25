@@ -3,14 +3,39 @@ const {buildConnectionOptions, errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 
+/**
+ * This is the base class for all fauna-shell commands.
+ */
 class FaunaCommand extends Command {
 	
+	/**
+	 * During init we parse the flags and arguments and assign them
+	 * to the `flags` and `args` member variables. 
+	 *
+	 * We call `this.parse(this.constructor)` because we need to load
+	 * flags and args for the command being run in the CLI.
+	 * In this way we parse the flags and args defined in that command, 
+	 * plus the ones defined here. A command then needs to define its flags
+	 * like this:
+	 *
+	 * CreateKeyCommand.flags = {
+	 *	...FaunaCommand.flags
+	 * }
+	 *
+	 */
 	async init() {
 		const {flags: f, args: a} = this.parse(this.constructor)
 		this.flags = f;
 		this.args = a;
 	}
-			
+
+	/**
+	 * Runs the function in the context of a database connection.
+	 *
+	 * @param {function} f       - The function to run
+	 * @param {string}   dbScope - The database in which the function will be executed.
+	 * @param {string}   role    - The user role with which the function will be executed.
+	 */
 	withClient(f, dbScope, role) {
 		const log = this.log
 		const cmdFlags = this.flags;		
@@ -26,6 +51,15 @@ class FaunaCommand extends Command {
 		});
 	}
 	
+	/**
+	 * Runs the provided query, while logging a message before running it.
+	 * Calls the success callback on success, or the failure one otherwise.
+	 *
+	 * @param {query}    queryExpr - The Query to execute.
+	 * @param {string}   logMsg    - The message to display before executing the query.
+	 * @param {function} success   - On success callback.
+	 * @param {function} failure   - On error callback.
+	 */
 	query(queryExpr, logMsg, success, failure) {
 		const log = this.log;
 		this.withClient(function(client, endpoint) {
@@ -36,6 +70,19 @@ class FaunaCommand extends Command {
 		});
 	}
 	
+	/**
+	 * @todo this should accept an extractor function that 
+	 * knows how to access data from each page element.
+	 * Right now it only access the `id` field of the element.
+	 *
+	 * Runs the provided query and handles the pagination. 
+	 * Displays a message before running the query, and an
+	 * empty message in case the query produces no results.
+	 * 
+	 * @param {query} queryExpr     - The Query to execute.
+	 * @param {string} logMsg       - The message to display before executing the query.
+	 * @param {string} emptyMessage - The message to display if empty results.
+	 */
 	paginate(queryExpr, logMsg, emptyMessage) {
 		const log = this.log;
 		this.withClient(function(client, endpoint) {
@@ -59,6 +106,12 @@ class FaunaCommand extends Command {
 	}
 }
 
+
+/**
+ * These flags allow the user to override endpoint configuration.
+ * They are inherited by all shell commands that extend FaunaCommand.
+ * See each command's flags to see how this mechanism works.
+ */
 FaunaCommand.flags = {
 	...Command.flags,
 	domain: flags.string({
