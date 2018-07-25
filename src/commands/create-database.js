@@ -21,7 +21,7 @@ class CreateDatabaseCommand extends FaunaCommand {
   async run() {
 		const log = this.log
 	  const dbname = this.args.dbname;
-		this.query2(
+		this.query(
 			q.CreateDatabase({ name: dbname }),
 			`creating database ${dbname}`,
 			function(success) {

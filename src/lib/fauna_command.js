@@ -26,21 +26,7 @@ class FaunaCommand extends Command {
 		});
 	}
 	
-	query(queryExpr, logMsg) {
-		const log = this.log;
-		this.withClient(function(client, endpoint) {
-		  log(logMsg);
-		  client.query(queryExpr)
-		  .then(function(res) {
-			  log(res);
-		  })
-		  .catch(function(error) {
-				errorOut(`Error: ${error.message}`, 1)
-		  });
-		});
-	}
-	
-	query2(queryExpr, logMsg, success, failure) {
+	query(queryExpr, logMsg, success, failure) {
 		const log = this.log;
 		this.withClient(function(client, endpoint) {
 		  log(logMsg);

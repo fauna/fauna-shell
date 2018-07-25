@@ -7,7 +7,7 @@ class DeleteDatabaseCommand extends FaunaCommand {
   async run() {
 		const log = this.log
 		const dbname = this.args.dbname;
-		this.query2(
+		this.query(
 			q.Delete(q.Database(dbname)), 
 			`deleting database '${dbname}'`,
 			function(success) {

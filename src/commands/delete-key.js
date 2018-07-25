@@ -7,7 +7,7 @@ class DeleteKeyCommand extends FaunaCommand {
   async run() {
 	  const keyname = this.args.keyname;
 	  const log = this.log;
-		this.query2(
+		this.query(
 			q.Delete(q.Ref(q.Keys(null), keyname)),
 			`deleting key ${keyname}`,
 			function(success) {

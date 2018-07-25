@@ -31,7 +31,7 @@ class CreateKeyCommand extends FaunaCommand {
 		const log = this.log
 		const dbname = this.args.dbname;
 		const role = this.args.role || 'admin';
-		this.query2(
+		this.query(
 			q.CreateKey({ database: q.Database(dbname), role: role }),
 			`creating key for database '${dbname}' with role '${role}'`,
 			function(success) {
