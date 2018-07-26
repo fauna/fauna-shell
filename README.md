@@ -129,71 +129,55 @@ Our next step is to start the shell for a specific database, in this case `my_ap
 
 ```sh-session
 fauna shell my_app
-starting shell for database my_app
-faunadb>
+Starting shell for database my_app
+Connected to http://127.0.0.1:8443
+Type Ctrl+D or .exit to exit the shell
+my_app>
 ```
 
 Once you have the prompt ready, you can start issues queries against your FaunaDB instance. (Note that the results shown here might vary from the ones you see while running the examples).
 
 ```javascript
-faunadb> CreateClass({ name: "posts" })
-faunadb>
-{
-  "ref": Class("posts"),
-  "ts": 1530112459345314,
-  "history_days": 30,
-  "name": "posts"
-}
+my_app> CreateClass({ name: "posts" })
+{ ref: Class("posts"),
+  ts: 1532624109799742,
+  history_days: 30,
+  name: 'posts' }
 ```
 
 Let's create an index for our _posts_.
 
 ```javascript
-faunadb> CreateIndex(
+my_app> CreateIndex(
     {
       name: "posts_by_title",
       source: Class("posts"),
       terms: [{ field: ["data", "title"] }]
     })
-faunadb>
-{
-  "ref": Index("posts_by_title"),
-  "ts": 1530112490241958,
-  "active": false,
-  "partitions": 1,
-  "name": "posts_by_title",
-  "source": Class("posts"),
-  "terms": [
-    {
-      "field": [
-        "data",
-        "title"
-      ]
-    }
-  ]
-}
+{ ref: Index("posts_by_title"),
+  ts: 1532624135128797,
+  active: false,
+  partitions: 1,
+  name: 'posts_by_title',
+  source: Class("posts"),
+  terms: [ { field: [ 'data', 'title' ] } ] }
 ```
 
 Let's insert a _post_ item:
 
 ```javascript
-faunadb> Create(
+my_app> Create(
     Class("posts"),
     { data: { title: "What I had for breakfast .." } })
-faunadb>
-{
-  "ref": Ref(Class("posts"), "203270302096949760"),
-  "ts": 1530112516389297,
-  "data": {
-    "title": "What I had for breakfast .."
-  }
-}
+{ ref: Ref(Class("posts"), "205904004461363712"),
+  ts: 1532624210670859,
+  data: { title: 'What I had for breakfast ..' } }
 ```
 
 We can also insert items in bulk by using the `Map` function.
 
 ```javascript
-faunadb> Map(
+my_app> Map(
 		[
 			"My cat and other marvels",
 			"Pondering during a commute",
@@ -204,101 +188,62 @@ faunadb> Map(
 				Class("posts"), { data: { title: Var("post_title") } }
 			))
 		)
-faunadb>
-[
-  {
-    "ref": Ref(Class("posts"), "203270317027623424"),
-    "ts": 1530112530627575,
-    "data": {
-      "title": "My cat and other marvels"
-    }
-  },
-  {
-    "ref": Ref(Class("posts"), "203270317027624448"),
-    "ts": 1530112530627575,
-    "data": {
-      "title": "Pondering during a commute"
-    }
-  },
-  {
-    "ref": Ref(Class("posts"), "203270317028672000"),
-    "ts": 1530112530627575,
-    "data": {
-      "title": "Deep meanings in a latte"
-    }
-  }
-]
+[ { ref: Ref(Class("posts"), "205904031076321792"),
+    ts: 1532624236071215,
+    data: { title: 'My cat and other marvels' } },
+  { ref: Ref(Class("posts"), "205904031076320768"),
+    ts: 1532624236071215,
+    data: { title: 'Pondering during a commute' } },
+  { ref: Ref(Class("posts"), "205904031076319744"),
+    ts: 1532624236071215,
+    data: { title: 'Deep meanings in a latte' } } ]
 ```
 
 Now let's try to fetch our post about _latte_. We need to access it by _id_ like this:
 
 ```javascript
-faunadb> Get(Ref(Class("posts"),"203270317028672000"))
-{
-  "ref": Ref(Class("posts"), "203270317028672000"),
-  "ts": 1530112530627575,
-  "data": {
-    "title": "Deep meanings in a latte"
-  }
-}
+my_app> Get(Ref(Class("posts"),"205904031076319744"))
+{ ref: Ref(Class("posts"), "205904031076319744"),
+  ts: 1532624236071215,
+  data: { title: 'Deep meanings in a latte' } }
 ```
 
 Now let's update our post about our cat, by adding some tags:
 
 ```javascript
-faunadb> Update(
-    Ref(Class("posts"), "203270317027623424"),
+my_app> Update(
+    Ref(Class("posts"), "205904031076321792"),
     { data: { tags: ["pet", "cute"] } })
-faunadb>
-{
-  "ref": Ref(Class("posts"), "203270317027623424"),
-  "ts": 1530112657679644,
-  "data": {
-    "title": "My cat and other marvels",
-    "tags": [
-      "pet",
-      "cute"
-    ]
-  }
-}
+{ ref: Ref(Class("posts"), "205904031076321792"),
+  ts: 1532624327263554,
+  data:
+   { title: 'My cat and other marvels', tags: [ 'pet', 'cute' ] } }
 ```
 
 And now let's try to change the content of that post:
 
 ```javascript
-faunadb> Replace(
-    Ref(Class("posts"), "203270317027623424"),
+my_app> Replace(
+    Ref(Class("posts"), "205904031076321792"),
     { data: { title: "My dog and other marvels" } })
-{
-  "ref": Ref(Class("posts"), "203270317027623424"),
-  "ts": 1530112733994661,
-  "data": {
-    "title": "My dog and other marvels"
-  }
-}
-faunadb>
-
+{ ref: Ref(Class("posts"), "205904031076321792"),
+  ts: 1532624352388889,
+  data: { title: 'My dog and other marvels' } }
 ```
 
 Now let's try to delete our post about _latte_:
 
 ```javascript
-faunadb> Delete(Ref(Class("posts"), "203270317028672000"))
-faunadb>
-{
-  "ref": Ref(Class("posts"), "203270317028672000"),
-  "ts": 1530112530627575,
-  "data": {
-    "title": "Deep meanings in a latte"
-  }
-}
+my_app> Delete(Ref(Class("posts"), "205904031076319744"))
+{ ref: Ref(Class("posts"), "205904031076319744"),
+  ts: 1532624236071215,
+  data: { title: 'Deep meanings in a latte' } }
 ```
 
 If we try to fetch it, we will receive an error:
 
 ```javascript
-faunadb> Get(Ref(Class("posts"), "203270317028672000"))
-faunadb>
+my_app> Get(Ref(Class("posts"), "205904031076319744"))
  Error: instance not found
 ```
 

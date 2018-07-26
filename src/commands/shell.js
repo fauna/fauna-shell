@@ -3,7 +3,7 @@ const {errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb');
 const q = faunadb.query;
 const repl = require('repl');
-const { stringify } = require('../lib/stringify.js')
+const util = require('util');
 
 /**
  * We need this function to allow multi-line javascript objects 
@@ -49,9 +49,9 @@ class ShellCommand extends FaunaCommand {
 								if (!error) {
 									return client.query(result)
 									       .then(function(response) {
-													 console.log(stringify(response));
+													 console.log(util.inspect(response, {depth: null}));
 													 return cb(error)
-									       }) 
+									       })
 									       .catch(function(error) {
 													 log("Error:", error.message);
 													 return cb()
