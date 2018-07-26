@@ -38,6 +38,7 @@ ListEndpointCommand.examples = [
 	'$ fauna list-endpoints'
 ]
 
+// clear the default FaunaCommand flags that accept --host, --port, etc.
 FaunaCommand.flags = {
 }
 

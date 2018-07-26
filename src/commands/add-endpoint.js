@@ -41,6 +41,7 @@ AddEndpointCommand.examples = [
 	'$ fauna add-endpoint https://db.fauna.com:443'
 ]
 
+// clear the default FaunaCommand flags that accept --host, --port, etc.
 FaunaCommand.flags = {
 }
 
