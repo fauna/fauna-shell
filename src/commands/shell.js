@@ -5,6 +5,18 @@ const q = faunadb.query;
 const repl = require('repl');
 const { stringify } = require('../lib/stringify.js')
 
+/**
+ * We need this function to allow multi-line javascript objects 
+ * to be entered. Without this check, the following object will
+ * produce an error:
+ * 
+ * { a: 'a string',
+ *   b: 1,
+ *   c: Bytes("AQID"),
+ *   d: [ 1, 2 ],
+ *   e: { a: 'another string' } }
+ * 
+ */
 function isRecoverableError(error) {
   if (error.name === 'SyntaxError') {
     return /^(Unexpected end of input|Unexpected token)/.test(error.message);
