@@ -24,8 +24,9 @@ class ShellCommand extends FaunaCommand {
 			.then(function(exists) {
 				if (exists) {
 					withClient(function(client, endpoint) {
-						log(`Starting shell for database ${dbscope}.`);
+						log(`Starting shell for database ${dbscope}`);
 						log(`Connected to ${endpoint.scheme}://${endpoint.domain}:${endpoint.port}`);
+						log(`Type Ctrl+D or .exit to exit the shell`);
 						var defaultEval;
 
 						function replEvalPromise(cmd, ctx, filename, cb) {
@@ -56,6 +57,16 @@ class ShellCommand extends FaunaCommand {
 						const r	= repl.start({
 							prompt: `${dbscope}> `,
 							ignoreUndefined: true
+						});
+						
+						// we don't want to allow the custom commands from the node.js repl.
+						r.commands = [];
+						
+						r.defineCommand('exit', {
+							help: 'Exit the repl',
+							action: function() {
+								this.close();
+							}
 						});
 						
 						defaultEval = r.eval;
