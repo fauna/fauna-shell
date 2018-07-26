@@ -16,7 +16,7 @@ class FaunaCommand extends Command {
 	 * flags and args for the command being run in the CLI.
 	 * In this way we parse the flags and args defined in that command, 
 	 * plus the ones defined here. A command then needs to define its flags
-	 * like this:
+	 * as follows, if it wants to inherit the flags defined in FaunaCommand:
 	 *
 	 * CreateKeyCommand.flags = {
 	 *	...FaunaCommand.flags
