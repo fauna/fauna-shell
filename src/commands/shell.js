@@ -31,6 +31,8 @@ class ShellCommand extends FaunaCommand {
 		const log = this.log;
 		const withClient = this.withClient.bind(this)
 
+		// first we test if the database specified by the user exists.
+		// if that's the case, we create a connection scoped to that database.
 		this.withClient(function(testDbClient, _endpoint) {
 			testDbClient.query(q.Exists(q.Database(dbscope)))
 			.then(function(exists) {
@@ -49,7 +51,11 @@ class ShellCommand extends FaunaCommand {
 								if (!error) {
 									return client.query(result)
 									       .then(function(response) {
-													 console.log(util.inspect(response, {depth: null}));
+													 // we could provide the response result as a second 
+													 // argument to cb(), but the repl util.inspect has a
+													 // default depth of 2, but we want to display the full
+													 // objects or arrays, not things like [object Object]
+													 console.log(util.inspect(response, {depth: null}))
 													 return cb(error)
 									       })
 									       .catch(function(error) {
