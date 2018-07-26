@@ -24,6 +24,11 @@ function isRecoverableError(error) {
   return false;
 }
 
+// don't submit to the server empty queries.
+function skipInput(cmd) {
+	return cmd.trim() == '';
+}
+
 class ShellCommand extends FaunaCommand {
 	async run() {
 		const dbscope = this.args.dbname;
@@ -44,7 +49,7 @@ class ShellCommand extends FaunaCommand {
 						var defaultEval;
 
 						function replEvalPromise(cmd, ctx, filename, cb) {
-							if (cmd.trim() == '') {
+							if (skipInput(cmd)) {
 								return cb()
 							}
 							defaultEval(cmd, ctx, filename, function(error, result) {
