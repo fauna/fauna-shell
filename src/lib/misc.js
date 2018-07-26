@@ -5,6 +5,10 @@ const ini = require('ini');
 const url = require('url')
 const {cli} = require('cli-ux')
 
+const saveConfig = function(config) {
+	fs.writeFileSync(getConfigFile(), ini.stringify(config), {mode: 0o700});
+}
+
 const handleConfig = async function(configData, endpointURL, secret, alias) {
 	const endpoint = url.parse(endpointURL);
 	if (!endpoint.hostname) {
@@ -48,7 +52,7 @@ const handleConfig = async function(configData, endpointURL, secret, alias) {
 	}
 
 	Object.assign(config[alias], domain, port, scheme, {secret})
-	fs.writeFileSync(getConfigFile(), ini.stringify(config), {mode: 0o700})
+	saveConfig(config)
 }
 
 function handleConfigOrError(configData, endpoint, secret, alias) {
@@ -129,5 +133,6 @@ module.exports = {
 	buildConnectionOptions: buildConnectionOptions,
 	getConfigFile: getConfigFile,
 	readFile: readFile,
-	errorOut: errorOut
+	errorOut: errorOut,
+	saveConfig: saveConfig
 };

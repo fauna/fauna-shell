@@ -1,5 +1,5 @@
 const {flags} = require('@oclif/command')
-const {fileNotFound, readFile, getConfigFile, errorOut} = require('../lib/misc.js')
+const {fileNotFound, readFile, getConfigFile, errorOut, saveConfig} = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna_command.js')
 const ini = require('ini')
 const fs = require('fs')
@@ -13,7 +13,7 @@ class DefaultEndpointCommand extends FaunaCommand {
 			const config = configData ? ini.parse(configData) : {}
 			if (config[endpoint]) {
 				config['default'] = endpoint
-				fs.writeFileSync(getConfigFile(), ini.stringify(config), {mode: 0o700})
+				saveConfig(config)
 				log(`Endpoint ${endpoint} set as default endpoint.`);
 			} else {
 				errorOut(`Endpoint ${endpoint} doesn't exist.`, 1);
