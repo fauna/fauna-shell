@@ -69,6 +69,8 @@ class ShellCommand extends FaunaCommand {
 							}
 						});
 						
+						// we define our own eval, because we want to wrap QueryExpressions
+						// inside a FaunaDB's Query().
 						defaultEval = r.eval;
 						r.eval = replEvalPromise;
 
