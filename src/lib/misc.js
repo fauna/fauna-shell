@@ -111,7 +111,6 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 		.then(function(configData) {
 			const config = ini.parse(configData);
 			var endpoint = {};
-			var keys = Object.keys(config);
 			if (config.hasOwnProperty('default') && config.hasOwnProperty(config['default'])) {
 				endpoint = config[config['default']]
 			} else {
