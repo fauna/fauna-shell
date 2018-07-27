@@ -155,6 +155,10 @@ function errorOut(msg, code) {
 	process.exit(code)
 }
 
+/**
+ * If `dbScope` and `role` aren't null, then the secret key is scoped to
+ * the `dbScope` database for the provided user `role`.
+ */
 function maybeScopeKey(config, dbScope, role) {
 	scopedSecret = config.secret;
 	if (dbScope !== undefined && role !== undefined) {
