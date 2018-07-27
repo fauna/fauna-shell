@@ -63,6 +63,21 @@ function handleConfigOrError(configData, endpoint, secret, alias) {
 	})
 }
 
+/**
+ * Makes sure the connectionOptions options passed to the js client
+ * only contain valid properties.
+ */
+function cleanUpConnectionOptions(connectionOptions) {
+	const accepted = ['domain', 'scheme', 'port', 'secret', 'timeout'];
+	const res = {};
+	accepted.forEach(function(key) {
+		if (connectionOptions[key]) {
+			res[key] = connectionOptions[key]
+		}
+	});
+	return res;
+}
+
 function fileNotFound(err) {
 	return err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2;
 }
@@ -79,11 +94,10 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 			} else {
 				reject("You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS' or run fauna --help to see a list of commands.");
 			}
-			
 			const connectionOptions = Object.assign(endpoint, cmdFlags);
 			//TODO refactor duplicated code
 			if (connectionOptions.secret) {
-				resolve(maybeScopeKey(connectionOptions, dbScope, role));
+				resolve(cleanUpConnectionOptions(maybeScopeKey(connectionOptions, dbScope, role)));
 			} else {
 				reject("You must specify a secret key to connect to FaunaDB");
 			}
@@ -91,7 +105,7 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 		.catch(function(err) {
 			if (fileNotFound(err)) {
 				if (cmdFlags.secret) {
-					resolve(maybeScopeKey(connectionOptions, dbScope, role));
+					resolve(cleanUpConnectionOptions(maybeScopeKey(cmdFlags, dbScope, role)));
 				} else {
 					reject("You must specify a secret key to connect to FaunaDB");
 				}
