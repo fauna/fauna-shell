@@ -78,10 +78,33 @@ function cleanUpConnectionOptions(connectionOptions) {
 	return res;
 }
 
+/**
+ * Tests if an error is of the type "file not found".
+ */
 function fileNotFound(err) {
 	return err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2;
 }
 
+/**
+ * Builds the options provided to the faunajs client.
+ * Tries to load the ~/.fauna-shell file and read the default endpoint from there.
+ *
+ * Assumes that if the file exists, it would have been created by fauna-shell,
+ * therefore it would have a defined endpoint.
+ *
+ * Flags like --host, --port, etc., provided by the CLI take precedence over waht's
+ * stored in ~/.fauna-shell.
+ *
+ * If ~/.fauna-shell doesn't exist, tries to build the connection optios from the
+ * flags passed to the script.
+ *
+ * It always expect a secret key to be set in ~/.fauna-shell or provided via CLI 
+ * arguments.
+ *
+ * @param {Object} cmdFlags - flags passed via the CLI.
+ * @param {string} dbScope  - A database name to scope the connection to.
+ * @param {string} role     - A user role: 'admin'|'server'|'server-readonly'|'client'.
+ */
 function buildConnectionOptions(cmdFlags, dbScope, role) {
 	return new Promise(function(resolve, reject) {
 		readFile(getConfigFile())
