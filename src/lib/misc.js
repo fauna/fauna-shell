@@ -5,55 +5,8 @@ const ini = require('ini');
 const url = require('url')
 const {cli} = require('cli-ux')
 
-const saveConfig = function(config) {
-	fs.writeFileSync(getConfigFile(), ini.stringify(config), {mode: 0o700});
-}
-
-const handleConfig = async function(configData, endpointURL, secret, alias) {
-	const endpoint = url.parse(endpointURL);
-	if (!endpoint.hostname) {
-		throw "You must provide a valid endpoint";
-	}
-	
-	const config = configData ? ini.parse(configData) : {}
-	
-	// are we overwriting an already setup alias?
-	if (config[alias]) {
-		// is the alias the special one called 'cloud'?
-		if (alias == 'cloud') {
-			// is the cloud domain pointing to the right domain?
-			if (config['cloud']['domain'] != 'db.fauna.com') {
-				throw "You already have an endpoint 'cloud' defined and it doesn't point to 'db.fauna.com'.\nPlease fix your '~/.fauna-shell' file.";
-			}
-		}
-
-		const ow = await cli.confirm(`The '${alias}' endpoint already exists. Overwrite? [y/n]`);
-		if (!ow) {
-			process.exit(0);
-		}
-	}
-
-	// if we don't have any endopints, then the new one will be enabled
-	var enabled = Object.keys(config).length == 0 ? true : false
-	// if the endpoint already exists, we might need to keep it enabled if it was
-	if (config['default'] == alias) {
-		enabled = true;
-	}
-
-	var domain = endpoint.hostname;
-	var port = endpoint.port;
-	var scheme = endpoint.protocol.slice(0, -1) //the scheme is parsed as 'http:'
-  domain = domain === null ? null : {domain}
-	port = port === null ? null : {port}
-	scheme = scheme === null ? null : {scheme}
-	config[alias] = {}
-	if (enabled) {
-		config['default'] = alias;
-	}
-
-	Object.assign(config[alias], domain, port, scheme, {secret})
-	saveConfig(config)
-}
+const ERROR_NO_DEFAULT_ENDPOINT = "You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS' or run fauna --help to see a list of commands.";
+const ERROR_WRONG_CLOUD_ENDPOINT = "You already have an endpoint 'cloud' defined and it doesn't point to 'db.fauna.com'.\nPlease fix your '~/.fauna-shell' file.";
 
 function handleConfigOrError(configData, endpoint, secret, alias) {
 	handleConfig(configData, endpoint, secret, alias)
@@ -63,6 +16,73 @@ function handleConfigOrError(configData, endpoint, secret, alias) {
 	})
 }
 
+const handleConfig = async function(configData, endpointURL, secret, alias) {
+	const endpoint = url.parse(endpointURL);
+	if (!endpoint.hostname) {
+		throw "You must provide a valid endpoint";
+	}
+	
+	var config = configData ? ini.parse(configData) : {}
+	
+	// are we overwriting an already setup alias?
+	if (config[alias]) {
+		// is the alias the special one called 'cloud'?
+		if (alias == 'cloud') {
+			// is the cloud domain pointing to the right domain?
+			if (!validCloudEndpoint(config)) {
+				throw ERROR_WRONG_CLOUD_ENDPOINT;
+			}
+		}
+
+		const ow = await cli.confirm(`The '${alias}' endpoint already exists. Overwrite? [y/n]`);
+		if (!ow) {
+			process.exit(0);
+		}
+	}
+
+	if (shouldSetAsDefaultEndpoint(config)) {
+		config['default'] = alias;
+	}
+	config[alias] = buildEndpointObject(endpoint, secret);	
+	saveConfig(config);
+}
+
+function validCloudEndpoint(config) {
+	return config['cloud']['domain'] == 'db.fauna.com';
+}
+
+/**
+ * If there are no keys in the config, then the endpoint should be the default one.
+ */
+function shouldSetAsDefaultEndpoint(config) {
+	return Object.keys(config).length == 0;
+}
+
+function buildEndpointObject(endpoint, secret) {
+	var domain = endpoint.hostname;
+	var port = endpoint.port;
+	var scheme = endpoint.protocol.slice(0, -1) //the scheme is parsed as 'http:'
+	// if the value ends up being null, then Object.assign() will skip the property.
+  domain = domain === null ? null : {domain}
+	port = port === null ? null : {port}
+	scheme = scheme === null ? null : {scheme}
+	return Object.assign({}, domain, port, scheme, {secret})
+}
+
+function saveConfig(config) {
+	fs.writeFileSync(getConfigFile(), ini.stringify(config), {mode: 0o700});
+}
+
+function getConfigFile() {
+	return path.join(os.homedir(), '.fauna-shell');
+}
+
+function readFile(fileName) {
+  return new Promise(function(resolve, reject) {
+    fs.readFile(fileName, 'utf8', (err, data) => {
+			err ? reject(err) : resolve(data);
+    })
+  })
 }
 
 /**
@@ -70,6 +90,11 @@ function handleConfigOrError(configData, endpoint, secret, alias) {
  */
 function fileNotFound(err) {
 	return err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2;
+}
+
+function errorOut(msg, code) {
+	process.stderr.write(`${msg}\n`)
+	process.exit(code)
 }
 
 /**
@@ -96,12 +121,12 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 	return new Promise(function(resolve, reject) {
 		readFile(getConfigFile())
 		.then(function(configData) {
-			const config = ini.parse(configData);
 			var endpoint = {};
-			if (config.hasOwnProperty('default') && config.hasOwnProperty(config['default'])) {
-				endpoint = config[config['default']]
+			const config = ini.parse(configData);
+			if (hasDefaultEndpoint(config)) {
+				endpoint = getEndpoint(config);
 			} else {
-				reject("You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS' or run fauna --help to see a list of commands.");
+				reject(ERROR_NO_DEFAULT_ENDPOINT);
 			}
 			const connectionOptions = Object.assign(endpoint, cmdFlags);
 			//TODO refactor duplicated code
@@ -125,21 +150,14 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 	})
 }
 
-function getConfigFile() {
-	return path.join(os.homedir(), '.fauna-shell');
+function getEndpoint(config) {
+	return config[config['default']];
 }
 
-function readFile(fileName) {
-  return new Promise(function(resolve, reject) {
-    fs.readFile(fileName, 'utf8', (err, data) => {
-			err ? reject(err) : resolve(data);
-    })
-  })
+function hasDefaultEndpoint(config) {
+	return config.hasOwnProperty('default') && config.hasOwnProperty(config['default']);
 }
 
-function errorOut(msg, code) {
-	process.stderr.write(`${msg}\n`)
-	process.exit(code)
 /**
  * Makes sure the connectionOptions options passed to the js client
  * only contain valid properties.
