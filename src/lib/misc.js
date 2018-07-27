@@ -63,19 +63,6 @@ function handleConfigOrError(configData, endpoint, secret, alias) {
 	})
 }
 
-/**
- * Makes sure the connectionOptions options passed to the js client
- * only contain valid properties.
- */
-function cleanUpConnectionOptions(connectionOptions) {
-	const accepted = ['domain', 'scheme', 'port', 'secret', 'timeout'];
-	const res = {};
-	accepted.forEach(function(key) {
-		if (connectionOptions[key]) {
-			res[key] = connectionOptions[key]
-		}
-	});
-	return res;
 }
 
 /**
@@ -153,6 +140,19 @@ function readFile(fileName) {
 function errorOut(msg, code) {
 	process.stderr.write(`${msg}\n`)
 	process.exit(code)
+/**
+ * Makes sure the connectionOptions options passed to the js client
+ * only contain valid properties.
+ */
+function cleanUpConnectionOptions(connectionOptions) {
+	const accepted = ['domain', 'scheme', 'port', 'secret', 'timeout'];
+	const res = {};
+	accepted.forEach(function(key) {
+		if (connectionOptions[key]) {
+			res[key] = connectionOptions[key]
+		}
+	});
+	return res;
 }
 
 /**
