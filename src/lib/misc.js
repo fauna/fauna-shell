@@ -36,7 +36,7 @@ const handleConfig = async function(configData, endpointURL, secret, alias) {
 
 		const ow = await cli.confirm(`The '${alias}' endpoint already exists. Overwrite? [y/n]`);
 		if (!ow) {
-			process.exit(0);
+			process.exit(1);
 		}
 	}
 
