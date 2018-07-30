@@ -78,14 +78,24 @@ function buildEndpointObject(endpoint, secret) {
 	return Object.assign({}, domain, port, scheme, {secret})
 }
 
+/**
+ * Converts the `config` data provided to INI format, and then saves it to the
+ * ~/.fauna-shell file.
+ */
 function saveConfig(config) {
 	fs.writeFileSync(getConfigFile(), ini.stringify(config), {mode: 0o700});
 }
 
+/**
+ * Returns the full path to the `.fauna-shell` config file
+ */
 function getConfigFile() {
 	return path.join(os.homedir(), '.fauna-shell');
 }
 
+/**
+ * Wraps `fs.readFile` into a Promise.
+ */
 function readFile(fileName) {
   return new Promise(function(resolve, reject) {
     fs.readFile(fileName, 'utf8', (err, data) => {
@@ -101,6 +111,9 @@ function fileNotFound(err) {
 	return err.code == 'ENOENT' && err.syscall == 'open' && err.errno == -2;
 }
 
+/**
+ * Writes `msg` to stderr and exits with `code`.
+ */
 function errorOut(msg, code) {
 	process.stderr.write(`${msg}\n`)
 	process.exit(code)
