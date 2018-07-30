@@ -2,7 +2,7 @@ const {fileNotFound, readFile, getConfigFile, errorOut} = require('../lib/misc.j
 const FaunaCommand = require('../lib/fauna_command.js')
 const ini = require('ini')
 
-class ListEndpointCommand extends FaunaCommand {
+class ListEndpointsCommand extends FaunaCommand {
 	async run() {
 		const log = this.log
 		readFile(getConfigFile())
@@ -30,11 +30,11 @@ class ListEndpointCommand extends FaunaCommand {
 	}
 }
 
-ListEndpointCommand.description = `
+ListEndpointsCommand.description = `
 Lists FaunaDB connection endpoints
 `
 
-ListEndpointCommand.examples = [
+ListEndpointsCommand.examples = [
 	'$ fauna list-endpoints'
 ]
 
@@ -42,4 +42,4 @@ ListEndpointCommand.examples = [
 FaunaCommand.flags = {
 }
 
-module.exports = ListEndpointCommand
+module.exports = ListEndpointsCommand
