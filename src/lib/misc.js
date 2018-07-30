@@ -8,15 +8,24 @@ const {cli} = require('cli-ux')
 const ERROR_NO_DEFAULT_ENDPOINT = "You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS' or run fauna --help to see a list of commands.";
 const ERROR_WRONG_CLOUD_ENDPOINT = "You already have an endpoint 'cloud' defined and it doesn't point to 'db.fauna.com'.\nPlease fix your '~/.fauna-shell' file.";
 
-function handleConfigOrError(configData, endpoint, secret, alias) {
-	handleConfig(configData, endpoint, secret, alias)
+function saveEndpointOrError(configData, endpoint, secret, alias) {
+	saveEndpoint(configData, endpoint, secret, alias)
 	.catch(function(err) {
-		// there was an error inside handleConfig
+		// there was an error inside saveEndpoint
 		errorOut(err, 1);
 	})
 }
 
-const handleConfig = async function(configData, endpointURL, secret, alias) {
+/**
+ * Takes a string representation of the .ini configuration file, an endpointURL,
+ * an endpoint secret, and the endpoint alias, and saves it to the .ini config file.
+ * - If the endpoint already exists, it will be overwritten, after asking confirmation
+ *   from the user.
+ * - If the endpoint is the special "cloud" one, then its hostname will be validated.
+ *   and the user will be asked for confirmation before overwriting.
+ * - If no other endpoint exists, then the endpoint is set as default one.
+ */
+const saveEndpoint = async function(configData, endpointURL, secret, alias) {
 	const endpoint = url.parse(endpointURL);
 	if (!endpoint.hostname) {
 		throw "You must provide a valid endpoint";
@@ -186,7 +195,7 @@ function maybeScopeKey(config, dbScope, role) {
 }
 
 module.exports = {
-	handleConfigOrError: handleConfigOrError,
+	saveEndpointOrError: saveEndpointOrError,
 	fileNotFound: fileNotFound,
 	buildConnectionOptions: buildConnectionOptions,
 	getConfigFile: getConfigFile,

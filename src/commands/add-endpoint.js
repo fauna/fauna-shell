@@ -1,5 +1,5 @@
 const {cli} = require('cli-ux')
-const {fileNotFound, handleConfigOrError, readFile, getConfigFile, errorOut} = require('../lib/misc.js')
+const {fileNotFound, saveEndpointOrError, readFile, getConfigFile, errorOut} = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna_command.js')
 const url = require('url')
 
@@ -21,11 +21,11 @@ class AddEndpointCommand extends FaunaCommand {
 		
 		readFile(getConfigFile())
 		.then(function(configData) {
-			handleConfigOrError(configData, endpoint, secret, alias)
+			saveEndpointOrError(configData, endpoint, secret, alias)
 		})
 		.catch(function(err) {
 			if (fileNotFound(err)) {
-				handleConfigOrError("", endpoint, secret, alias)
+				saveEndpointOrError("", endpoint, secret, alias)
 			} else {
 				errorOut(err, 1)
 			}

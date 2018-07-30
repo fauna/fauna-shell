@@ -1,5 +1,5 @@
 const {cli} = require('cli-ux')
-const {handleConfigOrError, fileNotFound, readFile, getConfigFile, errorOut} = require('../lib/misc.js')
+const {saveEndpointOrError, fileNotFound, readFile, getConfigFile, errorOut} = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna_command.js')
 const os = require("os");
 const request = require('request');
@@ -26,12 +26,12 @@ class CloudLoginCommand extends FaunaCommand {
 					const secret = JSON.parse(body).secret;
 					readFile(getConfigFile())
 					.then(function(configData) {
-						handleConfigOrError(configData, endpoint, secret, alias);
+						saveEndpointOrError(configData, endpoint, secret, alias);
 					})
 					.catch(function(err) {
 						if (fileNotFound(err)) {
 							// the .fauna-shell file doesn't exist, so there's no initial configData.
-							handleConfigOrError("", endpoint, secret, alias);
+							saveEndpointOrError("", endpoint, secret, alias);
 						} else {
 							errorOut(err, 1)
 						}
