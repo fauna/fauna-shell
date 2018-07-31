@@ -39,7 +39,7 @@ ListEndpointsCommand.examples = [
 ]
 
 // clear the default FaunaCommand flags that accept --host, --port, etc.
-FaunaCommand.flags = {
+ListEndpointsCommand.flags = {
 }
 
 module.exports = ListEndpointsCommand

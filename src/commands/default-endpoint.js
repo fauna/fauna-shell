@@ -43,7 +43,7 @@ DefaultEndpointCommand.examples = [
 ]
 
 // clear the default FaunaCommand flags that accept --host, --port, etc.
-FaunaCommand.flags = {
+DefaultEndpointCommand.flags = {
 }
 
 DefaultEndpointCommand.args = [

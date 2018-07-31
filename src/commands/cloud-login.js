@@ -57,7 +57,7 @@ CloudLoginCommand.examples = [
 ]
 
 // clear the default FaunaCommand flags that accept --host, --port, etc.
-FaunaCommand.flags = {
+CloudLoginCommand.flags = {
 }
 
 CloudLoginCommand.args = [
