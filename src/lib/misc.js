@@ -2,62 +2,111 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs')
 const ini = require('ini');
-const url = require('url')
 const {cli} = require('cli-ux')
 
+const FAUNA_CLOUD_DOMAIN = 'db.fauna.com';
 const ERROR_NO_DEFAULT_ENDPOINT = "You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS' or run fauna --help to see a list of commands.";
 const ERROR_WRONG_CLOUD_ENDPOINT = "You already have an endpoint 'cloud' defined and it doesn't point to 'db.fauna.com'.\nPlease fix your '~/.fauna-shell' file.";
 
-function saveEndpointOrError(configData, endpoint, secret, alias) {
-	saveEndpoint(configData, endpoint, secret, alias)
+/**
+ * Takes a parsed endpointURL, an endpoint alias, and the endpoint secret, 
+ * and saves it to the .ini config file.
+ *
+ * - If the endpoint already exists, it will be overwritten, after asking confirmation
+ *   from the user.
+ * - If no other endpoint exists, then the endpoint will be set as the default one.
+ */
+function saveEndpointOrError(newEndpoint, alias, secret) {
+	loadEndpoints()
+	.then(function(endpoints) {
+		if (endpointExists(endpoints, alias)) {
+			confirmEndpointOverwrite(alias)
+			.then(function(overwrite) {
+				if (overwrite) {
+					saveEndpoint(endpoints, newEndpoint, alias, secret);
+				} else {
+					process.exit(1);
+				}
+			})
+		} else {
+			saveEndpoint(endpoints, newEndpoint, alias, secret)
+		}
+	})
 	.catch(function(err) {
-		// there was an error inside saveEndpoint
-		errorOut(err, 1);
+		errorOut(err, 1)
 	})
 }
 
 /**
- * Takes a string representation of the .ini configuration file, an endpointURL,
- * an endpoint secret, and the endpoint alias, and saves it to the .ini config file.
- * - If the endpoint already exists, it will be overwritten, after asking confirmation
- *   from the user.
- * - If the endpoint is the special "cloud" one, then its hostname will be validated.
- *   and the user will be asked for confirmation before overwriting.
- * - If no other endpoint exists, then the endpoint is set as default one.
+ * Validates that the 'cloud' endpoint points to FAUNA_CLOUD_DOMAIN.
  */
-const saveEndpoint = async function(configData, endpointURL, secret, alias) {
-	const endpoint = url.parse(endpointURL);
-	if (!endpoint.hostname) {
-		throw "You must provide a valid endpoint";
-	}
-	
-	var config = configData ? ini.parse(configData) : {}
-	
-	// are we overwriting an already setup alias?
-	if (config[alias]) {
-		// is the alias the special one called 'cloud'?
-		if (alias == 'cloud') {
-			// is the cloud domain pointing to the right domain?
-			if (!validCloudEndpoint(config)) {
-				throw ERROR_WRONG_CLOUD_ENDPOINT;
+function validCloudEndpoint() {
+	return loadEndpoints().then(function(config) {
+		return new Promise(function(resolve, reject) {
+			if (config['cloud']) {
+				config['cloud']['domain'] == FAUNA_CLOUD_DOMAIN
+					? resolve(true)
+					: reject(ERROR_WRONG_CLOUD_ENDPOINT); 
+			} else {
+				resolve(true);
 			}
-		}
+		});
+	})
+}
 
-		const ow = await cli.confirm(`The '${alias}' endpoint already exists. Overwrite? [y/n]`);
-		if (!ow) {
-			process.exit(1);
-		}
-	}
+/**
+ * Sets `endpoint` as the default endpoint.
+ * If `endpoint` doesn't exist, returns an error.
+ */
+function setDefaultEndpoint(endpoint) {
+	return loadEndpoints().then(function(endpoints) {
+		return new Promise(function(resolve, reject) {
+			if (endpoints[endpoint]) {
+				endpoints['default'] = endpoint;
+				saveConfig(endpoints)
+				resolve(`Endpoint ${endpoint} set as default endpoint.`);
+			} else {
+				reject(`Endpoint ${endpoint} doesn't exist.`);
+			}
+		})
+	});
+}
 
+/**
+ * Loads the endpoints from the ~/.fauna-shell file.
+ * If the file doesn't exist, returns an empty object.
+ */
+function loadEndpoints() {
+	return readFile(getConfigFile())
+	.then(function(configData) {
+		return ini.parse(configData);
+	})
+	.catch(function(err) {
+		if (fileNotFound(err)) {
+			return {}
+		}
+		throw err;
+	});
+}
+
+function endpointExists(endpoints, endpointAlias) {
+	return endpointAlias in endpoints;
+}
+
+function confirmEndpointOverwrite(alias) {
+	return cli.confirm(`The '${alias}' endpoint already exists. Overwrite? [y/n]`);
+}
+
+function saveEndpoint(config, endpoint, alias, secret) {
+	saveConfig(addEndpoint(config, endpoint, alias, secret));
+}
+
+function addEndpoint(config, endpoint, alias, secret) {
 	if (shouldSetAsDefaultEndpoint(config)) {
 		config['default'] = alias;
 	}
-	config[alias] = buildEndpointObject(endpoint, secret);	
-	saveConfig(config);
-}
-
-function validCloudEndpoint(config) {
-	return config['cloud']['domain'] == 'db.fauna.com';
+	config[alias] = buildEndpointObject(endpoint, secret);
+	return config;
 }
 
 /**
@@ -115,6 +164,7 @@ function fileNotFound(err) {
  * Writes `msg` to stderr and exits with `code`.
  */
 function errorOut(msg, code) {
+	code = code || 1
 	process.stderr.write(`${msg}\n`)
 	process.exit(code)
 }
@@ -209,10 +259,9 @@ function maybeScopeKey(config, dbScope, role) {
 
 module.exports = {
 	saveEndpointOrError: saveEndpointOrError,
-	fileNotFound: fileNotFound,
+	validCloudEndpoint: validCloudEndpoint,
+	setDefaultEndpoint: setDefaultEndpoint,
+	loadEndpoints: loadEndpoints,
 	buildConnectionOptions: buildConnectionOptions,
-	getConfigFile: getConfigFile,
-	readFile: readFile,
-	errorOut: errorOut,
-	saveConfig: saveConfig
+	errorOut: errorOut
 };

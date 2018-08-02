@@ -1,31 +1,31 @@
-const {fileNotFound, readFile, getConfigFile, errorOut} = require('../lib/misc.js')
+const {loadEndpoints, errorOut} = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna_command.js')
 const ini = require('ini')
 
 class ListEndpointsCommand extends FaunaCommand {
 	async run() {
 		const log = this.log
-		readFile(getConfigFile())
-		.then(function(configData) {
-			const config = configData ? ini.parse(configData) : {}
-			var keys = Object.keys(config);
-			keys.forEach(function(endpoint) {
-				if (endpoint == 'default') {
-					return; //in JS return skips this iteration.
-				}
-				var enabled = "";
-				if (endpoint == config['default']) {
-					enabled = "*"
-				}
-				log(`${endpoint} ${enabled}`)
-			})
+		loadEndpoints()
+		.then(function(endpoints) {
+			var keys = Object.keys(endpoints);
+			if (keys.length == 0) {
+				throw(`No endpoints defined.\nSee fauna add-endpoint --help for more details.`)
+			} else {
+				keys.forEach(function(endpoint) {
+					// skip the key that stores the default endpoint
+					if (endpoint == 'default') {
+						return; //in JS return skips this iteration.
+					}
+					var enabled = "";
+					if (endpoint == endpoints['default']) {
+						enabled = "*"
+					}
+					log(`${endpoint} ${enabled}`)
+				})
+			}
 		})
 		.catch(function(err) {
-			if (fileNotFound(err)) {
-				errorOut(`No endpoint's defined.\nSee fauna add-endpoint --help for more details.`, 1)
-			} else {
-				errorOut(err, 1)
-			}
+			errorOut(err, 1)
 		});
 	}
 }
