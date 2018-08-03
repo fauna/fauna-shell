@@ -64,9 +64,9 @@ function setDefaultEndpoint(endpoint) {
 			if (endpoints[endpoint]) {
 				endpoints['default'] = endpoint;
 				saveConfig(endpoints)
-				resolve(`Endpoint ${endpoint} set as default endpoint.`);
+				resolve(`Endpoint '${endpoint}' set as default endpoint.`);
 			} else {
-				reject(`Endpoint ${endpoint} doesn't exist.`);
+				reject(`Endpoint '${endpoint}' doesn't exist.`);
 			}
 		})
 	});
