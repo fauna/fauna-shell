@@ -348,6 +348,7 @@ Any options that are not specified either via the `.fauna-shell` config file or 
 * [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
 * [`fauna default-endpoint ENDPOINT_ALIAS`](#fauna-default-endpoint-endpoint-alias)
 * [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
+* [`fauna delete-endpoint ENDPOINT_ALIAS`](#fauna-delete-endpoint-endpoint-alias)
 * [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
 * [`fauna help [COMMAND]`](#fauna-help-command)
 * [`fauna list-databases`](#fauna-list-databases)
@@ -374,7 +375,7 @@ EXAMPLE
   $ fauna add-endpoint https://db.fauna.com:443
 ```
 
-_See code: [src/commands/add-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/add-endpoint.js)_
+_See code: [src/commands/add-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/add-endpoint.js)_
 
 ## `fauna cloud-login`
 
@@ -392,7 +393,7 @@ EXAMPLE
   $ fauna cloud-login
 ```
 
-_See code: [src/commands/cloud-login.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/cloud-login.js)_
+_See code: [src/commands/cloud-login.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/cloud-login.js)_
 
 ## `fauna create-database DBNAME`
 
@@ -405,6 +406,13 @@ USAGE
 ARGUMENTS
   DBNAME  database name
 
+OPTIONS
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
+
 DESCRIPTION
   Creates a database
 
@@ -413,7 +421,7 @@ EXAMPLE
   $ fauna create-database dbname
 ```
 
-_See code: [src/commands/create-database.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/create-database.js)_
+_See code: [src/commands/create-database.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/create-database.js)_
 
 ## `fauna create-key DBNAME [ROLE]`
 
@@ -427,6 +435,13 @@ ARGUMENTS
   DBNAME  database name
   ROLE    key user role
 
+OPTIONS
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
+
 DESCRIPTION
   Creates a key for the specified database
 
@@ -435,7 +450,7 @@ EXAMPLE
   $ fauna create-key dbname admin
 ```
 
-_See code: [src/commands/create-key.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/create-key.js)_
+_See code: [src/commands/create-key.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/create-key.js)_
 
 ## `fauna default-endpoint ENDPOINT_ALIAS`
 
@@ -446,7 +461,7 @@ USAGE
   $ fauna default-endpoint ENDPOINT_ALIAS
 
 ARGUMENTS
-  ENDPOINT_ALIAS  FaunaDB server endpoint
+  ENDPOINT_ALIAS  FaunaDB server endpoint alias
 
 DESCRIPTION
   Sets an endpoint as the default one
@@ -456,7 +471,7 @@ EXAMPLE
   $ fauna default-endpoint endpoint
 ```
 
-_See code: [src/commands/default-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/default-endpoint.js)_
+_See code: [src/commands/default-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/default-endpoint.js)_
 
 ## `fauna delete-database DBNAME`
 
@@ -469,6 +484,13 @@ USAGE
 ARGUMENTS
   DBNAME  database name
 
+OPTIONS
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
+
 DESCRIPTION
   Deletes a database
 
@@ -477,7 +499,28 @@ EXAMPLE
   $ fauna delete-database dbname
 ```
 
-_See code: [src/commands/delete-database.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/delete-database.js)_
+_See code: [src/commands/delete-database.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/delete-database.js)_
+
+## `fauna delete-endpoint ENDPOINT_ALIAS`
+
+Deletes a connection endpoint for FaunaDB
+
+```
+USAGE
+  $ fauna delete-endpoint ENDPOINT_ALIAS
+
+ARGUMENTS
+  ENDPOINT_ALIAS  FaunaDB server endpoint alias
+
+DESCRIPTION
+  Deletes a connection endpoint for FaunaDB
+
+
+EXAMPLE
+  $ fauna delete-endpoint endpoint_alias
+```
+
+_See code: [src/commands/delete-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/delete-endpoint.js)_
 
 ## `fauna delete-key KEYNAME`
 
@@ -490,6 +533,13 @@ USAGE
 ARGUMENTS
   KEYNAME  key name
 
+OPTIONS
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
+
 DESCRIPTION
   Deletes a key
 
@@ -498,7 +548,7 @@ EXAMPLE
   $ fauna delete-key 123456789012345678
 ```
 
-_See code: [src/commands/delete-key.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/delete-key.js)_
+_See code: [src/commands/delete-key.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/delete-key.js)_
 
 ## `fauna help [COMMAND]`
 
@@ -525,6 +575,13 @@ Lists top level databases
 USAGE
   $ fauna list-databases
 
+OPTIONS
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
+
 DESCRIPTION
   Lists top level databases
 
@@ -533,7 +590,7 @@ EXAMPLE
   $ fauna list-databases
 ```
 
-_See code: [src/commands/list-databases.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/list-databases.js)_
+_See code: [src/commands/list-databases.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/list-databases.js)_
 
 ## `fauna list-endpoints`
 
@@ -551,7 +608,7 @@ EXAMPLE
   $ fauna list-endpoints
 ```
 
-_See code: [src/commands/list-endpoints.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/list-endpoints.js)_
+_See code: [src/commands/list-endpoints.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/list-endpoints.js)_
 
 ## `fauna list-keys`
 
@@ -561,6 +618,13 @@ Lists top level keys
 USAGE
   $ fauna list-keys
 
+OPTIONS
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
+
 DESCRIPTION
   Lists top level keys
 
@@ -569,7 +633,7 @@ EXAMPLE
   $ fauna list-keys
 ```
 
-_See code: [src/commands/list-keys.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/list-keys.js)_
+_See code: [src/commands/list-keys.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/list-keys.js)_
 
 ## `fauna shell DBNAME`
 
@@ -582,6 +646,13 @@ USAGE
 ARGUMENTS
   DBNAME  database name
 
+OPTIONS
+  --domain=domain      FaunaDB server domain
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --timeout=timeout    Connection timeout in milliseconds
+
 DESCRIPTION
   Starts a FaunaDB shell
 
@@ -590,5 +661,5 @@ EXAMPLE
   $ fauna shell dbname
 ```
 
-_See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.2.3/src/commands/shell.js)_
+_See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.3.0/src/commands/shell.js)_
 <!-- commandsstop -->
