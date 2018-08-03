@@ -113,7 +113,7 @@ function addEndpoint(config, endpoint, alias, secret) {
  * If there are no keys in the config, then the endpoint should be the default one.
  */
 function shouldSetAsDefaultEndpoint(config) {
-	return Object.keys(config).length == 0;
+	return "default" in config === false;
 }
 
 function buildEndpointObject(endpoint, secret) {
