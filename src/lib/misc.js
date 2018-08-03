@@ -37,6 +37,27 @@ function saveEndpointOrError(newEndpoint, alias, secret) {
 	})
 }
 
+function deleteEndpointOrError(alias) {
+	loadEndpoints()
+	.then(function(endpoints) {
+		if (endpointExists(endpoints, alias)) {
+			confirmEndpointDelete(alias)
+			.then(function(del) {
+				if (del) {
+					deleteEndpoint(endpoints, alias)
+				} else {
+					process.exit(1);
+				}
+			})
+		} else {
+			throw `The endpoint '${alias}' doesn't exist`;
+		}
+	})
+	.catch(function(err) {
+		errorOut(err, 1)
+	})
+}
+
 /**
  * Validates that the 'cloud' endpoint points to FAUNA_CLOUD_DOMAIN.
  */
@@ -97,6 +118,10 @@ function confirmEndpointOverwrite(alias) {
 	return cli.confirm(`The '${alias}' endpoint already exists. Overwrite? [y/n]`);
 }
 
+function confirmEndpointDelete(alias) {
+	return cli.confirm(`Are you sure you want to delete the '${alias}' endpoint? [y/n]`);
+}
+
 function saveEndpoint(config, endpoint, alias, secret) {
 	saveConfig(addEndpoint(config, endpoint, alias, secret));
 }
@@ -109,9 +134,16 @@ function addEndpoint(config, endpoint, alias, secret) {
 	return config;
 }
 
-/**
- * If there are no keys in the config, then the endpoint should be the default one.
- */
+function deleteEndpoint(endpoints, alias) {
+	if (endpoints['default'] == alias) {
+		delete endpoints['default'];
+		console.log(`Endpoint '${alias}' deleted. '${alias}' was the default endpoint.`)
+		console.log(ERROR_NO_DEFAULT_ENDPOINT);
+	}
+	delete endpoints[alias];
+	saveConfig(endpoints);
+}
+
 function shouldSetAsDefaultEndpoint(config) {
 	return "default" in config === false;
 }
@@ -259,8 +291,9 @@ function maybeScopeKey(config, dbScope, role) {
 
 module.exports = {
 	saveEndpointOrError: saveEndpointOrError,
-	validCloudEndpoint: validCloudEndpoint,
+	deleteEndpointOrError: deleteEndpointOrError,
 	setDefaultEndpoint: setDefaultEndpoint,
+	validCloudEndpoint: validCloudEndpoint,
 	loadEndpoints: loadEndpoints,
 	buildConnectionOptions: buildConnectionOptions,
 	errorOut: errorOut
