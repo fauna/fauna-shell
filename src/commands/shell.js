@@ -29,6 +29,18 @@ function skipInput(cmd) {
 	return cmd.trim() == '';
 }
 
+function stringifyEndpoint(endpoint) {
+	var res = "";
+	if (endpoint.scheme) {
+		res += endpoint.scheme + "://";
+	}
+	res += endpoint.domain;
+	if (endpoint.port) {
+		res += ":" + endpoint.port;
+	}
+	return res;
+}
+
 class ShellCommand extends FaunaCommand {
 	async run() {
 		const dbscope = this.args.dbname;
@@ -44,7 +56,7 @@ class ShellCommand extends FaunaCommand {
 				if (exists) {
 					withClient(function(client, endpoint) {
 						log(`Starting shell for database ${dbscope}`);
-						log(`Connected to ${endpoint.scheme}://${endpoint.domain}:${endpoint.port}`);
+						log(`Connected to ${stringifyEndpoint(endpoint)}`);
 						log(`Type Ctrl+D or .exit to exit the shell`);
 						var defaultEval;
 
