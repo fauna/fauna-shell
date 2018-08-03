@@ -230,7 +230,9 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 			if (hasDefaultEndpoint(config)) {
 				endpoint = getEndpoint(config);
 			} else {
-				reject(ERROR_NO_DEFAULT_ENDPOINT);
+				if(!cmdFlags.hasOwnProperty("secret")) {
+					reject(ERROR_NO_DEFAULT_ENDPOINT);
+				}
 			}
 			const connectionOptions = Object.assign(endpoint, cmdFlags);
 			//TODO refactor duplicated code
