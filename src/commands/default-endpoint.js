@@ -29,7 +29,7 @@ DefaultEndpointCommand.args = [
 	{
 		name: 'endpoint_alias', 
 		required: true, 
-		description: 'FaunaDB server endpoint'
+		description: 'FaunaDB server endpoint alias'
 	},
 ]
 
