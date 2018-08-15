@@ -9,7 +9,7 @@ const ERROR_NO_DEFAULT_ENDPOINT = "You need to set a default endpoint. \nTry run
 const ERROR_WRONG_CLOUD_ENDPOINT = "You already have an endpoint 'cloud' defined and it doesn't point to 'db.fauna.com'.\nPlease fix your '~/.fauna-shell' file.";
 
 /**
- * Takes a parsed endpointURL, an endpoint alias, and the endpoint secret, 
+ * Takes a parsed endpointURL, an endpoint alias, and the endpoint secret,
  * and saves it to the .ini config file.
  *
  * - If the endpoint already exists, it will be overwritten, after asking confirmation
@@ -67,7 +67,7 @@ function validCloudEndpoint() {
 			if (config['cloud']) {
 				config['cloud']['domain'] == FAUNA_CLOUD_DOMAIN
 					? resolve(true)
-					: reject(ERROR_WRONG_CLOUD_ENDPOINT); 
+					: reject(ERROR_WRONG_CLOUD_ENDPOINT);
 			} else {
 				resolve(true);
 			}
@@ -214,7 +214,7 @@ function errorOut(msg, code) {
  * If ~/.fauna-shell doesn't exist, tries to build the connection optios from the
  * flags passed to the script.
  *
- * It always expect a secret key to be set in ~/.fauna-shell or provided via CLI 
+ * It always expect a secret key to be set in ~/.fauna-shell or provided via CLI
  * arguments.
  *
  * @param {Object} cmdFlags - flags passed via the CLI.
