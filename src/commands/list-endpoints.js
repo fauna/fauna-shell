@@ -18,9 +18,9 @@ class ListEndpointsCommand extends FaunaCommand {
 					}
 					var enabled = "";
 					if (endpoint == endpoints['default']) {
-						enabled = "*"
+						enabled = " *"
 					}
-					log(`${endpoint} ${enabled}`)
+					log(`${endpoint}${enabled}`)
 				})
 			}
 		})
