@@ -7,7 +7,7 @@ fauna-shell
 [![Downloads/week](https://img.shields.io/npm/dw/fauna.svg)](https://npmjs.org/package/fauna)
 [![License](https://img.shields.io/npm/l/fauna.svg)](https://github.com/fauna/fauna/blob/master/package.json) -->
 
-This tools gives you access to [FaunaDB](http://fauna.com/) directly from your CLI. 
+This tools gives you access to [FaunaDB](http://fauna.com/) directly from your CLI.
 
 It also includes a [Shell](#shell) so you can issue queries to FaunaDB without needing to install additional libraries.
 
@@ -88,8 +88,8 @@ creating key for database 'my_app' with role 'admin'
 created key for database 'my_app' with role 'admin'.
 secret: ****************************************
 
-To access 'my_app' with this key, create a client using 
-the driver library for your language of choice using 
+To access 'my_app' with this key, create a client using
+the driver library for your language of choice using
 the above secret.
 ```
 
@@ -98,10 +98,10 @@ This is how to list keys (the results may differ from what you see in your insta
 ```sh-session
 $ fauna list-keys
 listing keys
-Key ID               Database             Role                
-203269476002562560   my_app               admin               
-203269731203940864   my_app               admin               
-203269732275585536   my_app               admin               
+Key ID               Database             Role
+203269476002562560   my_app               admin
+203269731203940864   my_app               admin
+203269732275585536   my_app               admin
 203269735610057216   test                 admin
 ```
 
@@ -125,7 +125,7 @@ Let's create a database and then we'll jump straight into the Shell to start pla
 fauna create-database my_app
 ```
 
-Our next step is to start the shell for a specific database, in this case `my_app`: 
+Our next step is to start the shell for a specific database, in this case `my_app`:
 
 ```sh-session
 fauna shell my_app
@@ -183,7 +183,7 @@ my_app> Map(
 			"Pondering during a commute",
 			"Deep meanings in a latte"
 		],
-		Lambda("post_title", 
+		Lambda("post_title",
 		  Create(
 				Class("posts"), { data: { title: Var("post_title") } }
 			))
@@ -332,7 +332,7 @@ OPTIONS
 They can be used like this:
 
 ```sh-session
-fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secret=YOUR_FAUNA_SECRET_KEY --timeout=42 
+fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secret=YOUR_FAUNA_SECRET_KEY --timeout=42
 ```
 
 Options provided via the CLI will override the values set in the `.fauna-shell` config file.
