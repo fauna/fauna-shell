@@ -211,10 +211,12 @@ function errorOut(msg, code) {
  * Assumes that if the file exists, it would have been created by fauna-shell,
  * therefore it would have a defined endpoint.
  *
- * Flags like --host, --port, etc., provided by the CLI take precedence over waht's
+ * Flags like --host, --port, etc., provided by the CLI take precedence over what's
  * stored in ~/.fauna-shell.
  *
- * If ~/.fauna-shell doesn't exist, tries to build the connection optios from the
+ * The --endpoint flag overries the default endpoint from fauna-shell.
+ *
+ * If ~/.fauna-shell doesn't exist, tries to build the connection options from the
  * flags passed to the script.
  *
  * It always expect a secret key to be set in ~/.fauna-shell or provided via CLI
@@ -230,8 +232,8 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 		.then(function(configData) {
 			var endpoint = {};
 			const config = ini.parse(configData);
-			if (hasDefaultEndpoint(config)) {
-				endpoint = getEndpoint(config);
+			if (hasValidEndpoint(config, cmdFlags.endpoint)) {
+				endpoint = getEndpoint(config, cmdFlags.endpoint);
 			} else {
 				if(!cmdFlags.hasOwnProperty("secret")) {
 					reject(ERROR_NO_DEFAULT_ENDPOINT);
@@ -259,12 +261,17 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
 	})
 }
 
-function getEndpoint(config) {
-	return config[config['default']];
+function getEndpoint(config, cmdEndpoint) {
+	const alias = cmdEndpoint ? cmdEndpoint : config['default'];
+	return config[alias];
 }
 
-function hasDefaultEndpoint(config) {
-	return config.hasOwnProperty('default') && config.hasOwnProperty(config['default']);
+function hasValidEndpoint(config, cmdEndpoint) {
+	if (cmdEndpoint) {
+		return config.hasOwnProperty(cmdEndpoint);
+	} else {
+		return config.hasOwnProperty('default') && config.hasOwnProperty(config['default']);
+	}
 }
 
 /**

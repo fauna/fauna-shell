@@ -323,11 +323,12 @@ Most commands support the following options. You can specify them if you want to
 
 ```
 OPTIONS
-  --domain=domain      [default: db.fauna.com] FaunaDB server domain
-  --port=port          [default: 443] Connection port
-  --scheme=https|http  [default: https] Connection scheme
+	--domain=domain      [default: db.fauna.com] FaunaDB server domain
+	--port=port          [default: 443] Connection port
+	--scheme=https|http  [default: https] Connection scheme
 	--secret=secret      FaunaDB secret key
-  --timeout=timeout    [default: 80] Connection timeout in milliseconds
+	--timeout=timeout    [default: 80] Connection timeout in milliseconds
+	--endpoint=alias     Overrides the default endpoint set in ~/.fauna-shell
 ```
 
 They can be used like this:
@@ -337,6 +338,12 @@ $ fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secr
 ```
 
 Options provided via the CLI will override the values set in the `.fauna-shell` config file.
+
+For example you can start a shell to a different endpoint from the one set in `.fauna-shell`:
+
+```sh-session
+$ fauna shell my_app --endpoint=endpoint_alias
+```
 
 Any options that are not specified either via the `.fauna-shell` config file or the CLI will be set to the defaults offered by the [faunadb-js client](https://github.com/fauna/faunadb-js).
 

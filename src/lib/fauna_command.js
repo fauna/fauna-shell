@@ -7,14 +7,14 @@ const q = faunadb.query;
  * This is the base class for all fauna-shell commands.
  */
 class FaunaCommand extends Command {
-	
+
 	/**
 	 * During init we parse the flags and arguments and assign them
-	 * to the `flags` and `args` member variables. 
+	 * to the `flags` and `args` member variables.
 	 *
 	 * We call `this.parse(this.constructor)` because we need to load
 	 * flags and args for the command being run in the CLI.
-	 * In this way we parse the flags and args defined in that command, 
+	 * In this way we parse the flags and args defined in that command,
 	 * plus the ones defined here. A command then needs to define its flags
 	 * as follows, if it wants to inherit the flags defined in FaunaCommand:
 	 *
@@ -38,7 +38,7 @@ class FaunaCommand extends Command {
 	 */
 	withClient(f, dbScope, role) {
 		const log = this.log
-		const cmdFlags = this.flags;		
+		const cmdFlags = this.flags;
 
 		buildConnectionOptions(cmdFlags, dbScope, role)
 		.then(function(connectionOptions) {
@@ -50,7 +50,7 @@ class FaunaCommand extends Command {
 			errorOut(err, 1)
 		});
 	}
-	
+
 	/**
 	 * Runs the provided query, while logging a message before running it.
 	 * Calls the success callback on success, or the failure one otherwise.
@@ -69,16 +69,16 @@ class FaunaCommand extends Command {
 		  .catch(failure);
 		});
 	}
-	
+
 	/**
-	 * @todo this should accept an extractor function that 
+	 * @todo this should accept an extractor function that
 	 * knows how to access data from each page element.
 	 * Right now it only access the `id` field of the element.
 	 *
-	 * Runs the provided query and handles the pagination. 
+	 * Runs the provided query and handles the pagination.
 	 * Displays a message before running the query, and an
 	 * empty message in case the query produces no results.
-	 * 
+	 *
 	 * @param {query} queryExpr     - The Query to execute.
 	 * @param {string} logMsg       - The message to display before executing the query.
 	 * @param {string} emptyMessage - The message to display if empty results.
@@ -129,6 +129,9 @@ FaunaCommand.flags = {
   }),
 	secret: flags.string({
 		description: 'FaunaDB secret key',
+  }),
+	endpoint: flags.string({
+		description: 'FaunaDB server endpoint',
   }),
 }
 
