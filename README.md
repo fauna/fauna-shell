@@ -109,7 +109,7 @@ Key ID               Database             Role
 And then delete the key with id: `200219702370238976`:
 
 ```sh-session
-fauna delete-key 200219702370238976
+$ fauna delete-key 200219702370238976
 deleting key 200219702370238976
 key 200219702370238976 deleted
 ```
@@ -123,13 +123,13 @@ The Fauna Shell lets you issue queries directly to your FaunaDB instance without
 Let's create a database and then we'll jump straight into the Shell to start playing with FaunaDB's data model.
 
 ```sh-session
-fauna create-database my_app
+$ fauna create-database my_app
 ```
 
 Our next step is to start the shell for a specific database, in this case `my_app`:
 
 ```sh-session
-fauna shell my_app
+$ fauna shell my_app
 Starting shell for database my_app
 Connected to http://127.0.0.1:8443
 Type Ctrl+D or .exit to exit the shell
@@ -333,7 +333,7 @@ OPTIONS
 They can be used like this:
 
 ```sh-session
-fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secret=YOUR_FAUNA_SECRET_KEY --timeout=42
+$ fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secret=YOUR_FAUNA_SECRET_KEY --timeout=42
 ```
 
 Options provided via the CLI will override the values set in the `.fauna-shell` config file.
