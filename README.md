@@ -339,6 +339,44 @@ Options provided via the CLI will override the values set in the `.fauna-shell` 
 
 Any options that are not specified either via the `.fauna-shell` config file or the CLI will be set to the defaults offered by the [faunadb-js client](https://github.com/fauna/faunadb-js).
 
+# Executing queries from a file
+
+You can also tell the shell to execute a list of queries that you have stored in a file. For example, you can have a filed called `queries.fql` with the following content:
+
+```javascript
+CreateClass({ name: "posts" });
+CreateIndex(
+	{
+		name: "posts_by_title",
+		source: Class("posts"),
+		terms: [{ field: ["data", "title"] }]
+	});
+Create(
+	Class("posts"),
+	{ data: { title: "What I had for breakfast .." } });
+Map(
+	[
+		"My cat and other marvels",
+		"Pondering during a commute",
+		"Deep meanings in a latte"
+	],
+	Lambda("post_title",
+	Create(
+		Class("posts"), { data: { title: Var("post_title") } }
+	))
+);
+```
+
+You can tell Fauna Shell to execute all those queries for you by running the following command:
+
+```bash
+$ fauna run-queries my_app --file=./queries.fql
+```
+
+Where `my_app` is the name of your database, and `./queries.fql` is the path to the file where you saved the queries.
+
+Queries have to be written in the syntax supported by FaunaDB's Javascript [driver](https://github.com/fauna/faunadb-js).
+
 <!-- detailsstop -->
 # List of Commands
 <!-- commands -->
