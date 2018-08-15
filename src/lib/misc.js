@@ -1,8 +1,11 @@
+const vm = require('vm');
 const os = require('os');
 const path = require('path');
 const fs = require('fs')
 const ini = require('ini');
 const {cli} = require('cli-ux')
+const faunadb = require('faunadb');
+const escodegen = require('escodegen');
 
 const FAUNA_CLOUD_DOMAIN = 'db.fauna.com';
 const ERROR_NO_DEFAULT_ENDPOINT = "You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS'.";
@@ -291,6 +294,29 @@ function maybeScopeKey(config, dbScope, role) {
 	return Object.assign(config, {secret: scopedSecret});
 }
 
+// adapted from https://hackernoon.com/functional-javascript-resolving-promises-sequentially-7aac18c4431e
+function promiseSerial(fs) {
+	return fs.reduce(function(promise, f) {
+		return promise.then(function(result) {
+			return f().then(Array.prototype.concat.bind(result))
+		})
+	}, Promise.resolve([]))
+}
+
+function wrapQueries(expressions, client) {
+	const q = faunadb.query;
+	vm.createContext(q);
+	return expressions.map(function(exp) {
+		return function() {
+			return client.query(vm.runInContext(escodegen.generate(exp), q))
+		}
+	})
+}
+
+function runQueries(expressions, client) {
+	return promiseSerial(wrapQueries(expressions, client));
+}
+
 module.exports = {
 	saveEndpointOrError: saveEndpointOrError,
 	deleteEndpointOrError: deleteEndpointOrError,
@@ -298,5 +324,7 @@ module.exports = {
 	validCloudEndpoint: validCloudEndpoint,
 	loadEndpoints: loadEndpoints,
 	buildConnectionOptions: buildConnectionOptions,
-	errorOut: errorOut
+	errorOut: errorOut,
+	readFile: readFile,
+	runQueries: runQueries
 };
