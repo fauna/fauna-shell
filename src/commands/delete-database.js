@@ -38,8 +38,8 @@ DeleteDatabaseCommand.flags = {
 
 DeleteDatabaseCommand.args = [
 	{
-		name: 'dbname', 
-		required: true, 
+		name: 'dbname',
+		required: true,
 		description: 'database name'
 	},
 ]
