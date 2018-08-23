@@ -292,7 +292,7 @@ cloud *
 cluster-us-east
 ```
 
-Theere we see that the `cloud` endpoint has a `*` next to its name, meaning that it's the current default one.
+There we see that the `cloud` endpoint has a `*` next to its name, meaning that it's the current default one.
 
 Finally, endpoints will be saved to a `~/.fauna-shell` file like this:
 
