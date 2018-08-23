@@ -52,7 +52,7 @@ CreateDatabaseCommand.flags = {
 
 CreateDatabaseCommand.args = [
 	{
-		name: 'dbname', 
+		name: 'dbname',
 		required: true,
 		description: 'database name'
 	},
