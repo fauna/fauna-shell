@@ -6,6 +6,7 @@ const ini = require('ini');
 const {cli} = require('cli-ux')
 const faunadb = require('faunadb');
 const escodegen = require('escodegen');
+const Errors = require("@oclif/errors");
 
 const FAUNA_CLOUD_DOMAIN = 'db.fauna.com';
 const ERROR_NO_DEFAULT_ENDPOINT = "You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS'.";
@@ -200,8 +201,10 @@ function fileNotFound(err) {
  */
 function errorOut(msg, code) {
 	code = code || 1
-	process.stderr.write(`${msg}\n`)
-	process.exit(code)
+	// process.stderr.write(`${msg}\n`)
+	return Errors.error(msg, {exit: 1});
+	// return Errors.exit(code);
+	// process.exit(code)
 }
 
 /**

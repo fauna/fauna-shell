@@ -40,14 +40,14 @@ class FaunaCommand extends Command {
 		const log = this.log
 		const cmdFlags = this.flags;
 
-		buildConnectionOptions(cmdFlags, dbScope, role)
+		return buildConnectionOptions(cmdFlags, dbScope, role)
 		.then(function(connectionOptions) {
 			var client = new faunadb.Client(connectionOptions);
 			//TODO this should return a Promise
-			f(client, connectionOptions);
+			return f(client, connectionOptions);
 		})
 		.catch(function(err) {
-			errorOut(err, 1)
+			return errorOut(err, 1)
 		});
 	}
 
@@ -62,9 +62,9 @@ class FaunaCommand extends Command {
 	 */
 	query(queryExpr, logMsg, success, failure) {
 		const log = this.log;
-		this.withClient(function(client, endpoint) {
+		return this.withClient(function(client, endpoint) {
 		  log(logMsg);
-		  client.query(queryExpr)
+		  return client.query(queryExpr)
 		  .then(success)
 		  .catch(failure);
 		});
@@ -85,7 +85,7 @@ class FaunaCommand extends Command {
 	 */
 	paginate(queryExpr, logMsg, emptyMessage) {
 		const log = this.log;
-		this.withClient(function(client, endpoint) {
+		return this.withClient(function(client, endpoint) {
 			log(logMsg);
 			var results = [];
 			var helper = client.paginate(queryExpr);

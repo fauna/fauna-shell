@@ -5,23 +5,21 @@ describe('create-database', () => {
   .stdout({print: true})
   .command(['create-database', 'testdb'])
   .it('runs create-database testdb', ctx => {
-		// console.log("ctx: ", ctx.stdout)
 		expect(ctx.stdout).to.contain("created database 'testdb'")
   })
 
   test
   .stderr({print: true})
   .command(['create-database', 'testdb'])
-  .it('runs create-database testdb', ctx => {
-  	// console.log(ctx)
-    expect(ctx.stderr).to.contain("Database 'testdb' already exists.")
-  })
+	.catch(err => {
+		expect(err.message).to.contain("Database 'testdb' already exists.")
+	})
+  .it('runs create-database testdb')
 
 	test
 	.stdout({print: true})
 	.command(['delete-database', 'testdb'])
 	.it('runs delete-database testdb', ctx => {
-		// console.log(ctx.stdout);
-		expect(ctx.stderr).to.contain("database 'testdb' deleted")
+		expect(ctx.stdout).to.contain("database 'testdb' deleted")
 	})
 })
