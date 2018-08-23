@@ -1,3 +1,14 @@
 {
-  "extends": "oclif"
+  "extends": "oclif",
+  "rules": {
+    "new-cap": "off",
+    "quote-props": "off",
+    "no-negated-condition": "off",
+    "no-warning-comments": "off",
+    "spaced-comment": "off",
+    "max-nested-callbacks": "off",
+    "no-else-return": "off",
+    "no-console": "off",
+    "no-prototype-builtins": "off"
+  }
 }

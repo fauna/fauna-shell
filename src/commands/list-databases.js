@@ -1,14 +1,14 @@
 const FaunaCommand = require('../lib/fauna_command.js')
-const faunadb = require('faunadb');
-const q = faunadb.query;
+const faunadb = require('faunadb')
+const q = faunadb.query
 
 class ListDatabasesCommand extends FaunaCommand {
   async run() {
-		this.paginate(
-			q.Databases(null),
-			'listing databases',
-			'No databases created'
-		);
+    this.paginate(
+      q.Databases(null),
+      'listing databases',
+      'No databases created'
+    )
   }
 }
 
@@ -17,11 +17,11 @@ Lists top level databases
 `
 
 ListDatabasesCommand.examples = [
-	'$ fauna list-databases'
+  '$ fauna list-databases',
 ]
 
 ListDatabasesCommand.flags = {
-	...FaunaCommand.flags
+  ...FaunaCommand.flags,
 }
 
 module.exports = ListDatabasesCommand
