@@ -1,9 +1,17 @@
-const {deleteEndpointOrError} = require('../lib/misc.js')
+const {deleteEndpointOrError, errorOut} = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna-command.js')
 
 class DeleteEndpoint extends FaunaCommand {
   async run() {
-    deleteEndpointOrError(this.args.endpoint_alias)
+    const log =  this.log
+    const alias = this.args.endpoint_alias
+    return deleteEndpointOrError(alias)
+    .then(function (_) {
+      log(`Endpoint '${alias}' deleted.`)
+    })
+    .catch(function (err) {
+      errorOut(err.message, 1)
+    })
   }
 }
 

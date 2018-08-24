@@ -1,3 +1,4 @@
+/*eslint no-unused-expressions: [2, { allowTernary: true }]*/
 const vm = require('vm')
 const os = require('os')
 const path = require('path')
@@ -6,7 +7,7 @@ const ini = require('ini')
 const {cli} = require('cli-ux')
 const faunadb = require('faunadb')
 const escodegen = require('escodegen')
-const Errors = require("@oclif/errors")
+const Errors = require('@oclif/errors')
 
 const FAUNA_CLOUD_DOMAIN = 'db.fauna.com'
 const ERROR_NO_DEFAULT_ENDPOINT = "You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS'."
@@ -22,40 +23,37 @@ const ERROR_SPECIFY_SECRET_KEY = 'You must specify a secret key to connect to Fa
 * - If no other endpoint exists, then the endpoint will be set as the default one.
 */
 function saveEndpointOrError(newEndpoint, alias, secret) {
-  loadEndpoints()
+  return loadEndpoints()
   .then(function (endpoints) {
     if (endpointExists(endpoints, alias)) {
-      confirmEndpointOverwrite(alias)
+      return confirmEndpointOverwrite(alias)
       .then(function (overwrite) {
         if (overwrite) {
-          saveEndpoint(endpoints, newEndpoint, alias, secret)
+          return saveEndpoint(endpoints, newEndpoint, alias, secret)
         } else {
-          process.exit(1)
+          throw new Error('Try entering a different endpoint alias.')
         }
       })
     } else {
-      saveEndpoint(endpoints, newEndpoint, alias, secret)
+      return saveEndpoint(endpoints, newEndpoint, alias, secret)
     }
-  })
-  .catch(function (err) {
-    errorOut(err, 1)
   })
 }
 
 function deleteEndpointOrError(alias) {
-  loadEndpoints()
+  return loadEndpoints()
   .then(function (endpoints) {
     if (endpointExists(endpoints, alias)) {
-      confirmEndpointDelete(alias)
+      return confirmEndpointDelete(alias)
       .then(function (del) {
         if (del) {
-          deleteEndpoint(endpoints, alias)
+          return deleteEndpoint(endpoints, alias)
         } else {
-          process.exit(1)
+          throw new Error("Couldn't override endpoint")
         }
       })
     } else {
-      throw `The endpoint '${alias}' doesn't exist`
+      throw new Error(`The endpoint '${alias}' doesn't exist`)
     }
   })
   .catch(function (err) {
@@ -69,10 +67,8 @@ function deleteEndpointOrError(alias) {
 function validCloudEndpoint() {
   return loadEndpoints().then(function (config) {
     return new Promise(function (resolve, reject) {
-      if (config.cloud) {
-        config.cloud.domain === FAUNA_CLOUD_DOMAIN
-          ? resolve(true)
-          : reject(ERROR_WRONG_CLOUD_ENDPOINT)
+      if (config.cloud && config.cloud.domain !== FAUNA_CLOUD_DOMAIN) {
+        reject(new Error(ERROR_WRONG_CLOUD_ENDPOINT))
       } else {
         resolve(true)
       }
@@ -89,10 +85,15 @@ function setDefaultEndpoint(endpoint) {
     return new Promise(function (resolve, reject) {
       if (endpoints[endpoint]) {
         endpoints.default = endpoint
-        saveConfig(endpoints)
-        resolve(`Endpoint '${endpoint}' set as default endpoint.`)
+        return saveConfig(endpoints)
+        .then(function (_) {
+          resolve(`Endpoint '${endpoint}' set as default endpoint.`)
+        })
+        .catch(function (err) {
+          reject(err)
+        })
       } else {
-        reject(`Endpoint '${endpoint}' doesn't exist.`)
+        reject(new Error(`Endpoint '${endpoint}' doesn't exist.`))
       }
     })
   })
@@ -128,7 +129,7 @@ function confirmEndpointDelete(alias) {
 }
 
 function saveEndpoint(config, endpoint, alias, secret) {
-  saveConfig(addEndpoint(config, endpoint, alias, secret))
+  return saveConfig(addEndpoint(config, endpoint, alias, secret))
 }
 
 function addEndpoint(config, endpoint, alias, secret) {
@@ -146,7 +147,7 @@ function deleteEndpoint(endpoints, alias) {
     console.log(ERROR_NO_DEFAULT_ENDPOINT)
   }
   delete endpoints[alias]
-  saveConfig(endpoints)
+  return saveConfig(endpoints)
 }
 
 function shouldSetAsDefaultEndpoint(config) {
@@ -169,7 +170,7 @@ function buildEndpointObject(endpoint, secret) {
 * ~/.fauna-shell file.
 */
 function saveConfig(config) {
-  fs.writeFileSync(getConfigFile(), ini.stringify(config), {mode: 0o700})
+  return writeFile(getConfigFile(), ini.stringify(config), 0o700)
 }
 
 /**
@@ -191,6 +192,17 @@ function readFile(fileName) {
 }
 
 /**
+* Wraps `fs.writeFile` into a Promise.
+*/
+function writeFile(fileName, data, mode) {
+  return new Promise(function (resolve, reject) {
+    fs.writeFile(fileName, data, {mode: mode}, err => {
+      err ? reject(err) : resolve(data)
+    })
+  })
+}
+
+/**
 * Tests if an error is of the type "file not found".
 */
 function fileNotFound(err) {
@@ -198,14 +210,11 @@ function fileNotFound(err) {
 }
 
 /**
-* Writes `msg` to stderr and exits with `code`.
+* Throws error with `msg` and exit code `code`.
 */
 function errorOut(msg, code) {
   code = code || 1
-  // process.stderr.write(`${msg}\n`)
   return Errors.error(msg, {exit: code})
-  // return Errors.exit(code);
-  // process.exit(code)
 }
 
 /**
@@ -236,13 +245,13 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
     .then(function (configData) {
       var endpoint = {}
       const config = ini.parse(configData)
+      // having a valid endpoint, assume there's a secret set
       if (hasValidEndpoint(config, cmdFlags.endpoint)) {
         endpoint = getEndpoint(config, cmdFlags.endpoint)
-      } else {
-        if (!cmdFlags.hasOwnProperty('secret')) {
-          reject(ERROR_NO_DEFAULT_ENDPOINT)
-        }
+      } else if (!cmdFlags.hasOwnProperty('secret')) {
+        reject(ERROR_NO_DEFAULT_ENDPOINT)
       }
+      //TODO add a function endpointFromCmdFlags that builds an endpoints and clean up the code.
       const connectionOptions = Object.assign(endpoint, cmdFlags)
       //TODO refactor duplicated code
       if (connectionOptions.secret) {

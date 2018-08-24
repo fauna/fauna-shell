@@ -3,9 +3,11 @@ const FaunaCommand = require('../lib/fauna-command.js')
 
 class DefaultEndpointCommand extends FaunaCommand {
   async run() {
-    setDefaultEndpoint(this.args.endpoint_alias)
+    return setDefaultEndpoint(this.args.endpoint_alias)
     .then(this.log)
-    .catch(errorOut)
+    .catch(function (err) {
+      errorOut(err.message, 1)
+    })
   }
 }
 

@@ -6,6 +6,7 @@ const url = require('url')
 class AddEndpointCommand extends FaunaCommand {
   async run() {
     const endpoint = this.args.endpoint
+    const log = this.log
 
     const newEndpoint = url.parse(endpoint)
     if (!newEndpoint.hostname) {
@@ -19,7 +20,13 @@ class AddEndpointCommand extends FaunaCommand {
       errorOut(`The word '${alias}' cannot be usded as an alias.`, 1)
     }
 
-    saveEndpointOrError(newEndpoint, alias, secret)
+    return saveEndpointOrError(newEndpoint, alias, secret)
+    .then(function (_) {
+      log(`Endpoint '${alias}' saved.`)
+    })
+    .catch(function (err) {
+      errorOut(err.message, 1)
+    })
   }
 }
 

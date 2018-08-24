@@ -9,6 +9,9 @@
     "max-nested-callbacks": "off",
     "no-else-return": "off",
     "no-console": "off",
-    "no-prototype-builtins": "off"
+    "no-prototype-builtins": "off",
+    "node/no-extraneous-require": ["error", {
+      "allowModules": ["@oclif/errors"]
+     }]
   }
 }

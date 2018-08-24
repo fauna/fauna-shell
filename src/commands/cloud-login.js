@@ -2,12 +2,12 @@ const {cli} = require('cli-ux')
 const {validCloudEndpoint, saveEndpointOrError, errorOut} = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna-command.js')
 const os = require('os')
-const request = require('request')
+var rp = require('request-promise')
 const url = require('url')
 
 class CloudLoginCommand extends FaunaCommand {
   async run() {
-    validCloudEndpoint()
+    return validCloudEndpoint()
     .then(async function (_) {
       const SHELL_LOGIN_URL = 'https://app.fauna.com/shell_login'
       const CLOUD_URL = 'https://db.fauna.com'
@@ -22,21 +22,28 @@ class CloudLoginCommand extends FaunaCommand {
         session: 'Fauna Shell - ' + os.hostname(),
       }
 
-      request.post({url: SHELL_LOGIN_URL, form: formData}, function (error, response, body) {
-        if (error) {
-          // there was an error performing the HTTP request
-          errorOut(error, 1)
-        } else if (response.statusCode !== 200) {
-          // there was an error in the HTTP request
-          errorOut(JSON.parse(body).message, 1)
+      var options = {
+        method: 'POST',
+        uri: SHELL_LOGIN_URL,
+        form: formData,
+        resolveWithFullResponse: true,
+      }
+
+      return rp(options)
+      .then(function (res) {
+        const secret = JSON.parse(res.body).secret
+        return saveEndpointOrError(newEndpoint, alias, secret)
+      })
+      .catch(function (err) {
+        if (err.statusCode === 401) {
+          errorOut(JSON.parse(err.error).message, 1)
         } else {
-          const secret = JSON.parse(body).secret
-          saveEndpointOrError(newEndpoint, alias, secret)
+          throw err
         }
       })
     })
     .catch(function (err) {
-      errorOut(err, 1)
+      errorOut(err.message, 1)
     })
   }
 }
