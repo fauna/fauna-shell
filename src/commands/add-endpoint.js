@@ -1,6 +1,6 @@
 const {cli} = require('cli-ux')
 const {saveEndpointOrError, errorOut} = require('../lib/misc.js')
-const FaunaCommand = require('../lib/fauna_command.js')
+const FaunaCommand = require('../lib/fauna-command.js')
 const url = require('url')
 
 class AddEndpointCommand extends FaunaCommand {

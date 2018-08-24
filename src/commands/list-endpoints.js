@@ -1,5 +1,5 @@
 const {loadEndpoints, errorOut} = require('../lib/misc.js')
-const FaunaCommand = require('../lib/fauna_command.js')
+const FaunaCommand = require('../lib/fauna-command.js')
 
 class ListEndpointsCommand extends FaunaCommand {
   async run() {

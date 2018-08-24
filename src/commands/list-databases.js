@@ -1,4 +1,4 @@
-const FaunaCommand = require('../lib/fauna_command.js')
+const FaunaCommand = require('../lib/fauna-command.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 

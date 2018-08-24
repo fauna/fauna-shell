@@ -1,6 +1,6 @@
 const {cli} = require('cli-ux')
 const {validCloudEndpoint, saveEndpointOrError, errorOut} = require('../lib/misc.js')
-const FaunaCommand = require('../lib/fauna_command.js')
+const FaunaCommand = require('../lib/fauna-command.js')
 const os = require('os')
 const request = require('request')
 const url = require('url')

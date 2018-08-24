@@ -1,5 +1,5 @@
 const {setDefaultEndpoint, errorOut} = require('../lib/misc.js')
-const FaunaCommand = require('../lib/fauna_command.js')
+const FaunaCommand = require('../lib/fauna-command.js')
 
 class DefaultEndpointCommand extends FaunaCommand {
   async run() {

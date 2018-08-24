@@ -1,6 +1,6 @@
 const esprima = require('esprima')
 const {flags} = require('@oclif/command')
-const FaunaCommand = require('../lib/fauna_command.js')
+const FaunaCommand = require('../lib/fauna-command.js')
 const {readFile, runQueries, errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
