@@ -116,7 +116,7 @@ class ShellCommand extends FaunaCommand {
         }
       })
       .catch(function (err) {
-        errorOut(err, 1)
+        errorOut(err.message, 1)
       })
     })
   }
