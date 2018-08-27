@@ -6,9 +6,6 @@ class DeleteEndpoint extends FaunaCommand {
     const log =  this.log
     const alias = this.args.endpoint_alias
     return deleteEndpointOrError(alias)
-    .then(function (_) {
-      log(`Endpoint '${alias}' deleted.`)
-    })
     .catch(function (err) {
       errorOut(err.message, 1)
     })
