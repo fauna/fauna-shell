@@ -9,10 +9,10 @@ describe('create-database', () => {
   })
 
   test
-  .stderr()
   .command(['create-database', 'testdb'])
   .catch(err => {
     expect(err.message).to.contain("Database 'testdb' already exists.")
+    expect(err.oclif.exit).to.equal(1)
   })
   .it('runs create-database testdb')
 
