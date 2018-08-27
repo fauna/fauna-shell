@@ -13,16 +13,18 @@ class AddEndpointCommand extends FaunaCommand {
       throw new Error('You must provide a valid endpoint.')
     }
 
-    const secret = await cli.prompt('Endpoint Key', {type: 'hide', timeout: 120000})
-    const alias = await cli.prompt('Endpoint Alias', {default: newEndpoint.hostname, timeout: 120000})
-
-    if (alias === 'default' || alias === 'cloud') {
-      errorOut(`The word '${alias}' cannot be usded as an alias.`, 1)
-    }
-
-    return saveEndpointOrError(newEndpoint, alias, secret)
-    .then(function (_) {
-      log(`Endpoint '${alias}' saved.`)
+    return cli.prompt('Endpoint Key', {type: 'hide', timeout: 120000})
+    .then(function (secret) {
+      return cli.prompt('Endpoint Alias', {default: newEndpoint.hostname, timeout: 120000})
+      .then(function (alias) {
+        if (alias === 'default' || alias === 'cloud') {
+          throw new Error(`The word '${alias}' cannot be usded as an alias.`)
+        }
+        return saveEndpointOrError(newEndpoint, alias, secret)
+        .then(function (_) {
+          log(`Endpoint '${alias}' saved.`)
+        })
+      })
     })
     .catch(function (err) {
       errorOut(err.message, 1)
