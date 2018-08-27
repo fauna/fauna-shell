@@ -1,6 +1,7 @@
 const {Command, flags} = require('@oclif/command')
 const {buildConnectionOptions, errorOut} = require('../lib/misc.js')
 const faunadb = require('faunadb')
+const q = faunadb.query
 
 /**
 * This is the base class for all fauna-shell commands.
@@ -36,7 +37,6 @@ class FaunaCommand extends Command {
   */
   withClient(f, dbScope, role) {
     const cmdFlags = this.flags
-
     return buildConnectionOptions(cmdFlags, dbScope, role)
     .then(function (connectionOptions) {
       var client = new faunadb.Client(connectionOptions)
@@ -64,6 +64,13 @@ class FaunaCommand extends Command {
       return client.query(queryExpr)
       .then(success)
       .catch(failure)
+    })
+  }
+
+  dbExists(dbName, callback) {
+    return this.withClient(function (testDbClient, _) {
+      return testDbClient.query(q.Exists(q.Database(dbName)))
+      .then(callback)
     })
   }
 

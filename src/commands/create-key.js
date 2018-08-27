@@ -19,17 +19,23 @@ class CreateKeyCommand extends FaunaCommand {
     const log = this.log
     const dbname = this.args.dbname
     const role = this.args.role || 'admin'
-    this.query(
-      q.CreateKey({database: q.Database(dbname), role: role}),
-      `creating key for database '${dbname}' with role '${role}'`,
-      function (success) {
-        log(successMessage(success.database.id, success.role, success.secret))
-      },
-      //TODO when the DB doesn't exist we get 'validation failed' back, display a better message.
-      function (error) {
-        errorOut(error.message, 1)
+    const that = this
+    return this.dbExists(dbname, function (exists) {
+      if (exists) {
+        return that.query(
+          q.CreateKey({database: q.Database(dbname), role: role}),
+          `creating key for database '${dbname}' with role '${role}'`,
+          function (success) {
+            log(successMessage(success.database.id, success.role, success.secret))
+          },
+          function (error) {
+            errorOut(error.message, 1)
+          }
+        )
+      } else {
+        errorOut(`Database '${dbname}' doesn't exist`, 1)
       }
-    )
+    })
   }
 }
 

@@ -54,9 +54,9 @@ function allKeysQuery(q) {
 class ListKeysCommand extends FaunaCommand {
   async run() {
     const log = this.log
-    this.withClient(function (client, _) {
+    return this.withClient(function (client, _) {
       log('listing keys')
-      client.query(allKeysQuery(q))
+      return client.query(allKeysQuery(q))
       .then(function (res) {
         if (res.data.length > 0) {
           log(buildTable(res).toString())
@@ -64,8 +64,8 @@ class ListKeysCommand extends FaunaCommand {
           log('No keys created')
         }
       })
-      .catch(function (error) {
-        errorOut(`"Error: ${error.message}`, 1)
+      .catch(function (err) {
+        errorOut(err.message)
       })
     })
   }
