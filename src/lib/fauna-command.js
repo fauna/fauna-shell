@@ -73,41 +73,6 @@ class FaunaCommand extends Command {
       .then(callback)
     })
   }
-
-  /**
-  * @todo this should accept an extractor function that
-  * knows how to access data from each page element.
-  * Right now it only access the `id` field of the element.
-  *
-  * Runs the provided query and handles the pagination.
-  * Displays a message before running the query, and an
-  * empty message in case the query produces no results.
-  *
-  * @param {query} queryExpr     - The Query to execute.
-  * @param {string} logMsg       - The message to display before executing the query.
-  * @param {string} emptyMessage - The message to display if empty results.
-  */
-  paginate(queryExpr, logMsg, emptyMessage) {
-    const log = this.log
-    return this.withClient(function (client, _) {
-      log(logMsg)
-      var results = []
-      var helper = client.paginate(queryExpr)
-      helper.each(function (page) {
-        results.push(page)
-      }).then(function (_) {
-        if (results.length > 0) {
-          var tmp = [].concat.apply([], results)
-          tmp.sort()
-          tmp.forEach(function (item) {
-            log(item.id)
-          })
-        } else {
-          log(emptyMessage)
-        }
-      })
-    })
-  }
 }
 
 /**
