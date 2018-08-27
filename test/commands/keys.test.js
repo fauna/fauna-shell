@@ -17,6 +17,7 @@ describe('keys test', () => {
   .it('runs create-key testdb')
 
   test
+  .stdout()
   .command(['create-database', 'testdb'])
   .it('prepares db for next test')
 
@@ -35,6 +36,7 @@ describe('keys test', () => {
   })
 
   test
+  .stdout()
   .command(['create-key', 'testdb', 'non-existing-role'])
   .catch(err => {
     expect(err.message).to.contain('Expected non-existing-role to be one of')
@@ -57,6 +59,7 @@ describe('keys test', () => {
   })
 
   test
+  .stdout()
   .command(['delete-database', 'testdb'])
   .it('cleans-up test environment')
 })
