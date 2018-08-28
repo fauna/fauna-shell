@@ -93,6 +93,7 @@ class ShellCommand extends FaunaCommand {
                     return cb(error)
                   })
                   .catch(function (error) {
+                    ctx.lastError = error
                     log('Error:', error.message)
                     return cb()
                   })
@@ -117,11 +118,20 @@ class ShellCommand extends FaunaCommand {
               },
             })
 
+            r.defineCommand('last_error', {
+              help: 'Display the last error',
+              action: function () {
+                console.log(this.context.lastError)
+                this.displayPrompt()
+              },
+            })
+
             // we define our own eval, because we want to wrap QueryExpressions
             // inside a FaunaDB's Query().
             defaultEval = r.eval
             r.eval = replEvalPromise
 
+            r.context.lastError = undefined
             Object.assign(r.context, q)
           }, dbscope, role)
         } else {
