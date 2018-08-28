@@ -41,6 +41,17 @@ function stringifyEndpoint(endpoint) {
   return res
 }
 
+function filterCommands(commands, unwanted) {
+  const keys = Object.keys(commands)
+  var filteredCommands = {}
+  keys.filter(function (k) {
+    return !unwanted.includes(k)
+  }).forEach(function (k) {
+    filteredCommands[k] = commands[k]
+  })
+  return filteredCommands
+}
+
 class ShellCommand extends FaunaCommand {
   async run() {
     const dbscope = this.args.dbname
@@ -94,13 +105,15 @@ class ShellCommand extends FaunaCommand {
               ignoreUndefined: true,
             })
 
-            // we don't want to allow the custom commands from the node.js repl.
-            r.commands = []
+            // we don't want to allow people to call some of the default commmands
+            // from the node repl
+            r.commands = filterCommands(r.commands, ['load', 'editor', 'clear'])
 
-            r.defineCommand('exit', {
-              help: 'Exit the repl',
+            r.defineCommand('clear', {
+              help: 'Clear the repl',
               action: function () {
-                this.close()
+                console.clear()
+                this.displayPrompt()
               },
             })
 
