@@ -3,7 +3,6 @@ const FaunaCommand = require('../lib/fauna-command.js')
 
 class DeleteEndpoint extends FaunaCommand {
   async run() {
-    const log =  this.log
     const alias = this.args.endpoint_alias
     return deleteEndpointOrError(alias)
     .catch(function (err) {
