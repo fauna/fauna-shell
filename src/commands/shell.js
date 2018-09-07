@@ -53,10 +53,10 @@ function filterCommands(commands, unwanted) {
 }
 
 function startShell(client, endpoint, dbscope, log) {
-  const dbname = dbscope ? dbscope : 'root'
+  const dbname = dbscope ? dbscope : ''
 
-  if (dbname === 'root') {
-    log('Warning: You are starting a shell for the root database')
+  if (dbname === '') {
+    log("Warning: You didn't specify a database. Starting the shell in the global scope.")
   } else {
     log(`Starting shell for database ${dbname}`)
   }
