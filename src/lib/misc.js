@@ -206,7 +206,7 @@ function writeFile(fileName, data, mode) {
 * Tests if an error is of the type "file not found".
 */
 function fileNotFound(err) {
-  return err.code === 'ENOENT' && err.syscall === 'open' && err.errno === -2
+  return err.code === 'ENOENT' && err.syscall === 'open'
 }
 
 /**
