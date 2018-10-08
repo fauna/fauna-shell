@@ -46,18 +46,18 @@ Now that we have an endpoint to connect to we can try to create a database to st
 This is how you can create a database called `my_app`:
 
 ```sh-session
-$ fauna create-database my_app
+$ fauna create-database "my_app"
 creating database my_app
 
-created database 'my_app'
+created database "my_app"
 
 To start a shell with your new database, run:
 
-	fauna shell 'my_app'
+	fauna shell "my_app"
 
 Or, to create an application key for your database, run:
 
-	fauna create-key 'my_app'
+	fauna create-key "my_app"
 ```
 
 And then listing your databases:
@@ -73,7 +73,7 @@ my_other_app
 You can also delete a particular database:
 
 ```sh-session
-$ fauna delete-database my_other_app
+$ fauna delete-database "my_other_app"
 deleting database 'my_other_app'
 database 'my_other_app' deleted
 ```
@@ -83,7 +83,7 @@ You can also `create`, `list`, and `delete` _keys_.
 This is how you create a key for the database `my_app`:
 
 ```sh-session
-$ fauna create-key my_app
+$ fauna create-key "my_app"
 creating key for database 'my_app' with role 'admin'
 
 created key for database 'my_app' with role 'admin'.
@@ -123,7 +123,7 @@ The Fauna Shell lets you issue queries directly to your FaunaDB instance without
 Let's create a database and then we'll jump straight into the Shell to start playing with FaunaDB's data model.
 
 ```sh-session
-$ fauna create-database my_app
+$ fauna create-database "my_app"
 ```
 
 Our next step is to start the shell for a specific database, in this case `my_app`:
