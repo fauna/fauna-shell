@@ -16,6 +16,7 @@
     "escodegen": "^1.11.0",
     "esprima": "^4.0.1",
     "faunadb": "^2.5.1",
+    "global-modules": "^1.0.0",
     "globby": "8",
     "heroku-cli-util": "^8.0.9",
     "ini": "^1.3.5",
@@ -37,7 +38,8 @@
   "files": [
     "/bin",
     "/oclif.manifest.json",
-    "/src"
+    "/src",
+    "/fauna-autocompletion.bash"
   ],
   "homepage": "https://github.com/fauna/fauna-shell",
   "keywords": [
@@ -63,6 +65,7 @@
     "posttest": "eslint .",
     "prepack": "oclif-dev manifest && oclif-dev readme",
     "test": "nyc mocha --forbid-only \"test/**/*.test.js\"",
-    "version": "oclif-dev readme && git add README.md"
+    "version": "oclif-dev readme && git add README.md",
+    "postinstall": "node post-install.js"
   }
 }
