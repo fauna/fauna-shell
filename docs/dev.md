@@ -75,6 +75,19 @@ See other commands for complete examples on how to do that, and check the FaunaC
 
 ## Helper Functions ##
 
-Helper functions are defined in the [misc](https://github.com/fauna/fauna-shell/blob/master/src/lib/misc.js) module. 
+Helper functions are defined in the [misc](https://github.com/fauna/fauna-shell/blob/master/src/lib/misc.js) module.
 
 These functions let you do things from reading/writing the shell's config file, to building configuration options for creating a connection to FaunaDB.
+
+## Running Tests ##
+
+To run the tests you need to setup the following shell flags: `FAUNA_SECRET, FAUNA_DOMAIN, FAUNA_SCHEME, FAUNA_PORT`
+
+For example:
+
+```bash
+FAUNA_SECRET=your_fauna_secret
+FAUNA_DOMAIN=db.fauna.com
+export FAUNA_SCHEME=https
+export FAUNA_PORT=443
+```
