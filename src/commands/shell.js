@@ -89,6 +89,11 @@ function startShell(client, endpoint, dbscope, log) {
         .catch(function (error) {
           ctx.lastError = error
           log('Error:', error.message)
+
+          if (error instanceof faunadb.errors.FaunaHTTPError) {
+            console.log(util.inspect(error.errors(), {depth: null}))
+          }
+
           return cb()
         })
       }
