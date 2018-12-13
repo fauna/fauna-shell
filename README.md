@@ -389,6 +389,7 @@ Queries have to be written in the syntax supported by FaunaDB's Javascript [driv
 # List of Commands
 <!-- commands -->
 * [`fauna add-endpoint ENDPOINT`](#fauna-add-endpoint-endpoint)
+* [`fauna autocomplete [SHELL]`](#fauna-autocomplete-shell)
 * [`fauna cloud-login`](#fauna-cloud-login)
 * [`fauna create-database DBNAME`](#fauna-create-database-dbname)
 * [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
@@ -422,6 +423,29 @@ EXAMPLE
 ```
 
 _See code: [src/commands/add-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.8.1/src/commands/add-endpoint.js)_
+
+## `fauna autocomplete [SHELL]`
+
+display autocomplete installation instructions
+
+```
+USAGE
+  $ fauna autocomplete [SHELL]
+
+ARGUMENTS
+  SHELL  shell type
+
+OPTIONS
+  -r, --refresh-cache  Refresh cache (ignores displaying instructions)
+
+EXAMPLES
+  $ fauna autocomplete
+  $ fauna autocomplete bash
+  $ fauna autocomplete zsh
+  $ fauna autocomplete --refresh-cache
+```
+
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.0/src/commands/autocomplete/index.ts)_
 
 ## `fauna cloud-login`
 
@@ -608,7 +632,7 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v1.2.11/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v1.2.10/src/commands/help.ts)_
 
 ## `fauna list-databases`
 
