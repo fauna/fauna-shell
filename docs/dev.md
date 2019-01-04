@@ -86,8 +86,8 @@ To run the tests you need to setup the following shell flags: `FAUNA_SECRET, FAU
 For example:
 
 ```bash
-FAUNA_SECRET=your_fauna_secret
-FAUNA_DOMAIN=db.fauna.com
+export FAUNA_SECRET=your_fauna_secret
+export FAUNA_DOMAIN=db.fauna.com
 export FAUNA_SCHEME=https
 export FAUNA_PORT=443
 ```
