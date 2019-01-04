@@ -323,12 +323,29 @@ function promiseSerial(fs) {
   }, Promise.resolve([]))
 }
 
+class QueryError extends Error {
+  constructor(exp, faunaError, queryNumber, ...params) {
+    super(params)
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, QueryError)
+    }
+
+    this.exp = exp
+    this.faunaError = faunaError
+    this.queryNumber = queryNumber
+  }
+}
+
 function wrapQueries(expressions, client) {
   const q = faunadb.query
   vm.createContext(q)
-  return expressions.map(function (exp) {
+  return expressions.map(function (exp, queryNumber) {
     return function () {
       return client.query(vm.runInContext(escodegen.generate(exp), q))
+      .catch(function (err) {
+        throw new QueryError(escodegen.generate(exp), err, queryNumber + 1)
+      })
     }
   })
 }
