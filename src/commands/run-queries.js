@@ -38,7 +38,9 @@ class RunQueriesCommand extends FaunaCommand {
             .then(function (data) {
               var res = esprima.parseScript(data)
               return runQueries(res.body, client)
-              .then(console.log.bind(console))
+              .then(function (response) {
+                console.log(util.inspect(response, {depth: null}))
+              })
               .catch(function (err) {
                 errorOut(infoMessage(err), 1)
               })
