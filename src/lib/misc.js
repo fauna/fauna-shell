@@ -146,7 +146,7 @@ function saveEndpoint(config, endpoint, alias, secret) {
     }
   })
   .catch(function (err) {
-    // Fauna returns a 404 which is an error for the request-promise library
+    // Fauna returns a 401 which is an error for the request-promise library
     if ('response' in err) {
       if ('x-faunadb-build' in err.response.headers) {
         return saveConfig(addEndpoint(config, endpoint, alias, secret))
