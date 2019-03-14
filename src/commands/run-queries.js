@@ -2,7 +2,7 @@ const util = require('util')
 const esprima = require('esprima')
 const {flags} = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
-const {readFile, runQueries, errorOut} = require('../lib/misc.js')
+const {readFile, runQueries, errorOut, loadEndpoints} = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -50,11 +50,19 @@ class RunQueriesCommand extends FaunaCommand {
             })
           }, dbscope, role)
         } else {
+          console.log("no exists")
           errorOut(`Database '${dbscope}' doesn't exist`, 1)
         }
       })
       .catch(function (err) {
-        errorOut(err, 1)
+        if (err.name == 'Unauthorized') {
+          return loadEndpoints()
+          .then(function (endpoints) {
+            return errorOut(`You are not authorized to access the endpoint ${endpoints.default}.`, 1)
+          })
+        } else {
+          return errorOut(err.message, 1)
+        }
       })
     })
   }
