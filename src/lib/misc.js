@@ -241,7 +241,10 @@ function fileNotFound(err) {
 */
 function errorOut(msg, code) {
   code = code || 1
-  return Errors.error(msg, {exit: code})
+  console.error(`Error: ${msg}`)
+  process.exit(code)
+  //TODO: Using process.exit is not the optimal solution.
+  //return Errors.error(msg, { exit: code })
 }
 
 /**
