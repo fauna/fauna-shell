@@ -21,7 +21,7 @@ class AddEndpointCommand extends FaunaCommand {
     if (!alias)
       alias = await cli.prompt('Endpoint Alias', { default: newEndpoint.hostname, timeout: 120000 })
 
-    if (alias === 'default' || alias === 'cloud') {
+    if (!this.flags.alias && (alias === 'default' || alias === 'cloud')) {
       throw new Error(`The word '${alias}' cannot be used as an alias.`)
     }
     return saveEndpointOrError(newEndpoint, alias, secret).then(function () {
