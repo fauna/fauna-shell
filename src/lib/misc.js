@@ -14,7 +14,8 @@ const FAUNA_CLOUD_DOMAIN = 'db.fauna.com'
 const ERROR_NO_DEFAULT_ENDPOINT = "You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS'."
 const ERROR_WRONG_CLOUD_ENDPOINT = "You already have an endpoint 'cloud' defined and it doesn't point to 'db.fauna.com'.\nPlease fix your '~/.fauna-shell' file."
 const ERROR_SPECIFY_SECRET_KEY = 'You must specify a secret key to connect to FaunaDB'
-
+const ERROR_INVALID_ENDPOINT = 'The specified endpoint does not exist'
+const ERROR_INVALID_GQL_ENDPOINT = 'The specified endpoint is not a valid GraphQL endpoint'
 /**
 * Takes a parsed endpointURL, an endpoint alias, and the endpoint secret,
 * and saves it to the .ini config file.
@@ -70,6 +71,25 @@ function validCloudEndpoint() {
     return new Promise(function (resolve, reject) {
       if (config.cloud && config.cloud.domain !== FAUNA_CLOUD_DOMAIN) {
         reject(new Error(ERROR_WRONG_CLOUD_ENDPOINT))
+      } else {
+        resolve(true)
+      }
+    })
+  })
+}
+
+/**
+* Validates that the specified endpoint has GraphQL keys specified.
+*/
+function validGraphQLEndpoint(endpoint) {
+  return loadEndpoints().then(function (config) {
+    const hasEndpoint = Object.keys(config).includes(endpoint)
+    const obj = config[endpoint]
+    return new Promise(function (resolve, reject) {
+      if (!hasEndpoint) {
+        reject(new Error(ERROR_INVALID_ENDPOINT))
+      } else if (obj.gql_db_key === undefined) {
+        reject(new Error(ERROR_INVALID_GQL_ENDPOINT))
       } else {
         resolve(true)
       }
@@ -282,7 +302,7 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
       const connectionOptions = Object.assign(endpoint, cmdFlags)
       //TODO refactor duplicated code
       if (connectionOptions.secret) {
-        resolve(cleanUpConnectionOptions(maybeScopeKey(connectionOptions, dbScope, role)))
+        resolve(maybeScopeKey(connectionOptions, dbScope, role))
       } else {
         reject(ERROR_SPECIFY_SECRET_KEY)
       }
@@ -290,7 +310,7 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
     .catch(function (err) {
       if (fileNotFound(err)) {
         if (cmdFlags.secret) {
-          resolve(cleanUpConnectionOptions(maybeScopeKey(cmdFlags, dbScope, role)))
+          resolve(maybeScopeKey(cmdFlags, dbScope, role))
         } else {
           reject(ERROR_SPECIFY_SECRET_KEY)
         }
@@ -386,9 +406,11 @@ module.exports = {
   deleteEndpointOrError: deleteEndpointOrError,
   setDefaultEndpoint: setDefaultEndpoint,
   validCloudEndpoint: validCloudEndpoint,
+  validGraphQLEndpoint: validGraphQLEndpoint,
   loadEndpoints: loadEndpoints,
   buildConnectionOptions: buildConnectionOptions,
   errorOut: errorOut,
   readFile: readFile,
   runQueries: runQueries,
+  cleanUpConnectionOptions: cleanUpConnectionOptions,
 }

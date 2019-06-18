@@ -1,5 +1,5 @@
 const {Command, flags} = require('@oclif/command')
-const {buildConnectionOptions, errorOut} = require('../lib/misc.js')
+const {buildConnectionOptions, errorOut, cleanUpConnectionOptions} = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -39,7 +39,7 @@ class FaunaCommand extends Command {
     const cmdFlags = this.flags
     return buildConnectionOptions(cmdFlags, dbScope, role)
     .then(function (connectionOptions) {
-      var client = new faunadb.Client(connectionOptions)
+      var client = new faunadb.Client(cleanUpConnectionOptions(connectionOptions))
       //TODO this should return a Promise
       return f(client, connectionOptions)
     })
