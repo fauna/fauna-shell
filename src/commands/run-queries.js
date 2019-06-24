@@ -1,74 +1,19 @@
-const util = require('util')
-const esprima = require('esprima')
 const {flags} = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
-const {readFile, runQueries, errorOut, loadEndpoints} = require('../lib/misc.js')
-const faunadb = require('faunadb')
-const q = faunadb.query
+const EvalCommand = require('./eval')
 
-function infoMessage(err) {
-  const fe = util.inspect(err.faunaError, {depth: null})
-  return `
-  The following query failed:
-    ${err.exp}
+const DEPRECATED_MSG = 'Deprecated: fauna run-queries is deprecated. Use eval instead'
 
-  With error message:
-    ${fe}
-
-  Query number:
-    ${err.queryNumber}
-  `
-}
-
-class RunQueriesCommand extends FaunaCommand {
+class RunQueriesCommand extends EvalCommand {
   async run() {
-    const dbscope = this.args.dbname
-    const queriesFile = this.flags.file
-    const role = 'admin'
-    const withClient = this.withClient.bind(this)
-
-    // first we test if the database specified by the user exists.
-    // if that's the case, we create a connection scoped to that database.
-    return this.withClient(function (testDbClient, _) {
-      return testDbClient.query(q.Exists(q.Database(dbscope)))
-      .then(function (exists) {
-        if (exists) {
-          return withClient(function (client, _) {
-            return readFile(queriesFile)
-            .then(function (data) {
-              var res = esprima.parseScript(data)
-              return runQueries(res.body, client)
-              .then(function (response) {
-                console.log(util.inspect(response, {depth: null}))
-              })
-              .catch(function (err) {
-                errorOut(infoMessage(err), 1)
-              })
-            })
-            .catch(function (err) {
-              errorOut(err)
-            })
-          }, dbscope, role)
-        } else {
-          console.log("no exists")
-          errorOut(`Database '${dbscope}' doesn't exist`, 1)
-        }
-      })
-      .catch(function (err) {
-        if (err.name == 'Unauthorized') {
-          return loadEndpoints()
-          .then(function (endpoints) {
-            return errorOut(`You are not authorized to access the endpoint ${endpoints.default}.`, 1)
-          })
-        } else {
-          return errorOut(err.message, 1)
-        }
-      })
-    })
+    this.warn(DEPRECATED_MSG)
+    this.warn('Run `fauna eval --help`')
+    await super.run()
   }
 }
 
-RunQueriesCommand.description = `
+EvalCommand.description = `
+${DEPRECATED_MSG}
 Runs the queries found on the file passed to the command.
 `
 
@@ -80,15 +25,10 @@ RunQueriesCommand.flags = {
   ...FaunaCommand.flags,
   file: flags.string({
     description: 'File where to read queries from',
+    required: true,
   }),
 }
 
-RunQueriesCommand.args = [
-  {
-    name: 'dbname',
-    required: true,
-    description: 'database name',
-  },
-]
+RunQueriesCommand.args = EvalCommand.args
 
 module.exports = RunQueriesCommand
