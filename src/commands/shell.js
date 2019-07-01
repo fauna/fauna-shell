@@ -55,9 +55,7 @@ function filterCommands(commands, unwanted) {
 function startShell(client, endpoint, dbscope, log) {
   const dbname = dbscope ? dbscope : ''
 
-  if (dbname === '') {
-    log("Warning: You didn't specify a database. Starting the shell in the global scope.")
-  } else {
+  if (dbname !== '') {
     log(`Starting shell for database ${dbname}`)
   }
 
