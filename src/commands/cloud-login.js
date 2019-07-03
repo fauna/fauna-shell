@@ -72,7 +72,7 @@ function githubStrategy(launchBrowser) {
     hostname: 'github.com',
     pathname: '/login/oauth/authorize',
     query: {
-      'scope': 'user.email',
+      'scope': 'user:email',
       'client_id': GITHUB_CLIENT_ID,
       'state': state,
     },
