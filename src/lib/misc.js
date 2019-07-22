@@ -147,7 +147,7 @@ function saveEndpoint(config, endpoint, alias, secret) {
   })
   .catch(function (err) {
     // Fauna returns a 401 which is an error for the request-promise library
-    if ('response' in err) {
+    if (err.response !== undefined) {
       if ('x-faunadb-build' in err.response.headers) {
         return saveConfig(addEndpoint(config, endpoint, alias, secret))
       } else {
