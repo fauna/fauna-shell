@@ -1221,9 +1221,10 @@ fast-levenshtein@~2.0.4:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz#3d8a5c66883a16a30ca8643e851f19baa7797917"
 
-faunadb@^2.5.1:
+faunadb@~2.5.1:
   version "2.5.2"
   resolved "https://registry.yarnpkg.com/faunadb/-/faunadb-2.5.2.tgz#5f46ead861aa4f1fe696302e6c76fa12c04202c6"
+  integrity sha512-PhEd9iF611EKYr9Pqmk15SnO++6EOLh9E4+gintObxYCicBKGXfNVj7D/+ieM3NUpG9O8SEX+j9k75q6DzJ+PQ==
   dependencies:
     base64-js "^1.2.0"
     btoa-lite "^1.0.0"
