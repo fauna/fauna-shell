@@ -393,5 +393,6 @@ module.exports = {
   buildConnectionOptions: buildConnectionOptions,
   errorOut: errorOut,
   readFile: readFile,
+  writeFile: writeFile,
   runQueries: runQueries,
 }
