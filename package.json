@@ -1,7 +1,7 @@
 {
   "name": "fauna-shell",
   "description": "faunadb shell",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "author": "Alvaro Videla",
   "bin": {
     "fauna": "./bin/run"
