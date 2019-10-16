@@ -28,7 +28,7 @@ class CloudLoginCommand extends FaunaCommand {
 
 async function cloudStrategy({log}) {
   log('For email login, enter your email below, and then your password.')
-  log('For login from with 3rd-party identity providers like Github or Netlify, please acquire a key from Dashboard > Security and enter it below instead.')
+  log('For login with 3rd-party identity providers like Github or Netlify, please acquire a key from Dashboard > Security and enter it below instead.')
   log('')
 
   const credential = await cli.prompt('Email or secret key')
