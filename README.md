@@ -460,8 +460,6 @@ DESCRIPTION
 
 EXAMPLE
   $ fauna cloud-login
-  $ fauna cloud-login --github
-  $ fauna cloud-login --github --no_browser
 ```
 
 _See code: [src/commands/cloud-login.js](https://github.com/fauna/fauna-shell/blob/v0.9.7/src/commands/cloud-login.js)_
