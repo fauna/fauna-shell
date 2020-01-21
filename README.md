@@ -317,6 +317,28 @@ scheme=https
 secret=OTHER_FAUNA_SECRET
 ```
 
+# Connecting to local endpoints
+
+If you are running Fauna locally using our Docker images, you may need to configure the Shell to work with local endpoints so you can interact with the databases running in the Docker containers.
+
+Once you've installed the Shell and logged in, you can configure this by doing the following:
+
+1. Run `fauna list-endpoints` to see all your endpoints. If you haven't added any yet, you should just see the `cloud` endpoint that was added when you went through the login flow.
+
+2. By default, the Fauna Docker image serves data via port 8443 (check your Docker logs to confirm the port number). To add this, run the follwing:
+
+```bash
+fauna add-endpoint http://localhost:8443 # Doesn't work with HTTPS
+```
+
+3. When prompted, provide the endpint key and then give it a name (ex. `localhost`)
+
+4. Now, you can interact with your local database through the Fauna Shell by running the command below:
+
+```bash
+fauna shell --endpoint localhost
+```
+
 # Overriding Connection Parameters
 
 Most commands support the following options. You can specify them if you want to connect to your local FaunaDB instance.
