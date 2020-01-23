@@ -49,7 +49,7 @@ This is how you can create a database called `my_app`:
 $ fauna create-database my_app
 creating database my_app
 
-created database 'my_app'
+created database my_app
 
 To start a shell with your new database, run:
 

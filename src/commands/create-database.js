@@ -5,7 +5,7 @@ const q = faunadb.query
 
 function successMessage(database) {
   return `
-  created database '${database}'
+  created database ${database}
 
   To start a shell with your new database, run:
 
