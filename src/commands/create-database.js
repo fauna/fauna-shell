@@ -9,11 +9,11 @@ function successMessage(database) {
 
   To start a shell with your new database, run:
 
-  fauna shell '${database}'
+  fauna shell ${database}
 
   Or, to create an application key for your database, run:
 
-  fauna create-key '${database}'
+  fauna create-key ${database}
   `
 }
 
