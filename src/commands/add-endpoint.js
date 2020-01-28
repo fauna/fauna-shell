@@ -38,7 +38,7 @@ Adds a connection endpoint for FaunaDB
 
 AddEndpointCommand.examples = [
   '$ fauna add-endpoint https://db.fauna.com:443',
-  '$ fauna add-endpoint https://localhost:8443/ --alias localhost --key secret',
+  '$ fauna add-endpoint http://localhost:8443/ --alias localhost --key secret',
 ]
 
 // clear the default FaunaCommand flags that accept --host, --port, etc.

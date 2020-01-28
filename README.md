@@ -442,6 +442,7 @@ DESCRIPTION
 
 EXAMPLE
   $ fauna add-endpoint https://db.fauna.com:443
+  $ fauna add-endpoint http://localhost:8443/ --alias localhost --key secret
 ```
 
 _See code: [src/commands/add-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/add-endpoint.js)_
