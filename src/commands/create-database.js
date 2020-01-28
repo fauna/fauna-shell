@@ -5,15 +5,15 @@ const q = faunadb.query
 
 function successMessage(database) {
   return `
-  created database '${database}'
+  created database ${database}
 
   To start a shell with your new database, run:
 
-  fauna shell '${database}'
+  fauna shell ${database}
 
   Or, to create an application key for your database, run:
 
-  fauna create-key '${database}'
+  fauna create-key ${database}
   `
 }
 

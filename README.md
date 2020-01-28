@@ -49,15 +49,15 @@ This is how you can create a database called `my_app`:
 $ fauna create-database my_app
 creating database my_app
 
-created database 'my_app'
+created database my_app
 
 To start a shell with your new database, run:
 
-	fauna shell 'my_app'
+	fauna shell my_app
 
 Or, to create an application key for your database, run:
 
-	fauna create-key 'my_app'
+	fauna create-key my_app
 ```
 
 And then listing your databases:
