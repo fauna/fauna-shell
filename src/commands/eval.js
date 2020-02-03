@@ -7,7 +7,7 @@ const {readFile, runQueries, errorOut, loadEndpoints, writeFile} = require('../l
 const faunadb = require('faunadb')
 const q = faunadb.query
 
-const EVAL_OUTPUT_FORMATS = ['json']
+const EVAL_OUTPUT_FORMATS = ['json', 'shell']
 
 function infoMessage(err) {
   const fe = util.inspect(err.faunaError, {depth: null})
@@ -30,10 +30,25 @@ function infoMessage(err) {
  * @param {Any}    data Data to encode
  */
 function writeFormattedJson(file, data) {
+  let str = JSON.stringify(data)
   if (file ===  null) {
-    return Promise.resolve(console.log(util.inspect(data, {depth: null})))
+    return Promise.resolve(console.log(str))
   }
-  return writeFile(file, JSON.stringify(data))
+  return writeFile(file, str)
+}
+
+/**
+ * Write fauna shell encoded output
+ *
+ * @param {String} file Target filename
+ * @param {Any}    data Data to encode
+ */
+function writeFormattedShell(file, data) {
+  let str = util.inspect(data, {depth: null})
+  if (file ===  null) {
+    return Promise.resolve(console.log(str))
+  }
+  return writeFile(file, str)
 }
 
 /**
@@ -46,6 +61,8 @@ function writeFormattedJson(file, data) {
 function writeFormattedOutput(file, data, format) {
   if (format === 'json')
     return writeFormattedJson(file, data)
+  else if (format === 'shell')
+    return writeFormattedShell(file, data)
   else
     errorOut('Unsupported output format')
 }
@@ -71,51 +88,41 @@ class EvalCommand extends FaunaCommand {
 
     const fqlQuery = this.args.query
 
-    const role = 'admin'
     const withClient = this.withClient.bind(this)
 
     // first we test if the database specified by the user exists.
     // if that's the case, we create a connection scoped to that database.
-    return this.withClient(function (testDbClient, _) {
-      return testDbClient.query(q.Exists(q.Database(dbscope)))
-      .then(function (exists) {
-        if (exists) {
-          return withClient(async function (client, _) {
-            const readQuery = queryFromStdin || queriesFile !== undefined
-            const noSourceSet = (!queryFromStdin && fqlQuery === undefined && queriesFile === undefined)
-            if (readQuery) {
-              if (queryFromStdin && !fs.existsSync(queriesFile)) {
-                this.warn('Reading from stdin')
-                queriesFile = process.stdin.fd
-              }
-              return readFile(queriesFile).then(query => {
-                return performQuery(client, query, outputFile, outputFormat)
-              }).catch(err => {
-                errorOut(err)
-              })
-            }
-            if (fqlQuery !== undefined)
-              return performQuery(client, fqlQuery, outputFile, outputFormat).catch(err => {
-                errorOut(err)
-              })
-            if (noSourceSet) {
-              return errorOut('No source set. Pass --stdin to  read from stdin or --file.')
-            }
-          }, dbscope, role)
-        } else {
-          errorOut(`Database '${dbscope}' doesn't exist`, 1)
+    return withClient(async function (client, _) {
+      const readQuery = queryFromStdin || queriesFile !== undefined
+      const noSourceSet = (!queryFromStdin && fqlQuery === undefined && queriesFile === undefined)
+      if (readQuery) {
+        if (queryFromStdin && !fs.existsSync(queriesFile)) {
+          this.warn('Reading from stdin')
+          queriesFile = process.stdin.fd
         }
-      })
-      .catch(function (err) {
-        if (err.name == 'Unauthorized') {
-          return loadEndpoints()
-          .then(function (endpoints) {
-            return errorOut(`You are not authorized to access the endpoint ${endpoints.default}.`, 1)
-          })
-        } else {
-          return errorOut(err.message, 1)
-        }
-      })
+        return readFile(queriesFile).then(query => {
+          return performQuery(client, query, outputFile, outputFormat)
+        }).catch(err => {
+          errorOut(err)
+        })
+      }
+      if (fqlQuery !== undefined)
+        return performQuery(client, fqlQuery, outputFile, outputFormat).catch(err => {
+          errorOut(err)
+        })
+      if (noSourceSet) {
+        return errorOut('No source set. Pass --stdin to  read from stdin or --file.')
+      }
+    })
+    .catch(function (err) {
+      if (err.name == 'Unauthorized') {
+        return loadEndpoints()
+        .then(function (endpoints) {
+          return errorOut(`You are not authorized to access the endpoint ${endpoints.default}.`, 1)
+        })
+      } else {
+        return errorOut(err.message, 1)
+      }
     })
   }
 }
@@ -127,11 +134,11 @@ Output format can be specified.
 `
 
 EvalCommand.examples = [
-  '$ fauna eval dbname "Paginate(Classes())"',
-  '$ fauna eval dbname --file=/path/to/queries.fql',
-  '$ echo "Add(1,1)" | fauna eval dbname --stdin',
-  '$ fauna eval dbname "Add(2,3)" --output=/tmp/result"',
-  '$ fauna eval dbname "Add(2,3)" --format=json --output=/tmp/result"',
+  '$ fauna eval "Paginate(Classes())"',
+  '$ fauna eval --file=/path/to/queries.fql',
+  '$ echo "Add(1,1)" | fauna eval --stdin',
+  '$ fauna eval "Add(2,3)" --output=/tmp/result"',
+  '$ fauna eval "Add(2,3)" --format=json --output=/tmp/result"',
 ]
 
 EvalCommand.flags = {
@@ -155,11 +162,6 @@ EvalCommand.flags = {
 }
 
 EvalCommand.args = [
-  {
-    name: 'dbname',
-    required: true,
-    description: 'database name',
-  },
   {
     name: 'query',
     required: false,

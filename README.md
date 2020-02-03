@@ -425,6 +425,7 @@ Queries have to be written in the syntax supported by FaunaDB's Javascript [driv
 * [`fauna list-keys`](#fauna-list-keys)
 * [`fauna run-queries DBNAME`](#fauna-run-queries-dbname)
 * [`fauna shell [DBNAME]`](#fauna-shell-dbname)
+* [`fauna eval [QUERY]`](#fauna-eval-query)
 
 ## `fauna add-endpoint ENDPOINT`
 
@@ -780,4 +781,43 @@ EXAMPLE
 ```
 
 _See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/shell.js)_
+
+## `fauna eval [QUERY]`
+
+Evaluates a fauna query
+
+```
+USAGE
+  $ fauna eval [QUERY]
+
+ARGUMENTS
+  QUERY  FQL query to execute
+
+OPTIONS
+  --domain=domain      FaunaDB server domain
+  --endpoint=endpoint  FaunaDB server endpoint
+  --file=file          File where to read queries from
+  --format=json|shell  [default: json] Output format
+  --output=output      File to write output to
+  --port=port          Connection port
+  --scheme=https|http  Connection scheme
+  --secret=secret      FaunaDB secret key
+  --stdin              Read file input from stdin. Writes to stdout by default
+  --timeout=timeout    Connection timeout in milliseconds
+
+DESCRIPTION
+  Runs the specified query. Can read from stdin, file or command line.
+  Outputs to either stdout or file.
+  Output format can be specified.
+
+EXAMPLES
+  $ fauna eval "Paginate(Classes())"
+  $ fauna eval --file=/path/to/queries.fql
+  $ echo "Add(1,1)" | fauna eval --stdin
+  $ fauna eval "Add(2,3)" --output=/tmp/result"
+  $ fauna eval "Add(2,3)" --format=json --output=/tmp/result"
+```
+
+_See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/eval.js)_
+
 <!-- commandsstop -->
