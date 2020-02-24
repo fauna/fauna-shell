@@ -1,9 +1,10 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const {errorOut} = require('../lib/misc.js')
+const { errorOut, runQueries } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 const repl = require('repl')
 const util = require('util')
+const esprima = require('esprima')
 
 /**
 * We need this function to allow multi-line javascript objects
@@ -68,6 +69,8 @@ function startShell(client, endpoint, dbscope, log) {
       return cb()
     }
     defaultEval(cmd, ctx, filename, function (error, result) {
+      let res = esprima.parseScript(cmd)
+
       if (error) {
         if (isRecoverableError(error)) {
           return cb(new repl.Recoverable(error))
@@ -75,16 +78,16 @@ function startShell(client, endpoint, dbscope, log) {
           return cb(error, result)
         }
       } else {
-        return client.query(result)
-        .then(function (response) {
+        return runQueries(res.body, client)
+        .then(res => {
           // we could provide the response result as a second
           // argument to cb(), but the repl util.inspect has a
           // default depth of 2, but we want to display the full
           // objects or arrays, not things like [object Object]
-          console.log(util.inspect(response, {depth: null}))
+          console.log(util.inspect(res, {depth: null}))
           return cb(error)
         })
-        .catch(function (error) {
+        .catch(error => {
           ctx.lastError = error
           log('Error:', error.message)
 
