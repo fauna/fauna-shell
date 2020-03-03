@@ -381,7 +381,12 @@ function wrapQueries(expressions, client) {
 }
 
 function runQueries(expressions, client) {
-  return promiseSerial(wrapQueries(expressions, client))
+  if (expressions.length == 1) {
+    var f = wrapQueries(expressions, client)[0]
+    return f()
+  } else {
+    return promiseSerial(wrapQueries(expressions, client))
+  }
 }
 
 module.exports = {
