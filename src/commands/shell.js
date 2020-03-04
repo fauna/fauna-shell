@@ -71,6 +71,7 @@ function startShell(client, endpoint, dbscope, log) {
     defaultEval(cmd, ctx, filename, function (error, result) {
       let res = esprima.parseScript(cmd)
 
+      
       if (error) {
         if (isRecoverableError(error)) {
           return cb(new repl.Recoverable(error))
@@ -89,7 +90,11 @@ function startShell(client, endpoint, dbscope, log) {
         })
         .catch(error => {
           ctx.lastError = error
-          log('Error:', error.message)
+          log('Error:', error.faunaError.message)
+          console.log(util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
+            depth: null,
+            compact: false
+          }))
 
           if (error instanceof faunadb.errors.FaunaHTTPError) {
             console.log(util.inspect(error.errors(), {depth: null}))
