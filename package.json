@@ -31,7 +31,7 @@
     "eslint": "4",
     "eslint-config-oclif": "^1.5.1",
     "mocha": "^5.2.0",
-    "nyc": "^14.1.1"
+    "nyc": "^15.0.0"
   },
   "engines": {
     "node": ">=10.0.0"
