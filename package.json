@@ -28,7 +28,7 @@
     "@oclif/test": "^1.2.5",
     "chai": "^4.2.0",
     "eslint": "4",
-    "eslint-config-oclif": "^1.5.1",
+    "eslint-config-oclif": "^3.1.0",
     "mocha": "^5.2.0",
     "nyc": "^14.1.1"
   },
