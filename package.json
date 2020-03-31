@@ -11,7 +11,7 @@
     "@oclif/command": "^1.5.19",
     "@oclif/config": "^1.13.3",
     "@oclif/plugin-autocomplete": "^0.1.4",
-    "@oclif/plugin-help": "^1.2.11",
+    "@oclif/plugin-help": "^2.2.3",
     "cli-table": "^0.3.1",
     "cli-ux": "^4.8.0",
     "escodegen": "^1.12.0",
