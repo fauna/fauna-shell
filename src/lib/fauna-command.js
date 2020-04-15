@@ -1,5 +1,5 @@
-const {Command, flags} = require('@oclif/command')
-const {buildConnectionOptions, errorOut} = require('../lib/misc.js')
+const { Command, flags } = require('@oclif/command')
+const { buildConnectionOptions, errorOut } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -23,7 +23,7 @@ class FaunaCommand extends Command {
   *
   */
   async init() {
-    const {flags: f, args: a} = this.parse(this.constructor)
+    const { flags: f, args: a } = this.parse(this.constructor)
     this.flags = f
     this.args = a
   }
@@ -38,14 +38,19 @@ class FaunaCommand extends Command {
   withClient(f, dbScope, role) {
     const cmdFlags = this.flags
     return buildConnectionOptions(cmdFlags, dbScope, role)
-    .then(function (connectionOptions) {
-      var client = new faunadb.Client(connectionOptions)
-      //TODO this should return a Promise
-      return f(client, connectionOptions)
-    })
-    .catch(function (err) {
-      return errorOut(err, 1)
-    })
+      .then(function (connectionOptions) {
+        var client = new faunadb.Client({
+          ...connectionOptions,
+          headers: {
+            'X-Fauna-Source': 'Fauna Shell',
+          },
+        })
+        //TODO this should return a Promise
+        return f(client, connectionOptions)
+      })
+      .catch(function (err) {
+        return errorOut(err, 1)
+      })
   }
 
   /**
@@ -62,15 +67,15 @@ class FaunaCommand extends Command {
     return this.withClient(function (client, _) {
       log(logMsg)
       return client.query(queryExpr)
-      .then(success)
-      .catch(failure)
+        .then(success)
+        .catch(failure)
     })
   }
 
   dbExists(dbName, callback) {
     return this.withClient(function (testDbClient, _) {
       return testDbClient.query(q.Exists(q.Database(dbName)))
-      .then(callback)
+        .then(callback)
     })
   }
 }
