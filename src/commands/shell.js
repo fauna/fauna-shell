@@ -69,9 +69,13 @@ function startShell(client, endpoint, dbscope, log) {
       return cb()
     }
     defaultEval(cmd, ctx, filename, function (error, result) {
-      let res = esprima.parseScript(cmd)
+      let res
+      try {
+        res = esprima.parseScript(cmd)
+      } catch (err) {
+        res = cmd
+      }
 
-      
       if (error) {
         if (isRecoverableError(error)) {
           return cb(new repl.Recoverable(error))
