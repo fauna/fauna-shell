@@ -41,7 +41,7 @@ $ fauna cloud-login
 
 You will be prompted for your `email` and `password` from your [FaunaDB Cloud](https://dashboard.fauna.com/) account.
 
-If you would like to use 3rd party identity providers like Github or Netlify, please refer to [this guide](https://docs.fauna.com/fauna/current/start/cloud-github.html)
+If you would like to use 3rd party identity providers like Github or Netlify, please refer to [this guide](https://docs.fauna.com/fauna/current/start/cloud-github.html).
 
 Now that we have an endpoint to connect to we can try to create a database to start playing with FaunaDB. See [connecting to different endpoints](#connecting-to-different-endpoints).
 
