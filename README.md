@@ -835,8 +835,8 @@ EXAMPLES
   $ fauna eval "Paginate(Collections())"
   $ fauna eval --file=/path/to/queries.fql
   $ echo "Add(1,1)" | fauna eval --stdin
-  $ fauna eval "Add(2,3)" --output=/tmp/result"
-  $ fauna eval "Add(2,3)" --format=json --output=/tmp/result"
+  $ fauna eval "Add(2,3)" "--output=/tmp/result"
+  $ fauna eval "Add(2,3)" "--format=json" "--output=/tmp/result"
 ```
 
 _See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/eval.js)_
