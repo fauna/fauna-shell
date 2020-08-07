@@ -163,7 +163,7 @@ my_app> CreateIndex(
   active: false,
   partitions: 1,
   name: 'posts_by_title',
-  source: Class("posts"),
+  source: Collection("posts"),
   terms: [ { field: [ 'data', 'title' ] } ]
 }
 ```
@@ -175,7 +175,7 @@ my_app> Create(
     Collection("posts"),
     { data: { title: "What I had for breakfast .." } })
 {
-  ref: Ref(Class("posts"), "205904004461363712"),
+  ref: Ref(Collection("posts"), "205904004461363712"),
   ts: 1532624210670859,
   data: { title: 'What I had for breakfast ..' }
 }
@@ -197,17 +197,17 @@ my_app> Map(
 		)
 [
   {
-    ref: Ref(Class("posts"), "205904031076321792"),
+    ref: Ref(Collection("posts"), "205904031076321792"),
     ts: 1532624236071215,
     data: { title: 'My cat and other marvels' } 
   },
   {
-    ref: Ref(Class("posts"), "205904031076320768"),
+    ref: Ref(Collection("posts"), "205904031076320768"),
     ts: 1532624236071215,
     data: { title: 'Pondering during a commute' } 
   },
   {
-    ref: Ref(Class("posts"), "205904031076319744"),
+    ref: Ref(Collection("posts"), "205904031076319744"),
     ts: 1532624236071215,
     data: { title: 'Deep meanings in a latte' } 
   }
@@ -219,7 +219,7 @@ Now let's try to fetch our post about _latte_. We need to access it by _id_ like
 ```javascript
 my_app> Get(Ref(Collection("posts"),"205904031076319744"))
 {
-  ref: Ref(Class("posts"), "205904031076319744"),
+  ref: Ref(Collection("posts"), "205904031076319744"),
   ts: 1532624236071215,
   data: { title: 'Deep meanings in a latte' }
 }
