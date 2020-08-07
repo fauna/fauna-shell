@@ -139,11 +139,13 @@ my_app>
 Once you have the prompt ready, you can start issues queries against your FaunaDB instance. (Note that the results shown here might vary from the ones you see while running the examples).
 
 ```javascript
-my_app> CreateClass({ name: "posts" })
-{ ref: Class("posts"),
+my_app> CreateCollection({ name: "posts" })
+{
+  ref: Collection("posts"),
   ts: 1532624109799742,
   history_days: 30,
-  name: 'posts' }
+  name: 'posts'
+}
 ```
 
 Let's create an index for our _posts_.
@@ -152,27 +154,31 @@ Let's create an index for our _posts_.
 my_app> CreateIndex(
     {
       name: "posts_by_title",
-      source: Class("posts"),
+      source: Collection("posts"),
       terms: [{ field: ["data", "title"] }]
     })
-{ ref: Index("posts_by_title"),
+{
+  ref: Index("posts_by_title"),
   ts: 1532624135128797,
   active: false,
   partitions: 1,
   name: 'posts_by_title',
-  source: Class("posts"),
-  terms: [ { field: [ 'data', 'title' ] } ] }
+  source: Collection("posts"),
+  terms: [ { field: [ 'data', 'title' ] } ]
+}
 ```
 
 Let's insert a _post_ item:
 
 ```javascript
 my_app> Create(
-    Class("posts"),
+    Collection("posts"),
     { data: { title: "What I had for breakfast .." } })
-{ ref: Ref(Class("posts"), "205904004461363712"),
+{
+  ref: Ref(Collection("posts"), "205904004461363712"),
   ts: 1532624210670859,
-  data: { title: 'What I had for breakfast ..' } }
+  data: { title: 'What I had for breakfast ..' }
+}
 ```
 
 We can also insert items in bulk by using the `Map` function.
@@ -186,65 +192,80 @@ my_app> Map(
 		],
 		Lambda("post_title",
 		  Create(
-				Class("posts"), { data: { title: Var("post_title") } }
+				Collection("posts"), { data: { title: Var("post_title") } }
 			))
 		)
-[ { ref: Ref(Class("posts"), "205904031076321792"),
+[
+  {
+    ref: Ref(Collection("posts"), "205904031076321792"),
     ts: 1532624236071215,
-    data: { title: 'My cat and other marvels' } },
-  { ref: Ref(Class("posts"), "205904031076320768"),
+    data: { title: 'My cat and other marvels' } 
+  },
+  {
+    ref: Ref(Collection("posts"), "205904031076320768"),
     ts: 1532624236071215,
-    data: { title: 'Pondering during a commute' } },
-  { ref: Ref(Class("posts"), "205904031076319744"),
+    data: { title: 'Pondering during a commute' } 
+  },
+  {
+    ref: Ref(Collection("posts"), "205904031076319744"),
     ts: 1532624236071215,
-    data: { title: 'Deep meanings in a latte' } } ]
+    data: { title: 'Deep meanings in a latte' } 
+  }
+]
 ```
 
 Now let's try to fetch our post about _latte_. We need to access it by _id_ like this:
 
 ```javascript
-my_app> Get(Ref(Class("posts"),"205904031076319744"))
-{ ref: Ref(Class("posts"), "205904031076319744"),
+my_app> Get(Ref(Collection("posts"),"205904031076319744"))
+{
+  ref: Ref(Collection("posts"), "205904031076319744"),
   ts: 1532624236071215,
-  data: { title: 'Deep meanings in a latte' } }
+  data: { title: 'Deep meanings in a latte' }
+}
 ```
 
 Now let's update our post about our cat, by adding some tags:
 
 ```javascript
 my_app> Update(
-    Ref(Class("posts"), "205904031076321792"),
+    Ref(Collection("posts"), "205904031076321792"),
     { data: { tags: ["pet", "cute"] } })
-{ ref: Ref(Class("posts"), "205904031076321792"),
+{
+  ref: Ref(Collection("posts"), "205904031076321792"),
   ts: 1532624327263554,
-  data:
-   { title: 'My cat and other marvels', tags: [ 'pet', 'cute' ] } }
+  data: { title: 'My cat and other marvels', tags: [ 'pet', 'cute' ] }
+}
 ```
 
 And now let's try to change the content of that post:
 
 ```javascript
 my_app> Replace(
-    Ref(Class("posts"), "205904031076321792"),
+    Ref(Collection("posts"), "205904031076321792"),
     { data: { title: "My dog and other marvels" } })
-{ ref: Ref(Class("posts"), "205904031076321792"),
+{
+  ref: Ref(Collection("posts"), "205904031076321792"),
   ts: 1532624352388889,
-  data: { title: 'My dog and other marvels' } }
+  data: { title: 'My dog and other marvels' } 
+}
 ```
 
 Now let's try to delete our post about _latte_:
 
 ```javascript
-my_app> Delete(Ref(Class("posts"), "205904031076319744"))
-{ ref: Ref(Class("posts"), "205904031076319744"),
+my_app> Delete(Ref(Collection("posts"), "205904031076319744"))
+{
+  ref: Ref(Collection("posts"), "205904031076319744"),
   ts: 1532624236071215,
-  data: { title: 'Deep meanings in a latte' } }
+  data: { title: 'Deep meanings in a latte' } 
+}
 ```
 
 If we try to fetch it, we will receive an error:
 
 ```javascript
-my_app> Get(Ref(Class("posts"), "205904031076319744"))
+my_app> Get(Ref(Collection("posts"), "205904031076319744"))
  Error: instance not found
 ```
 
@@ -374,15 +395,15 @@ Any options that are not specified either via the `.fauna-shell` config file or 
 You can also tell the shell to execute a list of queries that you have stored in a file. For example, you can have a filed called `queries.fql` with the following content:
 
 ```javascript
-CreateClass({ name: "posts" });
+CreateCollection({ name: "posts" });
 CreateIndex(
 	{
 		name: "posts_by_title",
-		source: Class("posts"),
+		source: Collection("posts"),
 		terms: [{ field: ["data", "title"] }]
 	});
 Create(
-	Class("posts"),
+	Collection("posts"),
 	{ data: { title: "What I had for breakfast .." } });
 Map(
 	[
@@ -392,7 +413,7 @@ Map(
 	],
 	Lambda("post_title",
 	Create(
-		Class("posts"), { data: { title: Var("post_title") } }
+		Collection("posts"), { data: { title: Var("post_title") } }
 	))
 );
 ```
@@ -811,11 +832,11 @@ DESCRIPTION
   Output format can be specified.
 
 EXAMPLES
-  $ fauna eval "Paginate(Classes())"
+  $ fauna eval "Paginate(Collections())"
   $ fauna eval --file=/path/to/queries.fql
   $ echo "Add(1,1)" | fauna eval --stdin
-  $ fauna eval "Add(2,3)" --output=/tmp/result"
-  $ fauna eval "Add(2,3)" --format=json --output=/tmp/result"
+  $ fauna eval "Add(2,3)" "--output=/tmp/result"
+  $ fauna eval "Add(2,3)" "--format=json" "--output=/tmp/result"
 ```
 
 _See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/eval.js)_
