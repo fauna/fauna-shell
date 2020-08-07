@@ -832,7 +832,7 @@ DESCRIPTION
   Output format can be specified.
 
 EXAMPLES
-  $ fauna eval "Paginate(Classes())"
+  $ fauna eval "Paginate(Collections())"
   $ fauna eval --file=/path/to/queries.fql
   $ echo "Add(1,1)" | fauna eval --stdin
   $ fauna eval "Add(2,3)" --output=/tmp/result"
