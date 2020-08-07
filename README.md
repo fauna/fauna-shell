@@ -395,15 +395,15 @@ Any options that are not specified either via the `.fauna-shell` config file or 
 You can also tell the shell to execute a list of queries that you have stored in a file. For example, you can have a filed called `queries.fql` with the following content:
 
 ```javascript
-CreateClass({ name: "posts" });
+CreateCollection({ name: "posts" });
 CreateIndex(
 	{
 		name: "posts_by_title",
-		source: Class("posts"),
+		source: Collection("posts"),
 		terms: [{ field: ["data", "title"] }]
 	});
 Create(
-	Class("posts"),
+	Collection("posts"),
 	{ data: { title: "What I had for breakfast .." } });
 Map(
 	[
@@ -413,7 +413,7 @@ Map(
 	],
 	Lambda("post_title",
 	Create(
-		Class("posts"), { data: { title: Var("post_title") } }
+		Collection("posts"), { data: { title: Var("post_title") } }
 	))
 );
 ```
