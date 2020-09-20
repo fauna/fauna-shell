@@ -71,7 +71,7 @@ function performQuery(client, fqlQuery, outputFile, outputFormat) {
   let res = esprima.parseScript(fqlQuery)
   return runQueries(res.body, client)
   .then(function (response) {
-    writeFormattedOutput(outputFile, response, outputFormat)
+    return writeFormattedOutput(outputFile, response, outputFormat)
   })
   .catch(function (err) {
     errorOut(infoMessage(err), 1)
