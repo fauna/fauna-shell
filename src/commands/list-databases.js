@@ -34,7 +34,7 @@ class ListDatabasesCommand extends FaunaCommand {
 }
 
 ListDatabasesCommand.description = `
-Lists top level databases
+Lists child databases in the current database
 `
 
 ListDatabasesCommand.examples = [

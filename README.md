@@ -683,7 +683,7 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v1.2.1
 
 ## `fauna list-databases`
 
-Lists top level databases
+Lists child databases in the current database
 
 ```
 USAGE
@@ -698,7 +698,7 @@ OPTIONS
   --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
-  Lists top level databases
+  Lists child databases in the current database
 
 EXAMPLE
   $ fauna list-databases
