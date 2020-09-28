@@ -725,7 +725,7 @@ _See code: [src/commands/list-endpoints.js](https://github.com/fauna/fauna-shell
 
 ## `fauna list-keys`
 
-Lists top level keys
+List keys in the current database or in its child databases
 
 ```
 USAGE
@@ -740,7 +740,7 @@ OPTIONS
   --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
-  Lists top level keys
+  List keys in the current database or in its child databases
 
 EXAMPLE
   $ fauna list-keys
