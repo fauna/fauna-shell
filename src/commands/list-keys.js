@@ -72,7 +72,7 @@ class ListKeysCommand extends FaunaCommand {
 }
 
 ListKeysCommand.description = `
-Lists top level keys
+List keys in the current database or in its child databases
 `
 
 ListKeysCommand.examples = [
