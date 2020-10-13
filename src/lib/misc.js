@@ -10,7 +10,7 @@ const escodegen = require('escodegen')
 const Errors = require('@oclif/errors')
 var rp = require('request-promise')
 
-const FAUNA_CLOUD_DOMAIN = 'db.fauna.com'
+const FAUNA_CLOUD_DOMAIN = 'db.fauna-preview.com'
 const ERROR_NO_DEFAULT_ENDPOINT = "You need to set a default endpoint. \nTry running 'fauna default-endpoint ENDPOINT_ALIAS'."
 const ERROR_WRONG_CLOUD_ENDPOINT = "You already have an endpoint 'cloud' defined and it doesn't point to 'db.fauna.com'.\nPlease fix your '~/.fauna-shell' file."
 const ERROR_SPECIFY_SECRET_KEY = 'You must specify a secret key to connect to FaunaDB'
