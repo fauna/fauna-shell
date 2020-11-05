@@ -120,7 +120,7 @@ key 200219702370238976 deleted
 
 See [Commands](#commands) for a list of commands and help on their usage.
 
-# Tech Requirements
+# Technical Requirements
 
 In order to use Fauna Shell, you will need to meet these system requirements:
 
