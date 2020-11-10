@@ -21,6 +21,7 @@ $ npm install -g fauna-shell
 
 - [Usage](#usage)
 - [Technical Requirements](#technical-requirements)
+- [Configuration](#configuration)
 - [Shell](#shell)
 - [Command Details](#command-details)
 - [Connecting to different endpoints](#connecting-to-different-endpoints)
@@ -128,6 +129,15 @@ In order to use Fauna Shell, you will need to meet these system requirements:
 
 - `>= v10.0.0`
 - `< v12.17.0`
+
+# Configuration
+
+By default, requests made when using the `cloud-login` command will hit `https://auth-console.fauna-preview.com/login`. You can change this behavior by defining the `FAUNA_SHELL_LOGIN_URL` environment variable in your `.env`
+
+For example:
+```bash
+FAUNA_SHELL_LOGIN_URL=https://www.mycustomdomain.com/login
+```
 
 # Shell
 
@@ -446,22 +456,33 @@ Queries have to be written in the syntax supported by FaunaDB's Javascript [driv
 
 <!-- commands -->
 
-- [`fauna add-endpoint ENDPOINT`](#fauna-add-endpoint-endpoint)
-- [`fauna autocomplete [SHELL]`](#fauna-autocomplete-shell)
-- [`fauna cloud-login`](#fauna-cloud-login)
-- [`fauna create-database DBNAME`](#fauna-create-database-dbname)
-- [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
-- [`fauna default-endpoint ENDPOINT_ALIAS`](#fauna-default-endpoint-endpoint-alias)
-- [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
-- [`fauna delete-endpoint ENDPOINT_ALIAS`](#fauna-delete-endpoint-endpoint-alias)
-- [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
-- [`fauna help [COMMAND]`](#fauna-help-command)
-- [`fauna list-databases`](#fauna-list-databases)
-- [`fauna list-endpoints`](#fauna-list-endpoints)
-- [`fauna list-keys`](#fauna-list-keys)
-- [`fauna run-queries DBNAME`](#fauna-run-queries-dbname)
-- [`fauna shell [DBNAME]`](#fauna-shell-dbname)
-- [`fauna eval [QUERY]`](#fauna-eval-query)
+- [fauna-shell](#fauna-shell)
+- [Usage](#usage)
+- [Technical Requirements](#technical-requirements)
+- [Configuration](#configuration)
+- [Shell](#shell)
+- [Command Details](#command-details)
+- [Connecting to different endpoints](#connecting-to-different-endpoints)
+- [Connecting to local endpoints](#connecting-to-local-endpoints)
+- [Overriding Connection Parameters](#overriding-connection-parameters)
+- [Executing queries from a file](#executing-queries-from-a-file)
+- [List of Commands](#list-of-commands)
+  - [`fauna add-endpoint ENDPOINT`](#fauna-add-endpoint-endpoint)
+  - [`fauna autocomplete [SHELL]`](#fauna-autocomplete-shell)
+  - [`fauna cloud-login`](#fauna-cloud-login)
+  - [`fauna create-database DBNAME`](#fauna-create-database-dbname)
+  - [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
+  - [`fauna default-endpoint ENDPOINT_ALIAS`](#fauna-default-endpoint-endpoint_alias)
+  - [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
+  - [`fauna delete-endpoint ENDPOINT_ALIAS`](#fauna-delete-endpoint-endpoint_alias)
+  - [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
+  - [`fauna help [COMMAND]`](#fauna-help-command)
+  - [`fauna list-databases`](#fauna-list-databases)
+  - [`fauna list-endpoints`](#fauna-list-endpoints)
+  - [`fauna list-keys`](#fauna-list-keys)
+  - [`fauna run-queries DBNAME`](#fauna-run-queries-dbname)
+  - [`fauna shell [DBNAME]`](#fauna-shell-dbname)
+  - [`fauna eval [QUERY]`](#fauna-eval-query)
 
 ## `fauna add-endpoint ENDPOINT`
 
