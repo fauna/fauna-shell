@@ -1,5 +1,5 @@
-fauna-shell
-===========
+# fauna-shell
+
 <!-- [![Version](https://img.shields.io/npm/v/fauna.svg)](https://npmjs.org/package/fauna)
 [![CircleCI](https://circleci.com/gh/fauna/fauna/tree/master.svg?style=shield)](https://circleci.com/gh/fauna/fauna/tree/master)
 [![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/fauna/fauna?branch=master&svg=true)](https://ci.appveyor.com/project/fauna/fauna/branch/master)
@@ -18,14 +18,16 @@ $ npm install -g fauna-shell
 ```
 
 <!-- toc -->
-* [Usage](#usage)
-* [Shell](#shell)
-* [Command Details](#command-details)
-* [Connecting to different endpoints](#connecting-to-different-endpoints)
-* [Overriding Connection Parameters](#overriding-connection-parameters)
-* [Executing queries from a file](#executing-queries-from-a-file)
-* [List of Commands](#list-of-commands)
-<!-- tocstop -->
+
+- [Usage](#usage)
+- [Technical Requirements](#technical-requirements)
+- [Shell](#shell)
+- [Command Details](#command-details)
+- [Connecting to different endpoints](#connecting-to-different-endpoints)
+- [Overriding Connection Parameters](#overriding-connection-parameters)
+- [Executing queries from a file](#executing-queries-from-a-file)
+- [List of Commands](#list-of-commands)
+  <!-- tocstop -->
 
 # Usage
 
@@ -118,6 +120,15 @@ key 200219702370238976 deleted
 
 See [Commands](#commands) for a list of commands and help on their usage.
 
+# Technical Requirements
+
+In order to use Fauna Shell, you will need to meet these system requirements:
+
+**Node.js version**
+
+- `>= v10.0.0`
+- `< v12.17.0`
+
 # Shell
 
 The Fauna Shell lets you issue queries directly to your FaunaDB instance without the need for installing additional libraries.
@@ -186,34 +197,34 @@ my_app> Create(
 We can also insert items in bulk by using the `Map` function.
 
 ```javascript
-my_app> Map(
-		[
-			"My cat and other marvels",
-			"Pondering during a commute",
-			"Deep meanings in a latte"
-		],
-		Lambda("post_title",
-		  Create(
-				Collection("posts"), { data: { title: Var("post_title") } }
-			))
-		)
-[
-  {
-    ref: Ref(Collection("posts"), "205904031076321792"),
-    ts: 1532624236071215,
-    data: { title: 'My cat and other marvels' } 
-  },
-  {
-    ref: Ref(Collection("posts"), "205904031076320768"),
-    ts: 1532624236071215,
-    data: { title: 'Pondering during a commute' } 
-  },
-  {
-    ref: Ref(Collection("posts"), "205904031076319744"),
-    ts: 1532624236071215,
-    data: { title: 'Deep meanings in a latte' } 
-  }
-]
+my_app >
+  Map(
+    [
+      "My cat and other marvels",
+      "Pondering during a commute",
+      "Deep meanings in a latte"
+    ],
+    Lambda(
+      "post_title",
+      Create(Collection("posts"), { data: { title: Var("post_title") } })
+    )
+  )[
+    ({
+      ref: Ref(Collection("posts"), "205904031076321792"),
+      ts: 1532624236071215,
+      data: { title: "My cat and other marvels" }
+    },
+    {
+      ref: Ref(Collection("posts"), "205904031076320768"),
+      ts: 1532624236071215,
+      data: { title: "Pondering during a commute" }
+    },
+    {
+      ref: Ref(Collection("posts"), "205904031076319744"),
+      ts: 1532624236071215,
+      data: { title: "Deep meanings in a latte" }
+    })
+  ];
 ```
 
 Now let's try to fetch our post about _latte_. We need to access it by _id_ like this:
@@ -249,7 +260,7 @@ my_app> Replace(
 {
   ref: Ref(Collection("posts"), "205904031076321792"),
   ts: 1532624352388889,
-  data: { title: 'My dog and other marvels' } 
+  data: { title: 'My dog and other marvels' }
 }
 ```
 
@@ -260,7 +271,7 @@ my_app> Delete(Ref(Collection("posts"), "205904031076319744"))
 {
   ref: Ref(Collection("posts"), "205904031076319744"),
   ts: 1532624236071215,
-  data: { title: 'Deep meanings in a latte' } 
+  data: { title: 'Deep meanings in a latte' }
 }
 ```
 
@@ -274,7 +285,9 @@ my_app> Get(Ref(Collection("posts"), "205904031076319744"))
 Finally you can exit the _shell_ by pressing `ctrl+d`.
 
 # Command Details
+
 <!-- details -->
+
 ```sh-session
 $ fauna COMMAND
 running command...
@@ -398,25 +411,22 @@ You can also tell the shell to execute a list of queries that you have stored in
 
 ```javascript
 CreateCollection({ name: "posts" });
-CreateIndex(
-	{
-		name: "posts_by_title",
-		source: Collection("posts"),
-		terms: [{ field: ["data", "title"] }]
-	});
-Create(
-	Collection("posts"),
-	{ data: { title: "What I had for breakfast .." } });
+CreateIndex({
+  name: "posts_by_title",
+  source: Collection("posts"),
+  terms: [{ field: ["data", "title"] }]
+});
+Create(Collection("posts"), { data: { title: "What I had for breakfast .." } });
 Map(
-	[
-		"My cat and other marvels",
-		"Pondering during a commute",
-		"Deep meanings in a latte"
-	],
-	Lambda("post_title",
-	Create(
-		Collection("posts"), { data: { title: Var("post_title") } }
-	))
+  [
+    "My cat and other marvels",
+    "Pondering during a commute",
+    "Deep meanings in a latte"
+  ],
+  Lambda(
+    "post_title",
+    Create(Collection("posts"), { data: { title: Var("post_title") } })
+  )
 );
 ```
 
@@ -431,24 +441,27 @@ Where `my_app` is the name of your database, and `./queries.fql` is the path to 
 Queries have to be written in the syntax supported by FaunaDB's Javascript [driver](https://github.com/fauna/faunadb-js).
 
 <!-- detailsstop -->
+
 # List of Commands
+
 <!-- commands -->
-* [`fauna add-endpoint ENDPOINT`](#fauna-add-endpoint-endpoint)
-* [`fauna autocomplete [SHELL]`](#fauna-autocomplete-shell)
-* [`fauna cloud-login`](#fauna-cloud-login)
-* [`fauna create-database DBNAME`](#fauna-create-database-dbname)
-* [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
-* [`fauna default-endpoint ENDPOINT_ALIAS`](#fauna-default-endpoint-endpoint-alias)
-* [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
-* [`fauna delete-endpoint ENDPOINT_ALIAS`](#fauna-delete-endpoint-endpoint-alias)
-* [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
-* [`fauna help [COMMAND]`](#fauna-help-command)
-* [`fauna list-databases`](#fauna-list-databases)
-* [`fauna list-endpoints`](#fauna-list-endpoints)
-* [`fauna list-keys`](#fauna-list-keys)
-* [`fauna run-queries DBNAME`](#fauna-run-queries-dbname)
-* [`fauna shell [DBNAME]`](#fauna-shell-dbname)
-* [`fauna eval [QUERY]`](#fauna-eval-query)
+
+- [`fauna add-endpoint ENDPOINT`](#fauna-add-endpoint-endpoint)
+- [`fauna autocomplete [SHELL]`](#fauna-autocomplete-shell)
+- [`fauna cloud-login`](#fauna-cloud-login)
+- [`fauna create-database DBNAME`](#fauna-create-database-dbname)
+- [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
+- [`fauna default-endpoint ENDPOINT_ALIAS`](#fauna-default-endpoint-endpoint-alias)
+- [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
+- [`fauna delete-endpoint ENDPOINT_ALIAS`](#fauna-delete-endpoint-endpoint-alias)
+- [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
+- [`fauna help [COMMAND]`](#fauna-help-command)
+- [`fauna list-databases`](#fauna-list-databases)
+- [`fauna list-endpoints`](#fauna-list-endpoints)
+- [`fauna list-keys`](#fauna-list-keys)
+- [`fauna run-queries DBNAME`](#fauna-run-queries-dbname)
+- [`fauna shell [DBNAME]`](#fauna-shell-dbname)
+- [`fauna eval [QUERY]`](#fauna-eval-query)
 
 ## `fauna add-endpoint ENDPOINT`
 
