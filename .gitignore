@@ -6,3 +6,4 @@
 node_modules
 experiments
 .test_config
+.env

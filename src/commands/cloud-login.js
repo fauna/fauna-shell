@@ -4,8 +4,11 @@ const FaunaCommand = require('../lib/fauna-command.js')
 const os = require('os')
 const fetch = require('request-promise')
 const url = require('url')
+require('dotenv').config()
 
-const SHELL_LOGIN_URL = 'https://auth-console.fauna-preview.com/login'
+const SHELL_LOGIN_URL = process.env.FAUNA_SHELL_LOGIN_URL
+  ? process.env.FAUNA_SHELL_LOGIN_URL
+  : 'https://auth-console.fauna-preview.com/login';
 const alias = 'cloud'
 const CLOUD_URL = 'https://db.fauna-preview.com'
 const newEndpoint = url.parse(CLOUD_URL)
