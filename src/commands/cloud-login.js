@@ -73,7 +73,7 @@ async function emailStrategy(email) {
   })
   .catch(async function (error) {
     // Check if call failed due to missing OTP code
-    if (JSON.parse(error.error).code === OTP_REQUIRED) {
+    if (error.error && JSON.parse(error.error).code === OTP_REQUIRED) {
       // Prompt the user for their OTP code
       const otpCode = await cli.prompt('Enter your multi-factor authentication code', {
         type: 'hide',
