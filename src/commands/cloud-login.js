@@ -8,9 +8,9 @@ require('dotenv').config()
 
 const SHELL_LOGIN_URL = process.env.FAUNA_SHELL_LOGIN_URL
   ? process.env.FAUNA_SHELL_LOGIN_URL
-  : 'https://auth-console.fauna-preview.com/login';
+  : 'https://auth.console.fauna.com/login';
 const alias = 'cloud'
-const CLOUD_URL = 'https://db.fauna-preview.com'
+const CLOUD_URL = 'https://db.fauna.com'
 const newEndpoint = url.parse(CLOUD_URL)
 const EMAIL_STRATEGY = 'email'
 const SECRET_STRATEGY = 'secret'
