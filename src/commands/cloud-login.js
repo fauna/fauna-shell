@@ -4,8 +4,11 @@ const FaunaCommand = require('../lib/fauna-command.js')
 const os = require('os')
 const fetch = require('request-promise')
 const url = require('url')
+require('dotenv').config()
 
-const SHELL_LOGIN_URL = 'https://app.fauna.com/shell_login'
+const SHELL_LOGIN_URL = process.env.FAUNA_SHELL_LOGIN_URL
+  ? process.env.FAUNA_SHELL_LOGIN_URL
+  : 'https://auth.console.fauna.com/login';
 const alias = 'cloud'
 const CLOUD_URL = 'https://db.fauna.com'
 const newEndpoint = url.parse(CLOUD_URL)
@@ -15,6 +18,7 @@ const strategies = {
   [EMAIL_STRATEGY]: emailStrategy,
   [SECRET_STRATEGY]: secretStrategy,
 }
+const OTP_REQUIRED = 'otp_required'
 
 class CloudLoginCommand extends FaunaCommand {
   async run() {
@@ -66,6 +70,31 @@ async function emailStrategy(email) {
   .then(function (res) {
     const secret = JSON.parse(res.body).secret
     return saveEndpointOrError(newEndpoint, alias, secret)
+  })
+  .catch(async function (error) {
+    // Check if call failed due to missing OTP code
+    if (error.error && JSON.parse(error.error).code === OTP_REQUIRED) {
+      // Prompt the user for their OTP code
+      const otpCode = await cli.prompt('Enter your multi-factor authentication code', {
+        type: 'hide',
+        timeout: 120000,
+      })
+
+      // Make another request with the OTP code included
+      return fetch({
+        method: 'POST',
+        uri: SHELL_LOGIN_URL,
+        form: {
+          ...formData,
+          otp: otpCode,
+        },
+        resolveWithFullResponse: true,
+      })
+      .then(function (res) {
+        const secret = JSON.parse(res.body).secret
+        return saveEndpointOrError(newEndpoint, alias, secret)
+      })
+    }
   })
 }
 
