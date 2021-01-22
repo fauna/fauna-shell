@@ -117,15 +117,16 @@ class ListKeysCommand extends FaunaCommand {
     const log = this.log
     return this.withClient(async function (client, _) {
       try {
-        // retrieving current db keys
-        const currentDb = await client.query(currentDbKeysQuery(q))
-        // retrieving all children dbs keys
-        const childDbs = await client.query(childrenDbKeysQuery(q))
+        // retrieving current and children db keys
+        const [currentDb, childrenDbs] = await Promise.all([
+          client.query(currentDbKeysQuery(q)),
+          client.query(childrenDbKeysQuery(q)),
+        ])
         // appending current db's keys to children,
         // i.e. union all the keys together
-        childDbs.data.push(currentDb)
-        if (childDbs.data.length > 0) {
-          log(buildTable(childDbs).toString())
+        childrenDbs.data.push(currentDb)
+        if (childrenDbs.data.length > 0) {
+          log(buildTable(childrenDbs).toString())
         } else {
           log('No databases found')
         }
