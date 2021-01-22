@@ -26,9 +26,9 @@ function getTable() {
 * @param {Key} b - Key reference.
 */
 function compareByDBName(a, b) {
-  if (a.database.id < b.database.id) {
+  if (a.name < b.name) {
     return -1
-  } else if (a.database.id > b.database.id) {
+  } else if (a.name > b.name) {
     return 1
   }
   return 0
@@ -38,35 +38,101 @@ function buildTable(res) {
   const table = getTable()
   res.data.sort(compareByDBName)
   res.data.forEach(function (el) {
-    table.push([el.ref.id, el.database.id, el.role])
+    const dbName = el.name
+    if (el.keys.data.length > 0) {
+      el.keys.data.forEach(function (key) {
+        table.push([key.id, dbName, key.role])
+      })
+    } else {
+      table.push(['No keys created', dbName, '-'])
+    }
   })
   return table
 }
 
 /**
-* Despite its name, returns the first 1000 keys defined on the Database.
-* "1000 keys ought to be enough for anybody".
-*/
-function allKeysQuery(q) {
-  return q.Map(q.Paginate(q.Keys(null), {size: 1000}), q.Lambda('x', q.Get(q.Var('x'))))
+ * Returns the first 100 keys defined on the current Database.
+ * "100 keys ought to be enough for anybody".
+ */
+function currentDbKeysQuery(q) {
+  return q.Let(
+    {},
+    {
+      name: '[current]',
+      keys: q.Map(
+        q.Paginate(q.Keys(), {size: 100}),
+        q.Lambda('key',
+          q.Let(
+            {
+              keyDoc: q.Get(q.Var('key')),
+            },
+            {
+              id: q.Select(['ref', 'id'], q.Var('keyDoc')),
+              role: q.Select(['role'], q.Var('keyDoc')),
+            }
+          )
+        )
+      ),
+    }
+  )
+}
+
+/**
+ * Returns the first 100 keys defined per child Database within the current one.
+ * "100 keys ought to be enough for anybody".
+ * In a similar fashion a limit is set up for the first 100 children of the current Database.
+ */
+function childrenDbKeysQuery(q) {
+  return q.Map(
+    q.Paginate(q.Databases(), {size: 100}),
+    q.Lambda('db',
+      q.Let(
+        {
+          dbDoc: q.Get(q.Var('db')),
+        },
+        {
+          name: q.Select(['name'], q.Var('dbDoc')),
+          keys: q.Map(
+            q.Paginate(q.Keys(q.Database(q.Select(['name'], q.Var('dbDoc')))), {size: 100}),
+            q.Lambda('key',
+              q.Let(
+                {
+                  keyDoc: q.Get(q.Var('key')),
+                },
+                {
+                  id: q.Select(['ref', 'id'], q.Var('keyDoc')),
+                  role: q.Select(['role'], q.Var('keyDoc')),
+                }
+              )
+            )
+          ),
+        }
+      )
+    )
+  )
 }
 
 class ListKeysCommand extends FaunaCommand {
   async run() {
     const log = this.log
-    return this.withClient(function (client, _) {
-      log('listing keys')
-      return client.query(allKeysQuery(q))
-      .then(function (res) {
-        if (res.data.length > 0) {
-          log(buildTable(res).toString())
+    return this.withClient(async function (client, _) {
+      try {
+        // retrieving current and children db keys
+        const [currentDb, childrenDbs] = await Promise.all([
+          client.query(currentDbKeysQuery(q)),
+          client.query(childrenDbKeysQuery(q)),
+        ])
+        // appending current db's keys to children,
+        // i.e. union all the keys together
+        childrenDbs.data.push(currentDb)
+        if (childrenDbs.data.length > 0) {
+          log(buildTable(childrenDbs).toString())
         } else {
-          log('No keys created')
+          log('No databases found')
         }
-      })
-      .catch(function (err) {
+      } catch (err) {
         errorOut(err.message)
-      })
+      }
     })
   }
 }
