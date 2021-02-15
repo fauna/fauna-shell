@@ -6,9 +6,9 @@ const fetch = require('request-promise')
 const url = require('url')
 require('dotenv').config()
 
-const SHELL_LOGIN_URL = process.env.FAUNA_SHELL_LOGIN_URL
-  ? process.env.FAUNA_SHELL_LOGIN_URL
-  : 'https://auth.console.fauna.com/login';
+const SHELL_LOGIN_URL = process.env.FAUNA_SHELL_LOGIN_URL ?
+  process.env.FAUNA_SHELL_LOGIN_URL :
+  'https://auth.console.fauna.com/login'
 const alias = 'cloud'
 const CLOUD_URL = 'https://db.fauna.com'
 const newEndpoint = url.parse(CLOUD_URL)
@@ -72,29 +72,42 @@ async function emailStrategy(email) {
     return saveEndpointOrError(newEndpoint, alias, secret)
   })
   .catch(async function (error) {
-    // Check if call failed due to missing OTP code
-    if (error.error && JSON.parse(error.error).code === OTP_REQUIRED) {
-      // Prompt the user for their OTP code
-      const otpCode = await cli.prompt('Enter your multi-factor authentication code', {
-        type: 'hide',
-        timeout: 120000,
-      })
-
-      // Make another request with the OTP code included
-      return fetch({
-        method: 'POST',
-        uri: SHELL_LOGIN_URL,
-        form: {
-          ...formData,
-          otp: otpCode,
-        },
-        resolveWithFullResponse: true,
-      })
-      .then(function (res) {
-        const secret = JSON.parse(res.body).secret
-        return saveEndpointOrError(newEndpoint, alias, secret)
-      })
+    let parsedError
+    try {
+      parsedError = JSON.parse(error.error)
+    } catch (_) {
+      throw error
     }
+
+    // Check if call failed due to missing OTP code
+    if (error.error && parsedError.code === OTP_REQUIRED) {
+      return multiFactorVerification(formData)
+    }
+
+    throw error
+  })
+}
+
+async function multiFactorVerification(formData) {
+  // Prompt the user for their OTP code
+  const otpCode = await cli.prompt('Enter your multi-factor authentication code', {
+    type: 'hide',
+    timeout: 120000,
+  })
+
+  // Make another request with the OTP code included
+  return fetch({
+    method: 'POST',
+    uri: SHELL_LOGIN_URL,
+    form: {
+      ...formData,
+      otp: otpCode,
+    },
+    resolveWithFullResponse: true,
+  })
+  .then(function (res) {
+    const secret = JSON.parse(res.body).secret
+    return saveEndpointOrError(newEndpoint, alias, secret)
   })
 }
 
