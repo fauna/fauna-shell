@@ -72,19 +72,9 @@ async function emailStrategy(email) {
     return saveEndpointOrError(newEndpoint, alias, secret)
   })
   .catch(async function (error) {
-    let parsedError
-    try {
-      parsedError = JSON.parse(error.error)
-    } catch (_) {
-      throw error
-    }
+    if (!error.statusCode || !error.error || JSON.parse(error.error).code !== OTP_REQUIRED) throw error
 
-    // Check if call failed due to missing OTP code
-    if (error.error && parsedError.code === OTP_REQUIRED) {
-      return multiFactorVerification(formData)
-    }
-
-    throw error
+    return multiFactorVerification(formData)
   })
 }
 
