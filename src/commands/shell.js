@@ -1,5 +1,5 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const {errorOut, runQueries, stringifyEndpoint} = require('../lib/misc.js')
+const { errorOut, runQueries, stringifyEndpoint } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 const repl = require('repl')
