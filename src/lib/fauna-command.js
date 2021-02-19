@@ -47,6 +47,7 @@ class FaunaCommand extends Command {
       })
       await client.query(q.Now())
 
+      //TODO this should return a Promise
       return f(client, connectionOptions)
     } catch (err) {
       if (err instanceof faunadb.errors.Unauthorized) {
