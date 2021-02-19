@@ -1,5 +1,5 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const { errorOut, runQueries } = require('../lib/misc.js')
+const {errorOut, runQueries, stringifyEndpoint} = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 const repl = require('repl')
@@ -28,18 +28,6 @@ function isRecoverableError(error) {
 // don't submit to the server empty queries.
 function skipInput(cmd) {
   return cmd.trim() === ''
-}
-
-function stringifyEndpoint(endpoint) {
-  var res = ''
-  if (endpoint.scheme) {
-    res += endpoint.scheme + '://'
-  }
-  res += endpoint.domain
-  if (endpoint.port) {
-    res += ':' + endpoint.port
-  }
-  return res
 }
 
 function filterCommands(commands, unwanted) {
