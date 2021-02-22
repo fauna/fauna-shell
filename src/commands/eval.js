@@ -88,11 +88,9 @@ class EvalCommand extends FaunaCommand {
 
     const fqlQuery = this.args.query
 
-    const withClient = this.withClient.bind(this)
-
     // first we test if the database specified by the user exists.
     // if that's the case, we create a connection scoped to that database.
-    return withClient(async function (client, _) {
+    return this.withClient(async (client, _) => {
       const readQuery = queryFromStdin || queriesFile !== undefined
       const noSourceSet = (!queryFromStdin && fqlQuery === undefined && queriesFile === undefined)
       if (readQuery) {
