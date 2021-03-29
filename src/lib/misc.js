@@ -5,7 +5,7 @@ const path = require('path')
 const fs = require('fs')
 const ini = require('ini')
 const {cli} = require('cli-ux')
-const faunadb = require('faunadb')
+const q = require('faunadb/query')
 const escodegen = require('escodegen')
 const Errors = require('@oclif/errors')
 var rp = require('request-promise')
@@ -368,7 +368,6 @@ class QueryError extends Error {
 }
 
 function wrapQueries(expressions, client) {
-  const q = faunadb.query
   vm.createContext(q)
   return expressions.map(function (exp, queryNumber) {
     return function () {

@@ -1,13 +1,11 @@
 const FaunaCommand = require('../lib/fauna-command.js')
 const {errorOut} = require('../lib/misc.js')
-const faunadb = require('faunadb')
-const q = faunadb.query
-
+const q = require('faunadb/query')
 /**
 * Despite its name, returns the first 1000 databases defined.
 * "1000 databases ought to be enough for anybody".
 */
-function allDatabasesQuery(q) {
+function allDatabasesQuery() {
   return q.Map(q.Paginate(q.Databases(null), {size: 1000}), q.Lambda('x', q.Get(q.Var('x'))))
 }
 
@@ -16,7 +14,7 @@ class ListDatabasesCommand extends FaunaCommand {
     const log = this.log
     return this.withClient(function (client, _) {
       log('listing databases')
-      return client.query(allDatabasesQuery(q))
+      return client.query(allDatabasesQuery())
       .then(function (res) {
         if (res.data.length > 0) {
           res.data.forEach(function (el) {
