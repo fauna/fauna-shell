@@ -39,14 +39,22 @@ class FaunaCommand extends Command {
     const cmdFlags = this.flags
     return buildConnectionOptions(cmdFlags, dbScope, role)
       .then(function (connectionOptions) {
-        var client = new faunadb.Client({
+        const client = new faunadb.Client({
           ...connectionOptions,
           headers: {
             'X-Fauna-Source': 'Fauna Shell',
           },
         })
-        //TODO this should return a Promise
-        return f(client, connectionOptions)
+        const output = f(client, connectionOptions)
+        const isPromiseLike = output && typeof output.then === 'function'
+
+        if (!isPromiseLike) {
+          return output
+        }
+
+        return output.finally(() => {
+          client.close()
+        })
       })
       .catch(function (err) {
         return errorOut(err, 1)
