@@ -1,6 +1,6 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const { errorOut, runQueries } = require('../lib/misc.js')
-const {errors: faunaErrors} = require('faunadb')
+const {errorOut, runQueries} = require('../lib/misc.js')
+const {FaunaHTTPError} = require('faunadb')
 const q = require('faunadb/query')
 const repl = require('repl')
 const util = require('util')
@@ -97,10 +97,10 @@ function startShell(client, endpoint, dbscope, log) {
           log('Error:', error.faunaError.message)
           console.log(util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
             depth: null,
-            compact: false
+            compact: false,
           }))
 
-          if (error instanceof faunaErrors.FaunaHTTPError) {
+          if (error instanceof FaunaHTTPError) {
             console.log(util.inspect(error.errors(), {depth: null}))
           }
 
