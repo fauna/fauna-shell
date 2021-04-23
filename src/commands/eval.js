@@ -4,8 +4,6 @@ const esprima = require('esprima')
 const {flags} = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
 const {readFile, runQueries, errorOut, loadEndpoints, writeFile} = require('../lib/misc.js')
-const faunadb = require('faunadb')
-const q = faunadb.query
 
 const EVAL_OUTPUT_FORMATS = ['json', 'shell']
 

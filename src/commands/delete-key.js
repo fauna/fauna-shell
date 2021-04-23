@@ -1,7 +1,6 @@
 const FaunaCommand = require('../lib/fauna-command.js')
 const {errorOut} = require('../lib/misc.js')
-const faunadb = require('faunadb')
-const q = faunadb.query
+const q = require('faunadb/query')
 
 class DeleteKeyCommand extends FaunaCommand {
   async run() {
