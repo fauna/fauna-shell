@@ -5,7 +5,7 @@ describe('database test', () => {
   test
   .stdout()
   .command(withOpts(['list-databases']))
-  .it('runs list-databases', ctx => {
+  .it('runs list-databases', (ctx, ...rest) => {
     expect(ctx.stdout).to.contain('No databases created')
   })
 

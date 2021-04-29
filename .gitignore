@@ -8,3 +8,4 @@ experiments
 .test_config
 .env
 .idea
+/.vscode/
