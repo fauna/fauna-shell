@@ -1,27 +1,29 @@
 const { Command, flags } = require('@oclif/command')
-const { buildConnectionOptions, errorOut } = require('../lib/misc.js')
+const { buildConnectionOptions, errorOut, stringifyEndpoint } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
 /**
-* This is the base class for all fauna-shell commands.
-*/
+ * This is the base class for all fauna-shell commands.
+ */
 class FaunaCommand extends Command {
+  clients = {}
+
   /**
-  * During init we parse the flags and arguments and assign them
-  * to the `flags` and `args` member variables.
-  *
-  * We call `this.parse(this.constructor)` because we need to load
-  * flags and args for the command being run in the CLI.
-  * In this way we parse the flags and args defined in that command,
-  * plus the ones defined here. A command then needs to define its flags
-  * as follows, if it wants to inherit the flags defined in FaunaCommand:
-  *
-  * CreateKeyCommand.flags = {
-  *	...FaunaCommand.flags
-  * }
-  *
-  */
+   * During init we parse the flags and arguments and assign them
+   * to the `flags` and `args` member variables.
+   *
+   * We call `this.parse(this.constructor)` because we need to load
+   * flags and args for the command being run in the CLI.
+   * In this way we parse the flags and args defined in that command,
+   * plus the ones defined here. A command then needs to define its flags
+   * as follows, if it wants to inherit the flags defined in FaunaCommand:
+   *
+   * CreateKeyCommand.flags = {
+   *	...FaunaCommand.flags
+   * }
+   *
+   */
   async init() {
     const { flags: f, args: a } = this.parse(this.constructor)
     this.flags = f
@@ -35,56 +37,79 @@ class FaunaCommand extends Command {
   * @param {string}   dbScope - The database in which the function will be executed.
   * @param {string}   role    - The user role with which the function will be executed.
   */
-  withClient(f, dbScope, role) {
-    const cmdFlags = this.flags
-    return buildConnectionOptions(cmdFlags, dbScope, role)
-      .then(function (connectionOptions) {
-        var client = new faunadb.Client({
-          ...connectionOptions,
-          headers: {
-            'X-Fauna-Source': 'Fauna Shell',
-          },
-        })
-        //TODO this should return a Promise
-        return f(client, connectionOptions)
+  async withClient(f, dbScope, role) {
+    let connectionOptions
+    try {
+      connectionOptions = await buildConnectionOptions(this.flags, dbScope, role)
+      const client = new faunadb.Client({
+        ...connectionOptions,
+        headers: {
+          'X-Fauna-Source': 'Fauna Shell',
+        },
       })
-      .catch(function (err) {
-        return errorOut(err, 1)
-      })
+      await client.query(q.Now())
+
+      //TODO this should return a Promise
+      return f(client, connectionOptions)
+    } catch (err) {
+      if (err instanceof faunadb.errors.Unauthorized) {
+        return errorOut(`Could not Connect to ${stringifyEndpoint(connectionOptions)} Unauthorized Secret`, 1)
+      }
+      return errorOut(err, 1)
+    }
+  }
+
+  async getClient({ dbScope, role } = {}) {
+    const connectionOptions = await buildConnectionOptions(
+      this.flags,
+      dbScope,
+      role
+    )
+    const client = new faunadb.Client({
+      ...connectionOptions,
+      headers: {
+        'X-Fauna-Source': 'Fauna Shell',
+      },
+    })
+
+    const hashKey = [dbScope, role].join('_')
+
+    this.clients[hashKey] = new Promise((resolve) =>
+      resolve({ client, connectionOptions })
+    )
+
+    return this.clients[hashKey]
   }
 
   /**
-  * Runs the provided query, while logging a message before running it.
-  * Calls the success callback on success, or the failure one otherwise.
-  *
-  * @param {query}    queryExpr - The Query to execute.
-  * @param {string}   logMsg    - The message to display before executing the query.
-  * @param {function} success   - On success callback.
-  * @param {function} failure   - On error callback.
-  */
+   * Runs the provided query, while logging a message before running it.
+   * Calls the success callback on success, or the failure one otherwise.
+   *
+   * @param {query}    queryExpr - The Query to execute.
+   * @param {string}   logMsg    - The message to display before executing the query.
+   * @param {function} success   - On success callback.
+   * @param {function} failure   - On error callback.
+   */
   query(queryExpr, logMsg, success, failure) {
     const log = this.log
     return this.withClient(function (client, _) {
       log(logMsg)
-      return client.query(queryExpr)
-        .then(success)
-        .catch(failure)
+      return client.query(queryExpr).then(success).catch(failure)
     })
   }
 
   dbExists(dbName, callback) {
     return this.withClient(function (testDbClient, _) {
-      return testDbClient.query(q.Exists(q.Database(dbName)))
-        .then(callback)
+      return testDbClient.query(q.Exists(q.Database(dbName))).then(callback)
     })
   }
 }
 
 /**
-* These flags allow the user to override endpoint configuration.
-* They are inherited by all shell commands that extend FaunaCommand.
-* See each command's flags to see how this mechanism works.
-*/
+ * These flags allow the user to override endpoint configuration.
+ * They are inherited by all shell commands that extend FaunaCommand.
+ * See each command's flags to see how this mechanism works.
+ */
 FaunaCommand.flags = {
   ...Command.flags,
   domain: flags.string({

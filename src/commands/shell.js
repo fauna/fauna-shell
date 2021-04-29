@@ -1,179 +1,149 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const { errorOut, runQueries } = require('../lib/misc.js')
+const { errorOut, runQueries, stringifyEndpoint } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 const repl = require('repl')
 const util = require('util')
 const esprima = require('esprima')
 
-/**
-* We need this function to allow multi-line javascript objects
-* to be entered. Without this check, the following object will
-* produce an error:
-*
-* { a: 'a string',
-*   b: 1,
-*   c: Bytes("AQID"),
-*   d: [ 1, 2 ],
-*   e: { a: 'another string' } }
-*
-*/
-function isRecoverableError(error) {
-  if (error.name === 'SyntaxError') {
-    return /^(Unexpected end of input|Unexpected token)/.test(error.message)
-  }
-  return false
-}
+class ShellCommand extends FaunaCommand {
+  commands = [
+    {
+      cmd: 'clear',
+      help: 'Clear the repl',
+      action: this.clear,
+    },
+    {
+      cmd: 'last_error',
+      help: 'Display the last error',
+      action: this.lastError,
+    },
+  ]
 
-// don't submit to the server empty queries.
-function skipInput(cmd) {
-  return cmd.trim() === ''
-}
+  async run() {
+    const { dbname } = this.args
+    this.rootConnection = await this.getClient()
 
-function stringifyEndpoint(endpoint) {
-  var res = ''
-  if (endpoint.scheme) {
-    res += endpoint.scheme + '://'
-  }
-  res += endpoint.domain
-  if (endpoint.port) {
-    res += ':' + endpoint.port
-  }
-  return res
-}
-
-function filterCommands(commands, unwanted) {
-  const keys = Object.keys(commands)
-  var filteredCommands = {}
-  keys.filter(function (k) {
-    return !unwanted.includes(k)
-  }).forEach(function (k) {
-    filteredCommands[k] = commands[k]
-  })
-  return filteredCommands
-}
-
-function startShell(client, endpoint, dbscope, log) {
-  const dbname = dbscope ? dbscope : ''
-
-  if (dbname !== '') {
-    log(`Starting shell for database ${dbname}`)
-  }
-
-  log(`Connected to ${stringifyEndpoint(endpoint)}`)
-  log('Type Ctrl+D or .exit to exit the shell')
-  var defaultEval
-
-  function replEvalPromise(cmd, ctx, filename, cb) {
-    if (skipInput(cmd)) {
-      return cb()
+    this.scopeConnection = this.rootConnection
+    if (dbname) {
+      this.scopeConnection = await this.ensureDbScopeClient()
     }
-    defaultEval(cmd, ctx, filename, function (error, result) {
-      let res
-      try {
-        res = esprima.parseScript(cmd)
-      } catch (err) {
-        res = cmd
-      }
 
-      if (error) {
-        if (isRecoverableError(error)) {
-          return cb(new repl.Recoverable(error))
-        } else {
-          return cb(error, result)
-        }
-      } else {
-        return runQueries(res.body, client)
-        .then(res => {
-          // we could provide the response result as a second
-          // argument to cb(), but the repl util.inspect has a
-          // default depth of 2, but we want to display the full
-          // objects or arrays, not things like [object Object]
-          console.log(util.inspect(res, {depth: null}))
-          return cb(error)
-        })
-        .catch(error => {
-          ctx.lastError = error
-          log('Error:', error.faunaError.message)
-          console.log(util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
-            depth: null,
-            compact: false
-          }))
+    this.startShell()
+  }
 
-          if (error instanceof faunadb.errors.FaunaHTTPError) {
-            console.log(util.inspect(error.errors(), {depth: null}))
-          }
+  async ensureDbScopeClient() {
+    const { client } = this.rootConnection
+    const exists = await client.query(q.Exists(q.Database(this.args.dbname)))
+    if (!exists) {
+      errorOut(`Database '${this.args.dbname}' doesn't exist`, 1)
+    }
 
-          return cb()
-        })
-      }
+    return this.getClient({
+      dbScope: this.args.dbname,
+      role: 'admin',
     })
   }
 
-  const r	= repl.start({
-    prompt: `${dbname}> `,
-    ignoreUndefined: true,
-  })
+  startShell() {
+    const { dbname } = this.args
+    if (dbname) {
+      this.log(`Starting shell for database ${dbname}`)
+    }
 
-  // we don't want to allow people to call some of the default commmands
-  // from the node repl
-  r.commands = filterCommands(r.commands, ['load', 'editor', 'clear'])
+    this.log(
+      `Connected to ${stringifyEndpoint(
+        this.scopeConnection.connectionOptions
+      )}`
+    )
+    this.log('Type Ctrl+D or .exit to exit the shell')
 
-  r.defineCommand('clear', {
-    help: 'Clear the repl',
-    action: function () {
-      console.clear()
-      this.displayPrompt()
-    },
-  })
+    this.repl = repl.start({
+      prompt: `${dbname || ''}> `,
+      ignoreUndefined: true,
+    })
+    this.repl.eval = this.withFaunaEval(this.repl.eval)
+    this.repl.context.lastError = undefined
+    Object.assign(this.repl.context, q)
 
-  r.defineCommand('last_error', {
-    help: 'Display the last error',
-    action: function () {
-      console.log(this.context.lastError)
-      this.displayPrompt()
-    },
-  })
+    // we don't want to allow people to call some of the default commands
+    // from the node repl
+    this.repl.commands = this.filterCommands(this.repl.commands, [
+      'load',
+      'editor',
+      'clear',
+    ])
 
-  // we define our own eval, because we want to wrap QueryExpressions
-  // inside a FaunaDB's Query().
-  defaultEval = r.eval
-  r.eval = replEvalPromise
-
-  r.context.lastError = undefined
-  Object.assign(r.context, q)
-}
-
-class ShellCommand extends FaunaCommand {
-  async run() {
-    const dbscope = this.args.dbname
-    const role = 'admin'
-    const log = this.log
-    const withClient = this.withClient.bind(this)
-
-    if (dbscope) {
-      // first we test if the database specified by the user exists.
-      // if that's the case, we create a connection scoped to that database.
-      this.withClient(function (testDbClient, _) {
-        testDbClient.query(q.Exists(q.Database(dbscope)))
-        .then(function (exists) {
-          if (exists) {
-            withClient(function (client, endpoint) {
-              startShell(client, endpoint, dbscope, log)
-            }, dbscope, role)
-          } else {
-            errorOut(`Database '${dbscope}' doesn't exist`, 1)
-          }
-        })
-        .catch(function (err) {
-          errorOut(err.message, 1)
-        })
+    this.commands.forEach(({ cmd, ...cmdOptions }) =>
+      this.repl.defineCommand(cmd, cmdOptions)
+    )
+  }
+  filterCommands(commands, unwanted) {
+    const keys = Object.keys(commands)
+    var filteredCommands = {}
+    keys
+      .filter(function (k) {
+        return !unwanted.includes(k)
       })
-    } else {
-      withClient(function (client, endpoint) {
-        startShell(client, endpoint, dbscope, log)
+      .forEach(function (k) {
+        filteredCommands[k] = commands[k]
+      })
+    return filteredCommands
+  }
+
+  withFaunaEval(originalEval) {
+    return (cmd, ctx, filename, cb) => {
+      if (cmd.trim() === '') return cb()
+
+      originalEval(cmd, ctx, filename, async (_err, result) => {
+        try {
+          if (_err) throw _err
+          const res = esprima.parseScript(cmd)
+          await this.executeFql({ ctx, fql: res.body }).then(cb)
+        } catch (error) {
+          if (error.name === 'SyntaxError') {
+            cb(new repl.Recoverable(error))
+          } else {
+            cb(error, result)
+          }
+        }
       })
     }
+  }
+
+  async executeFql({ ctx, fql }) {
+    return runQueries(fql, this.scopeConnection.client)
+      .then((res) => {
+        // we could provide the response result as a second
+        // argument to cb(), but the repl util.inspect has a
+        // default depth of 2, but we want to display the full
+        // objects or arrays, not things like [object Object]
+        console.log(util.inspect(res, { depth: null }))
+      })
+      .catch((error) => {
+        ctx.lastError = error
+        this.log('Error:', error.faunaError.message)
+        console.log(
+          util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
+            depth: null,
+            compact: false,
+          })
+        )
+
+        if (error instanceof faunadb.errors.FaunaHTTPError) {
+          console.log(util.inspect(error.errors(), { depth: null }))
+        }
+      })
+  }
+
+  clear() {
+    console.clear()
+    this.repl.displayPrompt()
+  }
+
+  lastError() {
+    console.log(this.repl.context.lastError)
+    this.repl.displayPrompt()
   }
 }
 
@@ -181,9 +151,7 @@ ShellCommand.description = `
 Starts a FaunaDB shell
 `
 
-ShellCommand.examples = [
-  '$ fauna shell dbname',
-]
+ShellCommand.examples = ['$ fauna shell dbname']
 
 ShellCommand.flags = {
   ...FaunaCommand.flags,
