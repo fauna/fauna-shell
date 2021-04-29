@@ -1,5 +1,5 @@
 const { Command, flags } = require('@oclif/command')
-const { buildConnectionOptions, errorOut } = require('../lib/misc.js')
+const { buildConnectionOptions, errorOut, stringifyEndpoint } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -31,28 +31,32 @@ class FaunaCommand extends Command {
   }
 
   /**
-   * Runs the function in the context of a database connection.
-   *
-   * @param {function} f       - The function to run
-   * @param {string}   dbScope - The database in which the function will be executed.
-   * @param {string}   role    - The user role with which the function will be executed.
-   */
-  withClient(f, dbScope, role) {
-    const cmdFlags = this.flags
-    return buildConnectionOptions(cmdFlags, dbScope, role)
-      .then(function (connectionOptions) {
-        var client = new faunadb.Client({
-          ...connectionOptions,
-          headers: {
-            'X-Fauna-Source': 'Fauna Shell',
-          },
-        })
-        //TODO this should return a Promise
-        return f(client, connectionOptions)
+  * Runs the function in the context of a database connection.
+  *
+  * @param {function} f       - The function to run
+  * @param {string}   dbScope - The database in which the function will be executed.
+  * @param {string}   role    - The user role with which the function will be executed.
+  */
+  async withClient(f, dbScope, role) {
+    let connectionOptions
+    try {
+      connectionOptions = await buildConnectionOptions(this.flags, dbScope, role)
+      const client = new faunadb.Client({
+        ...connectionOptions,
+        headers: {
+          'X-Fauna-Source': 'Fauna Shell',
+        },
       })
-      .catch(function (err) {
-        return errorOut(err, 1)
-      })
+      await client.query(q.Now())
+
+      //TODO this should return a Promise
+      return f(client, connectionOptions)
+    } catch (err) {
+      if (err instanceof faunadb.errors.Unauthorized) {
+        return errorOut(`Could not Connect to ${stringifyEndpoint(connectionOptions)} Unauthorized Secret`, 1)
+      }
+      return errorOut(err, 1)
+    }
   }
 
   async getClient({ dbScope, role } = {}) {

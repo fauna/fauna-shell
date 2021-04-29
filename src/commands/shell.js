@@ -1,22 +1,10 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const { errorOut, runQueries } = require('../lib/misc.js')
+const { errorOut, runQueries, stringifyEndpoint } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 const repl = require('repl')
 const util = require('util')
 const esprima = require('esprima')
-
-function stringifyEndpoint(endpoint) {
-  var res = ''
-  if (endpoint.scheme) {
-    res += endpoint.scheme + '://'
-  }
-  res += endpoint.domain
-  if (endpoint.port) {
-    res += ':' + endpoint.port
-  }
-  return res
-}
 
 class ShellCommand extends FaunaCommand {
   commands = [

@@ -389,6 +389,18 @@ function runQueries(expressions, client) {
   }
 }
 
+function stringifyEndpoint(endpoint) {
+  var res = ''
+  if (endpoint.scheme) {
+    res += endpoint.scheme + '://'
+  }
+  res += endpoint.domain
+  if (endpoint.port) {
+    res += ':' + endpoint.port
+  }
+  return res
+}
+
 module.exports = {
   saveEndpointOrError: saveEndpointOrError,
   deleteEndpointOrError: deleteEndpointOrError,
@@ -400,4 +412,5 @@ module.exports = {
   readFile: readFile,
   writeFile: writeFile,
   runQueries: runQueries,
+  stringifyEndpoint: stringifyEndpoint,
 }
