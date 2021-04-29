@@ -5,8 +5,13 @@ describe('keys test', () => {
   test
   .stdout()
   .command(withOpts(['list-keys']))
+  .add('output_keys', ctx => {
+    var lines = ctx.stdout.split('\n')
+    lines.splice(0, 1)
+    return lines
+  })
   .it('runs list-keys', ctx => {
-    expect(ctx.stdout).to.contain('No keys created')
+    expect(Array.isArray(ctx.output_keys)).to.be.true
   })
 
   test
@@ -45,19 +50,6 @@ describe('keys test', () => {
     expect(err.oclif.exit).to.not.equal(0)
   })
   .it('runs create-key testdb with a wrong role')
-
-  test
-  .stdout()
-  .command(withOpts(['list-keys']))
-  .add('output_keys', ctx => {
-    var lines = ctx.stdout.split('\n')
-    lines.splice(0, 2)
-    return lines
-  })
-  .it('list keys', ctx => {
-    expect(ctx.output_keys[0].trim()).to.match(/^\d*\s*testdb\s*admin$/)
-    expect(ctx.output_keys[1].trim()).to.match(/^\d*\s*testdb\s*server$/)
-  })
 
   test
   .stdout()
