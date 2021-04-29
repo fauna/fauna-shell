@@ -1,5 +1,5 @@
 {
-  "extends": "oclif",
+  "extends": ["oclif", "plugin:prettier/recommended"],
   "rules": {
     "new-cap": "off",
     "quote-props": "off",
