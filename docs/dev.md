@@ -11,7 +11,7 @@ The ideal path would be:
 - Login to Fauna Cloud: `$ fauna cloud-login`
 - Create a Database: `$ fauna create-database my_app`
 - Start an interactive shell: `$ fauna shell my_app`
-- Send queries to FaunaDB from the interactive Shell: `my_app> CreateClass({ name: "posts" })`
+- Send queries to FaunaDB from the interactive Shell: `my_app> CreateCollection({ name: "posts" })`
 
 For that we offer installs via npm: https://www.npmjs.com/package/fauna-shell and Mac users have the option to also install via homebrew, so we support this repo: https://github.com/fauna/homebrew-fauna-shell-tap
 
@@ -37,7 +37,7 @@ When the user starts the shell by typing `$ fauna shell my_app`, they get an int
 
 Usually queries are wrapped around the `Query()` constructor. This is not required in the shell.
 
-Also usually functions like `CreateClass` or `CreateIndex` are scoped to the `q` module like this: `q.CreateIndex()`. This is not required for the shell, since the `q` module is already in scope.
+Also usually functions like `CreateCollection` or `CreateIndex` are scoped to the `q` module like this: `q.CreateIndex()`. This is not required for the shell, since the `q` module is already in scope.
 
 The less key strokes the user has to type, the better.
 
