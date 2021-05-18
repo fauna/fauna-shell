@@ -13,5 +13,14 @@
     "node/no-extraneous-require": ["error", {
       "allowModules": ["@oclif/errors"]
      }]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.test.js", "*.spec.js"],
+      "rules": {
+        "no-unused-expressions": "off"
+      }
+    }
+  ],
+  "parser": "babel-eslint"
 }

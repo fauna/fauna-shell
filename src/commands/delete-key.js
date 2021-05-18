@@ -1,5 +1,5 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const {errorOut} = require('../lib/misc.js')
+const { errorOut } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -28,9 +28,7 @@ DeleteKeyCommand.description = `
 Deletes a key
 `
 
-DeleteKeyCommand.examples = [
-  '$ fauna delete-key 123456789012345678',
-]
+DeleteKeyCommand.examples = ['$ fauna delete-key 123456789012345678']
 
 DeleteKeyCommand.flags = {
   ...FaunaCommand.flags,

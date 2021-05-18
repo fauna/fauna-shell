@@ -78,6 +78,7 @@ class ShellCommand extends FaunaCommand {
       this.repl.defineCommand(cmd, cmdOptions)
     )
   }
+
   filterCommands(commands, unwanted) {
     const keys = Object.keys(commands)
     var filteredCommands = {}
