@@ -1,5 +1,5 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const {errorOut} = require('../lib/misc.js')
+const { errorOut } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -28,9 +28,7 @@ DeleteDatabaseCommand.description = `
 Deletes a database
 `
 
-DeleteDatabaseCommand.examples = [
-  '$ fauna delete-database dbname',
-]
+DeleteDatabaseCommand.examples = ['$ fauna delete-database dbname']
 
 DeleteDatabaseCommand.flags = {
   ...FaunaCommand.flags,

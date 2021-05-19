@@ -1,8 +1,9 @@
-const {flags} = require('@oclif/command')
+const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
 const EvalCommand = require('./eval')
 
-const DEPRECATED_MSG = 'Deprecated: fauna run-queries is deprecated. Use eval instead'
+const DEPRECATED_MSG =
+  'Deprecated: fauna run-queries is deprecated. Use eval instead'
 
 class RunQueriesCommand extends EvalCommand {
   async run() {

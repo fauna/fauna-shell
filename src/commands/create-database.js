@@ -1,5 +1,5 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const {errorOut} = require('../lib/misc.js')
+const { errorOut } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -22,7 +22,7 @@ class CreateDatabaseCommand extends FaunaCommand {
     const log = this.log
     const dbname = this.args.dbname
     return this.query(
-      q.CreateDatabase({name: dbname}),
+      q.CreateDatabase({ name: dbname }),
       `creating database ${dbname}`,
       function (_) {
         log(successMessage(dbname))
@@ -42,9 +42,7 @@ CreateDatabaseCommand.description = `
 Creates a database
 `
 
-CreateDatabaseCommand.examples = [
-  '$ fauna create-database dbname',
-]
+CreateDatabaseCommand.examples = ['$ fauna create-database dbname']
 
 CreateDatabaseCommand.flags = {
   ...FaunaCommand.flags,

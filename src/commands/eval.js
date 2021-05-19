@@ -1,16 +1,20 @@
 const util = require('util')
 const fs = require('fs')
 const esprima = require('esprima')
-const {flags} = require('@oclif/command')
+const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
-const {readFile, runQueries, errorOut, loadEndpoints, writeFile} = require('../lib/misc.js')
-const faunadb = require('faunadb')
-const q = faunadb.query
+const {
+  readFile,
+  runQueries,
+  errorOut,
+  loadEndpoints,
+  writeFile,
+} = require('../lib/misc.js')
 
 const EVAL_OUTPUT_FORMATS = ['json', 'shell']
 
 function infoMessage(err) {
-  const fe = util.inspect(err.faunaError, {depth: null})
+  const fe = util.inspect(err.faunaError, { depth: null })
   return `
   The following query failed:
     ${err.exp}
@@ -31,7 +35,7 @@ function infoMessage(err) {
  */
 function writeFormattedJson(file, data) {
   let str = JSON.stringify(data)
-  if (file ===  null) {
+  if (file === null) {
     return Promise.resolve(console.log(str))
   }
   return writeFile(file, str)
@@ -44,8 +48,8 @@ function writeFormattedJson(file, data) {
  * @param {Any}    data Data to encode
  */
 function writeFormattedShell(file, data) {
-  let str = util.inspect(data, {depth: null})
-  if (file ===  null) {
+  let str = util.inspect(data, { depth: null })
+  if (file === null) {
     return Promise.resolve(console.log(str))
   }
   return writeFile(file, str)
@@ -59,28 +63,24 @@ function writeFormattedShell(file, data) {
  * @param {*} format Format to write as
  */
 function writeFormattedOutput(file, data, format) {
-  if (format === 'json')
-    return writeFormattedJson(file, data)
-  else if (format === 'shell')
-    return writeFormattedShell(file, data)
-  else
-    errorOut('Unsupported output format')
+  if (format === 'json') return writeFormattedJson(file, data)
+  else if (format === 'shell') return writeFormattedShell(file, data)
+  else errorOut('Unsupported output format')
 }
 
 function performQuery(client, fqlQuery, outputFile, outputFormat) {
   let res = esprima.parseScript(fqlQuery)
   return runQueries(res.body, client)
-  .then(function (response) {
-    return writeFormattedOutput(outputFile, response, outputFormat)
-  })
-  .catch(function (err) {
-    errorOut(infoMessage(err), 1)
-  })
+    .then(function (response) {
+      return writeFormattedOutput(outputFile, response, outputFormat)
+    })
+    .catch(function (err) {
+      errorOut(infoMessage(err), 1)
+    })
 }
 
 class EvalCommand extends FaunaCommand {
   async run() {
-    const dbscope = this.args.dbname
     const queryFromStdin = this.flags.stdin
     let queriesFile = this.flags.file
     const outputFile = this.flags.output
@@ -92,31 +92,39 @@ class EvalCommand extends FaunaCommand {
     // if that's the case, we create a connection scoped to that database.
     return this.withClient(async (client, _) => {
       const readQuery = queryFromStdin || queriesFile !== undefined
-      const noSourceSet = (!queryFromStdin && fqlQuery === undefined && queriesFile === undefined)
+      const noSourceSet =
+        !queryFromStdin && fqlQuery === undefined && queriesFile === undefined
       if (readQuery) {
         if (queryFromStdin && !fs.existsSync(queriesFile)) {
           this.warn('Reading from stdin')
           queriesFile = process.stdin.fd
         }
-        return readFile(queriesFile).then(query => {
-          return performQuery(client, query, outputFile, outputFormat)
-        }).catch(err => {
-          errorOut(err)
-        })
+        return readFile(queriesFile)
+          .then((query) => {
+            return performQuery(client, query, outputFile, outputFormat)
+          })
+          .catch((err) => {
+            errorOut(err)
+          })
       }
       if (fqlQuery !== undefined)
-        return performQuery(client, fqlQuery, outputFile, outputFormat).catch(err => {
-          errorOut(err)
-        })
+        return performQuery(client, fqlQuery, outputFile, outputFormat).catch(
+          (err) => {
+            errorOut(err)
+          }
+        )
       if (noSourceSet) {
-        return errorOut('No source set. Pass --stdin to  read from stdin or --file.')
+        return errorOut(
+          'No source set. Pass --stdin to  read from stdin or --file.'
+        )
       }
-    })
-    .catch(function (err) {
-      if (err.name == 'Unauthorized') {
-        return loadEndpoints()
-        .then(function (endpoints) {
-          return errorOut(`You are not authorized to access the endpoint ${endpoints.default}.`, 1)
+    }).catch(function (err) {
+      if (err.name === 'Unauthorized') {
+        return loadEndpoints().then(function (endpoints) {
+          return errorOut(
+            `You are not authorized to access the endpoint ${endpoints.default}.`,
+            1
+          )
         })
       } else {
         return errorOut(err.message, 1)
@@ -126,8 +134,8 @@ class EvalCommand extends FaunaCommand {
 }
 
 EvalCommand.description = `
-Runs the specified query. Can read from stdin, file or command line. 
-Outputs to either stdout or file. 
+Runs the specified query. Can read from stdin, file or command line.
+Outputs to either stdout or file.
 Output format can be specified.
 `
 
