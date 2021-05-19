@@ -1,10 +1,10 @@
 {
   "name": "fauna-shell",
   "description": "faunadb shell",
-  "version": "0.12.3",
+  "version": "0.12.4",
   "author": "Fauna",
   "bin": {
-    "fauna": "bin/run"
+    "fauna": "./bin/run"
   },
   "bugs": "https://github.com/fauna/fauna-shell/issues",
   "dependencies": {
