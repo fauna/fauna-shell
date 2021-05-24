@@ -1,5 +1,9 @@
 const { Command, flags } = require('@oclif/command')
-const { buildConnectionOptions, errorOut, stringifyEndpoint } = require('../lib/misc.js')
+const {
+  buildConnectionOptions,
+  errorOut,
+  stringifyEndpoint,
+} = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -31,16 +35,20 @@ class FaunaCommand extends Command {
   }
 
   /**
-  * Runs the function in the context of a database connection.
-  *
-  * @param {function} f       - The function to run
-  * @param {string}   dbScope - The database in which the function will be executed.
-  * @param {string}   role    - The user role with which the function will be executed.
-  */
+   * Runs the function in the context of a database connection.
+   *
+   * @param {function} f       - The function to run
+   * @param {string}   dbScope - The database in which the function will be executed.
+   * @param {string}   role    - The user role with which the function will be executed.
+   */
   async withClient(f, dbScope, role) {
     let connectionOptions
     try {
-      connectionOptions = await buildConnectionOptions(this.flags, dbScope, role)
+      connectionOptions = await buildConnectionOptions(
+        this.flags,
+        dbScope,
+        role
+      )
       const client = new faunadb.Client({
         ...connectionOptions,
         headers: {
@@ -53,7 +61,12 @@ class FaunaCommand extends Command {
       return f(client, connectionOptions)
     } catch (err) {
       if (err instanceof faunadb.errors.Unauthorized) {
-        return errorOut(`Could not Connect to ${stringifyEndpoint(connectionOptions)} Unauthorized Secret`, 1)
+        return errorOut(
+          `Could not Connect to ${stringifyEndpoint(
+            connectionOptions
+          )} Unauthorized Secret`,
+          1
+        )
       }
       return errorOut(err, 1)
     }
