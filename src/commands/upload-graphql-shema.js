@@ -57,8 +57,7 @@ UploadGraphQLSchemaCommand.flags = {
   ...Command.flags,
   graphqlHost: flags.string({
     default: 'https://graphql.fauna.com',
-    description:
-      'Optional - The Fauna GraphQL API host. Defaults to https://graphql.fauna.com',
+    description: 'The Fauna GraphQL API host',
   }),
   secret: flags.string({
     description: 'FaunaDB secret key',
