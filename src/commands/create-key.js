@@ -1,5 +1,5 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const {errorOut} = require('../lib/misc.js')
+const { errorOut } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -23,10 +23,12 @@ class CreateKeyCommand extends FaunaCommand {
     return this.dbExists(dbname, function (exists) {
       if (exists) {
         return that.query(
-          q.CreateKey({database: q.Database(dbname), role: role}),
+          q.CreateKey({ database: q.Database(dbname), role: role }),
           `creating key for database '${dbname}' with role '${role}'`,
           function (success) {
-            log(successMessage(success.database.id, success.role, success.secret))
+            log(
+              successMessage(success.database.id, success.role, success.secret)
+            )
           },
           function (error) {
             errorOut(error.message, 1)
@@ -43,9 +45,7 @@ CreateKeyCommand.description = `
 Creates a key for the specified database
 `
 
-CreateKeyCommand.examples = [
-  '$ fauna create-key dbname admin',
-]
+CreateKeyCommand.examples = ['$ fauna create-key dbname admin']
 
 CreateKeyCommand.flags = {
   ...FaunaCommand.flags,

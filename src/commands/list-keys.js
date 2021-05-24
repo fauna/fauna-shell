@@ -1,30 +1,43 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const {errorOut} = require('../lib/misc.js')
+const { errorOut } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 const Table = require('cli-table')
 
 /**
-* See the cli-table docs: https://github.com/Automattic/cli-table
-*/
+ * See the cli-table docs: https://github.com/Automattic/cli-table
+ */
 function getTable() {
   return new Table({
-    chars: {'top': '', 'top-mid': '', 'top-left': '', 'top-right': '',
-      'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
-      'left': '', 'left-mid': '', 'mid': '', 'mid-mid': '',
-      'right': '', 'right-mid': '', 'middle': ' '},
+    chars: {
+      top: '',
+      'top-mid': '',
+      'top-left': '',
+      'top-right': '',
+      bottom: '',
+      'bottom-mid': '',
+      'bottom-left': '',
+      'bottom-right': '',
+      left: '',
+      'left-mid': '',
+      mid: '',
+      'mid-mid': '',
+      right: '',
+      'right-mid': '',
+      middle: ' ',
+    },
     head: ['Key ID', 'Database', 'Role'],
     colWidths: [20, 20, 20],
-    style: {'padding-left': 0, 'padding-right': 0},
+    style: { 'padding-left': 0, 'padding-right': 0 },
   })
 }
 
 /**
-* Sorts keys by database name.
-*
-* @param {Key} a - Key reference.
-* @param {Key} b - Key reference.
-*/
+ * Sorts keys by database name.
+ *
+ * @param {Key} a - Key reference.
+ * @param {Key} b - Key reference.
+ */
 function compareByDBName(a, b) {
   if (a.name < b.name) {
     return -1
@@ -60,8 +73,9 @@ function currentDbKeysQuery(q) {
     {
       name: '[current]',
       keys: q.Map(
-        q.Paginate(q.Keys(), {size: 100}),
-        q.Lambda('key',
+        q.Paginate(q.Keys(), { size: 100 }),
+        q.Lambda(
+          'key',
           q.Let(
             {
               keyDoc: q.Get(q.Var('key')),
@@ -84,8 +98,9 @@ function currentDbKeysQuery(q) {
  */
 function childrenDbKeysQuery(q) {
   return q.Map(
-    q.Paginate(q.Databases(), {size: 100}),
-    q.Lambda('db',
+    q.Paginate(q.Databases(), { size: 100 }),
+    q.Lambda(
+      'db',
       q.Let(
         {
           dbDoc: q.Get(q.Var('db')),
@@ -93,8 +108,11 @@ function childrenDbKeysQuery(q) {
         {
           name: q.Select(['name'], q.Var('dbDoc')),
           keys: q.Map(
-            q.Paginate(q.Keys(q.Database(q.Select(['name'], q.Var('dbDoc')))), {size: 100}),
-            q.Lambda('key',
+            q.Paginate(q.Keys(q.Database(q.Select(['name'], q.Var('dbDoc')))), {
+              size: 100,
+            }),
+            q.Lambda(
+              'key',
               q.Let(
                 {
                   keyDoc: q.Get(q.Var('key')),
@@ -141,9 +159,7 @@ ListKeysCommand.description = `
 List keys in the current database or in its child databases
 `
 
-ListKeysCommand.examples = [
-  '$ fauna list-keys',
-]
+ListKeysCommand.examples = ['$ fauna list-keys']
 
 ListKeysCommand.flags = {
   ...FaunaCommand.flags,

@@ -1,6 +1,6 @@
-const {cli} = require('cli-ux')
+const { cli } = require('cli-ux')
 const { flags } = require('@oclif/command')
-const {saveEndpointOrError, errorOut} = require('../lib/misc.js')
+const { saveEndpointOrError, errorOut } = require('../lib/misc.js')
 const FaunaCommand = require('../lib/fauna-command.js')
 const url = require('url')
 
@@ -17,18 +17,26 @@ class AddEndpointCommand extends FaunaCommand {
     }
 
     if (!secret)
-      secret = await cli.prompt('Endpoint Key', {type: 'hide', timeout: 120000})
+      secret = await cli.prompt('Endpoint Key', {
+        type: 'hide',
+        timeout: 120000,
+      })
     if (!alias)
-      alias = await cli.prompt('Endpoint Alias', { default: newEndpoint.hostname, timeout: 120000 })
+      alias = await cli.prompt('Endpoint Alias', {
+        default: newEndpoint.hostname,
+        timeout: 120000,
+      })
 
     if (!this.flags.alias && (alias === 'default' || alias === 'cloud')) {
       throw new Error(`The word '${alias}' cannot be used as an alias.`)
     }
-    return saveEndpointOrError(newEndpoint, alias, secret).then(function () {
-      log(`Endpoint '${alias}' saved.`)
-    }).catch(function (err) {
-      errorOut(err.message, 1)
-    })
+    return saveEndpointOrError(newEndpoint, alias, secret)
+      .then(function () {
+        log(`Endpoint '${alias}' saved.`)
+      })
+      .catch(function (err) {
+        errorOut(err.message, 1)
+      })
   }
 }
 
