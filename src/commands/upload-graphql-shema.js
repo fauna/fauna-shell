@@ -38,7 +38,7 @@ class UploadGraphQLSchemaCommand extends FaunaCommand {
   }
 }
 
-UploadGraphQLSchemaCommand.description = 'Upload GraphQL Schema'
+UploadGraphQLSchemaCommand.description = 'Upload GraphQL schema'
 
 UploadGraphQLSchemaCommand.examples = [
   '$ fauna upload-graphql-schema ./schema.gql',
