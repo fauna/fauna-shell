@@ -23,5 +23,8 @@ module.exports.getEndpoint = () =>
     port: env.FAUNA_PORT,
   })
 
+const fqlToJsonString = (fql) => JSON.stringify(q.wrap(fql))
+module.exports.fqlToJsonString = fqlToJsonString
+
 module.exports.matchFqlReq = (fql) => (req) =>
-  new RegExp(JSON.stringify(q.wrap(fql))).test(JSON.stringify(req))
+  JSON.stringify(req).replace(/\\"/g, '"').includes(fqlToJsonString(fql))

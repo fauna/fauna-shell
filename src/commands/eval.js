@@ -3,13 +3,7 @@ const fs = require('fs')
 const esprima = require('esprima')
 const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
-const {
-  readFile,
-  runQueries,
-  errorOut,
-  loadEndpoints,
-  writeFile,
-} = require('../lib/misc.js')
+const { readFile, runQueries, errorOut, writeFile } = require('../lib/misc.js')
 
 const EVAL_OUTPUT_FORMATS = ['json', 'shell']
 

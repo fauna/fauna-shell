@@ -1,5 +1,5 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const { errorOut, runQueries, stringifyEndpoint } = require('../lib/misc.js')
+const { runQueries, stringifyEndpoint } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const q = faunadb.query
 const repl = require('repl')
@@ -22,7 +22,9 @@ class ShellCommand extends FaunaCommand {
 
   async run() {
     const { dbname } = this.args
-    this.connection = await (dbname ? this.ensureDbScopeClient(dbname) : this.getClient())
+    this.connection = dbname
+      ? await this.ensureDbScopeClient(dbname)
+      : await this.getClient()
     this.startShell()
   }
 
@@ -33,9 +35,7 @@ class ShellCommand extends FaunaCommand {
     }
 
     this.log(
-      `Connected to ${stringifyEndpoint(
-        this.connection.connectionOptions
-      )}`
+      `Connected to ${stringifyEndpoint(this.connection.connectionOptions)}`
     )
     this.log('Type Ctrl+D or .exit to exit the shell')
 
@@ -103,6 +103,8 @@ class ShellCommand extends FaunaCommand {
         console.log(util.inspect(res, { depth: null }))
       })
       .catch((error) => {
+        // console.error('55555')
+        // console.error(error.faunaError)
         ctx.lastError = error
         this.log('Error:', error.faunaError.message)
         console.log(

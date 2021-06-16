@@ -9,6 +9,7 @@ const faunadb = require('faunadb')
 const escodegen = require('escodegen')
 const Errors = require('@oclif/errors')
 var rp = require('request-promise')
+const crossFetch = require('cross-fetch')
 
 const FAUNA_CLOUD_DOMAIN = 'db.fauna.com'
 const ERROR_NO_DEFAULT_ENDPOINT =
@@ -338,7 +339,7 @@ function cleanUpConnectionOptions(connectionOptions) {
       res[key] = connectionOptions[key]
     }
   })
-  res.fetch = require('cross-fetch') // force http1
+  res.fetch = crossFetch // force http1
   return res
 }
 
