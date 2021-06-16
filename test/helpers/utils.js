@@ -1,4 +1,5 @@
 const url = require('url')
+const { query: q } = require('faunadb')
 const env = process.env
 
 module.exports.withOpts = (cmd) => {
@@ -21,3 +22,6 @@ module.exports.getEndpoint = () =>
     hostname: env.FAUNA_DOMAIN,
     port: env.FAUNA_PORT,
   })
+
+module.exports.matchFqlReq = (fql) => (req) =>
+  new RegExp(JSON.stringify(q.wrap(fql))).test(JSON.stringify(req))

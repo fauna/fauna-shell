@@ -57,15 +57,14 @@ class FaunaCommand extends Command {
         },
       })
       await client.query(q.Now())
-
       //TODO this should return a Promise
       return f(client, connectionOptions)
     } catch (err) {
-      return this.mapConnectionError({ err, connectionOptions})
+      return this.mapConnectionError({ err, connectionOptions })
     }
   }
 
-  mapConnectionError({ err,connectionOptions }) {
+  mapConnectionError({ err, connectionOptions }) {
     if (err instanceof faunadb.errors.Unauthorized) {
       return errorOut(
         `Could not Connect to ${stringifyEndpoint(
@@ -93,12 +92,12 @@ class FaunaCommand extends Command {
       })
 
       await client.query(q.Now())
-  
+
       const hashKey = [dbScope, role].join('_')
       this.clients[hashKey] = { client, connectionOptions }
       return this.clients[hashKey]
-    } catch(err) {
-       return this.mapConnectionError({err, connectionOptions})
+    } catch (err) {
+      return this.mapConnectionError({ err, connectionOptions })
     }
   }
 
@@ -114,7 +113,6 @@ class FaunaCommand extends Command {
       role: 'admin',
     })
   }
-
 
   /**
    * Runs the provided query, while logging a message before running it.
