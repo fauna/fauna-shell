@@ -24,12 +24,12 @@ function mockQuery(api) {
   api
     .post('/', matchFqlReq(q.Paginate(q.Collections())))
     .reply(200, function () {
-      const [_, nestedDb] = this.req.headers.authorization[0].split(':')
+      const auth = this.req.headers.authorization[0].split(':')
       return {
         resource: {
           data: [
             {
-              targetDb: nestedDb || 'root',
+              targetDb: auth[1] || 'root',
             },
           ],
         },
