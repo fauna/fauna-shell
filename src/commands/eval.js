@@ -86,61 +86,55 @@ class EvalCommand extends FaunaCommand {
     const outputFile = this.flags.output
     const outputFormat = this.flags.format
 
-    const fqlQuery = this.args.query
+    const { dbname, query } = this.getArgs()
 
-    // first we test if the database specified by the user exists.
-    // if that's the case, we create a connection scoped to that database.
-    return this.withClient(async (client, _) => {
+    const noSourceSet =
+      !queryFromStdin && query === undefined && queriesFile === undefined
+    if (noSourceSet) {
+      return errorOut(
+        'No source set. Pass --stdin to  read from stdin or --file.'
+      )
+    }
+
+    try {
+      const { client } = await (dbname
+        ? this.ensureDbScopeClient(dbname)
+        : this.getClient())
+
       const readQuery = queryFromStdin || queriesFile !== undefined
-      const noSourceSet =
-        !queryFromStdin && fqlQuery === undefined && queriesFile === undefined
+      let queryFromFile
       if (readQuery) {
         if (queryFromStdin && !fs.existsSync(queriesFile)) {
           this.warn('Reading from stdin')
           queriesFile = process.stdin.fd
         }
-        return readFile(queriesFile)
-          .then((query) => {
-            return performQuery(client, query, outputFile, outputFormat)
-          })
-          .catch((err) => {
-            errorOut(err)
-          })
+        queryFromFile = await readFile(queriesFile)
       }
-      if (fqlQuery !== undefined)
-        return performQuery(client, fqlQuery, outputFile, outputFormat).catch(
-          (err) => {
-            errorOut(err)
-          }
-        )
-      if (noSourceSet) {
-        return errorOut(
-          'No source set. Pass --stdin to  read from stdin or --file.'
-        )
-      }
-    }).catch(function (err) {
-      if (err.name === 'Unauthorized') {
-        return loadEndpoints().then(function (endpoints) {
-          return errorOut(
-            `You are not authorized to access the endpoint ${endpoints.default}.`,
-            1
-          )
-        })
-      } else {
-        return errorOut(err.message, 1)
-      }
-    })
+
+      const result = await performQuery(
+        client,
+        query || queryFromFile,
+        outputFile,
+        outputFormat
+      )
+      return result
+    } catch (err) {
+      return errorOut(err.message, 1)
+    }
+  }
+
+  // Remap arguments if a user provide only one
+  getArgs() {
+    const { dbname, query } = this.args
+    if (dbname && !query) return { query: dbname }
+
+    return { dbname, query }
   }
 }
 
-EvalCommand.description = `
-Runs the specified query. Can read from stdin, file or command line.
-Outputs to either stdout or file.
-Output format can be specified.
-`
-
 EvalCommand.examples = [
-  '$ fauna eval "Paginate(Classes())"',
+  '$ fauna eval "Paginate(Collections())"',
+  '$ fauna eval nestedDbName "Paginate(Collections())"',
   '$ fauna eval --file=/path/to/queries.fql',
   '$ echo "Add(1,1)" | fauna eval --stdin',
   '$ fauna eval "Add(2,3)" --output=/tmp/result"',
@@ -168,6 +162,11 @@ EvalCommand.flags = {
 }
 
 EvalCommand.args = [
+  {
+    name: 'dbname',
+    required: false,
+    description: 'Database name',
+  },
   {
     name: 'query',
     required: false,

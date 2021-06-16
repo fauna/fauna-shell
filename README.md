@@ -472,7 +472,7 @@ Queries have to be written in the syntax supported by FaunaDB's Javascript [driv
 - [`fauna list-keys`](#fauna-list-keys)
 - [`fauna run-queries DBNAME`](#fauna-run-queries-dbname)
 - [`fauna shell [DBNAME]`](#fauna-shell-dbname)
-- [`fauna eval [QUERY]`](#fauna-eval-query)
+- [`fauna eval [DBNAME] [QUERY]`](#fauna-eval-query)
 
 ## `fauna add-endpoint ENDPOINT`
 
@@ -829,16 +829,17 @@ EXAMPLE
 
 _See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/shell.js)_
 
-## `fauna eval [QUERY]`
+## `fauna eval [DBNAME] [QUERY]`
 
 Evaluates a fauna query
 
 ```
 USAGE
-  $ fauna eval [QUERY]
+  $ fauna eval [DBNAME] [QUERY]
 
 ARGUMENTS
   QUERY  FQL query to execute
+  DBNAME Database name
 
 OPTIONS
   --domain=domain      FaunaDB server domain
@@ -859,6 +860,7 @@ DESCRIPTION
 
 EXAMPLES
   $ fauna eval "Paginate(Collections())"
+  $ fauna eval nestedDbName "Paginate(Collections())"
   $ fauna eval --file=/path/to/queries.fql
   $ echo "Add(1,1)" | fauna eval --stdin
   $ fauna eval "Add(2,3)" "--output=/tmp/result"
