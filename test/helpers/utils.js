@@ -1,6 +1,7 @@
+const url = require('url')
 const env = process.env
 
-function withOpts(cmd) {
+module.exports.withOpts = (cmd) => {
   const opts = [
     '--secret',
     env.FAUNA_SECRET,
@@ -14,6 +15,9 @@ function withOpts(cmd) {
   return cmd.concat(opts)
 }
 
-module.exports = {
-  withOpts: withOpts,
-}
+module.exports.getEndpoint = () =>
+  url.format({
+    protocol: env.FAUNA_SCHEME,
+    hostname: env.FAUNA_DOMAIN,
+    port: env.FAUNA_PORT,
+  })

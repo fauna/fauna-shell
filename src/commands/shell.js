@@ -22,27 +22,8 @@ class ShellCommand extends FaunaCommand {
 
   async run() {
     const { dbname } = this.args
-    this.rootConnection = await this.getClient()
-
-    this.scopeConnection = this.rootConnection
-    if (dbname) {
-      this.scopeConnection = await this.ensureDbScopeClient()
-    }
-
+    this.connection = await (dbname ? this.ensureDbScopeClient(dbname) : this.getClient())
     this.startShell()
-  }
-
-  async ensureDbScopeClient() {
-    const { client } = this.rootConnection
-    const exists = await client.query(q.Exists(q.Database(this.args.dbname)))
-    if (!exists) {
-      errorOut(`Database '${this.args.dbname}' doesn't exist`, 1)
-    }
-
-    return this.getClient({
-      dbScope: this.args.dbname,
-      role: 'admin',
-    })
   }
 
   startShell() {
@@ -53,7 +34,7 @@ class ShellCommand extends FaunaCommand {
 
     this.log(
       `Connected to ${stringifyEndpoint(
-        this.scopeConnection.connectionOptions
+        this.connection.connectionOptions
       )}`
     )
     this.log('Type Ctrl+D or .exit to exit the shell')
@@ -113,7 +94,7 @@ class ShellCommand extends FaunaCommand {
   }
 
   async executeFql({ ctx, fql }) {
-    return runQueries(fql, this.scopeConnection.client)
+    return runQueries(fql, this.connection.client)
       .then((res) => {
         // we could provide the response result as a second
         // argument to cb(), but the repl util.inspect has a
