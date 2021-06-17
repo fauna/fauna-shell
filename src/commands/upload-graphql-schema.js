@@ -1,5 +1,5 @@
 const FaunaCommand = require('../lib/fauna-command.js')
-const { flags, Command } = require('@oclif/command')
+const { flags } = require('@oclif/command')
 const fetch = require('node-fetch')
 const fs = require('fs')
 const path = require('path')
@@ -10,25 +10,28 @@ class UploadGraphQLSchemaCommand extends FaunaCommand {
 
   async run() {
     try {
-      const { graphqlPath } = this.args
-      const { mode, graphqlHost } = this.flags
+      const { graphqlFilePath } = this.args
+      const { mode } = this.flags
 
-      if (!this.allowedExt.includes(path.extname(graphqlPath))) {
+      if (!this.allowedExt.includes(path.extname(graphqlFilePath))) {
         errorOut(
           'You must provide a Graphql file (`.graphql` or `.gql`) to upload a schema'
         )
       }
 
       const {
-        connectionOptions: { secret },
+        connectionOptions: { secret, graphqlHost, scheme },
       } = await this.getClient()
 
-      console.info(`UPLOADING SCHEMA (mode=${mode}): ${graphqlPath}`)
-      const text = await fetch(`${graphqlHost}/import?mode=${mode}`, {
-        method: 'POST',
-        headers: { AUTHORIZATION: `Bearer ${secret}` },
-        body: fs.readFileSync(graphqlPath),
-      }).then((response) => response.text())
+      console.info(`UPLOADING SCHEMA (mode=${mode}): ${graphqlFilePath}`)
+      const text = await fetch(
+        `${scheme}://${graphqlHost}/import?mode=${mode}`,
+        {
+          method: 'POST',
+          headers: { AUTHORIZATION: `Bearer ${secret}` },
+          body: fs.readFileSync(graphqlFilePath),
+        }
+      ).then((response) => response.text())
 
       console.info('RESPONSE:')
       console.info(text)
@@ -47,21 +50,14 @@ UploadGraphQLSchemaCommand.examples = [
 
 UploadGraphQLSchemaCommand.args = [
   {
-    name: 'graphqlPath',
+    name: 'graphqlFilePath',
     required: true,
     description: 'Path to GraphQL schema',
   },
 ]
 
 UploadGraphQLSchemaCommand.flags = {
-  ...Command.flags,
-  graphqlHost: flags.string({
-    default: 'https://graphql.fauna.com',
-    description: 'The Fauna GraphQL API host',
-  }),
-  secret: flags.string({
-    description: 'FaunaDB secret key',
-  }),
+  ...FaunaCommand.flags,
   mode: flags.string({
     description: 'Upload mode',
     default: 'merge',
