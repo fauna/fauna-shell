@@ -103,8 +103,6 @@ class ShellCommand extends FaunaCommand {
         console.log(util.inspect(res, { depth: null }))
       })
       .catch((error) => {
-        // console.error('55555')
-        // console.error(error.faunaError)
         ctx.lastError = error
         this.log('Error:', error.faunaError.message)
         console.log(
