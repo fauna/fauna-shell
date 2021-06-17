@@ -895,8 +895,8 @@ OPTIONS
 EXAMPLES
   $ fauna upload-graphql-schema ./schema.gql
   $ fauna upload-graphql-schema ./schema.gql --mode override
+```
 
 _See code: [src/commands/upload-graphql-schema.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/upload-graphql-schema.js)_
-```
 
 <!-- commandsstop -->
