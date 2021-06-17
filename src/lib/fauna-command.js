@@ -35,6 +35,7 @@ class FaunaCommand extends Command {
   }
 
   /**
+   * !!! use getClient instead
    * Runs the function in the context of a database connection.
    *
    * @param {function} f       - The function to run
@@ -63,40 +64,61 @@ class FaunaCommand extends Command {
       //TODO this should return a Promise
       return f(client, connectionOptions)
     } catch (err) {
-      if (err instanceof faunadb.errors.Unauthorized) {
-        return errorOut(
-          `Could not Connect to ${stringifyEndpoint(
-            connectionOptions
-          )} Unauthorized Secret`,
-          1
-        )
-      }
-      return errorOut(err, 1)
+      return this.mapConnectionError({ err, connectionOptions})
     }
   }
 
-  async getClient({ dbScope, role } = {}) {
-    const connectionOptions = await buildConnectionOptions(
-      this.flags,
-      dbScope,
-      role
-    )
-    const { graphqlHost, ...clientOptions } = connectionOptions
-    const client = new faunadb.Client({
-      ...clientOptions,
-      headers: {
-        'X-Fauna-Source': 'Fauna Shell',
-      },
-    })
-
-    const hashKey = [dbScope, role].join('_')
-
-    this.clients[hashKey] = new Promise((resolve) =>
-      resolve({ client, connectionOptions })
-    )
-
-    return this.clients[hashKey]
+  mapConnectionError({ err,connectionOptions }) {
+    if (err instanceof faunadb.errors.Unauthorized) {
+      return errorOut(
+        `Could not Connect to ${stringifyEndpoint(
+          connectionOptions
+        )} Unauthorized Secret`,
+        1
+      )
+    }
+    return errorOut(err, 1)
   }
+
+  async getClient({ dbScope, role } = {}) {
+    let connectionOptions
+    try {
+      connectionOptions = await buildConnectionOptions(
+        this.flags,
+        dbScope,
+        role
+      )
+      const { graphqlHost, ...clientOptions } = connectionOptions
+      const client = new faunadb.Client({
+        ...clientOptions,
+        headers: {
+          'X-Fauna-Source': 'Fauna Shell',
+        },
+      })
+
+      await client.query(q.Now())
+  
+      const hashKey = [dbScope, role].join('_')
+      this.clients[hashKey] = { client, connectionOptions }
+      return this.clients[hashKey]
+    } catch(err) {
+       return this.mapConnectionError({err, connectionOptions})
+    }
+  }
+
+  async ensureDbScopeClient(dbname) {
+    const { client } = await this.getClient()
+    const exists = await client.query(q.Exists(q.Database(dbname)))
+    if (!exists) {
+      errorOut(`Database '${dbname}' doesn't exist`, 1)
+    }
+
+    return this.getClient({
+      dbScope: dbname,
+      role: 'admin',
+    })
+  }
+
 
   /**
    * Runs the provided query, while logging a message before running it.

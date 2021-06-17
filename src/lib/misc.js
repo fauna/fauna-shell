@@ -346,6 +346,7 @@ function cleanUpConnectionOptions(connectionOptions) {
       res[key] = connectionOptions[key]
     }
   })
+  res.fetch = require('cross-fetch') // force http1
   return res
 }
 
