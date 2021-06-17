@@ -15,7 +15,7 @@ class UploadGraphQLSchemaCommand extends FaunaCommand {
 
       if (!this.allowedExt.includes(path.extname(graphqlFilePath))) {
         errorOut(
-          'You must provide a Graphql file (`.graphql` or `.gql`) to upload a schema'
+          'Your GraphQL schema file must include the `.graphql` or `.gql` extension.'
         )
       }
 
