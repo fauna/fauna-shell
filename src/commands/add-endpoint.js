@@ -35,7 +35,6 @@ class AddEndpointCommand extends FaunaCommand {
         log(`Endpoint '${alias}' saved.`)
       })
       .catch(function (err) {
-        console.error(err)
         errorOut(err.message, 1)
       })
   }
