@@ -39,6 +39,7 @@ class ShellCommand extends FaunaCommand {
     )
     this.log('Type Ctrl+D or .exit to exit the shell')
 
+    console.warn('repl', repl)
     this.repl = repl.start({
       prompt: `${dbname || ''}> `,
       ignoreUndefined: true,

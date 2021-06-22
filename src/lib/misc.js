@@ -134,7 +134,7 @@ function confirmEndpointDelete(alias) {
 
 function saveEndpoint(config, endpoint, alias, secret) {
   var port = endpoint.port ? `:${endpoint.port}` : ''
-  var uri = `${endpoint.protocol}//${endpoint.host}${port}`
+  var uri = `${endpoint.protocol}//${endpoint.hostname}${port}`
   var options = {
     method: 'HEAD',
     uri: uri,
@@ -425,4 +425,5 @@ module.exports = {
   writeFile: writeFile,
   runQueries: runQueries,
   stringifyEndpoint: stringifyEndpoint,
+  getConfigFile: getConfigFile,
 }

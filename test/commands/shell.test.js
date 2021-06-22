@@ -13,9 +13,6 @@ const repl = {
   },
 }
 
-mockRequire('repl', {
-  start: () => repl,
-})
 const { expect } = require('@oclif/test')
 const {
   matchFqlReq,
@@ -24,26 +21,18 @@ const {
 } = require('../helpers/utils.js')
 const { query: q, Expr } = require('faunadb')
 const Config = require('@oclif/config')
-const ShellCommand = require('../../src/commands/shell')
 const nock = require('nock')
 
 describe('shell', () => {
   let shell
   let commandLogSpy
-  const consoleLog = sinon.spy(console, 'log')
+  let consoleLog
   // eslint-disable-next-line no-undef
   before(async () => {
-    const config = await Config.load(
-      (module.parent &&
-        module.parent.parent &&
-        module.parent.parent.filename) ||
-        __dirname
-    )
-    shell = new ShellCommand([], config)
-    shell.args = {}
-    shell.flags = { secret: process.env.FAUNA_SECRET }
-    commandLogSpy = sinon.spy(shell, 'log')
-    await shell.run()
+    mockRequire('repl', {
+      start: () => repl,
+    })
+    const ShellCommand = mockRequire.reRequire('../../src/commands/shell')
 
     nock(getEndpoint())
       .persist()
@@ -59,11 +48,31 @@ describe('shell', () => {
       })
       .post('/')
       .reply(200, (_, req) => ({ resource: req }))
+
+    const config = await Config.load(
+      (module.parent &&
+        module.parent.parent &&
+        module.parent.parent.filename) ||
+        __dirname
+    )
+    shell = new ShellCommand([], config)
+    shell.args = {}
+    shell.flags = { secret: process.env.FAUNA_SECRET }
+    commandLogSpy = sinon.spy(shell, 'log')
+    consoleLog = sinon.spy(console, 'log')
+    await shell.run()
+  })
+
+  // eslint-disable-next-line no-undef
+  after(() => {
+    nock.restore()
+    mockRequire.stopAll()
   })
 
   // eslint-disable-next-line no-undef
   afterEach(() => {
     commandLogSpy.resetHistory()
+    consoleLog.resetHistory()
   })
 
   it('initiated', () => {
