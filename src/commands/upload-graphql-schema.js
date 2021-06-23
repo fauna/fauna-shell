@@ -61,7 +61,7 @@ UploadGraphQLSchemaCommand.flags = {
   mode: flags.string({
     description: 'Upload mode',
     default: 'merge',
-    options: ['merge', 'override'],
+    options: ['merge', 'override', 'replace'],
   }),
 }
 module.exports = UploadGraphQLSchemaCommand
