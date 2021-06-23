@@ -283,7 +283,7 @@ function buildConnectionOptions(cmdFlags, dbScope, role) {
           reject(ERROR_NO_DEFAULT_ENDPOINT)
         }
         //TODO add a function endpointFromCmdFlags that builds an endpoint and clean up the code.
-        const defaults = { graphqlHost: 'graphql.fauna.com' }
+        const defaults = { graphqlHost: 'graphql.fauna.com', graphqlPort: 443 }
         const connectionOptions = Object.assign(endpoint, cmdFlags, defaults)
         //TODO refactor duplicated code
         if (connectionOptions.secret) {
@@ -339,6 +339,7 @@ function cleanUpConnectionOptions(connectionOptions) {
     'secret',
     'timeout',
     'graphqlHost',
+    'graphqlPort',
   ]
   const res = {}
   accepted.forEach(function (key) {

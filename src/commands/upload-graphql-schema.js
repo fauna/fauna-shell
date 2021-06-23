@@ -20,12 +20,12 @@ class UploadGraphQLSchemaCommand extends FaunaCommand {
       }
 
       const {
-        connectionOptions: { secret, graphqlHost, scheme },
+        connectionOptions: { secret, graphqlHost, graphqlPort, scheme },
       } = await this.getClient()
 
       console.info(`UPLOADING SCHEMA (mode=${mode}): ${graphqlFilePath}`)
       const text = await fetch(
-        `${scheme}://${graphqlHost}/import?mode=${mode}`,
+        `${scheme}://${graphqlHost}:${graphqlPort}/import?mode=${mode}`,
         {
           method: 'POST',
           headers: { AUTHORIZATION: `Bearer ${secret}` },

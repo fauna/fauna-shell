@@ -351,6 +351,7 @@ port=8443
 scheme=http
 secret=the_secret
 graphqlHost=127.0.0.1
+graphqlPort=443
 
 
 [cloud]
@@ -358,6 +359,7 @@ domain=db.fauna.com
 scheme=https
 secret=FAUNA_SECRET_KEY
 graphqlHost=graphql.fauna.com
+graphqlPort=443
 
 [cluster-us-east]
 domain=cluster-us-east.example.com
@@ -365,6 +367,7 @@ port=443
 scheme=https
 secret=OTHER_FAUNA_SECRET
 graphqlHost=cluster-us-east.example.com
+graphqlPort=443
 ```
 
 # Connecting to local endpoints
@@ -402,12 +405,13 @@ OPTIONS
   --timeout=timeout    [default: 80] Connection timeout in milliseconds
   --endpoint=alias     Overrides the default endpoint set in ~/.fauna-shell
   --graphqlHost=domain [default: graphql.fauna.com] The Fauna GraphQL API host
+  --graphqlPort=port   [default: 443] GraphQL port
 ```
 
 They can be used like this:
 
 ```sh-session
-$ fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secret=YOUR_FAUNA_SECRET_KEY --timeout=42 --graphqlHost=127.0.0.1
+$ fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secret=YOUR_FAUNA_SECRET_KEY --timeout=42 --graphqlHost=127.0.0.1 --graphqlPort=443
 ```
 
 Options provided via the CLI will override the values set in the `.fauna-shell` config file.
@@ -462,23 +466,33 @@ Queries have to be written in the syntax supported by FaunaDB's Javascript [driv
 <!-- commands -->
 
 - [fauna-shell](#fauna-shell)
-- [`fauna add-endpoint ENDPOINT`](#fauna-add-endpoint-endpoint)
-- [`fauna autocomplete [SHELL]`](#fauna-autocomplete-shell)
-- [`fauna cloud-login`](#fauna-cloud-login)
-- [`fauna create-database DBNAME`](#fauna-create-database-dbname)
-- [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
-- [`fauna default-endpoint ENDPOINT_ALIAS`](#fauna-default-endpoint-endpoint_alias)
-- [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
-- [`fauna delete-endpoint ENDPOINT_ALIAS`](#fauna-delete-endpoint-endpoint_alias)
-- [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
-- [`fauna help [COMMAND]`](#fauna-help-command)
-- [`fauna list-databases`](#fauna-list-databases)
-- [`fauna list-endpoints`](#fauna-list-endpoints)
-- [`fauna list-keys`](#fauna-list-keys)
-- [`fauna run-queries DBNAME`](#fauna-run-queries-dbname)
-- [`fauna shell [DBNAME]`](#fauna-shell-dbname)
-- [`fauna eval [DBNAME] [QUERY]`](#fauna-eval-query)
-- [`fauna upload-graphql-schema graphqlFilePath`](#fauna-upload-graphql-schema-graphqlFilePath)
+- [Usage](#usage)
+- [Technical Requirements](#technical-requirements)
+- [Configuration](#configuration)
+- [Shell](#shell)
+- [Command Details](#command-details)
+- [Connecting to different endpoints](#connecting-to-different-endpoints)
+- [Connecting to local endpoints](#connecting-to-local-endpoints)
+- [Overriding Connection Parameters](#overriding-connection-parameters)
+- [Executing queries from a file](#executing-queries-from-a-file)
+- [List of Commands](#list-of-commands)
+  - [`fauna add-endpoint ENDPOINT`](#fauna-add-endpoint-endpoint)
+  - [`fauna autocomplete [SHELL]`](#fauna-autocomplete-shell)
+  - [`fauna cloud-login`](#fauna-cloud-login)
+  - [`fauna create-database DBNAME`](#fauna-create-database-dbname)
+  - [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
+  - [`fauna default-endpoint ENDPOINT_ALIAS`](#fauna-default-endpoint-endpoint_alias)
+  - [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
+  - [`fauna delete-endpoint ENDPOINT_ALIAS`](#fauna-delete-endpoint-endpoint_alias)
+  - [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
+  - [`fauna help [COMMAND]`](#fauna-help-command)
+  - [`fauna list-databases`](#fauna-list-databases)
+  - [`fauna list-endpoints`](#fauna-list-endpoints)
+  - [`fauna list-keys`](#fauna-list-keys)
+  - [`fauna run-queries DBNAME`](#fauna-run-queries-dbname)
+  - [`fauna shell [DBNAME]`](#fauna-shell-dbname)
+  - [`fauna eval [DBNAME] [QUERY]`](#fauna-eval-dbname-query)
+  - [`fauna upload-graphql-schema graphqlFilePath`](#fauna-upload-graphql-schema-graphqlfilepath)
 
 ## `fauna add-endpoint ENDPOINT`
 
@@ -890,6 +904,7 @@ OPTIONS
   --domain=domain            FaunaDB server domain
   --endpoint=endpoint        FaunaDB server endpoint
   --graphqlHost=graphqlHost  The Fauna GraphQL API host
+  --graphqlPort=port         GraphQL port
   --mode=merge|override      [default: merge] Upload mode
   --port=port                Connection port
   --scheme=https|http        Connection scheme
