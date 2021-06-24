@@ -351,7 +351,7 @@ port=8443
 scheme=http
 secret=the_secret
 graphqlHost=127.0.0.1
-graphqlPort=443
+graphqlPort=8084
 
 
 [cloud]
