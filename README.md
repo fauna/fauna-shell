@@ -349,7 +349,7 @@ default=cloud
 domain=127.0.0.1
 port=8443
 scheme=http
-secret=the_secret
+secret=secret
 graphqlHost=127.0.0.1
 graphqlPort=8084
 
