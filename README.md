@@ -405,7 +405,7 @@ OPTIONS
   --timeout=timeout    [default: 80] Connection timeout in milliseconds
   --endpoint=alias     Overrides the default endpoint set in ~/.fauna-shell
   --graphqlHost=domain [default: graphql.fauna.com] The Fauna GraphQL API host
-  --graphqlPort=port   [default: 443] GraphQL port
+  --graphqlPort=port   [default: 443] The Fauna GraphQL API port to connect to
 ```
 
 They can be used like this:
