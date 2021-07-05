@@ -1,5 +1,5 @@
 const { expect, test } = require('@oclif/test')
-const { withOpts, getEndpoint } = require('../helpers/utils.js')
+const { withOpts, getEndpoint, matchFqlReq } = require('../helpers/utils.js')
 const { query: q } = require('faunadb')
 
 describe('eval', () => {
@@ -22,16 +22,14 @@ describe('eval', () => {
 
 function mockQuery(api) {
   api
-    .persist()
-    .filteringRequestBody(() => q.Paginate(q.Collections()))
-    .post('/')
+    .post('/', matchFqlReq(q.Paginate(q.Collections())))
     .reply(200, function () {
-      const [_, nestedDb] = this.req.headers.authorization[0].split(':')
+      const auth = this.req.headers.authorization[0].split(':')
       return {
         resource: {
           data: [
             {
-              targetDb: nestedDb || 'root',
+              targetDb: auth[1] || 'root',
             },
           ],
         },

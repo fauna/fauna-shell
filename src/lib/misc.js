@@ -9,6 +9,7 @@ const faunadb = require('faunadb')
 const escodegen = require('escodegen')
 const Errors = require('@oclif/errors')
 var rp = require('request-promise')
+const crossFetch = require('cross-fetch')
 
 const FAUNA_CLOUD_DOMAIN = 'db.fauna.com'
 const ERROR_NO_DEFAULT_ENDPOINT =
@@ -133,7 +134,7 @@ function confirmEndpointDelete(alias) {
 
 function saveEndpoint(config, endpoint, alias, secret) {
   var port = endpoint.port ? `:${endpoint.port}` : ''
-  var uri = `${endpoint.protocol}//${endpoint.host}${port}`
+  var uri = `${endpoint.protocol}//${endpoint.hostname}${port}`
   var options = {
     method: 'HEAD',
     uri: uri,
@@ -338,7 +339,7 @@ function cleanUpConnectionOptions(connectionOptions) {
       res[key] = connectionOptions[key]
     }
   })
-  res.fetch = require('cross-fetch') // force http1
+  res.fetch = crossFetch // force http1
   return res
 }
 
@@ -424,4 +425,5 @@ module.exports = {
   writeFile: writeFile,
   runQueries: runQueries,
   stringifyEndpoint: stringifyEndpoint,
+  getConfigFile: getConfigFile,
 }
