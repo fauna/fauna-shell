@@ -50,8 +50,11 @@ class FaunaCommand extends Command {
         dbScope,
         role
       )
+
+      const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions
+
       const client = new faunadb.Client({
-        ...connectionOptions,
+        ...clientOptions,
         headers: {
           'X-Fauna-Source': 'Fauna Shell',
         },
@@ -84,8 +87,9 @@ class FaunaCommand extends Command {
         dbScope,
         role
       )
+      const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions
       const client = new faunadb.Client({
-        ...connectionOptions,
+        ...clientOptions,
         headers: {
           'X-Fauna-Source': 'Fauna Shell',
         },
@@ -163,6 +167,12 @@ FaunaCommand.flags = {
   }),
   endpoint: flags.string({
     description: 'FaunaDB server endpoint',
+  }),
+  graphqlHost: flags.string({
+    description: 'The Fauna GraphQL API host',
+  }),
+  graphqlPort: flags.string({
+    description: 'GraphQL port',
   }),
 }
 
