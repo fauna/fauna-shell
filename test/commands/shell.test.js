@@ -97,6 +97,23 @@ describe('shell', () => {
     )
   })
 
+  it('run value FQL which is not valid JS', async () => {
+    await new Promise((resolve, reject) => {
+      shell.repl.eval(
+        "{ name: 'Hen Wen', age: Add(100, 10) }",
+        repl.context,
+        '',
+        (err) => {
+          if (err) return reject(err)
+          expect(consoleLog.lastCall.args[0]).to.string(
+            '{"object":{"name":"Hen Wen","age":{"add":[100,10]}}}'
+          )
+          resolve()
+        }
+      )
+    })
+  })
+
   it('run fql that return an error', async () => {
     const fql = q.Divide(10, 0)
 
