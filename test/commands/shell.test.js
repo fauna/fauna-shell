@@ -97,7 +97,7 @@ describe('shell', () => {
     )
   })
 
-  it('run not valid JS', async () => {
+  it('run value FQL which is not valid JS', async () => {
     await new Promise((resolve, reject) => {
       shell.repl.eval(
         "{ name: 'Hen Wen', age: Add(100, 10) }",
