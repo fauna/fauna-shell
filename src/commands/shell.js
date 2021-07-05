@@ -80,7 +80,7 @@ class ShellCommand extends FaunaCommand {
       originalEval(cmd, ctx, filename, async (_err, result) => {
         try {
           if (_err) throw _err
-          const res = esprima.parseScript(cmd)
+          const res = esprima.parseScript(`(${cmd})`)
           await this.executeFql({ ctx, fql: res.body }).then(cb)
         } catch (error) {
           if (error.name === 'SyntaxError') {
