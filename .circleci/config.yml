@@ -1,43 +1,104 @@
----
-version: 2
-jobs:
-  node-latest: &test
+version: 2.1
+description: Fauna Shell Tests
+
+executors:
+  core:
+    parameters:
+      node_version:
+        type: integer
+      version:
+        type: enum
+        enum: ['stable', 'nightly']
+    resource_class: large
     docker:
-      - image: node:latest
-    working_directory: ~/cli
+      - image: circleci/node:<<parameters.node_version>>
+
+      - image: fauna/faunadb
+        name: core
+
+    environment:
+      FAUNA_SECRET: secret
+      FAUNA_DOMAIN: core
+      FAUNA_SCHEME: http
+      FAUNA_PORT: 8443
+
+commands:
+  build_and_test:
+    parameters:
+      node_version:
+        type: integer
+    description: 'Run fauna-shell tests'
     steps:
       - checkout
-      - restore_cache: &restore_cache
+
+      - restore_cache:
           keys:
-            - v1-npm-{{checksum ".circleci/config.yml"}}-{{ checksum "yarn.lock"}}
-            - v1-npm-{{checksum ".circleci/config.yml"}}
+            - v1-deps-<<parameters.node_version>>-{{ checksum "yarn.lock" }}
+
       - run:
           name: Install dependencies
-          command: .circleci/greenkeeper
-      - run: ./bin/run --version
-      - run: ./bin/run --help
-      - run:
-          name: Testing
-          command: yarn test
-      - run:
-          name: Submitting code coverage to codecov
-          command: |
-            ./node_modules/.bin/nyc report --reporter text-lcov > coverage.lcov
-            curl -s https://codecov.io/bash | bash
+          command: npm ci
+
       - save_cache:
-          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
           paths:
-            - ~/cli/node_modules
-            - /usr/local/share/.cache/yarn
-            - /usr/local/share/.config/yarn
-  node-8:
-    <<: *test
-    docker:
-      - image: node:8
+            - node_modules
+          key: v1-deps-<<parameters.node_version>>-{{ checksum "yarn.lock" }}
+
+      - run:
+          name: Wait FaunaDB init
+          command: |
+            while ! $(curl --output /dev/null --silent --fail --max-time 1 http://core:8443/ping); do sleep 1; done
+
+      - run:
+          name: Run Tests
+          command: npm run test
+
+jobs:
+  core-stable-10:
+    executor:
+      name: core
+      node_version: 10
+      version: stable
+    steps:
+      - build_and_test:
+          node_version: 10
+
+  core-nightly-10:
+    executor:
+      name: core
+      node_version: 10
+      version: nightly
+    steps:
+      - build_and_test:
+          node_version: 10
+
+  core-stable-11:
+    executor:
+      name: core
+      node_version: 11
+      version: stable
+    steps:
+      - build_and_test:
+          node_version: 11
+
+  core-nightly-11:
+    executor:
+      name: core
+      node_version: 11
+      version: nightly
+    steps:
+      - build_and_test:
+          node_version: 11
 
 workflows:
   version: 2
-  "fauna-cli":
+  build_and_test:
     jobs:
-      - node-latest
-      - node-8
+      - core-stable-10:
+          context: fauna-shell
+      - core-nightly-10:
+          context: fauna-shell
+      - core-stable-11:
+          context: fauna-shell
+      - core-nightly-11:
+          context: fauna-shell
