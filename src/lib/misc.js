@@ -66,6 +66,7 @@ function deleteEndpointOrError(alias) {
 /**
  * Validates that the 'cloud' endpoint points to FAUNA_CLOUD_DOMAIN.
  */
+// TODO: candidate to delete if new-cloud-login accepted
 function validCloudEndpoint() {
   return loadEndpoints().then(function (config) {
     return new Promise(function (resolve, reject) {
@@ -140,6 +141,7 @@ function saveEndpoint(config, endpoint, alias, secret) {
     uri: uri,
     resolveWithFullResponse: true,
   }
+
   return rp(options)
     .then(function (res) {
       if ('x-faunadb-build' in res.headers) {
@@ -187,14 +189,16 @@ function shouldSetAsDefaultEndpoint(config) {
 }
 
 function buildEndpointObject(endpoint, secret) {
-  var domain = endpoint.hostname
-  var port = endpoint.port
-  var scheme = endpoint.protocol.slice(0, -1) //the scheme is parsed as 'http:'
-  // if the value ends up being null, then Object.assign() will skip the property.
-  domain = domain === null ? null : { domain }
-  port = port === null ? null : { port }
-  scheme = scheme === null ? null : { scheme }
-  return Object.assign({}, domain, port, scheme, { secret })
+  return {
+    ...(endpoint.hostname && { domain: endpoint.hostname }),
+    ...(endpoint.port && { port: endpoint.port }),
+    ...(endpoint.protocol && { scheme: endpoint.protocol.slice(0, -1) }),
+    ...(secret && { secret }),
+    ...(endpoint.graphql.hostname && {
+      graphqlHost: endpoint.graphql.hostname,
+    }),
+    ...(endpoint.graphql.port && { graphqlPort: endpoint.graphql.port }),
+  }
 }
 
 /**
@@ -424,6 +428,7 @@ function stringifyEndpoint(endpoint) {
 
 module.exports = {
   saveEndpointOrError: saveEndpointOrError,
+  saveEndpoint: saveEndpoint,
   deleteEndpointOrError: deleteEndpointOrError,
   setDefaultEndpoint: setDefaultEndpoint,
   validCloudEndpoint: validCloudEndpoint,
