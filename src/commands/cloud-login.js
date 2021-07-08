@@ -1,6 +1,7 @@
 const FaunaCommand = require('../lib/fauna-command.js')
 const inquirer = require('inquirer')
 const request = require('request-promise')
+const faunadb = require('faunadb')
 const url = require('url')
 const os = require('os')
 const {
@@ -166,25 +167,41 @@ class CloudLoginCommand extends FaunaCommand {
   }
 
   async secretStrategy() {
-    return inquirer
-      .prompt([
-        {
-          name: 'secret',
-          message: 'Secret',
-          type: 'input',
-        },
-        {
-          name: 'region',
-          message: 'Select a region',
-          type: 'list',
-          choices: [
-            { name: 'Classic', value: '' },
-            { name: 'Europe (EU)', value: 'eu' },
-            { name: 'United States (US)', value: 'us' },
-          ],
-        },
-      ])
-      .then((data) => ({ [data.region]: data.secret }))
+    const data = await inquirer.prompt([
+      {
+        name: 'secret',
+        message: 'Secret',
+        type: 'input',
+      },
+      {
+        name: 'region',
+        message: 'Select a region',
+        type: 'list',
+        choices: [
+          { name: 'Classic', value: 'global' },
+          { name: 'Europe (EU)', value: 'eu' },
+          { name: 'United States (US)', value: 'us' },
+        ],
+      },
+    ])
+
+    const dbUrl = this.maybeDomainWithRegion(this.environment.db, data.region)
+    const client = new faunadb.Client({
+      secret: data.secret,
+      domain: url.parse(dbUrl).hostname,
+    })
+
+    try {
+      await client.query(faunadb.query.Now())
+      return { [data.region]: data.secret }
+    } catch (err) {
+      if (err instanceof faunadb.errors.Unauthorized) {
+        this.warn(`Could not Connect to ${dbUrl} Unauthorized Secret`)
+        return this.secretStrategy()
+      }
+
+      throw err
+    }
   }
 
   async passwordStrategy() {
