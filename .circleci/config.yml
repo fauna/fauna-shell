@@ -3,15 +3,9 @@ description: Fauna Shell Tests
 
 executors:
   core:
-    parameters:
-      node_version:
-        type: integer
-      version:
-        type: enum
-        enum: ['stable', 'nightly']
     resource_class: large
     docker:
-      - image: circleci/node:<<parameters.node_version>>
+      - image: cimg/node:16.4.1
 
       - image: fauna/faunadb
         name: core
@@ -24,25 +18,13 @@ executors:
 
 commands:
   build_and_test:
-    parameters:
-      node_version:
-        type: integer
     description: 'Run fauna-shell tests'
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-            - v1-deps-<<parameters.node_version>>-{{ checksum "yarn.lock" }}
-
       - run:
           name: Install dependencies
           command: npm ci
-
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-deps-<<parameters.node_version>>-{{ checksum "yarn.lock" }}
 
       - run:
           name: Wait FaunaDB init
@@ -51,54 +33,18 @@ commands:
 
       - run:
           name: Run Tests
-          command: npm run test
+          command: npm test
 
 jobs:
-  core-stable-10:
+  fauna-shell-tests:
     executor:
       name: core
-      node_version: 10
-      version: stable
     steps:
-      - build_and_test:
-          node_version: 10
-
-  core-nightly-10:
-    executor:
-      name: core
-      node_version: 10
-      version: nightly
-    steps:
-      - build_and_test:
-          node_version: 10
-
-  core-stable-11:
-    executor:
-      name: core
-      node_version: 11
-      version: stable
-    steps:
-      - build_and_test:
-          node_version: 11
-
-  core-nightly-11:
-    executor:
-      name: core
-      node_version: 11
-      version: nightly
-    steps:
-      - build_and_test:
-          node_version: 11
+      - build_and_test
 
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - core-stable-10:
-          context: fauna-shell
-      - core-nightly-10:
-          context: fauna-shell
-      - core-stable-11:
-          context: fauna-shell
-      - core-nightly-11:
-          context: fauna-shell
+      - fauna-shell-tests:
+          context: faunadb-drivers

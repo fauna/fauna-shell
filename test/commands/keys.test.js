@@ -54,7 +54,7 @@ describe('keys test', () => {
       expect(err.message).to.contain(`Database '${dbname}' doesn't exist`)
       expect(err.oclif.exit).to.equal(1)
     })
-    .it('runs create-key testdb')
+    .it('runs create-key for non exists db')
 
   test
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
@@ -131,9 +131,12 @@ function mockCreateKey(api, { role }) {
     .persist()
     .post('/', matchFqlReq(q.Exists(q.Database(dbname))))
     .reply(200, { resource: true })
-    .post('/', matchFqlReq(q.CreateKey({ database: q.Database(dbname), role })))
-    .reply((_, req) => {
-      const { database, role } = JSON.parse(req).create_key.object
+    .post('/', matchFqlReq(q.Now()))
+    .reply(200, new Date())
+    .post('/', matchFqlReq(q.CreateKey({ role })))
+    .reply(function (_, reqBody) {
+      const { role } = JSON.parse(reqBody).create_key.object
+      const [__, dbName] = this.req.headers.authorization[0].split(':')
       const allowedRoles = ['admin', 'server', 'server-readonly', 'client']
       if (allowedRoles.includes(role)) {
         return [
@@ -141,7 +144,7 @@ function mockCreateKey(api, { role }) {
           {
             resource: {
               role,
-              database: new values.Ref(database.database),
+              database: new values.Ref(dbName),
             },
           },
         ]
