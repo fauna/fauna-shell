@@ -15,7 +15,7 @@ describe('eval', () => {
     .nock(getEndpoint(), { allowUnmocked: true }, mockQuery)
     .stdout()
     .command(withOpts(['eval', 'nested', 'Paginate(Collections())']))
-    .it('runs eval on root db', (ctx) => {
+    .it('runs eval on nested db', (ctx) => {
       expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal('nested')
     })
 })
