@@ -36,6 +36,8 @@ describe('shell', () => {
 
     nock(getEndpoint())
       .persist()
+      .post('/', matchFqlReq(q.Now()))
+      .reply(200, new Date())
       .post('/', matchFqlReq(q.Divide(10, 0)))
       .reply(400, {
         errors: [
