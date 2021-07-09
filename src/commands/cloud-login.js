@@ -47,7 +47,7 @@ class CloudLoginCommand extends FaunaCommand {
       .prompt([
         {
           name: 'environment',
-          message: 'Select an environment',
+          message: 'Select an environment:',
           type: 'list',
           choices: [
             {
