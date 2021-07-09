@@ -136,7 +136,7 @@ function mockCreateKey(api, { role }) {
     .post('/', matchFqlReq(q.CreateKey({ role })))
     .reply(function (_, reqBody) {
       const { role } = JSON.parse(reqBody).create_key.object
-      const [__, dbName] = this.req.headers.authorization[0].split(':')
+      const authParsed = this.req.headers.authorization[0].split(':')
       const allowedRoles = ['admin', 'server', 'server-readonly', 'client']
       if (allowedRoles.includes(role)) {
         return [
@@ -144,7 +144,7 @@ function mockCreateKey(api, { role }) {
           {
             resource: {
               role,
-              database: new values.Ref(dbName),
+              database: new values.Ref(authParsed[1]),
             },
           },
         ]

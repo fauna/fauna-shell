@@ -194,10 +194,12 @@ function buildEndpointObject(endpoint, secret) {
     ...(endpoint.port && { port: endpoint.port }),
     ...(endpoint.protocol && { scheme: endpoint.protocol.slice(0, -1) }),
     ...(secret && { secret }),
-    ...(endpoint.graphql.hostname && {
-      graphqlHost: endpoint.graphql.hostname,
-    }),
-    ...(endpoint.graphql.port && { graphqlPort: endpoint.graphql.port }),
+    ...(endpoint.graphql &&
+      endpoint.graphql.hostname && {
+        graphqlHost: endpoint.graphql.hostname,
+      }),
+    ...(endpoint.graphql &&
+      endpoint.graphql.port && { graphqlPort: endpoint.graphql.port }),
   }
 }
 
