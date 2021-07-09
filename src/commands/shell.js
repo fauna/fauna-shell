@@ -22,9 +22,11 @@ class ShellCommand extends FaunaCommand {
 
   async run() {
     const { dbname } = this.args
+    console.error('shell dbname ', dbname)
     this.connection = dbname
       ? await this.ensureDbScopeClient(dbname)
       : await this.getClient()
+    console.error('connection established ')
     this.startShell()
   }
 
