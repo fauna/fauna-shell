@@ -19,6 +19,8 @@ describe('keys test', () => {
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
       api
         .persist()
+        .post('/', matchFqlReq(q.Now()))
+        .reply(200, new Date())
         .post('/', matchFqlReq(q.Paginate(q.Keys(), { size: 100 })))
         .reply(200, { resource: currentKeys })
         .post('/', matchFqlReq(q.Paginate(q.Databases(), { size: 100 })))
@@ -46,6 +48,8 @@ describe('keys test', () => {
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
       api
         .persist()
+        .post('/', matchFqlReq(q.Now()))
+        .reply(200, new Date())
         .post('/', matchFqlReq(q.Exists(q.Database(dbname))))
         .reply(200, { resource: false })
     )
@@ -94,6 +98,8 @@ describe('keys test', () => {
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
       api
         .persist()
+        .post('/', matchFqlReq(q.Now()))
+        .reply(200, new Date())
         .post('/', matchFqlReq(q.Delete(q.Ref(q.Keys(null), keyname))))
         .reply(200, { resource: { ref: new values.Ref(keyname) } })
     )
@@ -107,6 +113,8 @@ describe('keys test', () => {
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
       api
         .persist()
+        .post('/', matchFqlReq(q.Now()))
+        .reply(200, new Date())
         .post('/', matchFqlReq(q.Delete(q.Ref(q.Keys(null), keyname))))
         .reply(400, {
           errors: [
