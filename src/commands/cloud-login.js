@@ -109,7 +109,7 @@ class CloudLoginCommand extends FaunaCommand {
       .prompt([
         {
           name: 'auth',
-          message: 'Select an authorization flow',
+          message: 'How do you prefer to authenticate?',
           type: 'list',
           choices: [
             { name: 'Email and Password', value: 'password' },
