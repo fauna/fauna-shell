@@ -86,7 +86,7 @@ class CloudLoginCommand extends FaunaCommand {
           default: this.environment.defaultAlias,
 
           validate: (endpoint) =>
-            endpoint ? true : 'Provide an alias, please',
+            endpoint ? true : 'Provide an endpoint alias.',
         },
         {
           name: 'overwrite',
