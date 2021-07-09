@@ -95,7 +95,7 @@ class FaunaCommand extends Command {
         },
       })
 
-      await client.query(q.Now()).then((r) => console.error('!!!!', r))
+      await client.query(q.Now())
 
       const hashKey = [dbScope, role].join('_')
       this.clients[hashKey] = { client, connectionOptions }

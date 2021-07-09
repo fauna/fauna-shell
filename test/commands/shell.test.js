@@ -45,6 +45,7 @@ describe('shell', () => {
           },
         ],
       })
+      .persist()
       .post('/')
       .reply(200, (_, req) => ({ resource: req }))
 
