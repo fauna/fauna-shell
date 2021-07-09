@@ -147,7 +147,7 @@ class CloudLoginCommand extends FaunaCommand {
       {
         name: 'defaultEndpoint',
         message:
-          'Endpoints created. Would you like to set some of them as default?',
+          'Endpoints created. Would you like to set one of them as default?',
         type: 'list',
         when: endpoints.length > 1,
         choices: [
