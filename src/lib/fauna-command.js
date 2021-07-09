@@ -95,10 +95,7 @@ class FaunaCommand extends Command {
         },
       })
 
-      console.error('Before q.Now')
       await client.query(q.Now())
-
-      console.error('After q.Now')
 
       const hashKey = [dbScope, role].join('_')
       this.clients[hashKey] = { client, connectionOptions }
