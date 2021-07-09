@@ -170,7 +170,7 @@ class CloudLoginCommand extends FaunaCommand {
     const data = await inquirer.prompt([
       {
         name: 'secret',
-        message: 'Secret',
+        message: 'Secret (from a key or token):',
         type: 'input',
       },
       {
