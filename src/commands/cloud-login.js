@@ -131,7 +131,7 @@ class CloudLoginCommand extends FaunaCommand {
     }
 
     if (this.config.default === endpoints[0] && endpoints.length === 1) {
-      return this.log(`Endpoint '${endpoints[0]}' added`)
+      return this.log(`Endpoint '${endpoints[0]}' added.`)
     }
 
     // If 1 new endpoint which is not a default one (and default exists), ask a user to consider it as default
