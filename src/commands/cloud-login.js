@@ -81,7 +81,7 @@ class CloudLoginCommand extends FaunaCommand {
       .prompt([
         {
           name: 'alias',
-          message: 'The endpoint alias prefix. Would be combined with a region',
+          message: 'The endpoint alias prefix (to combine with a region):',
           type: 'input',
           default: this.environment.defaultAlias,
 
