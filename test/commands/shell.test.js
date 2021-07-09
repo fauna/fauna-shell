@@ -36,16 +36,16 @@ describe('shell', () => {
 
     nock(getEndpoint())
       .persist()
-      .post('/', matchFqlReq(q.Divide(10, 0)))
-      .reply(400, {
-        errors: [
-          {
-            position: [],
-            code: 'invalid argument',
-            description: 'Illegal division by zero.',
-          },
-        ],
-      })
+      // .post('/', matchFqlReq(q.Divide(10, 0)))
+      // .reply(400, {
+      //   errors: [
+      //     {
+      //       position: [],
+      //       code: 'invalid argument',
+      //       description: 'Illegal division by zero.',
+      //     },
+      //   ],
+      // })
       .post('/')
       .reply(200, (_, req) => ({ resource: req }))
 
