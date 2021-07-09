@@ -218,7 +218,7 @@ class CloudLoginCommand extends FaunaCommand {
       },
       {
         name: 'password',
-        message: 'Password',
+        message: 'Password:',
         type: 'password',
       },
     ])
