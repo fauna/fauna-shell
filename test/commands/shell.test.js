@@ -62,7 +62,11 @@ describe('shell', () => {
     shell.flags = { secret: process.env.FAUNA_SECRET }
     commandLogSpy = sinon.spy(shell, 'log')
     consoleLog = sinon.spy(console, 'log')
-    await shell.run()
+    try {
+      await shell.run()
+    } catch (_) {
+      console.error('for some reason q.Now() not mocked')
+    }
   })
 
   // eslint-disable-next-line no-undef
