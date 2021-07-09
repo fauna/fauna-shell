@@ -212,7 +212,7 @@ class CloudLoginCommand extends FaunaCommand {
         type: 'input',
         validate: (email) => {
           return !email || !/\S+@\S+\.\S+/.test(email)
-            ? 'Provide a valid email, please'
+            ? 'Provide a valid email address.'
             : true
         },
       },
