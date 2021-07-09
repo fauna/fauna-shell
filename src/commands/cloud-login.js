@@ -208,7 +208,7 @@ class CloudLoginCommand extends FaunaCommand {
     this.credentials = await inquirer.prompt([
       {
         name: 'email',
-        message: 'Email',
+        message: 'Email address:',
         type: 'input',
         validate: (email) => {
           return !email || !/\S+@\S+\.\S+/.test(email)
