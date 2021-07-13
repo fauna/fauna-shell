@@ -16,7 +16,14 @@ class CloudLoginCommand extends FaunaCommand {
   async run() {
     this.config = await loadEndpoints()
 
-    await this.aksEnvironment()
+    // await this.aksEnvironment()
+    this.environment = {
+      defaultAlias: 'cloud',
+      db: 'https://db.fauna.com',
+      auth: 'https://uswest1-auth-console.fauna.com',
+      graphql: 'https://graphql.fauna.com',
+      dashboard: 'https://dashboard.fauna.com',
+    }
     await this.askAlias()
     await this.askAuth()
 
