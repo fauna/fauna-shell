@@ -4,6 +4,8 @@ const request = require('request-promise')
 const faunadb = require('faunadb')
 const url = require('url')
 const os = require('os')
+const puppeteer = require('puppeteer')
+const querystring = require('querystring')
 const {
   loadEndpoints,
   saveEndpoint,
@@ -55,8 +57,9 @@ class CloudLoginCommand extends FaunaCommand {
               value: {
                 defaultAlias: 'cloud',
                 db: 'https://db.fauna.com',
-                auth: 'https://auth.console.fauna.com/login',
+                auth: 'https://uswest1-auth-console.fauna.com',
                 graphql: 'https://graphql.fauna.com',
+                dashboard: 'https://dashboard.fauna.com',
               },
             },
             {
@@ -64,8 +67,9 @@ class CloudLoginCommand extends FaunaCommand {
               value: {
                 defaultAlias: 'preview',
                 db: 'https://db.fauna-preview.com',
-                auth: 'https://auth-console.fauna-preview.com/login',
+                auth: 'https://auth-console.fauna-preview.com',
                 graphql: 'https://graphql.fauna-preview.com',
+                dashboard: 'https://dashboard.fauna-preview.com',
               },
             },
           ],
@@ -114,8 +118,8 @@ class CloudLoginCommand extends FaunaCommand {
           choices: [
             { name: 'Email and Password', value: 'password' },
             { name: 'Secret', value: 'secret' },
-            // { name: 'GitHub', value: 'github' },
-            // { name: 'Netlify', value: 'netlify' },
+            { name: 'GitHub', value: 'github' },
+            { name: 'Netlify', value: 'netlify' },
           ],
         },
       ])
@@ -151,7 +155,10 @@ class CloudLoginCommand extends FaunaCommand {
         type: 'list',
         when: endpoints.length > 1,
         choices: [
-          { name: `Keep '${this.config.default}' endpoint as default` },
+          {
+            name: `Keep '${this.config.default}' endpoint as default`,
+            value: this.config.default,
+          },
           ...endpoints
             .filter((e) => e !== this.config.default)
             .map((e) => ({ name: e, value: e })),
@@ -163,6 +170,46 @@ class CloudLoginCommand extends FaunaCommand {
       return setDefaultEndpoint(defaultEndpoint)
         .then(this.log)
         .catch(this.error)
+    }
+  }
+
+  githubStrategy() {
+    return this.oauthStrategy('github')
+  }
+
+  netlifyStrategy() {
+    return this.oauthStrategy('netlify')
+  }
+
+  async oauthStrategy(provider) {
+    const authEndpoint = `${this.environment.auth}/oauth/start?provider_name=${provider}&redirect_url=${this.environment.dashboard}/auth/oauth/callback`
+
+    const browser = await puppeteer.launch({
+      headless: false,
+      args: ['--window-size=800,700'],
+    })
+    const page = await browser.newPage()
+    await page.goto(authEndpoint)
+
+    const callbackResponse = await page.waitForResponse(
+      (resp) =>
+        resp.url().includes(`${this.environment.auth}/oauth/callback?code`),
+      { timeout: 1000 * 60 * 5 } // 5 minutes
+    )
+    await browser.close()
+
+    const { location } = callbackResponse.headers()
+    const { query } = url.parse(location)
+    const { credentials, error } = querystring.parse(query)
+    if (error) {
+      this.error(error)
+    }
+
+    const data = JSON.parse(Buffer.from(credentials, 'base64').toString())
+    return {
+      global: data.secret || data.regionGroups.global.secret,
+      eu: data.regionGroups.eu.secret,
+      us: data.regionGroups.us.secret,
     }
   }
 
@@ -260,7 +307,7 @@ class CloudLoginCommand extends FaunaCommand {
   loginByPassword({ otp } = {}) {
     return request({
       method: 'POST',
-      uri: this.environment.auth,
+      uri: [this.environment.auth, 'login'].join('/'),
       form: {
         ...this.credentials,
         session: 'Fauna Shell - ' + os.hostname(),
