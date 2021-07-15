@@ -119,8 +119,9 @@ class EvalCommand extends FaunaCommand {
 
   // Remap arguments if a user provide only one
   getArgs() {
+    const { stdin, file } = this.flags
     const { dbname, query } = this.args
-    if (dbname && !query) return { query: dbname }
+    if (dbname && !query && !stdin && !file) return { query: dbname }
 
     return { dbname, query }
   }
