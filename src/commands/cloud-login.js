@@ -25,9 +25,8 @@ class CloudLoginCommand extends FaunaCommand {
       dashboard: 'https://dashboard.fauna.com',
     }
     await this.askAlias()
-    await this.askAuth()
 
-    const secrets = await this[`${this.auth}Strategy`]()
+    const secrets = await this.askAuthAndGetSecret()
 
     const endpoints = await Promise.all(
       Object.entries(secrets).map(([region, secret]) =>
@@ -36,6 +35,24 @@ class CloudLoginCommand extends FaunaCommand {
     )
 
     await this.askIsDefault(endpoints)
+  }
+
+  async askAuthAndGetSecret() {
+    const reAskErrorMessages = [
+      'Target closed',
+      'Navigation failed because browser has disconnected!',
+    ]
+    try {
+      await this.askAuth()
+      const secrets = await this[`${this.auth}Strategy`]()
+      return secrets
+    } catch (err) {
+      if (reAskErrorMessages.includes(err.message)) {
+        return this.askAuthAndGetSecret()
+      }
+
+      throw err
+    }
   }
 
   async saveEndpoint({ region, secret }) {
@@ -108,7 +125,7 @@ class CloudLoginCommand extends FaunaCommand {
       ])
       .then((resp) => {
         if (resp.hasOwnProperty('overwrite') && !resp.overwrite) {
-          this.askAlias()
+          return this.askAlias()
         } else {
           this.alias = resp.alias
         }
