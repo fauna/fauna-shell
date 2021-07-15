@@ -18,6 +18,8 @@ describe('database test', () => {
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
       api
         .persist()
+        .post('/', matchFqlReq(q.Now()))
+        .reply(200, new Date())
         .post('/', matchFqlReq(q.Paginate(q.Databases(null), { size: 1000 })))
         .reply(200, { resource: { data: databases } })
     )
@@ -31,6 +33,8 @@ describe('database test', () => {
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
       api
         .persist()
+        .post('/', matchFqlReq(q.Now()))
+        .reply(200, new Date())
         .post('/', matchFqlReq(q.CreateDatabase({ name: databases[0].name })))
         .reply(201, {})
     )
@@ -44,6 +48,8 @@ describe('database test', () => {
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
       api
         .persist()
+        .post('/', matchFqlReq(q.Now()))
+        .reply(200, new Date())
         .post('/', matchFqlReq(q.CreateDatabase({ name: databases[0].name })))
         .reply(400, {
           errors: [
@@ -67,6 +73,8 @@ describe('database test', () => {
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
       api
         .persist()
+        .post('/', matchFqlReq(q.Now()))
+        .reply(200, new Date())
         .post('/', matchFqlReq(q.Delete(q.Database(databases[0].name))))
         .reply(200, {})
     )
@@ -80,6 +88,8 @@ describe('database test', () => {
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
       api
         .persist()
+        .post('/', matchFqlReq(q.Now()))
+        .reply(200, new Date())
         .post('/', matchFqlReq(q.Delete(q.Database(databases[1].name))))
         .reply(400, () => ({
           errors: [
