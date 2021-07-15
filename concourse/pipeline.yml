@@ -5,7 +5,7 @@ resources:
     icon: github
     source:
       uri: https://github.com/fauna/fauna-shell.git
-      branch: oss-708
+      branch: master
 
 jobs:
   - name: release
