@@ -142,8 +142,8 @@ class CloudLoginCommand extends FaunaCommand {
           choices: [
             { name: 'Email and Password', value: 'password' },
             { name: 'Secret', value: 'secret' },
-            { name: 'GitHub', value: 'github' },
-            { name: 'Netlify', value: 'netlify' },
+            // { name: 'GitHub', value: 'github' },
+            // { name: 'Netlify', value: 'netlify' },
           ],
         },
       ])
