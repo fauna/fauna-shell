@@ -5,7 +5,7 @@ const faunadb = require('faunadb')
 const url = require('url')
 const os = require('os')
 // const puppeteer = require('puppeteer')
-const querystring = require('querystring')
+// const querystring = require('querystring')
 const {
   loadEndpoints,
   saveEndpoint,
