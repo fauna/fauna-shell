@@ -361,5 +361,6 @@ class CloudLoginCommand extends FaunaCommand {
 
 CloudLoginCommand.description = 'Adds the FaunaDB Cloud endpoint'
 CloudLoginCommand.examples = ['$ fauna cloud-login']
+CloudLoginCommand.flags = []
 
 module.exports = CloudLoginCommand
