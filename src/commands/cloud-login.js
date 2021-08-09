@@ -4,7 +4,7 @@ const request = require('request-promise')
 const faunadb = require('faunadb')
 const url = require('url')
 const os = require('os')
-const puppeteer = require('puppeteer')
+// const puppeteer = require('puppeteer')
 const querystring = require('querystring')
 const {
   loadEndpoints,
@@ -205,37 +205,37 @@ class CloudLoginCommand extends FaunaCommand {
     return this.oauthStrategy('netlify')
   }
 
-  async oauthStrategy(provider) {
-    const authEndpoint = `${this.environment.auth}/oauth/start?provider_name=${provider}&redirect_url=${this.environment.dashboard}/auth/oauth/callback`
+  // async oauthStrategy(provider) {
+  //   const authEndpoint = `${this.environment.auth}/oauth/start?provider_name=${provider}&redirect_url=${this.environment.dashboard}/auth/oauth/callback`
 
-    const browser = await puppeteer.launch({
-      headless: false,
-      args: ['--window-size=800,700'],
-    })
-    const page = await browser.newPage()
-    await page.goto(authEndpoint)
+  //   const browser = await puppeteer.launch({
+  //     headless: false,
+  //     args: ['--window-size=800,700'],
+  //   })
+  //   const page = await browser.newPage()
+  //   await page.goto(authEndpoint)
 
-    const callbackResponse = await page.waitForResponse(
-      (resp) =>
-        resp.url().includes(`${this.environment.auth}/oauth/callback?code`),
-      { timeout: 1000 * 60 * 5 } // 5 minutes
-    )
-    await browser.close()
+  //   const callbackResponse = await page.waitForResponse(
+  //     (resp) =>
+  //       resp.url().includes(`${this.environment.auth}/oauth/callback?code`),
+  //     { timeout: 1000 * 60 * 5 } // 5 minutes
+  //   )
+  //   await browser.close()
 
-    const { location } = callbackResponse.headers()
-    const { query } = url.parse(location)
-    const { credentials, error } = querystring.parse(query)
-    if (error) {
-      this.error(error)
-    }
+  //   const { location } = callbackResponse.headers()
+  //   const { query } = url.parse(location)
+  //   const { credentials, error } = querystring.parse(query)
+  //   if (error) {
+  //     this.error(error)
+  //   }
 
-    const data = JSON.parse(Buffer.from(credentials, 'base64').toString())
-    return {
-      global: data.secret || data.regionGroups.global.secret,
-      eu: data.regionGroups.eu.secret,
-      us: data.regionGroups.us.secret,
-    }
-  }
+  //   const data = JSON.parse(Buffer.from(credentials, 'base64').toString())
+  //   return {
+  //     global: data.secret || data.regionGroups.global.secret,
+  //     eu: data.regionGroups.eu.secret,
+  //     us: data.regionGroups.us.secret,
+  //   }
+  // }
 
   async secretStrategy() {
     const data = await inquirer.prompt([
