@@ -165,7 +165,7 @@ class CloudLoginCommand extends FaunaCommand {
     // If 1 new endpoint which is not a default one (and default exists), ask a user to consider it as default
     // If more than 1 endpoints, ask which one a user would like to be a default (or keep existing)
 
-    const { defaultEndpoint } = await inquirer.prompt([
+    const { setDefault, defaultEndpoint } = await inquirer.prompt([
       {
         name: 'setDefault',
         message: `Would you like endpoint '${endpoints[0]}' to be default?`,
@@ -189,6 +189,10 @@ class CloudLoginCommand extends FaunaCommand {
         ],
       },
     ])
+
+    if (setDefault) {
+      return setDefaultEndpoint(endpoints[0]).then(this.log).catch(this.error)
+    }
 
     if (defaultEndpoint) {
       return setDefaultEndpoint(defaultEndpoint)
