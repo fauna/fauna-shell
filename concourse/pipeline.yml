@@ -26,4 +26,4 @@ jobs:
       - task: publish
         file: fauna-shell-repository/concourse/tasks/publish.yml
         params:
-          NPM_TOKEN: ((fauna/npm.token))
+          NPM_TOKEN: ((npm_token))
