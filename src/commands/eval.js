@@ -7,20 +7,6 @@ const { readFile, runQueries, errorOut, writeFile } = require('../lib/misc.js')
 
 const EVAL_OUTPUT_FORMATS = ['json', 'shell']
 
-function infoMessage(err) {
-  const fe = util.inspect(err.faunaError, { depth: null })
-  return `
-  The following query failed:
-    ${err.exp}
-
-  With error message:
-    ${fe}
-
-  Query number:
-    ${err.queryNumber}
-  `
-}
-
 /**
  * Write json encoded output
  *
