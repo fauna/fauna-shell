@@ -68,8 +68,13 @@ function performQuery(client, fqlQuery, outputFile, outputFormat) {
     .then(function (response) {
       return writeFormattedOutput(outputFile, response, outputFormat)
     })
-    .catch(function (err) {
-      errorOut(infoMessage(err), 1)
+    .catch(function (error) {
+      console.log(
+        util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
+          depth: null,
+          compact: false,
+        })
+      )
     })
 }
 
