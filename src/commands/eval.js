@@ -7,20 +7,6 @@ const { readFile, runQueries, errorOut, writeFile } = require('../lib/misc.js')
 
 const EVAL_OUTPUT_FORMATS = ['json', 'shell']
 
-function infoMessage(err) {
-  const fe = util.inspect(err.faunaError, { depth: null })
-  return `
-  The following query failed:
-    ${err.exp}
-
-  With error message:
-    ${fe}
-
-  Query number:
-    ${err.queryNumber}
-  `
-}
-
 /**
  * Write json encoded output
  *
@@ -68,8 +54,13 @@ function performQuery(client, fqlQuery, outputFile, outputFormat) {
     .then(function (response) {
       return writeFormattedOutput(outputFile, response, outputFormat)
     })
-    .catch(function (err) {
-      errorOut(infoMessage(err), 1)
+    .catch(function (error) {
+      console.log(
+        util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
+          depth: null,
+          compact: false,
+        })
+      )
     })
 }
 
