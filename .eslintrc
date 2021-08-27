@@ -1,6 +1,7 @@
 {
   "extends": ["oclif", "plugin:prettier/recommended"],
   "rules": {
+    "no-await-in-loop": "off",
     "new-cap": "off",
     "quote-props": "off",
     "no-negated-condition": "off",

@@ -28,7 +28,7 @@ class AddEndpointCommand extends FaunaCommand {
       })
 
     if (!this.flags.alias && (alias === 'default' || alias === 'cloud')) {
-      throw new Error(`The word '${alias}' cannot be used as an alias.`)
+      throw new `The word '${alias}' cannot be used as an alias.`()
     }
     return saveEndpointOrError(newEndpoint, alias, secret)
       .then(function () {
