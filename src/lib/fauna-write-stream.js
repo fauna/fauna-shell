@@ -1,8 +1,11 @@
 const stream = require('stream')
+const semaphore = require('semaphore')
 const q = require('faunadb').query
 
 class FaunaWriteStream extends stream.Writable {
-  CHUNK_SIZE = 10000
+  CHUNK_SIZE = 1000
+
+  parallel = semaphore(20)
 
   totalImported = 0
 
@@ -23,31 +26,50 @@ class FaunaWriteStream extends stream.Writable {
     this.chunk.push(chunk)
     if (this.chunk.length < this.CHUNK_SIZE) return next()
 
-    this.import().then(next)
+    this.queue(this.chunk, next)
+    this.chunk = []
+    console.info('active ', this.parallel.current)
+    this.awaitAvailable().then(next)
   }
 
-  end(next) {
-    this.import().then(() => {
-      if (typeof next === 'function') next()
-      this.emit('end')
-      this.log(`Import from ${this.source} to ${this.collectionRef} completed`)
+  awaitAvailable() {
+    return new Promise((resolve) => {
+      const interval = setInterval(() => {
+        if (this.parallel.available()) {
+          clearInterval(interval)
+          resolve()
+        }
+      }, 500)
     })
   }
 
-  import() {
+  end(next) {
+    if (this.chunk.length !== 0) {
+      this.queue(this.chunk)
+    }
+
+    if (typeof next === 'function') next()
+    this.emit('end')
+    this.log(`Import from ${this.source} to ${this.collectionRef} completed`)
+  }
+
+  queue(chunk, next) {
+    this.parallel.take(() => {
+      this.import(chunk, next).then(() => this.parallel.leave())
+    })
+  }
+
+  import(chunk, next) {
     return this.client
-      .query(
-        q.Map(this.chunk, (data) => q.Create(this.collectionRef, { data }))
-      )
+      .query(q.Foreach(chunk, (data) => q.Create(this.collectionRef, { data })))
       .then(() => {
-        this.totalImported += this.chunk.length
+        this.totalImported += chunk.length
 
         this.log(
           `${this.totalImported} documents imported from ${this.source} to ${this.collectionRef}`
         )
-        this.chunk = []
       })
-      .catch((error) => this.emit('error', error))
+      .catch(next)
   }
 }
 

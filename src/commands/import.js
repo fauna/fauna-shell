@@ -117,7 +117,11 @@ class ImportCommand extends FaunaCommand {
           { isCollectionExists: q.Var('isCollectionExists'), ref: q.Var('ref') }
         )
       )
-      .catch((err) => Promise.reject(err.requestResult.responseRaw))
+      .catch((err) =>
+        Promise.reject(
+          err.requestResult ? err.requestResult.responseRaw : err.message
+        )
+      )
   }
 
   async clearCollectionDocuments(ref) {
@@ -130,11 +134,15 @@ class ImportCommand extends FaunaCommand {
     while (keepRemoving) {
       const resp = await this.client
         .query(
-          q.Map(q.Paginate(q.Documents(ref), { size }), (docRef) =>
+          q.Foreach(q.Paginate(q.Documents(ref), { size }), (docRef) =>
             q.Delete(docRef)
           )
         )
-        .catch((err) => Promise.reject(err.requestResult.responseRaw))
+        .catch((err) =>
+          Promise.reject(
+            err.requestResult ? err.requestResult.responseRaw : err.message
+          )
+        )
 
       totalDeleted += resp.data.length
       this.log(`${totalDeleted} documents deleted from ${ref}`)
