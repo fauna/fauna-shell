@@ -1,41 +1,45 @@
 const stream = require('stream')
-const semaphore = require('semaphore')
-const q = require('faunadb').query
+const fauna = require('faunadb')
+const q = fauna.query
 
 class FaunaWriteStream extends stream.Writable {
-  CHUNK_SIZE = 1000
+  CHUNK_SIZE = 100
 
-  parallel = semaphore(20)
+  MAX_PARALLEL_REQUESTS = 50
 
   totalImported = 0
 
+  onGoingRequests = 0
+
   chunk = []
 
-  constructor({ source, log, client, collectionRef }) {
-    super({
-      objectMode: true,
-    })
+  constructor({ source, log, client, collection }) {
+    super({ objectMode: true })
 
     this.client = client
-    this.collectionRef = collectionRef
+    this.collection = collection
     this.log = log
     this.source = source
   }
 
   _write(chunk, enc, next) {
     this.chunk.push(chunk)
-    if (this.chunk.length < this.CHUNK_SIZE) return next()
-
-    this.queue(this.chunk, next)
+    if (this.chunk.length < this.CHUNK_SIZE) {
+      return next()
+    }
+    this.import(this.chunk)
     this.chunk = []
-    console.info('active ', this.parallel.current)
-    this.awaitAvailable().then(next)
+    this.awaitFreeOnGoingRequest().then(next)
+    // this.awaitAvailableThread().then(next)
   }
 
-  awaitAvailable() {
+  awaitFreeOnGoingRequest() {
+    if (this.onGoingRequests <= this.MAX_PARALLEL_REQUESTS)
+      return Promise.resolve()
+
     return new Promise((resolve) => {
       const interval = setInterval(() => {
-        if (this.parallel.available()) {
+        if (this.onGoingRequests <= this.MAX_PARALLEL_REQUESTS) {
           clearInterval(interval)
           resolve()
         }
@@ -43,25 +47,45 @@ class FaunaWriteStream extends stream.Writable {
     })
   }
 
-  end(next) {
-    if (this.chunk.length !== 0) {
-      this.queue(this.chunk)
-    }
+  awaitAllOnGoingRequestCompleted() {
+    if (this.onGoingRequests === 0) return Promise.resolve()
 
+    return new Promise((resolve) => {
+      const interval = setInterval(() => {
+        if (this.onGoingRequests === 0) {
+          clearInterval(interval)
+          resolve()
+        }
+      }, 500)
+    })
+  }
+
+  async end(next) {
+    if (this.chunk.length !== 0) {
+      this.import(this.chunk)
+    }
     if (typeof next === 'function') next()
+
+    await this.awaitAllOnGoingRequestCompleted()
     this.emit('end')
     this.log(`Import from ${this.source} to ${this.collectionRef} completed`)
   }
 
-  queue(chunk, next) {
-    this.parallel.take(() => {
-      this.import(chunk, next).then(() => this.parallel.leave())
-    })
-  }
-
-  import(chunk, next) {
+  import(chunk) {
+    this.onGoingRequests++
     return this.client
-      .query(q.Foreach(chunk, (data) => q.Create(this.collectionRef, { data })))
+      .query(
+        q.Let(
+          {
+            import: q.Do(
+              chunk.map((data) =>
+                q.Create(q.Collection(this.collection), { data })
+              )
+            ),
+          },
+          1
+        )
+      )
       .then(() => {
         this.totalImported += chunk.length
 
@@ -69,7 +93,8 @@ class FaunaWriteStream extends stream.Writable {
           `${this.totalImported} documents imported from ${this.source} to ${this.collectionRef}`
         )
       })
-      .catch(next)
+      .catch(() => this.import(chunk))
+      .finally(() => this.onGoingRequests--)
   }
 }
 
