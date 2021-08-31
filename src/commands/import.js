@@ -21,9 +21,12 @@ class ImportCommand extends FaunaCommand {
 
     const isDir = fs.lstatSync(source).isDirectory()
 
-    return (isDir ? this.importDir() : this.importFile(source)).catch((error) =>
-      this.handleError(error)
-    )
+    console.time('import')
+    return (isDir ? this.importDir() : this.importFile(source))
+      .then(() => {
+        console.timeEnd('import')
+      })
+      .catch((error) => this.handleError(error))
   }
 
   async importDir() {}
@@ -48,23 +51,20 @@ class ImportCommand extends FaunaCommand {
   }
 
   async dataImport({ source, collection }) {
-    const { ref, isCollectionExists } = await this.upsertCollection({
+    await this.upsertCollection({
       collection,
     })
-
-    if (isCollectionExists) {
-      await this.clearCollectionDocuments(ref)
-    }
 
     const faunaWriteStream = new FaunaWriteStream({
       source,
       log: this.log,
-      collectionRef: ref,
+      collection,
       client: this.client,
+      flags: this.flags,
     })
 
     await new Promise((resolve, reject) => {
-      fs.createReadStream(source)
+      fs.createReadStream(source, { highWaterMark: 65536 })
         .pipe(csv.createStream())
         .pipe(faunaWriteStream)
         .on('error', reject)
@@ -103,54 +103,18 @@ class ImportCommand extends FaunaCommand {
             collection: q.If(
               q.Var('isCollectionExists'),
               '',
-              q.Let(
-                {
-                  collection: q.CreateCollection({ name: collection }),
-                },
-                q.CreateIndex({
-                  source: q.Select(['ref'], q.Var('collection')),
-                  name: `all_${collection}`,
-                })
-              )
+              q.CreateCollection({ name: collection })
             ),
           },
-          { isCollectionExists: q.Var('isCollectionExists'), ref: q.Var('ref') }
+          { ref: q.Var('ref') }
         )
       )
-      .catch((err) =>
-        Promise.reject(
+      .catch((err) => {
+        console.info(err)
+        return Promise.reject(
           err.requestResult ? err.requestResult.responseRaw : err.message
         )
-      )
-  }
-
-  async clearCollectionDocuments(ref) {
-    let keepRemoving = true
-    const size = 10000
-    let totalDeleted = 0
-
-    this.log(`Deleting documents from ${ref}`)
-
-    while (keepRemoving) {
-      const resp = await this.client
-        .query(
-          q.Foreach(q.Paginate(q.Documents(ref), { size }), (docRef) =>
-            q.Delete(docRef)
-          )
-        )
-        .catch((err) =>
-          Promise.reject(
-            err.requestResult ? err.requestResult.responseRaw : err.message
-          )
-        )
-
-      totalDeleted += resp.data.length
-      this.log(`${totalDeleted} documents deleted from ${ref}`)
-
-      if (resp.data.length < size) {
-        keepRemoving = false
-      }
-    }
+      })
   }
 }
 
