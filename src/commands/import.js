@@ -64,7 +64,7 @@ class ImportCommand extends FaunaCommand {
     })
 
     await new Promise((resolve, reject) => {
-      fs.createReadStream(source, { highWaterMark: 65536 })
+      fs.createReadStream(source, { highWaterMark: 500000 })
         .pipe(csv.createStream())
         .pipe(faunaWriteStream)
         .on('error', reject)
