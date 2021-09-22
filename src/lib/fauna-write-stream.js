@@ -16,21 +16,21 @@ class FaunaWriteStream extends stream.Writable {
 
   chunk = []
 
-  constructor({ source, log, client, collection, typeMapping }) {
+  constructor({ source, log, client, collection, typeCasting }) {
     super({ objectMode: true, maxWrites: 10000 })
 
     this.client = client
     this.collection = collection
     this.log = log
     this.source = source
-    this.typeMapping = typeMapping
+    this.typeCasting = typeCasting
   }
 
   _write(chunk, enc, next) {
     const bytes = sizeof(chunk)
     this.currentChunkAvailableSize -= bytes
     if (this.currentChunkAvailableSize >= 0) {
-      this.chunk.push(this.mapType(chunk))
+      this.chunk.push(this.castType(chunk))
       return next()
     }
 
@@ -45,10 +45,10 @@ class FaunaWriteStream extends stream.Writable {
     return false
   }
 
-  mapType(obj) {
-    return Object.keys(this.typeMapping).reduce((memo, col) => {
+  castType(obj) {
+    return Object.keys(this.typeCasting).reduce((memo, col) => {
       if (memo[col]) {
-        memo[col] = this.typeMapping[col](memo[col])
+        memo[col] = this.typeCasting[col](memo[col])
       }
       return memo
     }, obj)
@@ -93,7 +93,6 @@ class FaunaWriteStream extends stream.Writable {
 
   import(chunk) {
     this.onGoingRequests++
-    console.info('import ', chunk)
     return (
       this.client
         .query(
