@@ -5,6 +5,7 @@ const {
   stringifyEndpoint,
 } = require('../lib/misc.js')
 const faunadb = require('faunadb')
+const chalk = require('chalk')
 const q = faunadb.query
 
 /**
@@ -32,6 +33,11 @@ class FaunaCommand extends Command {
     const { flags: f, args: a } = this.parse(this.constructor)
     this.flags = f
     this.args = a
+  }
+
+  success(msg) {
+    const bang = chalk.green(process.platform === 'win32' ? '»' : '›')
+    console.info(` ${bang}   Success: ${msg}`)
   }
 
   /**

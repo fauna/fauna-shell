@@ -6,9 +6,7 @@ const q = fauna.query
 class FaunaWriteStream extends stream.Writable {
   CHUNK_SIZE = 500000 // 0.5mb
 
-  MAX_PARALLEL_REQUESTS = 20
-  // 1 - 260263.105ms
-  // 10 - 97587.800ms 127564.772ms
+  MAX_PARALLEL_REQUESTS = 100
 
   totalImported = 0
 
@@ -18,20 +16,21 @@ class FaunaWriteStream extends stream.Writable {
 
   chunk = []
 
-  constructor({ source, log, client, collection }) {
+  constructor({ source, log, client, collection, typeMapping }) {
     super({ objectMode: true, maxWrites: 10000 })
 
     this.client = client
     this.collection = collection
     this.log = log
     this.source = source
+    this.typeMapping = typeMapping
   }
 
   _write(chunk, enc, next) {
     const bytes = sizeof(chunk)
     this.currentChunkAvailableSize -= bytes
     if (this.currentChunkAvailableSize >= 0) {
-      this.chunk.push(chunk)
+      this.chunk.push(this.mapType(chunk))
       return next()
     }
 
@@ -44,6 +43,15 @@ class FaunaWriteStream extends stream.Writable {
     this.currentChunkAvailableSize = this.CHUNK_SIZE - bytes
     this.awaitFreeOnGoingRequest().then(next)
     return false
+  }
+
+  mapType(obj) {
+    return Object.keys(this.typeMapping).reduce((memo, col) => {
+      if (memo[col]) {
+        memo[col] = this.typeMapping[col](memo[col])
+      }
+      return memo
+    }, obj)
   }
 
   awaitFreeOnGoingRequest() {
@@ -81,12 +89,11 @@ class FaunaWriteStream extends stream.Writable {
 
     await this.awaitAllOnGoingRequestCompleted()
     this.emit('end')
-    this.log(`Import from ${this.source} to ${this.collectionRef} completed`)
   }
 
   import(chunk) {
     this.onGoingRequests++
-
+    console.info('import ', chunk)
     return (
       this.client
         .query(
@@ -105,7 +112,7 @@ class FaunaWriteStream extends stream.Writable {
           this.totalImported += chunk.length
 
           this.log(
-            `${this.totalImported} documents imported from ${this.source} to ${this.collectionRef}`
+            `${this.totalImported} documents imported from ${this.source.path} to ${this.collection}`
           )
         })
         // .catch(() => this.import(chunk))

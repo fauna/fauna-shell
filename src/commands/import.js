@@ -1,17 +1,46 @@
 const fs = require('fs')
-const csv = require('csv-stream')
+const csvStream = require('csv-stream')
+const StreamJsonArray = require('stream-json/streamers/StreamArray')
 const util = require('util')
 const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
 const FaunaWriteStream = require('../lib/fauna-write-stream')
 const faunadb = require('faunadb')
-const path = require('path')
+const p = require('path')
+const withParser = require('stream-json/utils/withParser')
 const q = faunadb.query
 
+class JsonArrayValuesStream extends StreamJsonArray {
+  push(obj) {
+    super.push(obj ? obj.value : obj)
+  }
+}
+
+const StringBool = (val) => {
+  const trully = ['true', 'yes', '1', 1, true]
+  return trully.includes(val)
+}
+
 class ImportCommand extends FaunaCommand {
+  supportedExt = ['.csv', '.json']
+
+  colTypeMapper = {
+    number: Number,
+    ref: faunadb.query.Ref,
+    date: (val) =>
+      Number.isNaN(Number(val))
+        ? new Date(val)
+        : new Date(Number(val.length === 13 ? val : val + '000')),
+    bool: StringBool,
+  }
+
+  streamStrategy = {
+    '.csv': csvStream.createStream,
+    '.json': () => withParser(() => new JsonArrayValuesStream()),
+  }
+
   async run() {
-    const { db } = this.flags
-    const { source } = this.args
+    const { db, col, path } = this.flags
     const { client } = await (db
       ? this.ensureDbScopeClient(db)
       : this.getClient())
@@ -19,35 +48,68 @@ class ImportCommand extends FaunaCommand {
 
     this.log(`Database${db ? `'${db}'` : ''} connection established`)
 
-    const isDir = fs.lstatSync(source).isDirectory()
+    this.typeMapping = this.ensureTypeMapping(col)
 
-    console.time('import')
-    return (isDir ? this.importDir() : this.importFile(source))
-      .then(() => {
-        console.timeEnd('import')
-      })
-      .catch((error) => this.handleError(error))
+    const isDir = fs.lstatSync(path).isDirectory()
+    return (isDir ? this.importDir(path) : this.importFile(path)).catch(
+      (error) => this.handleError(error)
+    )
   }
 
-  async importDir() {}
+  ensureTypeMapping(col) {
+    if (!col) return {}
+    const types = col.reduce(
+      (memo, next) => {
+        const [name, type] = next.split('::')
+        return {
+          mapping: {
+            ...memo.mapping,
+            [name]: this.colTypeMapper[type],
+          },
+          invalidType: this.colTypeMapper[type]
+            ? memo.invalidType
+            : [...memo.invalidType, name],
+        }
+      },
+      { mapping: {}, invalidType: [] }
+    )
 
-  async importFile(source) {
+    if (types.invalidType.length !== 0) {
+      this.error(`Following columns has invalid type: ${types.invalidType}`)
+    }
+
+    return types.mapping
+  }
+
+  async importDir(path) {
+    const files = fs.readdirSync(path)
+
+    for (const file of files) {
+      try {
+        await this.importFile(p.join(path, file))
+      } catch (e) {
+        this.warn(e.message)
+      }
+    }
+  }
+
+  async importFile(path) {
     let { collection } = this.flags
-    const parsedFileName = this.parseFileName(source)
+    const source = this.parseFileName(path)
     if (!collection) {
-      collection = parsedFileName.name
+      collection = source.name
     }
     await this.dataImport({ source, collection })
+    this.success(`Import from ${path} to ${collection} completed`)
   }
 
-  parseFileName(source) {
-    const { name, ext } = path.parse(path.basename(source))
+  parseFileName(path) {
+    const { name, ext } = p.parse(p.basename(path))
 
-    // TODO: support json
-    if (ext !== '.csv') {
-      throw new Error(`File (${source}) must include the '.csv' extension.`)
+    if (!this.supportedExt.includes(ext)) {
+      throw new Error(`File (${path}) extension doesn't supported`)
     }
-    return { name, ext }
+    return { name, ext, path }
   }
 
   async dataImport({ source, collection }) {
@@ -61,11 +123,12 @@ class ImportCommand extends FaunaCommand {
       collection,
       client: this.client,
       flags: this.flags,
+      typeMapping: this.typeMapping,
     })
 
     await new Promise((resolve, reject) => {
-      fs.createReadStream(source, { highWaterMark: 500000 })
-        .pipe(csv.createStream())
+      fs.createReadStream(source.path, { highWaterMark: 500000 })
+        .pipe(this.streamStrategy[source.ext]())
         .pipe(faunaWriteStream)
         .on('error', reject)
         .on('end', resolve)
@@ -121,22 +184,19 @@ class ImportCommand extends FaunaCommand {
 ImportCommand.description = 'Import data to Fauna'
 
 ImportCommand.examples = [
-  '$ fauna import --db=sampleDB ./samplefile.csv',
-  '$ fauna import --db=sampleDB --collection=Samplecollection ./samplefile.csv',
-  '$ fauna import --db=sampleDB ./dump',
-]
-
-ImportCommand.args = [
-  {
-    name: 'source',
-    required: true,
-    description: 'Path to .csv/.json file either to dir with .csv/.json files',
-  },
+  '$ fauna import --db=sampleDB --path ./samplefile.csv',
+  '$ fauna import --db=sampleDB --collection=Samplecollection --path ./samplefile.csv',
+  '$ fauna import --db=sampleDB --path ./dump',
+  '$ fauna import --col=c1::date --col=c2::number --col=c3::bool --col=c4:ref --path=./files/',
 ]
 
 const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags
 
 ImportCommand.flags = {
+  path: flags.string({
+    required: true,
+    description: 'Path to .csv/.json file either to dir with .csv/.json files',
+  }),
   db: flags.string({
     description: 'Child database name',
   }),
@@ -144,6 +204,9 @@ ImportCommand.flags = {
     description:
       'Collection name. By default filename if --source is file, otherwise omitted',
     required: false,
+  }),
+  col: flags.string({
+    multiple: true,
   }),
   ...commonFlags,
 }
