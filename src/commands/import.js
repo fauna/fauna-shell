@@ -24,7 +24,7 @@ const StringBool = (val) => {
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json']
 
-  colTypeMapper = {
+  colTypeCast = {
     number: Number,
     ref: faunadb.query.Ref,
     date: (val) =>
@@ -48,7 +48,7 @@ class ImportCommand extends FaunaCommand {
 
     this.log(`Database${db ? `'${db}'` : ''} connection established`)
 
-    this.typeMapping = this.ensureTypeMapping(col)
+    this.typeCasting = this.ensureTypeCasting(col)
 
     const isDir = fs.lstatSync(path).isDirectory()
     return (isDir ? this.importDir(path) : this.importFile(path)).catch(
@@ -56,29 +56,29 @@ class ImportCommand extends FaunaCommand {
     )
   }
 
-  ensureTypeMapping(col) {
+  ensureTypeCasting(col) {
     if (!col) return {}
     const types = col.reduce(
       (memo, next) => {
         const [name, type] = next.split('::')
         return {
-          mapping: {
-            ...memo.mapping,
-            [name]: this.colTypeMapper[type],
+          casting: {
+            ...memo.casting,
+            [name]: this.colTypeCast[type],
           },
-          invalidType: this.colTypeMapper[type]
+          invalidType: this.colTypeCast[type]
             ? memo.invalidType
             : [...memo.invalidType, name],
         }
       },
-      { mapping: {}, invalidType: [] }
+      { casting: {}, invalidType: [] }
     )
 
     if (types.invalidType.length !== 0) {
       this.error(`Following columns has invalid type: ${types.invalidType}`)
     }
 
-    return types.mapping
+    return types.casting
   }
 
   async importDir(path) {
@@ -123,7 +123,7 @@ class ImportCommand extends FaunaCommand {
       collection,
       client: this.client,
       flags: this.flags,
-      typeMapping: this.typeMapping,
+      typeCasting: this.typeCasting,
     })
 
     await new Promise((resolve, reject) => {
