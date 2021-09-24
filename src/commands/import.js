@@ -26,7 +26,6 @@ class ImportCommand extends FaunaCommand {
 
   colTypeCast = {
     number: Number,
-    ref: faunadb.query.Ref,
     date: (val) =>
       Number.isNaN(Number(val))
         ? new Date(val)
@@ -184,10 +183,10 @@ class ImportCommand extends FaunaCommand {
 ImportCommand.description = 'Import data to Fauna'
 
 ImportCommand.examples = [
-  '$ fauna import --db=sampleDB --path ./samplefile.csv',
+  '$ fauna import --path ./samplefile.csv',
   '$ fauna import --db=sampleDB --collection=Samplecollection --path ./samplefile.csv',
   '$ fauna import --db=sampleDB --path ./dump',
-  '$ fauna import --col=c1::date --col=c2::number --col=c3::bool --col=c4:ref --path=./files/',
+  '$ fauna import --col=c1::date --col=c2::number --col=c3::bool --path=./files/',
 ]
 
 const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags

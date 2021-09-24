@@ -24,6 +24,8 @@ class FaunaWriteStream extends stream.Writable {
     this.log = log
     this.source = source
     this.typeCasting = typeCasting
+
+    this.log(`Start importing from ${this.source.path}`)
   }
 
   _write(chunk, enc, next) {
