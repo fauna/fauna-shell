@@ -919,3 +919,16 @@ EXAMPLES
 _See code: [src/commands/upload-graphql-schema.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/upload-graphql-schema.js)_
 
 <!-- commandsstop -->
+
+# Development
+All above commands starts with `fauna`, but you are able to run them this way after installation of the fauna-shell package.  
+During development, you might want to test your changes without installing the package every single time.  
+To do so, you can run commands like this:
+```
+# don't forget to install dependencies for your fauna-shell project
+npm install
+
+# run a command you need
+./bin/run cloud-login
+./bin/run import
+``` 
