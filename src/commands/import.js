@@ -112,7 +112,7 @@ class ImportCommand extends FaunaCommand {
   }
 
   async dataImport({ source, collection }) {
-    await this.upsertCollection({
+    await this.ensureCollection({
       collection,
     })
 
@@ -155,8 +155,8 @@ class ImportCommand extends FaunaCommand {
     this.error(error)
   }
 
-  upsertCollection({ collection }) {
-    return this.client
+  async ensureCollection({ collection }) {
+    const result = await this.client
       .query(
         q.Let(
           {
@@ -168,15 +168,22 @@ class ImportCommand extends FaunaCommand {
               q.CreateCollection({ name: collection })
             ),
           },
-          { ref: q.Var('ref') }
+          { ref: q.Var('ref'), isEmpty: q.IsEmpty(q.Documents(q.Var('ref'))) }
         )
       )
-      .catch((err) => {
-        console.info(err)
-        return Promise.reject(
+      .catch((err) =>
+        Promise.reject(
           err.requestResult ? err.requestResult.responseRaw : err.message
         )
-      })
+      )
+
+    if (!result.isEmpty && !this.flags.append) {
+      return Promise.reject(
+        new Error(
+          `${result.ref} is not empty. Add '--append' to allow append data for non empty collection`
+        )
+      )
+    }
   }
 }
 
@@ -184,6 +191,7 @@ ImportCommand.description = 'Import data to Fauna'
 
 ImportCommand.examples = [
   '$ fauna import --path ./samplefile.csv',
+  '$ fauna import --append --path ./samplefile.csv',
   '$ fauna import --db=sampleDB --collection=Samplecollection --path ./samplefile.csv',
   '$ fauna import --db=sampleDB --path ./dump',
   '$ fauna import --col=c1::date --col=c2::number --col=c3::bool --path=./files/',
@@ -205,7 +213,11 @@ ImportCommand.flags = {
     required: false,
   }),
   col: flags.string({
+    description: 'Column type casting. Might be `number`, `bool` or `date`',
     multiple: true,
+  }),
+  append: flags.string({
+    description: 'Allow append data to non empty collection',
   }),
   ...commonFlags,
 }
