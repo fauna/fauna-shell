@@ -21,15 +21,21 @@ const StringBool = (val) => {
   return trully.includes(val)
 }
 
+const StringDate = (val) => {
+  const date =
+    Number.isNaN(Number(val)) || val.length === 13
+      ? new Date(val)
+      : new Date(val + '000')
+
+  return q.Time(date.toISOString())
+}
+
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json']
 
   colTypeCast = {
     number: Number,
-    date: (val) =>
-      Number.isNaN(Number(val))
-        ? new Date(val)
-        : new Date(Number(val.length === 13 ? val : val + '000')),
+    date: StringDate,
     bool: StringBool,
   }
 
@@ -39,7 +45,7 @@ class ImportCommand extends FaunaCommand {
   }
 
   async run() {
-    const { db, col, path } = this.flags
+    const { db, type, path } = this.flags
     const { client } = await (db
       ? this.ensureDbScopeClient(db)
       : this.getClient())
@@ -47,7 +53,7 @@ class ImportCommand extends FaunaCommand {
 
     this.log(`Database${db ? `'${db}'` : ''} connection established`)
 
-    this.typeCasting = this.ensureTypeCasting(col)
+    this.typeCasting = this.ensureTypeCasting(type)
 
     const isDir = fs.lstatSync(path).isDirectory()
     return (isDir ? this.importDir(path) : this.importFile(path)).catch(
@@ -55,9 +61,9 @@ class ImportCommand extends FaunaCommand {
     )
   }
 
-  ensureTypeCasting(col) {
-    if (!col) return {}
-    const types = col.reduce(
+  ensureTypeCasting(type) {
+    if (!type) return {}
+    const types = type.reduce(
       (memo, next) => {
         const [name, type] = next.split('::')
         return {
@@ -194,7 +200,7 @@ ImportCommand.examples = [
   '$ fauna import --append --path ./samplefile.csv',
   '$ fauna import --db=sampleDB --collection=Samplecollection --path ./samplefile.csv',
   '$ fauna import --db=sampleDB --path ./dump',
-  '$ fauna import --col=c1::date --col=c2::number --col=c3::bool --path=./files/',
+  '$ fauna import --type=c1::date --type=c2::number --type=c3::bool --path ./samplefile.csv',
 ]
 
 const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags
@@ -212,8 +218,8 @@ ImportCommand.flags = {
       'Collection name. By default filename if --source is file, otherwise omitted',
     required: false,
   }),
-  col: flags.string({
-    description: 'Column type casting. Might be `number`, `bool` or `date`',
+  type: flags.string({
+  description: 'Column type casting. Might be `number`, `bool` or `date`',
     multiple: true,
   }),
   append: flags.string({
