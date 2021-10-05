@@ -67,6 +67,7 @@ function performQuery(client, fqlQuery, outputFile, outputFormat) {
   if (res.body[0].type === 'BlockStatement') {
     res = esprima.parseScript(`(${fqlQuery})`)
   }
+
   return runQueries(res.body, client)
     .then(function (response) {
       return writeFormattedOutput(outputFile, response, outputFormat)
@@ -110,7 +111,7 @@ class EvalCommand extends FaunaCommand {
 
       const result = await performQuery(
         client,
-        query || queryFromFile,
+        queryFromFile || query,
         outputFile,
         outputFormat
       )
