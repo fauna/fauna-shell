@@ -51,7 +51,7 @@ Commands should also provide guidance. For example `create-database` explains to
 
 The project uses the [oclif](https://oclif.io/) framework for creating CLI tools (It was created by Heroku for their own tooling). Check their docs if you want to learn the details about how to create commands.
 
-All commands extend our custom [FaunaCommand](https://github.com/fauna/fauna-shell/blob/master/src/lib/fauna_command.js).
+All commands extend our custom [FaunaCommand](https://github.com/fauna/fauna-shell/blob/main/src/lib/fauna_command.js).
 
 If your command needs to connect to FaunaDB and accept parameters `like`, `domain`, `scheme`, `port`, `timeout` or `secret`, then extending FaunaCommand will handle that for you. The only requisite is that you define your command [flags](https://oclif.io/docs/flags.html) like this:
 
@@ -75,7 +75,7 @@ See other commands for complete examples on how to do that, and check the FaunaC
 
 ## Helper Functions ##
 
-Helper functions are defined in the [misc](https://github.com/fauna/fauna-shell/blob/master/src/lib/misc.js) module.
+Helper functions are defined in the [misc](https://github.com/fauna/fauna-shell/blob/main/src/lib/misc.js) module.
 
 These functions let you do things from reading/writing the shell's config file, to building configuration options for creating a connection to FaunaDB.
 

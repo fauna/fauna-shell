@@ -12,16 +12,24 @@ describe('eval', () => {
     })
 
   test
-    .nock(getEndpoint(), { allowUnmocked: true }, mockQuery)
+    .nock(getEndpoint(), { allowUnmocked: true }, (api) => {
+      api
+        .post('/', matchFqlReq(q.Exists(q.Database('nested'))))
+        .reply(200, { resource: true })
+      mockQuery(api)
+    })
     .stdout()
     .command(withOpts(['eval', 'nested', 'Paginate(Collections())']))
-    .it('runs eval on root db', (ctx) => {
+    .it('runs eval on nested db', (ctx) => {
       expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal('nested')
     })
 })
 
 function mockQuery(api) {
   api
+    .persist()
+    .post('/', matchFqlReq(q.Now()))
+    .reply(200, { resource: new Date() })
     .post('/', matchFqlReq(q.Paginate(q.Collections())))
     .reply(200, function () {
       const auth = this.req.headers.authorization[0].split(':')

@@ -3,6 +3,11 @@ type Todo {
   completed: Boolean
 }
 
+type Todo2 {
+  title: String!
+  completed: Boolean
+}
+
 type Query {
   allTodos: [Todo!]
   todosByCompletedFlag(completed: Boolean!): [Todo!]
