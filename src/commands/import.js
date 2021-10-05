@@ -56,9 +56,16 @@ class ImportCommand extends FaunaCommand {
     this.typeCasting = this.ensureTypeCasting(type)
 
     const isDir = fs.lstatSync(path).isDirectory()
-    return (isDir ? this.importDir(path) : this.importFile(path)).catch(
-      (error) => this.handleError(error)
-    )
+
+    let importFn
+    if (isDir) {
+      this.flags.collection = undefined // use file name instead
+      importFn = this.importDir
+    } else {
+      importFn = this.importFile
+    }
+
+    return importFn.call(this, path).catch((error) => this.handleError(error))
   }
 
   ensureTypeCasting(type) {
@@ -93,7 +100,7 @@ class ImportCommand extends FaunaCommand {
       try {
         await this.importFile(p.join(path, file))
       } catch (e) {
-        this.warn(e.message)
+        this.warn(e.message ? e.message : e)
       }
     }
   }
@@ -173,8 +180,13 @@ class ImportCommand extends FaunaCommand {
               '',
               q.CreateCollection({ name: collection })
             ),
+            isEmpty: q.If(
+              q.Var('isCollectionExists'),
+              q.IsEmpty(q.Documents(q.Var('ref'))),
+              true
+            ),
           },
-          { ref: q.Var('ref'), isEmpty: q.IsEmpty(q.Documents(q.Var('ref'))) }
+          { ref: q.Var('ref'), isEmpty: q.Var('isEmpty') }
         )
       )
       .catch((err) =>
@@ -219,10 +231,10 @@ ImportCommand.flags = {
     required: false,
   }),
   type: flags.string({
-  description: 'Column type casting. Might be `number`, `bool` or `date`',
+    description: 'Column type casting. Might be `number`, `bool` or `date`',
     multiple: true,
   }),
-  append: flags.string({
+  append: flags.boolean({
     description: 'Allow append data to non empty collection',
   }),
   ...commonFlags,
