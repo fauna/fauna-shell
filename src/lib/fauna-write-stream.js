@@ -95,30 +95,28 @@ class FaunaWriteStream extends stream.Writable {
 
   import(chunk) {
     this.onGoingRequests++
-    return (
-      this.client
-        .query(
-          q.Let(
-            {
-              import: q.Do(
-                chunk.map((data) =>
-                  q.Create(q.Collection(this.collection), { data })
-                )
-              ),
-            },
-            1
-          )
+    return this.client
+      .query(
+        q.Let(
+          {
+            import: q.Do(
+              chunk.map((data) =>
+                q.Create(q.Collection(this.collection), { data })
+              )
+            ),
+          },
+          1
         )
-        .then(() => {
-          this.totalImported += chunk.length
+      )
+      .then(() => {
+        this.totalImported += chunk.length
 
-          this.log(
-            `${this.totalImported} documents imported from ${this.source.path} to ${this.collection}`
-          )
-        })
-        // .catch(() => this.import(chunk))
-        .finally(() => this.onGoingRequests--)
-    )
+        this.log(
+          `${this.totalImported} documents imported from ${this.source.path} to ${this.collection}`
+        )
+      })
+      .catch(console.error)
+      .finally(() => this.onGoingRequests--)
   }
 }
 

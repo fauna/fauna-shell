@@ -1,20 +1,14 @@
 const fs = require('fs')
 const csvStream = require('csv-stream')
-const StreamJsonArray = require('stream-json/streamers/StreamArray')
 const util = require('util')
 const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
+const StreamJson = require('../lib/json-stream')
 const FaunaWriteStream = require('../lib/fauna-write-stream')
 const faunadb = require('faunadb')
 const p = require('path')
-const withParser = require('stream-json/utils/withParser')
 const q = faunadb.query
-
-class JsonArrayValuesStream extends StreamJsonArray {
-  push(obj) {
-    super.push(obj ? obj.value : obj)
-  }
-}
+const stream = require('stream')
 
 const StringBool = (val) => {
   const trully = ['true', 'yes', '1', 1, true]
@@ -40,8 +34,8 @@ class ImportCommand extends FaunaCommand {
   }
 
   streamStrategy = {
-    '.csv': csvStream.createStream,
-    '.json': () => withParser(() => new JsonArrayValuesStream()),
+    '.csv': (stream) => stream.pipe(csvStream.createStream()),
+    '.json': (stream) => stream.pipe(StreamJson.withParser()),
   }
 
   async run() {
@@ -139,8 +133,9 @@ class ImportCommand extends FaunaCommand {
     })
 
     await new Promise((resolve, reject) => {
-      fs.createReadStream(source.path, { highWaterMark: 500000 })
-        .pipe(this.streamStrategy[source.ext]())
+      this.streamStrategy[source.ext](
+        fs.createReadStream(source.path, { highWaterMark: 500000 })
+      )
         .pipe(faunaWriteStream)
         .on('error', reject)
         .on('end', resolve)
