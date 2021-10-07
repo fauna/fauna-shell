@@ -8,7 +8,6 @@ const FaunaWriteStream = require('../lib/fauna-write-stream')
 const faunadb = require('faunadb')
 const p = require('path')
 const q = faunadb.query
-const stream = require('stream')
 
 const StringBool = (val) => {
   const trully = ['true', 'yes', '1', 1, true]
@@ -19,8 +18,7 @@ const StringDate = (val) => {
   const date =
     Number.isNaN(Number(val)) || val.length === 13
       ? new Date(val)
-      : new Date(val + '000')
-
+      : new Date(Number(val) * 1000)
   return q.Time(date.toISOString())
 }
 
