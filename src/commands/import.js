@@ -129,7 +129,6 @@ class ImportCommand extends FaunaCommand {
       flags: this.flags,
       typeCasting: this.typeCasting,
     })
-
     await new Promise((resolve, reject) => {
       this.streamStrategy[source.ext](
         fs.createReadStream(source.path, { highWaterMark: 500000 })
@@ -141,13 +140,15 @@ class ImportCommand extends FaunaCommand {
   }
 
   handleError(error) {
+    console.info(error)
     if (error instanceof faunadb.errors.FaunaHTTPError) {
-      this.error('Error:', error.faunaError.message)
       return this.error(
-        util.inspect(error, {
-          depth: null,
-          compact: false,
-        })
+        `Error: ${
+          error.faunaError
+            ? error.faunaError.message
+            : error.requestResult.responseRaw
+        }`,
+        { exit: false }
       )
     }
     if (error instanceof Error) {
