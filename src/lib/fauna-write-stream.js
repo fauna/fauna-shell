@@ -29,6 +29,7 @@ class FaunaWriteStream extends stream.Writable {
   }
 
   _write(chunk, enc, next) {
+    this.ensureFieldsNames(chunk)
     const bytes = sizeof(chunk)
     this.currentChunkAvailableSize -= bytes
     if (this.currentChunkAvailableSize >= 0) {
@@ -45,6 +46,24 @@ class FaunaWriteStream extends stream.Writable {
     this.currentChunkAvailableSize = this.CHUNK_SIZE - bytes
     this.awaitFreeOnGoingRequest().then(next)
     return false
+  }
+
+  ensureFieldsNames(chunk) {
+    if (this.source.ext !== '.csv' || this.fieldsValidated) return
+    const invalid = Object.keys(chunk).filter(
+      (fieldName) => !/^[a-zA-Z]\w*$/.test(fieldName)
+    )
+
+    if (invalid.length > 0) {
+      this.emit(
+        'error',
+        new Error(
+          `${invalid} field(s) has invalid characters. Only alphanumeric characters are allowed and name must start with a letter`
+        )
+      )
+    }
+
+    this.fieldsValidated = true
   }
 
   castType(obj) {
@@ -115,7 +134,7 @@ class FaunaWriteStream extends stream.Writable {
           `${this.totalImported} documents imported from ${this.source.path} to ${this.collection}`
         )
       })
-      .catch(console.error)
+      .catch((error) => this.emit('error', error))
       .finally(() => this.onGoingRequests--)
   }
 }
