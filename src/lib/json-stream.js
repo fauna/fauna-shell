@@ -39,7 +39,7 @@ class StreamJson extends StreamBase {
   }
 
   pushArray(discard) {
-    if (this._assembler.current.length) {
+    if (this._assembler.current.length !== 0) {
       if (discard) {
         ++this._counter
         this._assembler.current.pop()
@@ -55,7 +55,8 @@ class StreamJson extends StreamBase {
     } else {
       this.push(this._assembler.current)
     }
-    this._assembler.current = this._assembler.key = null
+    this._assembler.current = null
+    this._assembler.key = null
   }
 }
 StreamJson.StreamJson = StreamJson.make
