@@ -1,6 +1,5 @@
 const fs = require('fs')
 const csvStream = require('csv-stream')
-const util = require('util')
 const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
 const StreamJson = require('../lib/json-stream')
@@ -9,27 +8,8 @@ const faunadb = require('faunadb')
 const p = require('path')
 const q = faunadb.query
 
-const StringBool = (val) => {
-  const trully = ['true', 'yes', '1', 1, true]
-  return trully.includes(val)
-}
-
-const StringDate = (val) => {
-  const date =
-    Number.isNaN(Number(val)) || val.length === 13
-      ? new Date(val)
-      : new Date(Number(val) * 1000)
-  return q.Time(date.toISOString())
-}
-
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json']
-
-  colTypeCast = {
-    number: Number,
-    date: StringDate,
-    bool: StringBool,
-  }
 
   streamStrategy = {
     '.csv': (stream) => stream.pipe(csvStream.createStream()),
@@ -37,15 +17,13 @@ class ImportCommand extends FaunaCommand {
   }
 
   async run() {
-    const { db, type, path } = this.flags
+    const { db, path } = this.flags
     const { client } = await (db
       ? this.ensureDbScopeClient(db)
       : this.getClient())
     this.client = client
 
     this.log(`Database${db ? `'${db}'` : ''} connection established`)
-
-    this.typeCasting = this.ensureTypeCasting(type)
 
     const isDir = fs.lstatSync(path).isDirectory()
 
@@ -58,31 +36,6 @@ class ImportCommand extends FaunaCommand {
     }
 
     return importFn.call(this, path).catch((error) => this.handleError(error))
-  }
-
-  ensureTypeCasting(type) {
-    if (!type) return {}
-    const types = type.reduce(
-      (memo, next) => {
-        const [name, type] = next.split('::')
-        return {
-          casting: {
-            ...memo.casting,
-            [name]: this.colTypeCast[type],
-          },
-          invalidType: this.colTypeCast[type]
-            ? memo.invalidType
-            : [...memo.invalidType, name],
-        }
-      },
-      { casting: {}, invalidType: [] }
-    )
-
-    if (types.invalidType.length !== 0) {
-      this.error(`Following columns has invalid type: ${types.invalidType}`)
-    }
-
-    return types.casting
   }
 
   async importDir(path) {
@@ -124,10 +77,11 @@ class ImportCommand extends FaunaCommand {
     const faunaWriteStream = new FaunaWriteStream({
       source,
       log: this.log,
+      warn: this.warn,
+      error: this.error,
       collection,
       client: this.client,
-      flags: this.flags,
-      typeCasting: this.typeCasting,
+      type: this.flags.type,
     })
     await new Promise((resolve, reject) => {
       this.streamStrategy[source.ext](
@@ -206,7 +160,7 @@ ImportCommand.examples = [
   '$ fauna import --append --path ./samplefile.csv',
   '$ fauna import --db=sampleDB --collection=Samplecollection --path ./samplefile.csv',
   '$ fauna import --db=sampleDB --path ./dump',
-  '$ fauna import --type=c1::date --type=c2::number --type=c3::bool --path ./samplefile.csv',
+  '$ fauna import --type=header_name::date --type=hdr2::number --type=hdrX::bool --path ./samplefile.csv',
 ]
 
 const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags
