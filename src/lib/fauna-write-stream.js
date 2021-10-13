@@ -3,6 +3,19 @@ const sizeof = require('object-sizeof')
 const fauna = require('faunadb')
 const q = fauna.query
 
+const StringBool = (val) => {
+  const trully = ['true', 'yes', '1', 1, true]
+  return trully.includes(val)
+}
+
+const StringDate = (val) => {
+  const date =
+    Number.isNaN(Number(val)) || val.length === 13
+      ? new Date(val)
+      : new Date(Number(val) * 1000)
+  return q.Time(date.toISOString())
+}
+
 class FaunaWriteStream extends stream.Writable {
   CHUNK_SIZE = 500000 // 0.5mb
 
@@ -16,14 +29,21 @@ class FaunaWriteStream extends stream.Writable {
 
   chunk = []
 
-  constructor({ source, log, client, collection, typeCasting }) {
+  colTypeCast = {
+    number: Number,
+    date: StringDate,
+    bool: StringBool,
+  }
+
+  constructor({ source, log, type, warn, client, collection }) {
     super({ objectMode: true, maxWrites: 10000 })
 
     this.client = client
     this.collection = collection
     this.log = log
+    this.warn = warn
     this.source = source
-    this.typeCasting = typeCasting
+    this.typeCasting = this.ensureTypeCasting(type)
 
     this.log(`Start importing from ${this.source.path}`)
   }
@@ -31,17 +51,20 @@ class FaunaWriteStream extends stream.Writable {
   _write(chunk, enc, next) {
     this.ensureFieldsNames(chunk)
     const bytes = sizeof(chunk)
+
+    const chunkWithCastedTypes = this.castType(chunk)
+
     this.currentChunkAvailableSize -= bytes
     if (this.currentChunkAvailableSize >= 0) {
-      this.chunk.push(this.castType(chunk))
+      this.chunk.push(chunkWithCastedTypes)
       return next()
     }
 
     const isBufferEmpty = this.chunk.length === 0
 
-    this.import(isBufferEmpty ? [chunk] : this.chunk)
+    this.import(isBufferEmpty ? [chunkWithCastedTypes] : this.chunk)
     if (!isBufferEmpty) {
-      this.chunk = [chunk]
+      this.chunk = [chunkWithCastedTypes]
     }
     this.currentChunkAvailableSize = this.CHUNK_SIZE - bytes
     this.awaitFreeOnGoingRequest().then(next)
@@ -66,10 +89,41 @@ class FaunaWriteStream extends stream.Writable {
     this.fieldsValidated = true
   }
 
+  ensureTypeCasting(type) {
+    if (!type) return {}
+    const types = type.reduce(
+      (memo, next) => {
+        const [name, type] = next.split('::')
+        return {
+          casting: {
+            ...memo.casting,
+            [name]: { type, castFn: this.colTypeCast[type] },
+          },
+          invalidType: this.colTypeCast[type]
+            ? memo.invalidType
+            : [...memo.invalidType, name],
+        }
+      },
+      { casting: {}, invalidType: [] }
+    )
+
+    if (types.invalidType.length !== 0) {
+      this.error(`Following columns has invalid type: ${types.invalidType}`)
+    }
+
+    return types.casting
+  }
+
   castType(obj) {
     return Object.keys(this.typeCasting).reduce((memo, col) => {
-      if (memo[col]) {
-        memo[col] = this.typeCasting[col](memo[col])
+      if (!memo[col]) return memo
+      const castedValue = this.typeCasting[col].castFn(memo[col])
+      if (castedValue) {
+        memo[col] = castedValue
+      } else {
+        this.warn(
+          `Value '${memo[col]}' at column '${col}' can not be casted to type '${this.typeCasting[col].type}'`
+        )
       }
       return memo
     }, obj)
