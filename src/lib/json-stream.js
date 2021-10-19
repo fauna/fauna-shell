@@ -46,7 +46,9 @@ class StreamJson extends StreamBase {
         ++this._counter
         this._assembler.current.pop()
       } else {
-        this.push(this._assembler.current.pop())
+        while (this._assembler.current.length) {
+          this.push(this._assembler.current.pop())
+        }
       }
     }
   }
