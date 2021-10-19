@@ -44,10 +44,10 @@ class StreamJson extends StreamBase {
     if (this._assembler.current.length !== 0) {
       if (discard) {
         ++this._counter
-        this._assembler.current.pop()
+        this._assembler.current.shift()
       } else {
         while (this._assembler.current.length) {
-          this.push(this._assembler.current.pop())
+          this.push(this._assembler.current.shift())
         }
       }
     }
