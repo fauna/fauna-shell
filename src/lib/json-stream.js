@@ -21,12 +21,14 @@ class StreamJson extends StreamBase {
   }
 
   _wait(chunk, _, callback) {
-    if (chunk.name === 'startArray') {
+    if (chunk.name === 'startArray' && !this.firstChunkReceived) {
       this._transform = this._filter
       this.isArrayStream = true
+      this.firstChunkReceived = true
       return this._transform(chunk, _, callback)
     }
 
+    this.firstChunkReceived = true
     return this._filter(chunk, _, callback)
   }
 
