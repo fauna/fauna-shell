@@ -92,7 +92,7 @@ class ImportCommand extends FaunaCommand {
     const { name, ext } = p.parse(p.basename(path))
 
     if (!this.supportedExt.includes(ext)) {
-      throw new Error(`File (${path}) extension doesn't supported`)
+      throw new Error(`File (${path}) extension isn't supported`)
     }
     return { name, ext, path }
   }
