@@ -12,6 +12,17 @@ describe('import', () => {
       expect(ctx.stdout).to.contain('Success: Import from ./files/test.json')
     })
 
+  mockTest(test, {
+    isCollectionEmpty: true,
+    isDirectory: false,
+    isBigFile: true,
+  })
+    .stdout()
+    .command(withOpts(['import', '--path', './files/test.json']))
+    .it('should throw an error if file size more then 10gb', (ctx) => {
+      expect(ctx.stdout).to.contain('Success: Import from ./files/test.json')
+    })
+
   mockTest(test, { isCollectionEmpty: false, isDirectory: false })
     .stdout()
     .command(withOpts(['import', '--path', './files/test.json']))
@@ -47,9 +58,10 @@ describe('import', () => {
 
 function mockTest(
   test,
-  { isCollectionEmpty, isDirectory, withAppend, invalidFields }
+  { isCollectionEmpty, isDirectory, withAppend, invalidFields, isBigFile }
 ) {
   const originalLstatSync = fs.lstatSync
+  const originalStatSync = fs.lstatSync
 
   const data = new Array(10)
     .fill('')
@@ -80,6 +92,11 @@ function mockTest(
       if (args[0].includes('./files/test.json'))
         return { isDirectory: () => isDirectory }
       return originalLstatSync(...args)
+    })
+    .stub(fs, 'statSync', (...args) => {
+      if (args[0].includes('./files/test.json'))
+        return isBigFile ? 11 * 1024 * 1024 : 1
+      return originalStatSync(...args)
     })
     .stub(
       fs,

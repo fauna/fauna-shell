@@ -41,6 +41,13 @@ class ImportCommand extends FaunaCommand {
   async importDir(path) {
     const files = fs.readdirSync(path)
 
+    // check if folder size is approximately greater than 10GB
+    if (this.calculateFolderSize(path, files) > 10000) {
+      throw new Error(
+        `Folder (${path}) size is greater than 10GB, can't proceed with the import`
+      )
+    }
+
     for (const file of files) {
       try {
         await this.importFile(p.join(path, file))
@@ -51,6 +58,13 @@ class ImportCommand extends FaunaCommand {
   }
 
   async importFile(path) {
+    // check if file size is approximately greater than 10GB
+    if (this.calculateFileSize(path) > 10000) {
+      throw new Error(
+        `File (${path}) size is greater than 10GB, can't proceed with the import`
+      )
+    }
+
     let { collection } = this.flags
     const source = this.parseFileName(path)
     if (!collection) {
@@ -60,11 +74,25 @@ class ImportCommand extends FaunaCommand {
     this.success(`Import from ${path} to ${collection} completed`)
   }
 
+  calculateFileSize(path) {
+    const stats = fs.statSync(path)
+    return stats.size / (1024 * 1024)
+  }
+
+  calculateFolderSize(path, files) {
+    let folderSize = 0
+    for (const file of files) {
+      let filePath = p.join(path, file)
+      folderSize += this.calculateFileSize(filePath)
+    }
+    return folderSize
+  }
+
   parseFileName(path) {
     const { name, ext } = p.parse(p.basename(path))
 
     if (!this.supportedExt.includes(ext)) {
-      throw new Error(`File (${path}) extension doesn't supported`)
+      throw new Error(`File (${path}) extension isn't supported`)
     }
     return { name, ext, path }
   }
