@@ -116,9 +116,9 @@ class FaunaWriteStream extends stream.Writable {
 
   castType(obj) {
     return Object.keys(this.typeCasting).reduce((memo, col) => {
-      if (!memo[col]) return memo
+      if (memo[col] === undefined) return memo
       const castedValue = this.typeCasting[col].castFn(memo[col])
-      if (castedValue) {
+      if (castedValue !== undefined) {
         memo[col] = castedValue
       } else {
         this.warn(
