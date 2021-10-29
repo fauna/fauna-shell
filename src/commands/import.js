@@ -207,7 +207,7 @@ ImportCommand.flags = {
     required: false,
   }),
   type: flags.string({
-    description: `Column type casting, converts the column value to a Fauna type.\nFormat: header_name|hdr<X>::<type>\nheader_name: apply cast to field name\n<X>: column offset (hdr1 means first column)\n<type>: one of 'number', 'bool', or 'date'.`,
+    description: `Column type casting, converts the column value to a Fauna type.\nFormat: <column>::<type>\n<column>: the name of the column to cast values\n<type>: one of 'number', 'bool', or 'date'.`,
     multiple: true,
   }),
   append: flags.boolean({
