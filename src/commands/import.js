@@ -203,7 +203,7 @@ ImportCommand.flags = {
   }),
   collection: flags.string({
     description:
-      'Collection name. When not specified, the collection name is the filename when --path is file, otherwise folder name',
+      'Collection name. When not specified, the collection name is the filename when --path is file',
     required: false,
   }),
   type: flags.string({
