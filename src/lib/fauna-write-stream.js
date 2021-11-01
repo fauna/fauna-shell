@@ -102,7 +102,7 @@ class FaunaWriteStream extends stream.Writable {
     })
 
     this.log(
-      `Average record size ${avgRecordSize} bytes. Imports running in ${this.dynamicParallelRequest.capacity} parallel requests`
+      `Average record size is ${avgRecordSize} bytes. Imports running in ${this.dynamicParallelRequest.capacity} parallel requests`
     )
 
     await this.sampleData.releaseData((record) => this.processRecord(record))
@@ -121,10 +121,11 @@ class FaunaWriteStream extends stream.Writable {
     if (isBufferEmpty) {
       this.import([record])
     } else {
-      this.import(this.chunk)
+      this.import([...this.chunk])
       this.chunk = [record]
       this.currentChunkAvailableSize = CHUNK_SIZE - bytes
     }
+
     return this.dynamicParallelRequest.awaitFreeRequest()
   }
 
@@ -198,6 +199,7 @@ class FaunaWriteStream extends stream.Writable {
 
     if (this.chunk.length !== 0) {
       await this.import(this.chunk)
+      this.chunk = []
     }
 
     if (typeof next === 'function') next()
@@ -207,29 +209,31 @@ class FaunaWriteStream extends stream.Writable {
   }
 
   import(chunk) {
-    return this.dynamicParallelRequest.occupy(
-      this.client
-        .query(
-          q.Let(
-            {
-              import: q.Do(
-                chunk.map((data) =>
-                  q.Create(q.Collection(this.collection), { data })
-                )
-              ),
-            },
-            1
-          )
+    this.dynamicParallelRequest.occupy()
+    return this.client
+      .query(
+        q.Let(
+          {
+            import: q.Do(
+              chunk.map((data) =>
+                q.Create(q.Collection(this.collection), { data })
+              )
+            ),
+          },
+          1
         )
-        .then(() => {
-          this.totalImported += chunk.length
+      )
+      .then(() => {
+        this.totalImported += chunk.length
 
-          this.log(
-            `${this.totalImported} documents imported from ${this.source.path} to ${this.collection}`
-          )
-        })
-        .catch((error) => this.emit('error', error))
-    )
+        this.log(
+          `${this.totalImported} documents imported from ${this.source.path} to ${this.collection}`
+        )
+      })
+      .catch((error) => {
+        this.emit('error', error)
+      })
+      .finally(() => this.dynamicParallelRequest.release())
   }
 }
 

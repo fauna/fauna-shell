@@ -17,15 +17,17 @@ class DynamicParallelRequestsCount {
   }
 
   awaitFreeRequest() {
-    if (this.onGoingRequests <= this.capacity) return Promise.resolve()
+    if (this.onGoingRequests < this.capacity) {
+      return Promise.resolve()
+    }
 
     return new Promise((resolve) => {
       const interval = setInterval(() => {
-        if (this.onGoingRequests <= this.capacity) {
+        if (this.onGoingRequests < this.capacity) {
           clearInterval(interval)
           resolve()
         }
-      }, 500)
+      }, 100)
     })
   }
 
@@ -42,9 +44,9 @@ class DynamicParallelRequestsCount {
     })
   }
 
-  occupy(promise) {
+  occupy() {
     this.onGoingRequests++
-    return promise.finally(() => this.release())
+    // return promise.finally(() => this.release())
   }
 
   release() {
