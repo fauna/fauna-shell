@@ -17,9 +17,9 @@ const StringDate = (val) => {
 }
 
 class FaunaWriteStream extends stream.Writable {
-  CHUNK_SIZE = 500000 // 0.5mb
+  CHUNK_SIZE = 50000 // 0.5mb
 
-  MAX_PARALLEL_REQUESTS = 100
+  MAX_PARALLEL_REQUESTS = 5
 
   totalImported = 0
 
