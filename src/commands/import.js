@@ -12,7 +12,10 @@ class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json']
 
   streamStrategy = {
-    '.csv': (stream) => stream.pipe(csvStream.createStream()),
+    '.csv': (stream) =>
+      stream.pipe(
+        csvStream.createStream({ escapeChar: '"', enclosedChar: '"' })
+      ),
     '.json': (stream) => stream.pipe(StreamJson.withParser()),
   }
 
