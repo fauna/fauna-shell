@@ -199,22 +199,22 @@ const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags
 ImportCommand.flags = {
   path: flags.string({
     required: true,
-    description: 'Path to .csv/.json file either to dir with .csv/.json files',
+    description: 'Path to .csv/.json file, or path to folder containing .csv/.json files',
   }),
   db: flags.string({
-    description: 'Child database name',
+    description: 'Child database name; imported documents are stored in this database',
   }),
   collection: flags.string({
     description:
-      'Collection name. By default filename if --source is file, otherwise omitted',
+      'Collection name. When not specified, the collection name is the filename when --path is file',
     required: false,
   }),
   type: flags.string({
-    description: 'Column type casting. Might be `number`, `bool` or `date`',
+    description: `Column type casting, converts the column value to a Fauna type.\nFormat: <column>::<type>\n<column>: the name of the column to cast values\n<type>: one of 'number', 'bool', or 'date'.`,
     multiple: true,
   }),
   append: flags.boolean({
-    description: 'Allow append data to non empty collection',
+    description: 'Allows appending documents to a non-empty collection',
   }),
   ...commonFlags,
 }
