@@ -1,6 +1,7 @@
 const stream = require('stream')
 const sizeof = require('object-sizeof')
 const fauna = require('faunadb')
+const DynamicParallelRequestsCount = require('./dynamic-parallel-requests-count')
 const q = fauna.query
 
 const StringBool = (val) => {
@@ -16,16 +17,43 @@ const StringDate = (val) => {
   return q.Time(date.toISOString())
 }
 
+const SAMPLE_DESIRED_COUNT = 1000
+const CHUNK_SIZE = 25000 // 25kb
+const MAX_PARALLEL_REQUESTS = 10
+
+class SampleData {
+  data = []
+
+  sampleTotalSize = 0
+
+  isSampleCollected() {
+    return this.data.length === SAMPLE_DESIRED_COUNT
+  }
+
+  collectSample(record) {
+    if (this.isSampleCollected()) return true
+    const bytes = sizeof(record)
+    this.data.push(record)
+    this.sampleTotalSize += bytes
+    return this.isSampleCollected()
+  }
+
+  getAverageRecordSize() {
+    return Math.round(this.sampleTotalSize / this.data.length)
+  }
+
+  async releaseData(cb) {
+    while (this.data.length) {
+      await cb(this.data.shift())
+    }
+  }
+}
+
 class FaunaWriteStream extends stream.Writable {
-  CHUNK_SIZE = 50000 // 0.5mb
-
-  MAX_PARALLEL_REQUESTS = 5
-
   totalImported = 0
 
-  currentChunkAvailableSize = this.CHUNK_SIZE
-
-  onGoingRequests = 0
+  // how many bytes left to fullfil current chunk
+  currentChunkAvailableSize = CHUNK_SIZE
 
   chunk = []
 
@@ -44,31 +72,60 @@ class FaunaWriteStream extends stream.Writable {
     this.warn = warn
     this.source = source
     this.typeCasting = this.ensureTypeCasting(type)
+    this.sampleData = new SampleData()
+    this.dynamicParallelRequest = new DynamicParallelRequestsCount({
+      chunkSize: CHUNK_SIZE,
+      maxParallelRequests: MAX_PARALLEL_REQUESTS,
+    })
 
     this.log(`Start importing from ${this.source.path}`)
   }
 
   _write(chunk, enc, next) {
     this.ensureFieldsNames(chunk)
-    const bytes = sizeof(chunk)
+    const record = this.castType(chunk)
 
-    const chunkWithCastedTypes = this.castType(chunk)
+    if (this.dynamicParallelRequest.capacity) {
+      this.processRecord(record).then(next)
+    } else {
+      this.collectSampleForDynamicRequestsCount(record).then(next)
+    }
+  }
 
+  async collectSampleForDynamicRequestsCount(record) {
+    const isSampleCollected = this.sampleData.collectSample(record)
+    if (!isSampleCollected) return
+
+    const avgRecordSize = this.sampleData.getAverageRecordSize()
+    this.dynamicParallelRequest.calculateCapacity({
+      avgRecordSize,
+    })
+
+    this.log(
+      `Average record size ${avgRecordSize} bytes. Imports running in ${this.dynamicParallelRequest.capacity} parallel requests`
+    )
+
+    await this.sampleData.releaseData((record) => this.processRecord(record))
+  }
+
+  async processRecord(record) {
+    const bytes = sizeof(record)
     this.currentChunkAvailableSize -= bytes
     if (this.currentChunkAvailableSize >= 0) {
-      this.chunk.push(chunkWithCastedTypes)
-      return next()
+      this.chunk.push(record)
+      return
     }
-
+    // buffer might be empty if recieved read chunk size is greater than max buffer size
+    // therefore, if empty, import current read chunk, otherwise buffer
     const isBufferEmpty = this.chunk.length === 0
-
-    this.import(isBufferEmpty ? [chunkWithCastedTypes] : this.chunk)
-    if (!isBufferEmpty) {
-      this.chunk = [chunkWithCastedTypes]
+    if (isBufferEmpty) {
+      this.import([record])
+    } else {
+      this.import(this.chunk)
+      this.chunk = [record]
+      this.currentChunkAvailableSize = CHUNK_SIZE - bytes
     }
-    this.currentChunkAvailableSize = this.CHUNK_SIZE - bytes
-    this.awaitFreeOnGoingRequest().then(next)
-    return false
+    return this.dynamicParallelRequest.awaitFreeRequest()
   }
 
   ensureFieldsNames(chunk) {
@@ -129,67 +186,50 @@ class FaunaWriteStream extends stream.Writable {
     }, obj)
   }
 
-  awaitFreeOnGoingRequest() {
-    if (this.onGoingRequests <= this.MAX_PARALLEL_REQUESTS)
-      return Promise.resolve()
-
-    return new Promise((resolve) => {
-      const interval = setInterval(() => {
-        if (this.onGoingRequests <= this.MAX_PARALLEL_REQUESTS) {
-          clearInterval(interval)
-          resolve()
-        }
-      }, 500)
-    })
-  }
-
-  awaitAllOnGoingRequestCompleted() {
-    if (this.onGoingRequests === 0) return Promise.resolve()
-
-    return new Promise((resolve) => {
-      const interval = setInterval(() => {
-        if (this.onGoingRequests === 0) {
-          clearInterval(interval)
-          resolve()
-        }
-      }, 500)
-    })
-  }
-
   async end(next) {
-    if (this.chunk.length !== 0) {
-      this.import(this.chunk)
+    // in case file has less record than required for dynamic requests count
+    if (!this.dynamicParallelRequest.capacity) {
+      this.dynamicParallelRequest.calculateCapacity({
+        avgRecordSize: this.sampleData.getAverageRecordSize(),
+      })
     }
+
+    await this.sampleData.releaseData((record) => this.processRecord(record))
+
+    if (this.chunk.length !== 0) {
+      await this.import(this.chunk)
+    }
+
     if (typeof next === 'function') next()
 
-    await this.awaitAllOnGoingRequestCompleted()
+    await this.dynamicParallelRequest.awaitAllRequestCompleted()
     this.emit('end')
   }
 
   import(chunk) {
-    this.onGoingRequests++
-    return this.client
-      .query(
-        q.Let(
-          {
-            import: q.Do(
-              chunk.map((data) =>
-                q.Create(q.Collection(this.collection), { data })
-              )
-            ),
-          },
-          1
+    return this.dynamicParallelRequest.occupy(
+      this.client
+        .query(
+          q.Let(
+            {
+              import: q.Do(
+                chunk.map((data) =>
+                  q.Create(q.Collection(this.collection), { data })
+                )
+              ),
+            },
+            1
+          )
         )
-      )
-      .then(() => {
-        this.totalImported += chunk.length
+        .then(() => {
+          this.totalImported += chunk.length
 
-        this.log(
-          `${this.totalImported} documents imported from ${this.source.path} to ${this.collection}`
-        )
-      })
-      .catch((error) => this.emit('error', error))
-      .finally(() => this.onGoingRequests--)
+          this.log(
+            `${this.totalImported} documents imported from ${this.source.path} to ${this.collection}`
+          )
+        })
+        .catch((error) => this.emit('error', error))
+    )
   }
 }
 
