@@ -338,6 +338,20 @@ function cleanUpConnectionOptions(connectionOptions) {
   return res
 }
 
+class QueryError extends Error {
+  constructor(exp, faunaError, queryNumber, ...params) {
+    super(params)
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, QueryError)
+    }
+
+    this.exp = exp
+    this.faunaError = faunaError
+    this.queryNumber = queryNumber
+  }
+}
+
 /**
  * If `dbScope` and `role` aren't null, then the secret key is scoped to
  * the `dbScope` database for the provided user `role`.
