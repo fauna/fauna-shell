@@ -82,13 +82,20 @@ class FaunaWriteStream extends stream.Writable {
   }
 
   _write(chunk, enc, next) {
-    const record = this.castType(chunk)
+    const record = this.castType(this.trimKeys(chunk))
 
     if (this.dynamicParallelRequest.capacity) {
       this.processRecord(record).then(next)
     } else {
       this.collectSampleForDynamicRequestsCount(record).then(next)
     }
+  }
+
+  trimKeys(obj) {
+    return Object.keys(obj).reduce((memo, next) => {
+      memo[next.trim()] = obj[next]
+      return memo
+    }, {})
   }
 
   async collectSampleForDynamicRequestsCount(record) {
