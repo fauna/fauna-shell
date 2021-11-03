@@ -1,6 +1,6 @@
 const FaunaCommand = require('../lib/fauna-command.js')
 const inquirer = require('inquirer')
-const request = require('request-promise')
+const fetch = require('node-fetch')
 const faunadb = require('faunadb')
 const url = require('url')
 const os = require('os')
@@ -319,16 +319,14 @@ class CloudLoginCommand extends FaunaCommand {
   }
 
   handlePasswordStrategyError({ error }) {
-    if (!error.error) throw error
-    const errorResp = JSON.parse(error.error)
-
-    if (['otp_required', 'otp_invalid'].includes(errorResp.code)) {
-      if (errorResp.code === 'otp_invalid') this.warn(errorResp.message)
+    console.info(error)
+    if (['otp_required', 'otp_invalid'].includes(error.code)) {
+      if (error.code === 'otp_invalid') this.warn(error.message)
       return this.otp()
     }
 
-    if (errorResp.code === 'invalid_credentials') {
-      this.warn(errorResp.message)
+    if (error.code === 'invalid_credentials') {
+      this.warn(error.message)
       return this.passwordStrategy()
     }
 
@@ -336,24 +334,27 @@ class CloudLoginCommand extends FaunaCommand {
   }
 
   loginByPassword({ otp } = {}) {
-    return request({
+    return fetch([this.environment.auth, 'login'].join('/'), {
       method: 'POST',
-      uri: [this.environment.auth, 'login'].join('/'),
-      form: {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         ...this.credentials,
         session: 'Fauna Shell - ' + os.hostname(),
         ...(otp && { otp }),
-      },
-      resolveWithFullResponse: true,
+      }),
     })
-      .then((resp) => {
-        const data = JSON.parse(resp.body)
-        return {
-          global: data.secret || data.regionGroups.global.secret,
-          eu: data.regionGroups.eu.secret,
-          us: data.regionGroups.us.secret,
+      .then(async (resp) => {
+        if (resp.ok) {
+          return resp.json()
         }
+
+        throw await resp.json()
       })
+      .then((data) => ({
+        global: data.secret || data.regionGroups.global.secret,
+        eu: data.regionGroups.eu.secret,
+        us: data.regionGroups.us.secret,
+      }))
       .catch((error) => this.handlePasswordStrategyError({ error }))
   }
 
