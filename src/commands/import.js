@@ -21,6 +21,7 @@ class ImportCommand extends FaunaCommand {
   }
 
   ensureCsvHeader(headers) {
+    console.error('!@#@!# headers ', headers)
     const { duplicates } = headers.reduce(
       (memo, next) => {
         if (memo.counts[next]) {

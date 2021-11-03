@@ -26,5 +26,6 @@ module.exports.getEndpoint = () =>
 const fqlToJsonString = (fql) => JSON.stringify(q.wrap(fql))
 module.exports.fqlToJsonString = fqlToJsonString
 
-module.exports.matchFqlReq = (fql) => (req) =>
-  JSON.stringify(req).replace(/\\"/g, '"').includes(fqlToJsonString(fql))
+module.exports.matchFqlReq = (fql) => (req) => {
+  return JSON.stringify(req).replace(/\\"/g, '"').includes(fqlToJsonString(fql))
+}
