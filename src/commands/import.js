@@ -12,11 +12,51 @@ class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json']
 
   streamStrategy = {
-    '.csv': (stream) =>
-      stream.pipe(
-        csvStream.createStream({ escapeChar: '"', enclosedChar: '"' })
-      ),
+    '.csv': (stream) => {
+      const csv = csvStream.createStream({ escapeChar: '"', enclosedChar: '"' })
+      csv.on('header', this.ensureCsvHeader)
+      return stream.pipe(csv)
+    },
     '.json': (stream) => stream.pipe(StreamJson.withParser()),
+  }
+
+  ensureCsvHeader(headers) {
+    const { duplicates } = headers.reduce(
+      (memo, next) => {
+        if (memo.counts[next]) {
+          memo.counts[next]++
+          memo.duplicates.add(next)
+        }
+
+        memo.counts[next] = 1
+        return memo
+      },
+      {
+        counts: {},
+        duplicates: new Set(),
+      }
+    )
+
+    if (duplicates.size) {
+      throw new Error(
+        `File should not have duplicates headers. Please check following header(s): ${[
+          ...duplicates,
+        ]}`
+      )
+    }
+
+    const invalid = headers.filter(
+      (fieldName) => !/^[a-zA-Z]\w*$/.test(fieldName)
+    )
+
+    if (invalid.length > 0) {
+      this.emit(
+        'error',
+        new Error(
+          `${invalid} field(s) has invalid characters. Only alphanumeric characters are allowed and name must start with a letter`
+        )
+      )
+    }
   }
 
   async run() {
@@ -199,10 +239,12 @@ const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags
 ImportCommand.flags = {
   path: flags.string({
     required: true,
-    description: 'Path to .csv/.json file, or path to folder containing .csv/.json files',
+    description:
+      'Path to .csv/.json file, or path to folder containing .csv/.json files',
   }),
   db: flags.string({
-    description: 'Child database name; imported documents are stored in this database',
+    description:
+      'Child database name; imported documents are stored in this database',
   }),
   collection: flags.string({
     description:
