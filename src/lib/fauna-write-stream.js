@@ -147,7 +147,10 @@ class FaunaWriteStream extends stream.Writable {
     )
 
     if (types.invalidType.length !== 0) {
-      this.error(`Following columns has invalid type: ${types.invalidType}`)
+      this.emit(
+        'error',
+        new Error(`Following columns has invalid type: ${types.invalidType}`)
+      )
     }
 
     return types.casting
