@@ -200,7 +200,12 @@ class FaunaWriteStream extends stream.Writable {
           {
             import: q.Do(
               chunk.map((data) =>
-                q.Create(q.Collection(this.collection), { data })
+                q.Create(q.Collection(this.collection), {
+                  data: Object.keys(data).reduce(
+                    (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
+                    {}
+                  ),
+                })
               )
             ),
           },

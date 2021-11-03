@@ -46,7 +46,8 @@ class ImportCommand extends FaunaCommand {
     }
 
     const invalid = headers.filter(
-      (fieldName) => !/^[a-zA-Z]\w*$/.test(fieldName)
+      (fieldName) =>
+        !/^[a-zA-Z0-9=:;_|!@#$%&~^,(){}\[\]\t\ -?+.]+$/.test(fieldName.trim())
     )
 
     if (invalid.length > 0) {
