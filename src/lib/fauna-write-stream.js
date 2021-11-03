@@ -82,7 +82,6 @@ class FaunaWriteStream extends stream.Writable {
   }
 
   _write(chunk, enc, next) {
-    this.ensureFieldsNames(chunk)
     const record = this.castType(chunk)
 
     if (this.dynamicParallelRequest.capacity) {
@@ -127,24 +126,6 @@ class FaunaWriteStream extends stream.Writable {
     }
 
     return this.dynamicParallelRequest.awaitFreeRequest()
-  }
-
-  ensureFieldsNames(chunk) {
-    if (this.source.ext !== '.csv' || this.fieldsValidated) return
-    const invalid = Object.keys(chunk).filter(
-      (fieldName) => !/^[a-zA-Z]\w*$/.test(fieldName)
-    )
-
-    if (invalid.length > 0) {
-      this.emit(
-        'error',
-        new Error(
-          `${invalid} field(s) has invalid characters. Only alphanumeric characters are allowed and name must start with a letter`
-        )
-      )
-    }
-
-    this.fieldsValidated = true
   }
 
   ensureTypeCasting(type) {
