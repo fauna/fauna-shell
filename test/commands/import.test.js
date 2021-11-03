@@ -43,33 +43,20 @@ describe('import', () => {
     .it('runs import for non empty collection with append', (ctx) => {
       expect(ctx.stdout).to.contain('Success: Import from ./files/test.json')
     })
-
-  mockTest(test, {
-    isCollectionEmpty: true,
-    isDirectory: false,
-    invalidFields: true,
-  })
-    .stdout()
-    .command(withOpts(['import', '--path', './files/test.json']))
-    .it('runs import invalid fields', (ctx) => {
-      expect(ctx.stdout).to.contain('Success: Import from ./files/test.json')
-    })
 })
 
 function mockTest(
   test,
-  { isCollectionEmpty, isDirectory, withAppend, invalidFields, isBigFile }
+  { isCollectionEmpty, isDirectory, withAppend, isBigFile }
 ) {
   const originalLstatSync = fs.lstatSync
   const originalStatSync = fs.lstatSync
 
-  const data = new Array(10)
-    .fill('')
-    .map((_, index) => ({ [invalidFields ? '!invalid!' : 'valud']: index }))
+  const data = new Array(10).fill('').map((_, index) => ({ field: index }))
   const collection = 'test'
 
   return test
-    .nock(getEndpoint(), { allowUnmocked: true }, (api) => {
+    .nock(getEndpoint(), (api) => {
       api
         .post('/', matchFqlReq(q.Now()))
         .reply(200, new Date())
@@ -82,7 +69,11 @@ function mockTest(
         })
       if (isCollectionEmpty || withAppend) {
         api
-          .post('/', matchFqlReq(ImportQuery([...data], collection)))
+          .post(
+            '/',
+            // only first 3 element in a chunk (25kb)
+            matchFqlReq(ImportQuery([...data.slice(0, 3)], collection))
+          )
           .reply(200, {
             resource: {},
           })
