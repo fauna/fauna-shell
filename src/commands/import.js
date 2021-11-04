@@ -17,6 +17,10 @@ class ImportCommand extends FaunaCommand {
     '.json': () => StreamJson.withParser(),
   }
 
+  isDir(path) {
+    return fs.lstatSync(path).isDirectory()
+  }
+
   async run() {
     const { db, path } = this.flags
     const { client } = await (db
@@ -26,10 +30,8 @@ class ImportCommand extends FaunaCommand {
 
     this.log(`Database${db ? `'${db}'` : ''} connection established`)
 
-    const isDir = fs.lstatSync(path).isDirectory()
-
     let importFn
-    if (isDir) {
+    if (this.isDir(path)) {
       this.flags.collection = undefined // use file name instead
       importFn = this.importDir
     } else {
@@ -50,6 +52,10 @@ class ImportCommand extends FaunaCommand {
     }
 
     for (const file of files) {
+      if (this.isDir(p.resolve(path, file))) {
+        this.warn(`"${file}" subdirectory is skipped from processing`)
+        continue
+      }
       try {
         await this.importFile(p.join(path, file))
       } catch (e) {
