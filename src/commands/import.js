@@ -1,10 +1,11 @@
 const fs = require('fs')
-const csvStream = require('csv-stream')
 const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
 const StreamJson = require('../lib/json-stream')
+const createStream = require('../lib/csv-stream')
 const FaunaWriteStream = require('../lib/fauna-write-stream')
 const faunadb = require('faunadb')
+const { pipeline } = require('stream')
 const p = require('path')
 const q = faunadb.query
 
@@ -12,52 +13,8 @@ class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json']
 
   streamStrategy = {
-    '.csv': (stream) => {
-      const csv = csvStream.createStream({ escapeChar: '"', enclosedChar: '"' })
-      csv.on('header', this.ensureCsvHeader)
-      return stream.pipe(csv)
-    },
-    '.json': (stream) => stream.pipe(StreamJson.withParser()),
-  }
-
-  ensureCsvHeader(headers) {
-    const { duplicates } = headers.reduce(
-      (memo, next) => {
-        if (memo.counts[next]) {
-          memo.counts[next]++
-          memo.duplicates.add(next)
-        }
-
-        memo.counts[next] = 1
-        return memo
-      },
-      {
-        counts: {},
-        duplicates: new Set(),
-      }
-    )
-
-    if (duplicates.size) {
-      throw new Error(
-        `File should not have duplicates headers. Please check following header(s): ${[
-          ...duplicates,
-        ]}`
-      )
-    }
-
-    const invalid = headers.filter(
-      (fieldName) =>
-        !/^[a-zA-Z0-9=:;_|!@#$%&~^,(){}[\]\t -?+.]+$/.test(fieldName.trim())
-    )
-
-    if (invalid.length > 0) {
-      this.emit(
-        'error',
-        new Error(
-          `${invalid} field(s) has invalid characters. Only alphanumeric characters are allowed and name must start with a letter`
-        )
-      )
-    }
+    '.csv': (flags) => createStream(flags),
+    '.json': () => StreamJson.withParser(),
   }
 
   async run() {
@@ -156,12 +113,17 @@ class ImportCommand extends FaunaCommand {
       type: this.flags.type,
     })
     await new Promise((resolve, reject) => {
-      this.streamStrategy[source.ext](
-        fs.createReadStream(source.path, { highWaterMark: 500000 })
+      pipeline(
+        fs.createReadStream(source.path, { highWaterMark: 500000 }),
+        this.streamStrategy[source.ext](this.flags),
+        faunaWriteStream,
+        (error) => {
+          faunaWriteStream.awaitAllRequestCompleted().then(() => {
+            if (error) return reject(error)
+            resolve()
+          })
+        }
       )
-        .pipe(faunaWriteStream)
-        .on('error', reject)
-        .on('end', resolve)
     })
   }
 
@@ -257,6 +219,9 @@ ImportCommand.flags = {
   }),
   append: flags.boolean({
     description: 'Allows appending documents to a non-empty collection',
+  }),
+  'allow-short-rows': flags.boolean({
+    description: 'Allows rows which are shorter than the number of headers',
   }),
   ...commonFlags,
 }
