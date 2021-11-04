@@ -66,7 +66,7 @@ function createStream(flags) {
       this.emit(
         'error',
         new Error(
-          `${invalid} field(s) has invalid characters. Only alphanumeric characters are allowed and name must start with a letter`
+          `${invalid} field(s) has invalid characters. Supported: [a-zA-Z0-9=:;_|!@#$%&~^,(){}[\\]\\t -?+.]+`
         )
       )
     }
