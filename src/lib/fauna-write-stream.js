@@ -76,6 +76,7 @@ class FaunaWriteStream extends stream.Writable {
     this.dynamicParallelRequest = new DynamicParallelRequestsCount({
       chunkSize: CHUNK_SIZE,
       maxParallelRequests: MAX_PARALLEL_REQUESTS,
+      log,
     })
 
     this.log(`Start importing from ${this.source.path}`)
@@ -106,11 +107,6 @@ class FaunaWriteStream extends stream.Writable {
     this.dynamicParallelRequest.calculateCapacity({
       avgRecordSize,
     })
-
-    this.log(
-      `Average record size is ${avgRecordSize} bytes. Imports running in ${this.dynamicParallelRequest.capacity} parallel requests`
-    )
-
     await this.sampleData.releaseData((record) => this.processRecord(record))
   }
 

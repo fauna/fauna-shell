@@ -1,9 +1,10 @@
 class DynamicParallelRequestsCount {
   onGoingRequests = 0
 
-  constructor({ maxParallelRequests, chunkSize }) {
+  constructor({ maxParallelRequests, chunkSize, log }) {
     this.maxParallelRequests = maxParallelRequests
     this.chunkSize = chunkSize
+    this.log = log
   }
 
   calculateCapacity({ avgRecordSize }) {
@@ -13,6 +14,10 @@ class DynamicParallelRequestsCount {
     this.capacity = Math.max(
       1,
       Math.min(expectedRequestCounts, this.maxParallelRequests)
+    )
+
+    this.log(
+      `Average record size is ${avgRecordSize} bytes. Imports running in ${this.capacity} parallel requests`
     )
   }
 
