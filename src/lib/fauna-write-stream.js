@@ -221,15 +221,35 @@ class FaunaWriteStream extends stream.Writable {
       )
       .then(() => {
         this.totalImported += chunk.length
-
         this.log(
           `${this.totalImported} documents imported from ${this.source.path} to ${this.collection}`
         )
       })
       .catch((error) => {
-        this.emit('error', error)
+        const failedDocument = this.findFailedDocumentFromError(error)
+        this.emit(
+          'error',
+          new Error(
+            `${error.description}\n${
+              failedDocument ? JSON.stringify(failedDocument) : ''
+            }`
+          )
+        )
       })
       .finally(() => this.dynamicParallelRequest.release())
+  }
+
+  findFailedDocumentFromError(error) {
+    const parsedError = error.requestResult.responseContent.errors[0]
+    let failed = error.requestResult.requestContent.raw
+    parsedError.position.forEach((position) => {
+      failed = failed[position === 'create' ? 'params' : position]
+      if (failed._isFaunaExpr) {
+        failed = failed.raw
+      }
+    })
+
+    return failed.object.data.raw.object
   }
 }
 
