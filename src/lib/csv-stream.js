@@ -21,7 +21,7 @@ function createStream(flags) {
       this.emit(
         'error',
         new Error(
-          `Row ${rowNumber} has less columns that described at the headers. Add '--allow-short-rows' to allow ows which are shorter than the number of headers`
+          `Row ${rowNumber} has less columns than headers. Add '--allow-short-rows' to allow rows which are shorter than the number of headers`
         )
       )
     }
