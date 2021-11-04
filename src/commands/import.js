@@ -10,11 +10,12 @@ const { pipeline } = require('stream')
 const p = require('path')
 const q = faunadb.query
 class ImportCommand extends FaunaCommand {
-  supportedExt = ['.csv', '.json']
+  supportedExt = ['.csv', '.json', '.jsonl']
 
   streamStrategy = {
     '.csv': (flags) => createStream(flags),
     '.json': () => StreamJson.withParser(),
+    '.jsonl': () => StreamJson.withParser(),
   }
 
   isDir(path) {
