@@ -1,4 +1,5 @@
 const fs = require('fs')
+
 const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
 const StreamJson = require('../lib/json-stream')
@@ -8,7 +9,6 @@ const faunadb = require('faunadb')
 const { pipeline } = require('stream')
 const p = require('path')
 const q = faunadb.query
-
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json']
 
@@ -51,16 +51,30 @@ class ImportCommand extends FaunaCommand {
       )
     }
 
+    const failedFiles = []
+
     for (const file of files) {
-      if (this.isDir(p.resolve(path, file))) {
-        this.warn(`"${file}" subdirectory is skipped from processing`)
+      const subPath = p.resolve(path, file)
+      if (this.isDir(subPath)) {
+        const message = `"${file}" subdirectory is skipped from processing`
+        failedFiles.push(message)
+        this.warn(message)
         continue
       }
       try {
-        await this.importFile(p.join(path, file))
+        await this.importFile(subPath)
       } catch (e) {
+        failedFiles.push(e.message ? e.message : e)
         this.warn(e.message ? e.message : e)
       }
+    }
+
+    this.log('\n\nImport completed')
+    if (failedFiles) {
+      this.warn(`${failedFiles.length} files failed to import`)
+      failedFiles.forEach(this.warn)
+    } else {
+      this.success('All files imported')
     }
   }
 
