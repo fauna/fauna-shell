@@ -185,11 +185,11 @@ class FaunaWriteStream extends stream.Writable {
       await this.import(this.chunk)
       this.chunk = []
     }
+    super.end(next)
+  }
 
-    if (typeof next === 'function') next()
-
-    await this.dynamicParallelRequest.awaitAllRequestCompleted()
-    this.emit('end')
+  awaitAllRequestCompleted() {
+    return this.dynamicParallelRequest.awaitAllRequestCompleted()
   }
 
   import(chunk) {
