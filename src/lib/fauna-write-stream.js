@@ -5,8 +5,8 @@ const DynamicParallelRequestsCount = require('./dynamic-parallel-requests-count'
 const q = fauna.query
 
 const StringBool = (val) => {
-  const trully = ['true', 'yes', '1', 1, true]
-  return trully.includes(val)
+  const trully = ['true', 't', 'yes', '1', 1, true]
+  return trully.includes(val.toLowerCase())
 }
 
 const StringDate = (val) => {
