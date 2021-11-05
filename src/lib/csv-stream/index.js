@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 const Stream = require('stream')
 const Parser = require('./parser')
 
@@ -116,7 +117,7 @@ class CSVStream extends Stream {
 
     const invalid = headers.filter(
       (fieldName) =>
-        !/^[a-zA-Z0-9=:;_|!@#$%&~^(){}\t \-\+\.\?]+$/.test(fieldName.trim())
+        !/^[a-zA-Z0-9=:;_|!@#$%&~^,(){}[]\t\ -?+.]+$/.test(fieldName.trim())
     )
 
     if (invalid.length > 0) {
