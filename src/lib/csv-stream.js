@@ -59,7 +59,7 @@ function createStream(flags) {
 
     const invalid = headers.filter(
       (fieldName) =>
-        !/^[a-zA-Z0-9=:;_|!@#$%&~^,(){}[\]\t -?+.]+$/.test(fieldName.trim())
+	 !/^[a-zA-Z0-9=:;_|!@#$%&~^(){}\t \-\+\.\?]+$/.test(fieldName.trim())
     )
 
     if (invalid.length > 0) {
