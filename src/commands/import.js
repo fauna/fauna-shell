@@ -3,17 +3,23 @@ const fs = require('fs')
 const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
 const StreamJson = require('../lib/json-stream')
-const createStream = require('../lib/csv-stream')
 const FaunaWriteStream = require('../lib/fauna-write-stream')
 const faunadb = require('faunadb')
 const { pipeline } = require('stream')
 const p = require('path')
+const CSVStream = require('../lib/csv-stream')
 const q = faunadb.query
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json', '.jsonl']
 
   streamStrategy = {
-    '.csv': (flags) => createStream(flags),
+    '.csv': (flags) =>
+      new CSVStream({
+        flags,
+        escapeChar: '"',
+        enclosedChar: '"',
+        endLine: '\r\n',
+      }),
     '.json': () => StreamJson.withParser(),
     '.jsonl': () => StreamJson.withParser(),
   }

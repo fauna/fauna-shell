@@ -94,9 +94,7 @@ class FaunaWriteStream extends stream.Writable {
 
   prepareRecord(obj) {
     return Object.keys(obj).reduce((memo, next) => {
-      if (obj[next] !== '') {
-        memo[next.trim()] = obj[next]
-      }
+      memo[next.trim()] = obj[next]
       return memo
     }, {})
   }
