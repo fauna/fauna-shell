@@ -18,7 +18,7 @@ class ImportCommand extends FaunaCommand {
         flags,
         escapeChar: '"',
         enclosedChar: '"',
-        endLine: '\r\n',
+        endLine: ['\r', '\n', '\r\n'],
       }),
     '.json': () => StreamJson.withParser(),
     '.jsonl': () => StreamJson.withParser(),
