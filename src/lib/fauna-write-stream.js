@@ -79,10 +79,13 @@ class FaunaWriteStream extends stream.Writable {
       log,
     })
 
+    this.chunkReceived = false
+
     this.log(`Start importing from ${this.source.path}`)
   }
 
   _write(chunk, enc, next) {
+    this.chunkReceived = true
     const record = this.castType(this.prepareRecord(chunk))
 
     if (this.dynamicParallelRequest.capacity) {
@@ -175,6 +178,10 @@ class FaunaWriteStream extends stream.Writable {
   }
 
   async end(next) {
+    if (!this.chunkReceived) {
+      this.emit('error', new Error('No data for import found'))
+      return
+    }
     // in case file has less record than required for dynamic requests count
     if (!this.dynamicParallelRequest.capacity) {
       this.dynamicParallelRequest.calculateCapacity({
