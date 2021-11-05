@@ -65,15 +65,18 @@ class ImportCommand extends FaunaCommand {
       try {
         await this.importFile(subPath)
       } catch (e) {
-        failedFiles.push(e.message ? e.message : e)
-        this.warn(e.message ? e.message : e)
+        const warning = e.message ? e.message : e
+        failedFiles.push({ file, warning })
+        this.warn(warning)
       }
     }
 
     this.log('\n\nImport completed')
-    if (failedFiles) {
+    if (failedFiles.length > 0) {
       this.warn(`${failedFiles.length} files failed to import`)
-      failedFiles.forEach(this.warn)
+      failedFiles.forEach((failed) =>
+        this.warn(`${failed.file} => ${failed.warning}`)
+      )
     } else {
       this.success('All files imported')
     }
