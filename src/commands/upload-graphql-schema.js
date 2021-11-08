@@ -1,6 +1,6 @@
 const FaunaCommand = require('../lib/fauna-command.js')
 const { flags } = require('@oclif/command')
-const request = require('request-promise')
+const fetch = require('node-fetch')
 const fs = require('fs')
 const path = require('path')
 const { errorOut } = require('../lib/misc.js')
@@ -24,12 +24,14 @@ class UploadGraphQLSchemaCommand extends FaunaCommand {
       } = await this.getClient()
 
       console.info(`UPLOADING SCHEMA (mode=${mode}): ${graphqlFilePath}`)
-      const text = await request({
-        uri: `${scheme}://${graphqlHost}:${graphqlPort}/import?mode=${mode}`,
-        method: 'POST',
-        headers: { AUTHORIZATION: `Bearer ${secret}` },
-        body: fs.readFileSync(graphqlFilePath),
-      }).then((response) => response.body)
+      const text = await fetch(
+        `${scheme}://${graphqlHost}:${graphqlPort}/import?mode=${mode}`,
+        {
+          method: 'POST',
+          headers: { AUTHORIZATION: `Bearer ${secret}` },
+          body: fs.readFileSync(graphqlFilePath),
+        }
+      ).then((response) => response.text())
 
       console.info('RESPONSE:')
       console.info(text)

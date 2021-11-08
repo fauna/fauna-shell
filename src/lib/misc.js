@@ -8,8 +8,7 @@ const { cli } = require('cli-ux')
 const faunadb = require('faunadb')
 const escodegen = require('escodegen')
 const Errors = require('@oclif/errors')
-var rp = require('request-promise')
-const crossFetch = require('cross-fetch')
+const fetch = require('node-fetch')
 
 const FAUNA_CLOUD_DOMAIN = 'db.fauna.com'
 const ERROR_NO_DEFAULT_ENDPOINT =
@@ -136,32 +135,13 @@ function confirmEndpointDelete(alias) {
 function saveEndpoint(config, endpoint, alias, secret) {
   var port = endpoint.port ? `:${endpoint.port}` : ''
   var uri = `${endpoint.protocol}//${endpoint.hostname}${port}`
-  var options = {
-    method: 'HEAD',
-    uri: uri,
-    resolveWithFullResponse: true,
-  }
 
-  return rp(options)
-    .then(function (res) {
-      if ('x-faunadb-build' in res.headers) {
-        return saveConfig(addEndpoint(config, endpoint, alias, secret))
-      } else {
-        throw new Error(`'${alias}' is not a FaunaDB endopoint`)
-      }
-    })
-    .catch(function (err) {
-      // Fauna returns a 401 which is an error for the request-promise library
-      if (err.response !== undefined) {
-        if ('x-faunadb-build' in err.response.headers) {
-          return saveConfig(addEndpoint(config, endpoint, alias, secret))
-        } else {
-          throw new Error(`'${alias}' is not a FaunaDB endopoint`)
-        }
-      } else {
-        throw err
-      }
-    })
+  return fetch(uri, { method: 'HEAD' }).then(function (res) {
+    if (res.headers.get('x-faunadb-build')) {
+      return saveConfig(addEndpoint(config, endpoint, alias, secret))
+    }
+    throw new Error(`'${alias}' is not a FaunaDB endopoint`)
+  })
 }
 
 function addEndpoint(config, endpoint, alias, secret) {
@@ -354,7 +334,7 @@ function cleanUpConnectionOptions(connectionOptions) {
       res[key] = connectionOptions[key]
     }
   })
-  res.fetch = crossFetch // force http1
+  res.fetch = fetch // force http1
   return res
 }
 
