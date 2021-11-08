@@ -33,9 +33,11 @@ class Parser extends EventEmitter {
     this.emit('end')
   }
 
-  parse(s) {
+  parse(raw) {
+    const s = raw.replace(/\r\n/g, '\n')
     for (var i = 0; i < s.length; i++) {
       var c = s[i]
+
       if (
         this.escapeChar === c &&
         this._enclosing &&
@@ -74,8 +76,9 @@ class Parser extends EventEmitter {
         if (this._enclosing) {
           this._text = this._text + c
         } else {
-          if (this._text[this._text.length - 1] === '\r')
+          if (this._text[this._text.length - 1] === '\r') {
             this._text = this._text.slice(0, this._text.length - 1)
+          }
           if (this._index < this.columnOffset) {
             //skip line
           } else if (
