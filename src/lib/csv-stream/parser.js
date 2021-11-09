@@ -3,7 +3,7 @@
  * Copyright(c) 2012 HipSnip Limited
  * Author Rémy Loubradou <remyloubradou@gmail.com>
  * MIT Licensed
- * 
+ *
  * Originally imported to Fauna Shell from this file:
  * https://github.com/lbdremy/node-csv-stream/blob/8aea01108b/lib/parser.js
  */

@@ -169,4 +169,3 @@ class CSVStream extends Stream {
 }
 
 module.exports = CSVStream
-
