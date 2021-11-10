@@ -493,6 +493,8 @@ Queries have to be written in the syntax supported by FaunaDB's Javascript [driv
   - [`fauna shell [DBNAME]`](#fauna-shell-dbname)
   - [`fauna eval [DBNAME] [QUERY]`](#fauna-eval-dbname-query)
   - [`fauna upload-graphql-schema graphqlFilePath`](#fauna-upload-graphql-schema-graphqlfilepath)
+  - [`fauna import --path FILE_PATH`](#fauna-import---path-file_path)
+- [Development](#development)
 
 ## `fauna add-endpoint ENDPOINT`
 
@@ -917,6 +919,43 @@ EXAMPLES
 ```
 
 _See code: [src/commands/upload-graphql-schema.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/upload-graphql-schema.js)_
+## `fauna import --path FILE_PATH`
+
+Import data to dana
+
+```
+USAGE
+  $ fauna import --path FILE_PATH
+
+
+OPTIONS
+  --allow-short-rows       Allows rows which are shorter than the number of headers
+  --append                 Allows appending documents to a non-empty collection
+  --collection=collection  Collection name. When not specified, the collection name is the filename when --path is file
+  --db=db                  Child database name; imported documents are stored in this database
+  --domain=domain          FaunaDB server domain
+  --endpoint=endpoint      FaunaDB server endpoint
+  --path=path              (required) Path to .csv/.json file, or path to folder containing .csv/.json files
+  --port=port              Connection port
+  --scheme=https|http      Connection scheme
+  --secret=secret          FaunaDB secret key
+  --timeout=timeout        Connection timeout in milliseconds
+
+  --type=type              Column type casting, converts the column value to a Fauna type.
+                           Format: <column>::<type>
+                           <column>: the name of the column to cast values
+                           <type>: one of 'number', 'bool', or 'date'.
+
+EXAMPLES
+  $ fauna import --path ./samplefile.csv
+  $ fauna import --append --path ./samplefile.csv
+  $ fauna import --db=sampleDB --collection=Samplecollection --path ./samplefile.csv
+  $ fauna import --db=sampleDB --path ./dump
+  $ fauna import --type=header_name::date --type=hdr2::number --type=hdrX::bool --path ./samplefile.csv
+```
+
+_See code: [src/commands/upload-graphql-schema.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/upload-graphql-schema.js)_
+
 
 <!-- commandsstop -->
 
