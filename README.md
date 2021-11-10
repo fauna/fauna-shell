@@ -491,6 +491,7 @@ Queries have to be written in the syntax supported by FaunaDB's Javascript [driv
   - [`fauna list-keys`](#fauna-list-keys)
   - [`fauna run-queries DBNAME`](#fauna-run-queries-dbname)
   - [`fauna shell [DBNAME]`](#fauna-shell-dbname)
+  - [`fauna import`](#fauna-import)
   - [`fauna eval [DBNAME] [QUERY]`](#fauna-eval-dbname-query)
   - [`fauna upload-graphql-schema graphqlFilePath`](#fauna-upload-graphql-schema-graphqlfilepath)
 
@@ -513,7 +514,7 @@ EXAMPLE
   $ fauna add-endpoint http://localhost:8443/ --alias localhost --key secret
 ```
 
-_See code: [src/commands/add-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/add-endpoint.js)_
+_See code: [src/commands/add-endpoint.js](src/commands/add-endpoint.js)_
 
 ## `fauna autocomplete [SHELL]`
 
@@ -553,7 +554,7 @@ EXAMPLE
   $ fauna cloud-login
 ```
 
-_See code: [src/commands/cloud-login.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/cloud-login.js)_
+_See code: [src/commands/cloud-login.js](commands/cloud-login.js)_
 
 ## `fauna create-database DBNAME`
 
@@ -581,7 +582,7 @@ EXAMPLE
   $ fauna create-database dbname
 ```
 
-_See code: [src/commands/create-database.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/create-database.js)_
+_See code: [src/commands/create-database.js](commands/create-database.js)_
 
 ## `fauna create-key DBNAME [ROLE]`
 
@@ -610,7 +611,7 @@ EXAMPLE
   $ fauna create-key dbname admin
 ```
 
-_See code: [src/commands/create-key.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/create-key.js)_
+_See code: [src/commands/create-key.js](src/commands/create-key.js)_
 
 ## `fauna default-endpoint ENDPOINT_ALIAS`
 
@@ -630,7 +631,7 @@ EXAMPLE
   $ fauna default-endpoint endpoint
 ```
 
-_See code: [src/commands/default-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/default-endpoint.js)_
+_See code: [src/commands/default-endpoint.js](src/commands/default-endpoint.js)_
 
 ## `fauna delete-database DBNAME`
 
@@ -658,7 +659,7 @@ EXAMPLE
   $ fauna delete-database dbname
 ```
 
-_See code: [src/commands/delete-database.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/delete-database.js)_
+_See code: [src/commands/delete-database.js](src/commands/delete-database.js)_
 
 ## `fauna delete-endpoint ENDPOINT_ALIAS`
 
@@ -678,7 +679,7 @@ EXAMPLE
   $ fauna delete-endpoint endpoint_alias
 ```
 
-_See code: [src/commands/delete-endpoint.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/delete-endpoint.js)_
+_See code: [src/commands/delete-endpoint.js](src/commands/delete-endpoint.js)_
 
 ## `fauna delete-key KEYNAME`
 
@@ -706,7 +707,7 @@ EXAMPLE
   $ fauna delete-key 123456789012345678
 ```
 
-_See code: [src/commands/delete-key.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/delete-key.js)_
+_See code: [src/commands/delete-key.js](src/commands/delete-key.js)_
 
 ## `fauna help [COMMAND]`
 
@@ -748,7 +749,7 @@ EXAMPLE
   $ fauna list-databases
 ```
 
-_See code: [src/commands/list-databases.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/list-databases.js)_
+_See code: [src/commands/list-databases.js](src/commands/list-databases.js)_
 
 ## `fauna list-endpoints`
 
@@ -765,7 +766,7 @@ EXAMPLE
   $ fauna list-endpoints
 ```
 
-_See code: [src/commands/list-endpoints.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/list-endpoints.js)_
+_See code: [src/commands/list-endpoints.js](src/commands/list-endpoints.js)_
 
 ## `fauna list-keys`
 
@@ -790,7 +791,7 @@ EXAMPLE
   $ fauna list-keys
 ```
 
-_See code: [src/commands/list-keys.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/list-keys.js)_
+_See code: [src/commands/list-keys.js](src/commands/list-keys.js)_
 
 ## `fauna run-queries DBNAME`
 
@@ -819,7 +820,7 @@ EXAMPLE
   $ fauna run-queries dbname --file=/path/to/queries.fql
 ```
 
-_See code: [src/commands/run-queries.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/run-queries.js)_
+_See code: [src/commands/run-queries.js](src/commands/run-queries.js)_
 
 ## `fauna shell [DBNAME]`
 
@@ -847,7 +848,7 @@ EXAMPLE
   $ fauna shell dbname
 ```
 
-_See code: [src/commands/shell.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/shell.js)_
+_See code: [src/commands/shell.js](src/commands/shell.js)_
 
 ## `fauna eval [DBNAME] [QUERY]`
 
@@ -887,7 +888,43 @@ EXAMPLES
   $ fauna eval "Add(2,3)" "--format=json" "--output=/tmp/result"
 ```
 
-_See code: [src/commands/eval.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/eval.js)_
+_See code: [src/commands/eval.js](src/commands/eval.js)_
+
+## `fauna import`
+
+Import data to Fauna
+
+```
+USAGE
+  $ fauna import --path [DATA]
+
+OPTIONS
+  --allow-short-rows       Allows rows which are shorter than the number of headers
+  --append                 Allows appending documents to a non-empty collection
+  --collection=collection  Collection name. When not specified, the collection name is the filename when --path is file
+  --db=db                  Child database name; imported documents are stored in this database
+  --domain=domain          FaunaDB server domain
+  --endpoint=endpoint      FaunaDB server endpoint
+  --path=path              (required) Path to .csv/.json file, or path to folder containing .csv/.json files
+  --port=port              Connection port
+  --scheme=https|http      Connection scheme
+  --secret=secret          FaunaDB secret key
+  --timeout=timeout        Connection timeout in milliseconds
+
+  --type=type              Column type casting, converts the column value to a Fauna type.
+                           Format: <column>::<type>
+                           <column>: the name of the column to cast values
+                           <type>: one of 'number', 'bool', or 'date'.
+
+EXAMPLES
+  $ fauna import --path ./collection_name.csv
+  $ fauna import --append --path ./collection.csv
+  $ fauna import --db=sampleDB --collection=SampleCollection --path ./datafile.csv
+  $ fauna import --db=sampleDB --path ./dump
+  $ fauna import --type=header_name::date --type=hdr2::number --type=hdrX::bool --path ./collection.csv
+```
+
+_See code: [src/commands/import.js](src/commands/import.js)_
 
 ## `fauna upload-graphql-schema graphqlFilePath`
 
@@ -916,7 +953,7 @@ EXAMPLES
   $ fauna upload-graphql-schema ./schema.gql --mode override
 ```
 
-_See code: [src/commands/upload-graphql-schema.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/upload-graphql-schema.js)_
+_See code: [src/commands/upload-graphql-schema.js](src/commands/upload-graphql-schema.js)_
 
 <!-- commandsstop -->
 
