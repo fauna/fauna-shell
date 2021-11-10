@@ -63,9 +63,9 @@ class ImportCommand extends FaunaCommand {
     for (const file of files) {
       const subPath = p.resolve(path, file)
       if (this.isDir(subPath)) {
-        const message = `"${file}" subdirectory is skipped from processing`
-        failedFiles.push(message)
-        this.warn(message)
+        const warning = `"${file}" subdirectory is skipped from processing`
+        failedFiles.push({ file, warning })
+        this.warn(warning)
         continue
       }
       try {
