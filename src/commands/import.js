@@ -219,11 +219,11 @@ class ImportCommand extends FaunaCommand {
 ImportCommand.description = 'Import data to Fauna'
 
 ImportCommand.examples = [
-  '$ fauna import --path ./samplefile.csv',
-  '$ fauna import --append --path ./samplefile.csv',
-  '$ fauna import --db=sampleDB --collection=Samplecollection --path ./samplefile.csv',
+  '$ fauna import --path ./collection_name.csv',
+  '$ fauna import --append --path ./collection.csv',
+  '$ fauna import --db=sampleDB --collection=SampleCollection --path ./datafile.csv',
   '$ fauna import --db=sampleDB --path ./dump',
-  '$ fauna import --type=header_name::date --type=hdr2::number --type=hdrX::bool --path ./samplefile.csv',
+  '$ fauna import --type=header_name::date --type=hdr2::number --type=hdrX::bool --path ./collection.csv',
 ]
 
 const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags
