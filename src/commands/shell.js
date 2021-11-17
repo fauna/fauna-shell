@@ -95,12 +95,13 @@ class ShellCommand extends FaunaCommand {
 
   async executeFql({ ctx, fql }) {
     return runQueries(fql, this.connection.client)
-      .then((res) => {
+      .then((data) => {
         // we could provide the response result as a second
         // argument to cb(), but the repl util.inspect has a
         // default depth of 2, but we want to display the full
         // objects or arrays, not things like [object Object]
-        console.log(util.inspect(res, { depth: null }))
+        console.log(util.inspect(data.response, { depth: null }))
+        console.log(data.metrics)
       })
       .catch((error) => {
         ctx.lastError = error

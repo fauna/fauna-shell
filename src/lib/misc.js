@@ -378,13 +378,34 @@ function wrapQueries(expressions, client) {
   vm.createContext(q)
   return expressions.map(function (exp, queryNumber) {
     return function () {
+      let metrics
       return client
-        .query(vm.runInContext(escodegen.generate(exp), q))
+        .query(vm.runInContext(escodegen.generate(exp), q), {
+          observer: (requestResult) => {
+            metrics = getMetricFromRequestResult(requestResult)
+          },
+        })
+        .then((response) => ({ response, metrics }))
         .catch(function (err) {
           throw new QueryError(escodegen.generate(exp), err, queryNumber + 1)
         })
     }
   })
+}
+
+function getMetricFromRequestResult(requestResult) {
+  const headers = requestResult.responseHeaders
+  return {
+    queryBytesIn: headers['x-query-bytes-in'],
+    queryBytesOut: headers['x-query-bytes-out'],
+    queryTime: headers['x-query-time'] + 'ms',
+    storageBytesRead: headers['x-storage-bytes-read'],
+    storageBytesWrite: headers['x-storage-bytes-write'],
+    transactionRetries: headers['x-txn-retries'],
+    byteReadOps: headers['x-byte-read-ops'],
+    byteWriteOps: headers['x-byte-write-ops'],
+    computeOps: headers['x-compute-ops'],
+  }
 }
 
 function runQueries(expressions, client) {

@@ -56,7 +56,7 @@ function performQuery(client, fqlQuery, outputFile, outputFormat) {
 
   return runQueries(res.body, client)
     .then(function (response) {
-      return writeFormattedOutput(outputFile, response, outputFormat)
+      return writeFormattedOutput(outputFile, response.response, outputFormat)
     })
     .catch(function (error) {
       console.log(
