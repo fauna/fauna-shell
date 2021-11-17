@@ -1,3 +1,4 @@
+const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
 const { runQueries, stringifyEndpoint } = require('../lib/misc.js')
 const faunadb = require('faunadb')
@@ -101,7 +102,9 @@ class ShellCommand extends FaunaCommand {
         // default depth of 2, but we want to display the full
         // objects or arrays, not things like [object Object]
         console.log(util.inspect(data.response, { depth: null }))
-        console.log(data.metrics)
+        if (this.flags.metrics) {
+          console.log(data.metrics)
+        }
       })
       .catch((error) => {
         ctx.lastError = error
@@ -138,6 +141,9 @@ ShellCommand.examples = ['$ fauna shell dbname']
 
 ShellCommand.flags = {
   ...FaunaCommand.flags,
+  metrics: flags.boolean({
+    description: 'Display metric',
+  }),
 }
 
 ShellCommand.args = [
