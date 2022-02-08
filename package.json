@@ -1,7 +1,7 @@
 {
   "name": "fauna-shell",
   "description": "faunadb shell",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "author": "Fauna",
   "bin": {
     "fauna": "./bin/run"
@@ -20,12 +20,12 @@
     "dotenv": "^8.2.0",
     "escodegen": "^1.12.0",
     "esprima": "^4.0.1",
-    "faunadb": "^4.4.1",
+    "faunadb": "^4.5.2",
     "globby": "^11.0.0",
     "heroku-cli-util": "^8.0.9",
     "ini": "^1.3.5",
     "inquirer": "^8.1.1",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "object-sizeof": "^1.6.1",
     "prettier": "^2.3.0",
     "request": "^2.88.0",
