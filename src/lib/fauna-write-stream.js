@@ -192,6 +192,7 @@ class FaunaWriteStream extends stream.Writable {
     await this.sampleData.releaseData((record) => this.processRecord(record))
 
     if (this.chunk.length !== 0) {
+      await this.dynamicParallelRequest.awaitFreeRequest();
       await this.import(this.chunk)
       this.chunk = []
     }
