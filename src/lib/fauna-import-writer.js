@@ -55,7 +55,7 @@ class FaunaObjectTranslator {
   /**
    * Translates the rawData to a cleaned Fauna object - applying
    * any type transformations and trimming field names.
-   * @params rawData:object the uncleaned record
+   * @param rawData:object the uncleaned record
    * @return An object holding the cleaned data
    */
   getRecord(rawData) {
@@ -102,15 +102,28 @@ class FaunaObjectTranslator {
 
 /**
  * Vends a function capable of consuming a stream of data to write to Fauna.
- * @param
+ * @param {Array<string>} typeTranslations - any custom type translations to perform on fields.
+ * @param {faunadb.Client} client - a Fauna client to write data with
+ * @param {string} collection - the Collection to write data in
+ * @return {(inputStream: ReadableStream) => void} a function that asynchronously writes
+ * all the data in the inputSteam to Fauna. This function is capable of consuming a stream
+ * in a stream pipeline.
  */
 function getFaunaImportWriter(type, client, collection) {
   const faunaObjectTranslator = new FaunaObjectTranslator(type)
 
-  const writeData = (items) => {
+  const writeData = (itemsToBatch) => {
+    const promiseBatches = []
+    while (itemsToBatch.length > 0) {
+      promiseBatches.push(requestBatch(itemsToBatch.splice(0, 10)))
+    }
+    return Promise.all(promiseBatches);
+  }
+
+  const requestBatch = (batch) => {
     return client.query(
       q.Do(
-        items.map((data) =>
+        batch.map((data) =>
           q.Create(q.Collection(collection), {
             data: Object.keys(data).reduce(
               (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
@@ -122,20 +135,17 @@ function getFaunaImportWriter(type, client, collection) {
     )
   }
 
-  let items = []
-
   const streamConsumer = async (inputStream) => {
+    let items = []
     for await (const chunk of inputStream) {
       const data = faunaObjectTranslator.getRecord(chunk)
       items.push(data)
-      if (items.length >= 20) {
+      if (items.length >= 200) {
         await writeData(items)
-        items = []
       }
     }
     if (items.length >= 1) {
       await writeData(items)
-      items = []
     }
   }
 
