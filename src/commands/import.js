@@ -3,23 +3,18 @@ const fs = require('fs')
 const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
 const StreamJson = require('../lib/json-stream')
-const FaunaWriteStream = require('../lib/fauna-write-stream')
 const faunadb = require('faunadb')
 const { pipeline } = require('stream')
 const p = require('path')
-const CSVStream = require('../lib/csv-stream')
 const q = faunadb.query
+const getFaunaImportWriter = require('../lib/fauna-import-writer')
+const { parse } = require('csv-parse');
+
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json', '.jsonl']
 
   streamStrategy = {
-    '.csv': (flags) =>
-      new CSVStream({
-        flags,
-        escapeChar: '"',
-        enclosedChar: '"',
-        endLine: ['\r', '\n', '\r\n'],
-      }),
+    '.csv': () => parse({columns: true}),
     '.json': () => StreamJson.withParser(),
     '.jsonl': () => StreamJson.withParser(),
   }
@@ -101,7 +96,7 @@ class ImportCommand extends FaunaCommand {
     if (!collection) {
       collection = source.name
     }
-    await this.dataImport({ source, collection })
+    await this.dataImport({ source, collection }) 
     this.success(`Import from ${path} to ${collection} completed`)
   }
 
@@ -133,105 +128,17 @@ class ImportCommand extends FaunaCommand {
       collection,
     })
 
-    const StringBool = (val) => {
-      const trully = ['true', 't', 'yes', '1', 1, true]
-      return trully.includes(val.toLowerCase())
-    }
-
-    const StringDate = (val) => {
-      const date =
-        Number.isNaN(Number(val)) || val.length === 13
-        ? new Date(val)
-        : new Date(Number(val) * 1000)
-      return q.Time(date.toISOString())
-    }
-
-    const prepareRecord = (obj) => {
-      return Object.keys(obj).reduce((memo, next) => {
-        memo[next.trim()] = obj[next]
-        return memo
-      }, {})
-    };
-
-    const getRecord = (chunk) => {
-      return castType(prepareRecord(chunk));
-    }
-
-    const colTypeCast = {
-      number: Number,
-      date: StringDate,
-      bool: StringBool,
-    };
-
-    const typeCasting = (type = this.flags.type) => {
-      if (!type) return {}
-      const types = type.reduce(
-        (memo, next) => {
-          const [name, type] = next.split('::')
-          return {
-            casting: {
-              ...memo.casting,
-              [name]: { type, castFn: colTypeCast[type] },
-            },
-            invalidType: colTypeCast[type]
-                       ? memo.invalidType
-                       : [...memo.invalidType, name],
-          }
-        },
-        { casting: {}, invalidType: [] }
-      )
-      
-      if (types.invalidType.length !== 0) {
-        this.emit(
-          'error',
-          new Error(`Following columns has invalid type: ${types.invalidType}`)
-        )
-      }
-      
-      return types.casting
-    };
-
-    const castType = (obj) => {
-      return Object.keys(typeCasting).reduce((memo, col) => {
-        if (memo[col] === undefined) return memo
-        const castedValue = typeCasting[col].castFn(memo[col])
-        if (castedValue !== undefined) {
-          memo[col] = castedValue
-        } else {
-          this.warn(
-            `Value '${memo[col]}' at column '${col}' can not be casted to type '${this.typeCasting[col].type}'`
-          )
-        }
-        return memo
-      }, obj)
-    };
-
-    let linesRead = 0;
-    let items = [];
-    const streamConsumer = async (inputStream) => {
-      for await (const chunk of inputStream) {
-        items.push(getRecord(chunk));
-        if (items.length >= 10) {
-          this.log(items);
-          linesRead += items.length;
-          items = [];
-        }
-      }
-      if (items.length > 0) {
-          this.log(items);
-          linesRead += items.length;
-          items = [];
-      }
-    }
+    const transform = this.streamStrategy[source.ext](this.flags);
+    const writer = getFaunaImportWriter(this.flags.type, this.client, collection)
     await new Promise((resolve, reject) => {
       pipeline(
         fs.createReadStream(source.path, { highWaterMark: 500000 }),
-        this.streamStrategy[source.ext](this.flags),
-        streamConsumer,
+        transform,
+        writer,
         (error) => {
-            console.log(linesRead);
-            if (error) return reject(error)
-            resolve()
+          //console.log(piped);
+          if (error) return reject(error)
+          resolve()
         }
       )
     })

@@ -9,3 +9,6 @@ experiments
 .env
 .idea
 /.vscode/
+*~
+*#
+.log
