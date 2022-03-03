@@ -125,25 +125,20 @@ function getFaunaImportWriter(type, client, collection) {
   let items = []
 
   const streamConsumer = async (inputStream) => {
-    try {
-      for await (const chunk of inputStream) {
-        console.log(chunk)
-        const data = faunaObjectTranslator.getRecord(chunk)
-        console.log(data)
-        items.push(data)
-        if (items.length >= 20) {
-          await writeData(items)
-          items = []
-        }
+    for await (const chunk of inputStream) {
+      const data = faunaObjectTranslator.getRecord(chunk)
+      items.push(data)
+      if (items.length >= 20) {
+        await writeData(items)
+        items = []
       }
-    } catch (e) {
-      console.log(e)
     }
     if (items.length >= 1) {
       await writeData(items)
       items = []
     }
   }
+
   return streamConsumer
 }
 
