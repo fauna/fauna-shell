@@ -8,13 +8,13 @@ const { pipeline } = require('stream')
 const p = require('path')
 const q = faunadb.query
 const getFaunaImportWriter = require('../lib/fauna-import-writer')
-const { parse } = require('csv-parse');
+const { parse } = require('csv-parse')
 
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json', '.jsonl']
 
   streamStrategy = {
-    '.csv': () => parse({columns: true}),
+    '.csv': () => parse({ columns: true }),
     '.json': () => StreamJson.withParser(),
     '.jsonl': () => StreamJson.withParser(),
   }
@@ -96,7 +96,7 @@ class ImportCommand extends FaunaCommand {
     if (!collection) {
       collection = source.name
     }
-    await this.dataImport({ source, collection }) 
+    await this.dataImport({ source, collection })
     this.success(`Import from ${path} to ${collection} completed`)
   }
 
@@ -128,8 +128,12 @@ class ImportCommand extends FaunaCommand {
       collection,
     })
 
-    const transform = this.streamStrategy[source.ext](this.flags);
-    const writer = getFaunaImportWriter(this.flags.type, this.client, collection)
+    const transform = this.streamStrategy[source.ext](this.flags)
+    const writer = getFaunaImportWriter(
+      this.flags.type,
+      this.client,
+      collection
+    )
     await new Promise((resolve, reject) => {
       pipeline(
         fs.createReadStream(source.path, { highWaterMark: 500000 }),
