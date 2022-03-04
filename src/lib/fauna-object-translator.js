@@ -21,7 +21,7 @@ class FaunaObjectTranslator {
     this.#typeCasting = (() => {
       if (!typeTranslations) return {}
       const colTypeCast = {
-        number: Number,
+        number: this.#getNumber,
         date: this.#stringDate,
         bool: this.#stringBool,
       }
@@ -59,6 +59,14 @@ class FaunaObjectTranslator {
    */
   getRecord(rawData) {
     return this.#castType(this.#prepareRecord(rawData))
+  }
+
+  #getNumber(val) {
+    const maybeNumber = Number(val)
+    if (Number.isNaN(maybeNumber)) {
+      throw new Error(`Invalid number ${val}`)
+    }
+    return maybeNumber
   }
 
   #stringBool(val) {
