@@ -85,6 +85,12 @@ short_row_tests () {
     fail_test "short_rows.csv import should have succeeded with --allow-short-rows flag"
   fi
 
+  cleanup_collection "short_rows_with_type_translations"
+  $FAUNA_CMD import --endpoint data-import-test --allow-short-rows --type=number::number --type=date::date --type=boolean::bool --path=oss-985/short_rows_with_type_translations.csv
+  if [ $? != 0 ];then
+    fail_test "short_rows_with_type_translations.csv import should have succeeded with --allow-short-rows flag"
+  fi
+
   $FAUNA_CMD import --endpoint data-import-test --path=oss-985/too_long_row.csv
   if [ $? == 0 ];then
     fail_test "too_long_row.csv should have failed to import due to having too many columns."

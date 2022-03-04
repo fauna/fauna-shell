@@ -144,7 +144,9 @@ class ImportCommand extends FaunaCommand {
     let strategies = {
       '.csv': () => parse({
         columns: true,
-        relax_column_count_less: !!flags['allow-short-rows']
+        relax_column_count_less: !!flags['allow-short-rows'],
+        skip_empty_lines: true,
+        skip_records_with_empty_values: true,
       }),
       '.json': () => StreamJson.withParser(),
       '.jsonl': () => StreamJson.withParser(),

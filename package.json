@@ -15,6 +15,7 @@
     "chalk": "^4.1.2",
     "cli-table": "^0.3.1",
     "cli-ux": "^4.8.0",
+    "convert-string-to-number": "^1.0.3",
     "cross-fetch": "^3.1.4",
     "csv-parse": "^5.0.4",
     "csv-stream": "^0.2.0",

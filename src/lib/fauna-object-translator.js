@@ -1,4 +1,5 @@
 const q = require('faunadb').query
+const convertStringToNumber = require('convert-string-to-number').convertStringToNumber
 
 /**
  * Helper class for cleaning objects prior to persistence in Fauna.
@@ -7,8 +8,7 @@ const q = require('faunadb').query
  *   - cast types as specified by input
  **/
 class FaunaObjectTranslator {
-  #typeCasting
-
+  
   /**
    * Constructs a new FaunaObjectTranslator
    * @param {Array<string>} typeTranslations - custom typeTranslations to perform on object
@@ -62,9 +62,12 @@ class FaunaObjectTranslator {
   }
 
   #getNumber(val) {
-    const maybeNumber = Number(val)
+    if (typeof val !== 'string' || val.trim() === "") {
+      return null
+    }
+    const maybeNumber = convertStringToNumber(val)
     if (Number.isNaN(maybeNumber)) {
-      throw new Error(`Invalid number ${val}`)
+      throw new Error(`Invalid number '${val}' is not a number`)
     }
     return maybeNumber
   }
@@ -75,6 +78,10 @@ class FaunaObjectTranslator {
   }
 
   #stringDate(val) {
+    console.log(val)
+    if (val.trim() === "") {
+      return null
+    }
     const date =
       Number.isNaN(Number(val)) || val.length === 13
         ? new Date(val)
