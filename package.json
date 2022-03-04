@@ -83,7 +83,7 @@
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "eslint .",
     "prepack": "oclif-dev manifest && oclif-dev readme",
-    "test": "nyc mocha --forbid-only \"test/**/*.test.js\"",
+    "test": "export $(cat .env | xargs); nyc mocha --forbid-only \"test/**/*.test.js\"",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
     "version": "oclif-dev readme && git add README.md"
