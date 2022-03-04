@@ -52,7 +52,6 @@ function getFaunaImportWriter(type, client, collection) {
   const streamConsumer = async (inputStream) => {
     let dataSize = 0
     let items = []
-    let grossTotal = 0
     const bytesPerSecondLimit = 280000 // 1 GB / hour is our goal
     const requestLimiter = new RateLimiter({ tokensPerInterval: bytesPerSecondLimit, interval: "second" })
     for await (const chunk of inputStream) {
@@ -62,7 +61,6 @@ function getFaunaImportWriter(type, client, collection) {
         waitForRateLimitTokens(Math.min(bytesPerSecondLimit, dataSize), requestLimiter)
         // writeData has side effect of clearing out items
         await writeData(items)
-        grossTotal += dataSize
         dataSize = 0
       }
       items.push(thisItem)
@@ -70,9 +68,7 @@ function getFaunaImportWriter(type, client, collection) {
     }
     if (items.length >= 1) {
       await writeData(items)
-      grossTotal += dataSize
     }
-    console.log(grossTotal)
   }
 
   return streamConsumer
