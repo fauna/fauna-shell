@@ -27,27 +27,41 @@ cleanup_collection () {
 CMD
 }
 
-cleanup_collection "bool_type"
-$FAUNA_CMD import --endpoint data-import-test --type=favorite::bool --path=oss-926/bool_type.csv
+#cleanup_collection "bool_type"
+#$FAUNA_CMD import --endpoint data-import-test --type=favorite::bool --path=oss-926/bool_type.csv
+#if [ $? != 0 ];then
+#  echo "bool_type.csv didn't import with success"
+#  exit 1
+#fi
+#
+#cleanup_collection "date_type"
+#$FAUNA_CMD import --endpoint data-import-test --type=birthday::date --path=oss-926/date_type.csv
+#if [ $? != 0 ];then
+#  echo "date_type.csv didn't import with success"
+#  exit 1
+#fi
+#
+#cleanup_collection "bad_date_type"
+#$FAUNA_CMD import --endpoint data-import-test --type=birthday::date --path=oss-926/bad_date_type.csv
+#if [ $? == 0 ];then
+#  echo "bad_date_type.csv didn't import with success"
+#  exit 1
+#fi
+#
+
+cleanup_collection "number_type"
+$FAUNA_CMD import --endpoint data-import-test --type=age::number --path=oss-926/number_type.csv
 if [ $? != 0 ];then
-  echo "bool_type.csv didn't import with success"
+  echo "number_type.csv didn't import with success"
   exit 1
 fi
 
-cleanup_collection "date_type"
-$FAUNA_CMD import --endpoint data-import-test --type=birthday::date --path=oss-926/date_type.csv
-if [ $? != 0 ];then
-  echo "date_type.csv didn't import with success"
-  exit 1
-fi
-
-cleanup_collection "bad_date_type"
-$FAUNA_CMD import --endpoint data-import-test --type=birthday::date --path=oss-926/bad_date_type.csv
+cleanup_collection "bad_number_type"
+$FAUNA_CMD import --endpoint data-import-test --type=age::number --path=oss-926/bad_number_type.csv
 if [ $? == 0 ];then
-  echo "bad_date_type.csv didn't import with success"
+  echo "bad_number_type.csv didn't import with success"
   exit 1
 fi
-
 
 echo "--------------------------------------------------"
 echo "ALL SCRAPPY TESTS PASSED!!"
