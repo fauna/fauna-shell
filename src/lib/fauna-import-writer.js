@@ -57,8 +57,8 @@ class FaunaObjectTranslator {
   /**
    * Translates the rawData to a cleaned Fauna object - applying
    * any type transformations and trimming field names.
-   * @param rawData:object the uncleaned record
-   * @return An object holding the cleaned data
+   * @param {object} rawData - the uncleaned record
+   * @return {object} An object holding the cleaned data
    */
   getRecord(rawData) {
     return this.#castType(this.#prepareRecord(rawData))
@@ -103,13 +103,15 @@ class FaunaObjectTranslator {
 }
 
 /**
- * Vends a function capable of consuming a stream of data to write to Fauna.
+ * Creates a function that consumes a stream of objects and writes creates each object
+ * as a document in the given collection.
  * @param {Array<string>} typeTranslations - any custom type translations to perform on fields.
- * @param {faunadb.Client} client - a Fauna client to write data with
- * @param {string} collection - the Collection to write data in
+ * @param {faunadb.Client} client - a {faunadb.Client} configured for the account to store the data in.
+ * @param {string} collection - the name of the {fauna.query.Collection} to write data to.
  * @return {(inputStream: ReadableStream) => void} a function that asynchronously writes
- * all the data in the inputSteam to Fauna. This function is capable of consuming a stream
- * in a stream pipeline.
+ * all the data in the inputSteam to Fauna. All data will be written to the collection specified
+ * in input, and will use the provided client. This function is capable of consuming a stream
+ * in a [stream pipeline](https://nodejs.org/api/stream.html).
  */
 function getFaunaImportWriter(type, client, collection) {
 
@@ -122,9 +124,11 @@ function getFaunaImportWriter(type, client, collection) {
   }
 
   const writeData = (itemsToBatch) => {
+    const maxParallelRequests = 10
+    const batchSize = Math.ceil(itemsToBatch.length / maxParallelRequests)
     const promiseBatches = []
     while (itemsToBatch.length > 0) {
-      promiseBatches.push(requestBatch(itemsToBatch.splice(0, 20)))
+      promiseBatches.push(requestBatch(itemsToBatch.splice(0, batchSize)))
     }
     return Promise.all(promiseBatches);
   }
@@ -145,27 +149,29 @@ function getFaunaImportWriter(type, client, collection) {
   }
 
   const streamConsumer = async (inputStream) => {
-    let grossTotal = 0;
+    let dataSize = 0
     let items = []
+    let grossTotal = 0
     const bytesPerSecondLimit = 280000 // 1 GB / hour is our goal
     const requestLimiter = new RateLimiter({ tokensPerInterval: bytesPerSecondLimit, interval: "second" })
-    let dataSize = 0
     for await (const chunk of inputStream) {
-      const data = faunaObjectTranslator.getRecord(chunk)
-      items.push(data)
-      dataSize += sizeof(data);
-      if (dataSize >= bytesPerSecondLimit) {
-        grossTotal += dataSize
-        waitForRateLimitTokens(bytesPerSecondLimit, requestLimiter)
+      const thisItem = faunaObjectTranslator.getRecord(chunk)
+      const thisItemSize = sizeof(thisItem)
+      if ((dataSize + thisItemSize) > bytesPerSecondLimit) {
+        waitForRateLimitTokens(Math.min(bytesPerSecondLimit, dataSize), requestLimiter)
         // writeData has side effect of clearing out items
         await writeData(items)
+        grossTotal += dataSize
         dataSize = 0
       }
+      items.push(thisItem)
+      dataSize += thisItemSize
     }
     if (items.length >= 1) {
       await writeData(items)
+      grossTotal += dataSize
     }
-    console.log("gross total " + grossTotal)
+    console.log(grossTotal)
   }
 
   return streamConsumer
