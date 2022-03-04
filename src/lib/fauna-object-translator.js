@@ -8,7 +8,11 @@ const convertStringToNumber = require('convert-string-to-number').convertStringT
  *   - cast types as specified by input
  **/
 class FaunaObjectTranslator {
-  
+
+  static #EMPTY_OR_BLANK = /^\s*$/
+
+  #typeCasting
+
   /**
    * Constructs a new FaunaObjectTranslator
    * @param {Array<string>} typeTranslations - custom typeTranslations to perform on object
@@ -62,7 +66,7 @@ class FaunaObjectTranslator {
   }
 
   #getNumber(val) {
-    if (typeof val !== 'string' || val.trim() === "") {
+    if (FaunaObjectTranslator.#EMPTY_OR_BLANK.test(val)) {
       return null
     }
     const maybeNumber = convertStringToNumber(val)
@@ -73,13 +77,15 @@ class FaunaObjectTranslator {
   }
 
   #stringBool(val) {
+    if (FaunaObjectTranslator.#EMPTY_OR_BLANK.test(val)) {
+      return null
+    }
     const trully = ['true', 't', 'yes', '1', 1, true]
     return trully.includes(val.toLowerCase())
   }
 
   #stringDate(val) {
-    console.log(val)
-    if (val.trim() === "") {
+    if (FaunaObjectTranslator.#EMPTY_OR_BLANK.test(val)) {
       return null
     }
     const date =
