@@ -13,12 +13,6 @@ const { parse } = require('csv-parse')
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json', '.jsonl']
 
-  streamStrategy = {
-    '.csv': () => parse({ columns: true }),
-    '.json': () => StreamJson.withParser(),
-    '.jsonl': () => StreamJson.withParser(),
-  }
-
   isDir(path) {
     return fs.lstatSync(path).isDirectory()
   }
@@ -128,17 +122,15 @@ class ImportCommand extends FaunaCommand {
       collection,
     })
 
-    const transform = this.streamStrategy[source.ext](this.flags)
-    const writer = getFaunaImportWriter(
-      this.flags.type,
-      this.client,
-      collection
-    )
     await new Promise((resolve, reject) => {
       pipeline(
         fs.createReadStream(source.path, { highWaterMark: 500000 }),
-        transform,
-        writer,
+        this.getTransformStreamStrategy(source.ext, this.flags),
+        getFaunaImportWriter(
+          this.flags.type,
+          this.client,
+          collection
+        ),
         (error) => {
           //console.log(piped);
           if (error) return reject(error)
@@ -146,6 +138,18 @@ class ImportCommand extends FaunaCommand {
         }
       )
     })
+  }
+
+  getTransformStreamStrategy(extension, flags) {
+    let strategies = {
+      '.csv': () => parse({
+        columns: true,
+        relax_column_count_less: !!flags['allow-short-rows']
+      }),
+      '.json': () => StreamJson.withParser(),
+      '.jsonl': () => StreamJson.withParser(),
+    }
+    return strategies[extension]()
   }
 
   handleError(error) {
