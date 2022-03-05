@@ -102,7 +102,13 @@ header_name_tests () {
   cleanup_collection "headers"
   $FAUNA_CMD import --endpoint data-import-test --path=header_tests/headers.csv
   if [ $? != 0 ];then
-    fail_test "headers.csv should have failed to import"
+    fail_test "headers.csv failed to import"
+  fi
+
+  cleanup_collection "alt_char_headers"
+  $FAUNA_CMD import --endpoint data-import-test --path=header_tests/alt_char_headers.csv
+  if [ $? != 0 ];then
+    fail_test "alt_char_headers.csv failed to import"
   fi
 
 }
