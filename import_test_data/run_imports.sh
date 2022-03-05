@@ -42,32 +42,32 @@ fail_test() {
 
 run_type_tests () {
   cleanup_collection "bool_type"
-  $FAUNA_CMD import --endpoint data-import-test --type=favorite::bool --path=oss-926/bool_type.csv
+  $FAUNA_CMD import --endpoint data-import-test --type=favorite::bool --path=type_tests/bool_type.csv
   if [ $? != 0 ];then
     fail_test "bool_type.csv didn't import with success"
   fi
   
   cleanup_collection "date_type"
-  $FAUNA_CMD import --endpoint data-import-test --type=birthday::date --path=oss-926/date_type.csv
+  $FAUNA_CMD import --endpoint data-import-test --type=birthday::date --path=type_tests/date_type.csv
   if [ $? != 0 ];then
     fail_test "date_type.csv didn't import with success"
   fi
   
   cleanup_collection "bad_date_type"
-  $FAUNA_CMD import --endpoint data-import-test --type=birthday::date --path=oss-926/bad_date_type.csv
+  $FAUNA_CMD import --endpoint data-import-test --type=birthday::date --path=type_tests/bad_date_type.csv
   if [ $? == 0 ];then
     fail_test "bad_date_type.csv didn't import with failure"
   fi
   
   
   cleanup_collection "number_type"
-  $FAUNA_CMD import --endpoint data-import-test --type=age::number --path=oss-926/number_type.csv
+  $FAUNA_CMD import --endpoint data-import-test --type=age::number --path=type_tests/number_type.csv
   if [ $? != 0 ];then
     fail_test "number_type.csv didn't import with success"
   fi
   
   cleanup_collection "bad_number_type"
-  $FAUNA_CMD import --endpoint data-import-test --type=age::number --path=oss-926/bad_number_type.csv
+  $FAUNA_CMD import --endpoint data-import-test --type=age::number --path=type_tests/bad_number_type.csv
   if [ $? == 0 ];then
     fail_test "bad_number_type.csv didn't import with failure"
   fi
@@ -75,25 +75,34 @@ run_type_tests () {
 
 short_row_tests () {
   cleanup_collection "short_rows"
-  $FAUNA_CMD import --endpoint data-import-test --path=oss-985/short_rows.csv
+  $FAUNA_CMD import --endpoint data-import-test --path=csv_row_len_tests/short_rows.csv
   if [ $? == 0 ];then
     fail_test "short_rows.csv should have failed to import without the --allow-short-rows flag"
   fi
   
-  $FAUNA_CMD import --endpoint data-import-test --allow-short-rows --path=oss-985/short_rows.csv
+  $FAUNA_CMD import --endpoint data-import-test --allow-short-rows --path=csv_row_len_tests/short_rows.csv
   if [ $? != 0 ];then
     fail_test "short_rows.csv import should have succeeded with --allow-short-rows flag"
   fi
 
   cleanup_collection "short_rows_with_type_translations"
-  $FAUNA_CMD import --endpoint data-import-test --allow-short-rows --type=number::number --type=date::date --type=boolean::bool --path=oss-985/short_rows_with_type_translations.csv
+  $FAUNA_CMD import --endpoint data-import-test --allow-short-rows --type=number::number --type=date::date --type=boolean::bool --path=csv_row_len_tests/short_rows_with_type_translations.csv
   if [ $? != 0 ];then
     fail_test "short_rows_with_type_translations.csv import should have succeeded with --allow-short-rows flag"
   fi
 
-  $FAUNA_CMD import --endpoint data-import-test --path=oss-985/too_long_row.csv
+  $FAUNA_CMD import --endpoint data-import-test --path=csv_row_len_tests/too_long_row.csv
   if [ $? == 0 ];then
     fail_test "too_long_row.csv should have failed to import due to having too many columns."
+  fi
+
+}
+
+header_name_tests () {
+  cleanup_collection "headers"
+  $FAUNA_CMD import --endpoint data-import-test --path=header_tests/headers.csv
+  if [ $? != 0 ];then
+    fail_test "headers.csv should have failed to import"
   fi
 
 }
@@ -101,6 +110,7 @@ short_row_tests () {
 # Comment out test batches as required.
 run_type_tests
 short_row_tests
+header_name_tests
 
 echo "--------------------------------------------------"
 echo "ALL SCRAPPY TESTS PASSED!!"
