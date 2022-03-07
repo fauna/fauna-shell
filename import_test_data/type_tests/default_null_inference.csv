@@ -1,0 +1,4 @@
+id,name,birthday,considered_old
+1,mia,,true
+1,mia,null,true
+1,mia,NULL,true

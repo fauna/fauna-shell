@@ -77,6 +77,12 @@ run_type_tests () {
   if [ $? == 1 ];then
     fail_test "auto_type_translation.csv didn't import with success"
   fi
+
+  cleanup_collection "default_null_inference"
+  $FAUNA_CMD import --endpoint data-import-test --type=age::number --path=type_tests/default_null_inference.csv
+  if [ $? == 1 ];then
+    fail_test "default_null_inference.csv didn't import with success"
+  fi
 }
 
 short_row_tests () {
