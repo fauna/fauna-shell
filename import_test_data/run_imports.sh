@@ -71,6 +71,12 @@ run_type_tests () {
   if [ $? == 0 ];then
     fail_test "bad_number_type.csv didn't import with failure"
   fi
+
+  cleanup_collection "auto_type_translation"
+  $FAUNA_CMD import --endpoint data-import-test --type=age::number --path=type_tests/auto_type_translation.csv
+  if [ $? == 1 ];then
+    fail_test "auto_type_translation.csv didn't import with success"
+  fi
 }
 
 short_row_tests () {
@@ -80,6 +86,7 @@ short_row_tests () {
     fail_test "short_rows.csv should have failed to import without the --allow-short-rows flag"
   fi
   
+  cleanup_collection "short_rows"
   $FAUNA_CMD import --endpoint data-import-test --allow-short-rows --path=csv_row_len_tests/short_rows.csv
   if [ $? != 0 ];then
     fail_test "short_rows.csv import should have succeeded with --allow-short-rows flag"
@@ -91,6 +98,7 @@ short_row_tests () {
     fail_test "short_rows_with_type_translations.csv import should have succeeded with --allow-short-rows flag"
   fi
 
+  cleanup_collection "too_long_rows"
   $FAUNA_CMD import --endpoint data-import-test --path=csv_row_len_tests/too_long_row.csv
   if [ $? == 0 ];then
     fail_test "too_long_row.csv should have failed to import due to having too many columns."
