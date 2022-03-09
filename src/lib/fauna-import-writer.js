@@ -15,23 +15,12 @@ const RateLimiter = require('limiter').RateLimiter
  * in a [stream pipeline](https://nodejs.org/api/stream.html).
  */
 function getFaunaImportWriter(type, client, collection) {
-
   const faunaObjectTranslator = new FaunaObjectTranslator(type)
 
   const waitForRateLimitTokens = (tokens, rateLimiter) => {
-      while (!rateLimiter.tryRemoveTokens(tokens)) {
-          // keep trying until we have enough tokens
-      }
-  }
-
-  const writeData = (itemsToBatch) => {
-    const maxParallelRequests = 10
-    const batchSize = Math.ceil(itemsToBatch.length / maxParallelRequests)
-    const promiseBatches = []
-    while (itemsToBatch.length > 0) {
-      promiseBatches.push(requestBatch(itemsToBatch.splice(0, batchSize)))
+    while (!rateLimiter.tryRemoveTokens(tokens)) {
+      // keep trying until we have enough tokens
     }
-    return Promise.all(promiseBatches);
   }
 
   const requestBatch = (batch) => {
@@ -49,16 +38,32 @@ function getFaunaImportWriter(type, client, collection) {
     )
   }
 
+  const writeData = (itemsToBatch) => {
+    const maxParallelRequests = 10
+    const batchSize = Math.ceil(itemsToBatch.length / maxParallelRequests)
+    const promiseBatches = []
+    while (itemsToBatch.length > 0) {
+      promiseBatches.push(requestBatch(itemsToBatch.splice(0, batchSize)))
+    }
+    return Promise.all(promiseBatches)
+  }
+
   const streamConsumer = async (inputStream) => {
     let dataSize = 0
     let items = []
     const bytesPerSecondLimit = 280000 // 1 GB / hour is our goal
-    const requestLimiter = new RateLimiter({ tokensPerInterval: bytesPerSecondLimit, interval: "second" })
+    const requestLimiter = new RateLimiter({
+      tokensPerInterval: bytesPerSecondLimit,
+      interval: 'second',
+    })
     for await (const chunk of inputStream) {
       const thisItem = faunaObjectTranslator.getRecord(chunk)
       const thisItemSize = sizeof(thisItem)
-      if ((dataSize + thisItemSize) > bytesPerSecondLimit) {
-        waitForRateLimitTokens(Math.min(bytesPerSecondLimit, dataSize), requestLimiter)
+      if (dataSize + thisItemSize > bytesPerSecondLimit) {
+        waitForRateLimitTokens(
+          Math.min(bytesPerSecondLimit, dataSize),
+          requestLimiter
+        )
         // writeData has side effect of clearing out items
         await writeData(items)
         dataSize = 0

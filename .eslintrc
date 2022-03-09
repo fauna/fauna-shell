@@ -12,14 +12,15 @@
     "no-console": "off",
     "no-prototype-builtins": "off",
     "node/no-extraneous-require": ["error", {
-      "allowModules": ["@oclif/errors"]
+      "allowModules": ["@oclif/errors", "expect"]
      }]
   },
   "overrides": [
     {
       "files": ["*.test.js", "*.spec.js"],
       "rules": {
-        "no-unused-expressions": "off"
+        "no-unused-expressions": "off",
+        "camelcase": "off"
       }
     }
   ],

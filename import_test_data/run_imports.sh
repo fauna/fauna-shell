@@ -79,7 +79,7 @@ run_type_tests () {
   fi
 
   cleanup_collection "default_null_inference"
-  $FAUNA_CMD import --endpoint data-import-test --type=age::number --path=type_tests/default_null_inference.csv
+  $FAUNA_CMD import --endpoint data-import-test --path=type_tests/default_null_inference.csv
   if [ $? == 1 ];then
     fail_test "default_null_inference.csv didn't import with success"
   fi
@@ -127,10 +127,49 @@ header_name_tests () {
 
 }
 
+json_tests () {
+  cleanup_collection "json_array"
+  $FAUNA_CMD import --endpoint data-import-test --path=json/json_array.json
+  if [ $? != 0 ];then
+    fail_test "json_array.json failed to import"
+  fi
+
+  cleanup_collection "json_nested_type_trans"
+  $FAUNA_CMD import --endpoint data-import-test --path=json/json_nested_type_trans.json
+  if [ $? != 0 ];then
+    fail_test "json_nested_type_trans.json failed to import"
+  fi
+
+  cleanup_collection "multi_array"
+  $FAUNA_CMD import --endpoint data-import-test --path=json/multi_array.json
+  if [ $? != 0 ];then
+    fail_test "multi_array.json failed to import"
+  fi
+
+  cleanup_collection "mixed_array_and_l"
+  $FAUNA_CMD import --endpoint data-import-test --path=json/mixed_array_and_l.json
+  if [ $? != 0 ];then
+    fail_test "mixed_array_and_l.json failed to import"
+  fi
+
+  cleanup_collection "json_l"
+  $FAUNA_CMD import --endpoint data-import-test --path=json/json_l.jsonl
+  if [ $? != 0 ];then
+    fail_test "json_l.jsonl failed to import"
+  fi
+
+  cleanup_collection "mixed_l_and_array"
+  $FAUNA_CMD import --endpoint data-import-test --path=json/mixed_l_and_array.json
+  if [ $? != 0 ];then
+    fail_test "mixed_l_and_array.json failed to import"
+  fi
+}
+
 # Comment out test batches as required.
 run_type_tests
 short_row_tests
 header_name_tests
+json_tests
 
 echo "--------------------------------------------------"
 echo "ALL SCRAPPY TESTS PASSED!!"

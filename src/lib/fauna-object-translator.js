@@ -1,6 +1,4 @@
 const q = require('faunadb').query
-const convertStringToNumber = require('convert-string-to-number').convertStringToNumber
-
 /**
  * Helper class for cleaning objects prior to persistence in Fauna.
  * It has two main objectives:
@@ -8,8 +6,7 @@ const convertStringToNumber = require('convert-string-to-number').convertStringT
  *   - cast types as specified by input
  **/
 class FaunaObjectTranslator {
-
-  static #EMPTY_OR_BLANK = /^\s*$/
+  static #NUMBER_REGEX = /^(\d+)|(\d*\.\d+)$/
 
   #typeCasting
 
@@ -31,7 +28,11 @@ class FaunaObjectTranslator {
       }
       const types = typeTranslations.reduce(
         (memo, next) => {
-          const [name, typeTranslator] = next.split('::')
+          const indexOfTranslationTag = next.lastIndexOf('::')
+          const [name, typeTranslator] = [
+            next.substring(0, indexOfTranslationTag),
+            next.substring(indexOfTranslationTag + 2, next.length),
+          ]
           return {
             casting: {
               ...memo.casting,
@@ -66,32 +67,32 @@ class FaunaObjectTranslator {
   }
 
   #getNumber(val) {
-    if (FaunaObjectTranslator.#EMPTY_OR_BLANK.test(val)) {
+    if (val === null) {
       return null
     }
-    const maybeNumber = convertStringToNumber(val)
-    if (Number.isNaN(maybeNumber)) {
-      throw new Error(`Invalid number '${val}' is not a number`)
+    if (FaunaObjectTranslator.#NUMBER_REGEX.test(val)) {
+      return Number(val)
     }
-    return maybeNumber
+    throw new Error(`Invalid number '${val}' is not a number`)
   }
 
   #stringBool(val) {
-    if (FaunaObjectTranslator.#EMPTY_OR_BLANK.test(val)) {
-      return null
+    if (val === null) {
+      return val
     }
     const trully = ['true', 't', 'yes', '1', 1, true]
     return trully.includes(val.toLowerCase())
   }
 
   #stringDate(val) {
-    if (FaunaObjectTranslator.#EMPTY_OR_BLANK.test(val)) {
-      return null
+    if (val === null) {
+      return val
     }
     const date =
       Number.isNaN(Number(val)) || val.length === 13
         ? new Date(val)
         : new Date(Number(val) * 1000)
+
     return q.Time(date.toISOString())
   }
 

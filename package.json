@@ -15,7 +15,6 @@
     "chalk": "^4.1.2",
     "cli-table": "^0.3.1",
     "cli-ux": "^4.8.0",
-    "convert-string-to-number": "^1.0.3",
     "cross-fetch": "^3.1.4",
     "csv-parse": "^5.0.4",
     "csv-stream": "^0.2.0",
@@ -44,6 +43,8 @@
     "eslint-config-oclif": "^1.5.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
+    "husky": "^7.0.4",
+    "jest": "^27.5.1",
     "mocha": "^7.1.1",
     "mock-require": "^3.0.3",
     "nock": "^13.1.0",
@@ -84,9 +85,15 @@
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "eslint .",
     "prepack": "oclif-dev manifest && oclif-dev readme",
+    "pretest": "npm run fixlint",
     "test": "export $(cat .env | xargs); nyc mocha --forbid-only \"test/**/*.test.js\"",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
     "version": "oclif-dev readme && git add README.md"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run pretest"
+    }
   }
 }

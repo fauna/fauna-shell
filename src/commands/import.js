@@ -126,11 +126,8 @@ class ImportCommand extends FaunaCommand {
       pipeline(
         fs.createReadStream(source.path, { highWaterMark: 500000 }),
         this.getTransformStreamStrategy(source.ext, this.flags),
-        getFaunaImportWriter(
-          this.flags.type,
-          this.client,
-          collection
-        ),
+
+        getFaunaImportWriter(this.flags.type, this.client, collection),
         (error) => {
           //console.log(piped);
           if (error) return reject(error)
@@ -142,12 +139,20 @@ class ImportCommand extends FaunaCommand {
 
   getTransformStreamStrategy(extension, flags) {
     let strategies = {
-      '.csv': () => parse({
-        columns: true,
-        relax_column_count_less: !!flags['allow-short-rows'],
-        skip_empty_lines: true,
-        skip_records_with_empty_values: true,
-      }),
+      '.csv': () =>
+        parse({
+          columns: true,
+          /* eslint-disable camelcase */
+          relax_column_count_less: Boolean(flags['allow-short-rows']),
+          skip_empty_lines: true,
+          /* eslint-enable camelcase */
+          cast: function (value, context) {
+            if (value === '' && !context.quoting) {
+              return null
+            }
+            return value
+          },
+        }),
       '.json': () => StreamJson.withParser(),
       '.jsonl': () => StreamJson.withParser(),
     }
