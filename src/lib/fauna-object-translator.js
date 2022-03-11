@@ -1,4 +1,11 @@
 const q = require('faunadb').query
+const moment = require('moment')
+
+/**
+ * An error translating an object with a {FaunaObjectTranslater}.
+ */
+class TranslationError extends Error {}
+
 /**
  * Helper class for cleaning objects prior to persistence in Fauna.
  * It has two main objectives:
@@ -6,7 +13,13 @@ const q = require('faunadb').query
  *   - cast types as specified by input
  **/
 class FaunaObjectTranslator {
-  static #NUMBER_REGEX = /^(\d+)|(\d*\.\d+)$/
+  static #NUMBER_REGEX = /(^\s*\d+\s*$)|(^\s*\d*\.\d+\s*$)/
+
+  static #TRULY = ['true', 't', 'yes', '1', 1, true]
+
+  static #getErrorValue(val) {
+    return typeof val === 'string' ? val : JSON.stringify(val)
+  }
 
   #typeCasting
 
@@ -15,15 +28,17 @@ class FaunaObjectTranslator {
    * @param {Array<string>} typeTranslations - custom typeTranslations to perform on object
    *   keys. Must be provided as an array of strings in the form:
    *      [keyName::typeTranslationFunction, ...]
-   *   Supported typeTranslationFunctions are: number, date, bool
-   *   e.g. [myKey::bool, myOtherKey::number, myFinalKey::date]
+   *   Supported typeTranslationFunctions are: number, dateString, dateEpochMills, dateEpochSeconds, bool
+   *   e.g. [myKey::bool, myOtherKey::number, myFinalKey::date_string]
    */
   constructor(typeTranslations) {
     this.#typeCasting = (() => {
       if (!typeTranslations) return {}
       const colTypeCast = {
         number: this.#getNumber,
-        date: this.#stringDate,
+        dateString: this.#stringDate,
+        dateEpochMillis: this.#epochMillisDate,
+        dateEpochSeconds: this.#epochSecondsDate,
         bool: this.#stringBool,
       }
       const types = typeTranslations.reduce(
@@ -48,10 +63,9 @@ class FaunaObjectTranslator {
 
       if (types.invalidType.length !== 0) {
         throw new Error(
-          `Following columns has invalid type: ${types.invalidType}`
+          `The following columns have an invalid type translation specified: ${types.invalidType}`
         )
       }
-
       return types.casting
     })()
   }
@@ -60,40 +74,83 @@ class FaunaObjectTranslator {
    * Translates the rawData to a cleaned Fauna object - applying
    * any type transformations and trimming field names.
    * @param {object} rawData - the uncleaned record
-   * @return {object} An object holding the cleaned data
+   * @return {object} An object holding the cleaned data.
+   * @throws {Error} if translation fails
    */
   getRecord(rawData) {
     return this.#castType(this.#prepareRecord(rawData))
   }
 
   #getNumber(val) {
-    if (val === null) {
-      return null
+    if (typeof val === 'number') {
+      return val
     }
-    if (FaunaObjectTranslator.#NUMBER_REGEX.test(val)) {
+    if (
+      typeof val === 'string' &&
+      FaunaObjectTranslator.#NUMBER_REGEX.test(val)
+    ) {
       return Number(val)
     }
-    throw new Error(`Invalid number '${val}' is not a number`)
+    throw new TranslationError(
+      `Invalid number '${FaunaObjectTranslator.#getErrorValue(
+        val
+      )}' cannot be translated to a number`
+    )
   }
 
   #stringBool(val) {
-    if (val === null) {
-      return val
-    }
-    const trully = ['true', 't', 'yes', '1', 1, true]
-    return trully.includes(val.toLowerCase())
+    return (
+      FaunaObjectTranslator.#TRULY.includes(val) ||
+      (typeof val === 'string' &&
+        FaunaObjectTranslator.#TRULY.includes(val.toLowerCase()))
+    )
   }
 
   #stringDate(val) {
-    if (val === null) {
-      return val
+    if (typeof val !== 'string') {
+      throw new TypeError(
+        `Cannot convert '${FaunaObjectTranslator.#getErrorValue(
+          val
+        )}' to a date.`
+      )
     }
-    const date =
-      Number.isNaN(Number(val)) || val.length === 13
-        ? new Date(val)
-        : new Date(Number(val) * 1000)
+    const theDate = moment.utc(val, moment.ISO_8601)
+    if (!theDate.isValid()) {
+      throw new TranslationError(
+        `The string '${val}' is not valid ISO-8601 date.`
+      )
+    }
+    // TODO fallback to other formats
+    return q.Time(theDate.toISOString())
+  }
 
-    return q.Time(date.toISOString())
+  #epochMillisDate(val) {
+    try {
+      return q.Time(
+        moment
+          .unix(this.#getNumber(val) / 1000)
+          .utc()
+          .toISOString()
+      )
+    } catch (e) {
+      throw new TranslationError(
+        `Cannot convert '${FaunaObjectTranslator.#getErrorValue(
+          val
+        )}' to a date.`
+      )
+    }
+  }
+
+  #epochSecondsDate(val) {
+    try {
+      return q.Time(moment.unix(this.#getNumber(val)).utc().toISOString())
+    } catch (e) {
+      throw new TranslationError(
+        `Cannot convert '${FaunaObjectTranslator.#getErrorValue(
+          val
+        )}' to a date.`
+      )
+    }
   }
 
   #prepareRecord(obj) {
@@ -105,8 +162,8 @@ class FaunaObjectTranslator {
 
   #castType(obj) {
     return Object.keys(this.#typeCasting).reduce((memo, col) => {
-      if (memo[col] === undefined) return memo
-      const castedValue = this.#typeCasting[col].castFn(memo[col])
+      if (memo[col] === undefined || memo[col] === null) return memo
+      const castedValue = this.#typeCasting[col].castFn.call(this, memo[col])
       if (castedValue !== undefined) {
         memo[col] = castedValue
       } else {
@@ -121,4 +178,5 @@ class FaunaObjectTranslator {
   }
 }
 
-module.exports = FaunaObjectTranslator
+exports.FaunaObjectTranslator = FaunaObjectTranslator
+exports.TranslationError = TranslationError

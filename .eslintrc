@@ -10,9 +10,10 @@
     "max-nested-callbacks": "off",
     "no-else-return": "off",
     "no-console": "off",
+    "no-multi-str": "off",
     "no-prototype-builtins": "off",
     "node/no-extraneous-require": ["error", {
-      "allowModules": ["@oclif/errors", "expect"]
+      "allowModules": ["@oclif/errors", "expect", "jest-mock", "@jest/globals"]
      }]
   },
   "overrides": [
@@ -27,5 +28,8 @@
   "parser": "@babel/eslint-parser",
   "parserOptions": {
     "requireConfigFile": false
+  },
+  "env": {
+    "mocha": true
   }
 }
