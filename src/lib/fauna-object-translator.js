@@ -108,19 +108,27 @@ class FaunaObjectTranslator {
 
   #stringDate(val) {
     if (typeof val !== 'string') {
-      throw new TypeError(
+      throw new TranslationError(
         `Cannot convert '${FaunaObjectTranslator.#getErrorValue(
           val
         )}' to a date.`
       )
     }
-    const theDate = moment.utc(val, moment.ISO_8601)
+    let theDate = moment.utc(val, moment.ISO_8601)
     if (!theDate.isValid()) {
-      throw new TranslationError(
-        `The string '${val}' is not valid ISO-8601 date.`
-      )
+      // fallback to other date formats
+      theDate = moment.utc(val, moment.RFC_2822)
+      if (!theDate.isValid()) {
+        theDate = new Date(val)
+        if (Number.isNaN(theDate.getTime())) {
+          throw new TranslationError(
+            `The string '${val}' cannot be translated to a date.`
+          )
+        }
+        console.log(`Warning: the string '${val}' is not valid ISO-8601 nor RFC_2822 date. \
+Making a best-effort translation to '${theDate}'`)
+      }
     }
-    // TODO fallback to other formats
     return q.Time(theDate.toISOString())
   }
 

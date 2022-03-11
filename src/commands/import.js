@@ -225,7 +225,7 @@ ImportCommand.examples = [
   '$ fauna import --append --path ./collection.csv',
   '$ fauna import --db=sampleDB --collection=SampleCollection --path ./datafile.csv',
   '$ fauna import --db=sampleDB --path ./dump',
-  '$ fauna import --type=header_name::date --type=hdr2::number --type=hdrX::bool --path ./collection.csv',
+  '$ fauna import --type=iso8601_date::dateString --type=hdr2::number --type=hdrX::bool --path ./collection.csv',
 ]
 
 const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags
@@ -246,7 +246,7 @@ ImportCommand.flags = {
     required: false,
   }),
   type: flags.string({
-    description: `Column type casting, converts the column value to a Fauna type.\nFormat: <column>::<type>\n<column>: the name of the column to cast values\n<type>: one of 'number', 'bool', or 'date'.`,
+    description: `Column type casting, converts the column value to a Fauna type.\nFormat: <column>::<type>\n<column>: the name of the column to cast values\n<type>: one of 'number', 'bool', 'dateString' (assumes an ISO-8601 date will make a best effor on other formats),\n\t'dateEpochMillis' (converts milliseconds since the epoch to a timestamp)\n\t'dateEpochSeconds' (converts seconds since the epoch to a timestamp)`,
     multiple: true,
   }),
   append: flags.boolean({

@@ -92,6 +92,23 @@ to a number. Skipping this item and continuing."
 Transaction failure two. Continuing ...'
         )
       )
+      expect(myMock).toHaveBeenCalledTimes(4)
+    })
+
+    it('Supports dry-run mode which skips persistence but logs errors', async () => {
+      await myImportWriter(myAsyncIterable, true)
+      expect(logHistory.length).toBe(2)
+      expect(logHistory[0]).toContain(
+        "item number 2 (zero-indexed) in your input file could not be translated \
+into the requested format due to: Invalid number 'foo' cannot be translated to a \
+number. Skipping this item and continuing."
+      )
+      expect(logHistory[1]).toContain(
+        "item number 7 (zero-indexed) in your input file could not be translated \
+into the requested format due to: Invalid number 'bar' cannot be translated \
+to a number. Skipping this item and continuing."
+      )
+      expect(myMock).not.toHaveBeenCalled()
     })
   })
 })

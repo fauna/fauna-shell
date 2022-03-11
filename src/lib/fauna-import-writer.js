@@ -20,7 +20,7 @@ function getFaunaImportWriter(
   typeTranslations,
   client,
   collection,
-  bytesPerSecondLimit = 280000,
+  bytesPerSecondLimit = 400000,
   maxParallelRequests = 10
 ) {
   const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
@@ -70,7 +70,7 @@ ${e.message}. Continuing ...`)
     }
   }
 
-  const streamConsumer = async (inputStream) => {
+  const streamConsumer = async (inputStream, isDryRun = false) => {
     let dataSize = 0
     let items = []
     let itemNumbers = []
@@ -93,7 +93,7 @@ this item and continuing.`
       }
       if (thisItem !== undefined) {
         const thisItemSize = sizeof(thisItem)
-        if (dataSize + thisItemSize > bytesPerSecondLimit) {
+        if (dataSize + thisItemSize > bytesPerSecondLimit && !isDryRun) {
           waitForRateLimitTokens(
             Math.min(bytesPerSecondLimit, dataSize),
             requestLimiter
@@ -108,7 +108,7 @@ this item and continuing.`
       }
     }
 
-    if (items.length >= 1) {
+    if (items.length >= 1 && !isDryRun) {
       logSettlements(await writeData(items, itemNumbers))
     }
   }

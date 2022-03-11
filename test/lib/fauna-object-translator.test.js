@@ -178,7 +178,7 @@ describe('FaunaObjectTranslator', () => {
       'my_date_epoch_seconds::dateEpochSeconds',
     ])
 
-    it('should translate valid date strings to Fauna Time', () => {
+    it('should translate valid ISO-8601 date strings to Fauna Time', () => {
       const validDates = [
         '2012',
         '2012-01-13',
@@ -197,6 +197,40 @@ describe('FaunaObjectTranslator', () => {
       })
     })
 
+    it('should translate valid RFC 2822 date strings to Fauna Time', () => {
+      const validDates = [
+        'Mon, 25 Dec 1995 13:30:00 GMT',
+        'Tue, 26 Dec 1995 13:30:00 PDT',
+      ]
+
+      validDates.forEach((date) => {
+        expect(
+          translator.getRecord({ my_date_string: date, taco: 'bell' })
+        ).toEqual({
+          my_date_string: q.Time(new Date(date).toISOString()),
+          taco: 'bell',
+        })
+      })
+    })
+
+    it('makes a best effort translation on non ISO-8601 date strings', () => {
+      const psuedoDates = [
+        '12',
+        '2012/01/13',
+        'May 13, 1958 12:12:00 PM',
+        '1 January 2010',
+      ]
+
+      psuedoDates.forEach((date) => {
+        expect(
+          translator.getRecord({ my_date_string: date, taco: 'bell' })
+        ).toEqual({
+          my_date_string: q.Time(new Date(date).toISOString()),
+          taco: 'bell',
+        })
+      })
+    })
+
     it('should throw an error for invalid date strings', () => {
       const invalidTypes = [{}, [], 12]
 
@@ -206,12 +240,12 @@ describe('FaunaObjectTranslator', () => {
         ).toThrow()
       })
 
-      const invalidStrings = ['foo', '12', '', ' ']
+      const invalidStrings = ['foo', '', ' ']
 
       invalidStrings.forEach((val) => {
         expect(() =>
           translator.getRecord({ my_date_string: val, taco: 'bell' })
-        ).toThrow(`The string '${val}' is not valid ISO-8601 date.`)
+        ).toThrow(`The string '${val}' cannot be translated to a date.`)
       })
     })
 
