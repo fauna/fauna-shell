@@ -13,7 +13,7 @@ class TranslationError extends Error {}
  *   - cast types as specified by input
  **/
 class FaunaObjectTranslator {
-  static #NUMBER_REGEX = /(^\s*\d+\s*$)|(^\s*\d*\.\d+\s*$)/
+  static #NUMBER_REGEX = /(^\s*[+|-]?\d+\s*$)|(^\s*[+|-]?\d*\.\d+\s*$)/
 
   static #TRULY = ['true', 't', 'yes', '1', 1, true]
 
@@ -22,6 +22,7 @@ class FaunaObjectTranslator {
   }
 
   #typeCasting
+  #logger
 
   /**
    * Constructs a new FaunaObjectTranslator
@@ -31,7 +32,8 @@ class FaunaObjectTranslator {
    *   Supported typeTranslationFunctions are: number, dateString, dateEpochMills, dateEpochSeconds, bool
    *   e.g. [myKey::bool, myOtherKey::number, myFinalKey::date_string]
    */
-  constructor(typeTranslations) {
+  constructor(typeTranslations, logger = console.log) {
+    this.#logger = logger
     this.#typeCasting = (() => {
       if (!typeTranslations) return {}
       const colTypeCast = {
@@ -94,7 +96,7 @@ class FaunaObjectTranslator {
     throw new TranslationError(
       `Invalid number '${FaunaObjectTranslator.#getErrorValue(
         val
-      )}' cannot be translated to a number`
+      )}' cannot be translated to a number.`
     )
   }
 
@@ -125,7 +127,7 @@ class FaunaObjectTranslator {
             `The string '${val}' cannot be translated to a date.`
           )
         }
-        console.log(`Warning: the string '${val}' is not valid ISO-8601 nor RFC_2822 date. \
+        this.#logger(`Warning: the string '${val}' is not valid ISO-8601 nor RFC_2822 date. \
 Making a best-effort translation to '${theDate}'`)
       }
     }
@@ -175,7 +177,7 @@ Making a best-effort translation to '${theDate}'`)
       if (castedValue !== undefined) {
         memo[col] = castedValue
       } else {
-        console.log(
+        this.#logger(
           `Value '${memo[col]}' at column '${col}' can not be casted to type '${
             this.#typeCasting[col].type
           }'`

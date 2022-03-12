@@ -57,9 +57,25 @@ describe('FaunaObjectTranslator', () => {
         a: '234',
         my_number: 12,
       })
+      expect(translator.getRecord({ a: '234', my_number: -12 })).toEqual({
+        a: '234',
+        my_number: -12,
+      })
       expect(translator.getRecord({ a: '234', my_number: 23.3 })).toEqual({
         a: '234',
         my_number: 23.3,
+      })
+      expect(translator.getRecord({ a: '234', my_number: -23.3 })).toEqual({
+        a: '234',
+        my_number: -23.3,
+      })
+      expect(translator.getRecord({ a: '234', my_number: 0.3 })).toEqual({
+        a: '234',
+        my_number: 0.3,
+      })
+      expect(translator.getRecord({ a: '234', my_number: -0.3 })).toEqual({
+        a: '234',
+        my_number: -0.3,
       })
       expect(translator.getRecord({ a: '234', my_number: null })).toEqual({
         a: '234',
@@ -80,6 +96,22 @@ describe('FaunaObjectTranslator', () => {
         a: '234',
         my_number: 12,
       })
+      expect(translator.getRecord({ a: '234', my_number: ' +12 ' })).toEqual({
+        a: '234',
+        my_number: 12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: '+12' })).toEqual({
+        a: '234',
+        my_number: 12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: ' -12 ' })).toEqual({
+        a: '234',
+        my_number: -12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: '-12' })).toEqual({
+        a: '234',
+        my_number: -12,
+      })
     })
 
     it('should translate floats stored in stings', () => {
@@ -90,6 +122,22 @@ describe('FaunaObjectTranslator', () => {
       expect(translator.getRecord({ a: '234', my_number: '0.12' })).toEqual({
         a: '234',
         my_number: 0.12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: '+0.12' })).toEqual({
+        a: '234',
+        my_number: 0.12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: '-0.12' })).toEqual({
+        a: '234',
+        my_number: -0.12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: '+.12' })).toEqual({
+        a: '234',
+        my_number: 0.12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: '-.12' })).toEqual({
+        a: '234',
+        my_number: -0.12,
       })
       expect(translator.getRecord({ a: '234', my_number: ' 0.12' })).toEqual({
         a: '234',
@@ -103,12 +151,38 @@ describe('FaunaObjectTranslator', () => {
         a: '234',
         my_number: 0.12,
       })
+      expect(translator.getRecord({ a: '234', my_number: ' +0.12 ' })).toEqual({
+        a: '234',
+        my_number: 0.12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: ' -0.12 ' })).toEqual({
+        a: '234',
+        my_number: -0.12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: ' -.12 ' })).toEqual({
+        a: '234',
+        my_number: -0.12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: ' .12 ' })).toEqual({
+        a: '234',
+        my_number: 0.12,
+      })
+      expect(translator.getRecord({ a: '234', my_number: ' +.12 ' })).toEqual({
+        a: '234',
+        my_number: 0.12,
+      })
     })
 
     it('should reject inputs that are not valid numbers', () => {
       expect(() => translator.getRecord({ a: '234', my_number: 'f' })).toThrow(
         "Invalid number 'f' cannot be translated to a number"
       )
+      expect(() =>
+        translator.getRecord({ a: '234', my_number: '+-2' })
+      ).toThrow("Invalid number '+-2' cannot be translated to a number")
+      expect(() =>
+        translator.getRecord({ a: '234', my_number: '+-.2' })
+      ).toThrow("Invalid number '+-.2' cannot be translated to a number")
       expect(() =>
         translator.getRecord({ a: '123', my_number: '0x16' })
       ).toThrow("Invalid number '0x16' cannot be translated to a number")

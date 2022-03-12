@@ -9,7 +9,8 @@ const RateLimiter = require('limiter').RateLimiter
  * @param {Array<string>} typeTranslations - any custom type translations to perform on fields.
  * @param {faunadb.Client} client - a {faunadb.Client} configured for the account to store the data in.
  * @param {string} collection - the name of the {fauna.query.Collection} to write data to.
- * @param {number} bytesPerSecondLimit - the rate at which data can be written to Fauna, defaults to 280000 bytes per second
+ * @param {boolean} isDryRun - if true dry run the import - committing no documents. to Fauna. Otherwise, write documents to Fauna. Defaults to false.
+ * @param {number} bytesPerSecondLimit - the rate at which data can be written to Fauna, defaults to 400000 bytes per second
  * @param {number} maxParallelRequests - the maximum number of parallel requests to issue to Fauna
  * @return {(inputStream: ReadableStream) => void} a function that asynchronously writes
  * all the data in the inputSteam to Fauna. All data will be written to the collection specified
@@ -20,6 +21,9 @@ function getFaunaImportWriter(
   typeTranslations,
   client,
   collection,
+  inputFile,
+  isDryRun = false,
+  logger = console.log,
   bytesPerSecondLimit = 400000,
   maxParallelRequests = 10
 ) {
@@ -54,7 +58,7 @@ function getFaunaImportWriter(
       promiseBatches.push(
         requestBatch(itemsToBatch.splice(0, batchSize)).catch((e) => {
           throw new Error(`item numbers: ${currentItemNumbers} \
-(zero-indexed) in your input file failed to persist in Fauna due to: \
+(zero-indexed) in your input file '${inputFile}' failed to persist in Fauna due to: \
 ${e.message}. Continuing ...`)
         })
       )
@@ -65,12 +69,12 @@ ${e.message}. Continuing ...`)
   const logSettlements = (settlements) => {
     for (let settlement of settlements) {
       if (settlement.status === 'rejected') {
-        console.log(settlement.reason)
+        logger(settlement.reason)
       }
     }
   }
 
-  const streamConsumer = async (inputStream, isDryRun = false) => {
+  const streamConsumer = async (inputStream) => {
     let dataSize = 0
     let items = []
     let itemNumbers = []
@@ -85,9 +89,9 @@ ${e.message}. Continuing ...`)
       try {
         thisItem = faunaObjectTranslator.getRecord(chunk)
       } catch (e) {
-        console.log(
-          `item number ${itemNumber} (zero-indexed) in your input file could \
-not be translated into the requested format due to: ${e.message}. Skipping \
+        logger(
+          `item number ${itemNumber} (zero-indexed) in your input file '${inputFile}' could \
+not be translated into the requested format due to: ${e.message} Skipping \
 this item and continuing.`
         )
       }

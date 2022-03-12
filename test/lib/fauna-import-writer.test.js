@@ -9,6 +9,7 @@ describe('FaunaImportWriter', () => {
     let myMock
     let mockClient
     let myImportWriter
+    let myDryRunWriter
     let logHistory
     let originalConsoleLog
 
@@ -42,6 +43,17 @@ describe('FaunaImportWriter', () => {
         ['numberField::number'],
         mockClient,
         'the-collection',
+        'my-file',
+        false,
+        tinySize,
+        2
+      )
+      myDryRunWriter = getFaunaImportWriter(
+        ['numberField::number'],
+        mockClient,
+        'the-collection',
+        'my-file',
+        true,
         tinySize,
         2
       )
@@ -96,7 +108,7 @@ Transaction failure two. Continuing ...'
     })
 
     it('Supports dry-run mode which skips persistence but logs errors', async () => {
-      await myImportWriter(myAsyncIterable, true)
+      await myDryRunWriter(myAsyncIterable)
       expect(logHistory.length).toBe(2)
       expect(logHistory[0]).toContain(
         "item number 2 (zero-indexed) in your input file could not be translated \

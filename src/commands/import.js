@@ -90,7 +90,7 @@ class ImportCommand extends FaunaCommand {
     if (!collection) {
       collection = source.name
     }
-    await this.dataImport({ source, collection })
+    await this.dataImport({ source, collection, path })
     this.success(`Import from ${path} to ${collection} completed`)
   }
 
@@ -117,19 +117,24 @@ class ImportCommand extends FaunaCommand {
     return { name, ext, path }
   }
 
-  async dataImport({ source, collection }) {
+  async dataImport({ source, collection, path }) {
     await this.ensureCollection({
       collection,
     })
 
-    await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       pipeline(
         fs.createReadStream(source.path, { highWaterMark: 500000 }),
         this.getTransformStreamStrategy(source.ext, this.flags),
-
-        getFaunaImportWriter(this.flags.type, this.client, collection),
+        getFaunaImportWriter(
+          source.ext === '.csv' ? this.flags.type : [],
+          this.client,
+          collection,
+          path,
+          Boolean(this.flags['dry-run']),
+          this.warn,
+        ),
         (error) => {
-          //console.log(piped);
           if (error) return reject(error)
           resolve()
         }
@@ -147,7 +152,11 @@ class ImportCommand extends FaunaCommand {
           skip_empty_lines: true,
           /* eslint-enable camelcase */
           cast: function (value, context) {
-            if (value === '' && !context.quoting) {
+            if (
+              value === '' &&
+              !context.quoting &&
+              flags['treat-empty-csv-cells-as'] === 'null'
+            ) {
               return null
             }
             return value
@@ -221,11 +230,20 @@ class ImportCommand extends FaunaCommand {
 ImportCommand.description = 'Import data to Fauna'
 
 ImportCommand.examples = [
+  'File import examples',
+  '',
   '$ fauna import --path ./collection_name.csv',
   '$ fauna import --append --path ./collection.csv',
   '$ fauna import --db=sampleDB --collection=SampleCollection --path ./datafile.csv',
   '$ fauna import --db=sampleDB --path ./dump',
   '$ fauna import --type=iso8601_date::dateString --type=hdr2::number --type=hdrX::bool --path ./collection.csv',
+  '',
+  ' ... Directory import examples',
+  '',
+  '$ fauna import --path ./my_directory_to_create_sample_collection_from_and_then_append_to --collection=SampleCollection',
+  '$ fauna import --path ./my_directory_to_append_all_files_to_sample_collection --collection=SampleCollection --append',
+  '$ fauna import --path ./my_directory_with_many_files_each_file_will_create_a_collection_based_on_its_filename',
+  '$ fauna import --path ./my_directory_will_append_to_all_collections_matching_the_file_names --append',
 ]
 
 const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags
@@ -242,11 +260,18 @@ ImportCommand.flags = {
   }),
   collection: flags.string({
     description:
-      'Collection name. When not specified, the collection name is the filename when --path is file',
+      'Collection name. When not specified, the collection name is the filename.',
     required: false,
   }),
   type: flags.string({
-    description: `Column type casting, converts the column value to a Fauna type.\nFormat: <column>::<type>\n<column>: the name of the column to cast values\n<type>: one of 'number', 'bool', 'dateString' (assumes an ISO-8601 date will make a best effor on other formats),\n\t'dateEpochMillis' (converts milliseconds since the epoch to a timestamp)\n\t'dateEpochSeconds' (converts seconds since the epoch to a timestamp)`,
+    description: `Column type casting - converts the column value to a Fauna type. Available only in CSVs; will be ignored in json/jsonl inputs. Null values will be treated as null and no conversion will be performed.\
+\nFormat: <column>::<type>\n<column>: the name of the column to cast values\
+\n<type>: one of\
+\n\t'number' - convert string to number\
+\n\t'bool' - convert 'true', 't', 'yes', or '1' to true and all other values to false (saving null which will be treated as null)\
+\n\t'dateString' - convert a ISO-8601 or RFC-2822 date string to a Fauna Time; will make a best effort on other formats,\
+\n\t'dateEpochMillis' - converts milliseconds since the epoch to a Fauna Time\
+\n\t'dateEpochSeconds' - converts seconds since the epoch to a Fauna Time`,
     multiple: true,
   }),
   append: flags.boolean({
@@ -254,6 +279,17 @@ ImportCommand.flags = {
   }),
   'allow-short-rows': flags.boolean({
     description: 'Allows rows which are shorter than the number of headers',
+  }),
+  'dry-run': flags.boolean({
+    description:
+      "Dry run the import - committing no documents to Fauna but converting all items to Fauna's format and applying all requested --type conversions. \
+Enables you to detect issues with your file(s) before writing to your collection(s).",
+  }),
+  'treat-empty-csv-cells-as': flags.string({
+    description:
+      'Treat empty csv cells as empty strings or null, default is null.',
+    options: ['empty', 'null'],
+    default: 'null',
   }),
   ...commonFlags,
 }
