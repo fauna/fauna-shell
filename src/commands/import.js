@@ -142,7 +142,7 @@ class ImportCommand extends FaunaCommand {
           collection,
           path,
           Boolean(this.flags['dry-run']),
-          this.warn,
+          this.warn
         ),
         (error) => {
           if (error) return reject(error)
@@ -200,7 +200,7 @@ class ImportCommand extends FaunaCommand {
     this.error(error)
   }
 
-  async ensureCollection({ collection, }) {
+  async ensureCollection({ collection }) {
     const result = await this.client
       .query(
         q.Let(
@@ -240,7 +240,7 @@ class ImportCommand extends FaunaCommand {
 ImportCommand.description = 'Import data to Fauna'
 
 ImportCommand.examples = [
-  'You can combine the options in any manner of you\'re choosing (although type translations cannot be applied to JSON or JSONL files). Below are examples.',
+  "You can combine the options in any manner of you're choosing (although type translations cannot be applied to JSON or JSONL files). Below are examples.",
   '\n ... File import examples',
   '',
   '\nImport a file into a new collection - given the same name as the file:',

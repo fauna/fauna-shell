@@ -22,6 +22,7 @@ class FaunaObjectTranslator {
   }
 
   #typeCasting
+
   #logger
 
   /**
@@ -127,7 +128,8 @@ class FaunaObjectTranslator {
             `The string '${val}' cannot be translated to a date.`
           )
         }
-        this.#logger(`Warning: the string '${val}' is not valid ISO-8601 nor RFC_2822 date. \
+        this
+          .#logger(`Warning: the string '${val}' is not valid ISO-8601 nor RFC_2822 date. \
 Making a best-effort translation to '${theDate}'`)
       }
     }
