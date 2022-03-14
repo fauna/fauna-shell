@@ -34,6 +34,23 @@ cleanup_collection () {
 CMD
 }
 
+ensure_db () {
+  DB="$1"
+  if [ -z "$DB" ]; then
+    echo "missing db arg"
+    exit 1
+  fi
+  
+
+  $FAUNA_CMD eval --stdin --endpoint data-import-test &> /dev/null << CMD
+    If(
+      Exists(Database("db")),
+      "Database exists!",
+      CreateDatabase({name: "$DB"})
+    )
+CMD
+}
+
 cleanup_all_collections () {
   cleanup_collection "bool_type"
   cleanup_collection "date_type"
@@ -54,6 +71,7 @@ cleanup_all_collections () {
   cleanup_collection "mixed_array_and_l"
   cleanup_collection "json_l"
   cleanup_collection "mixed_l_and_array"
+  cleanup_collection "foo"
 }
 
 fail_test() {
@@ -239,13 +257,51 @@ directory_tests() {
   if [ $? != 0 ];then
     fail_test "directory import should always succeed even if files fail"
   fi
+  $FAUNA_CMD import --endpoint data-import-test --path=type_tests --collection=foo
 }
 
 directory_specify_collection_tests() {
-  cleanup_all_collections
+  cleanup_collection "foo"
   $FAUNA_CMD import --endpoint data-import-test --path=type_tests --collection=foo
   if [ $? != 0 ];then
-    fail_test "directory import should always succeed even if files fail"
+    fail_test "directory import should have succeeded"
+  fi
+
+  $FAUNA_CMD import --endpoint data-import-test --path=type_tests --collection=foo
+  if [ $? == 0 ];then
+    fail_test "directory import should have failed as collecion foo already exists"
+  fi
+
+  $FAUNA_CMD import --endpoint data-import-test --path=type_tests --collection=foo --append
+  if [ $? != 0 ];then
+    fail_test "directory import should have succeeded"
+  fi
+}
+
+specify_db_tests() {
+  cleanup_all_collections
+  $FAUNA_CMD import --endpoint data-import-test --path=type_tests --db=Nope
+  if [ $? == 0 ];then
+    fail_test "directory import should have failed as db doesn't exist"
+  fi
+
+  cleanup_collection "json_array"
+  $FAUNA_CMD import --endpoint data-import-test --path=json/json_array.json --db=Nope
+  if [ $? == 0 ];then
+      fail_test "json_array.json should have failed to import as db doesn't exist"
+  fi
+
+  cleanup_all_collections
+  ensure_db "test-specify-db"
+  $FAUNA_CMD import --endpoint data-import-test --path=type_tests --db=test-specify-db
+  if [ $? != 0 ];then
+    fail_test "directory should have succeeded"
+  fi
+
+  cleanup_collection "json_array"
+  $FAUNA_CMD import --endpoint data-import-test --path=json/json_array.json --db=test-specify-db
+  if [ $? != 0 ];then
+    fail_test "json_array.json should have succeeded"
   fi
 }
 
@@ -254,6 +310,10 @@ append_tests() {
   $FAUNA_CMD import --endpoint data-import-test --path=json/json_array.json
   if [ $? != 0 ];then
       fail_test "json_array.json failed to import initally"
+  fi
+ $FAUNA_CMD import --endpoint data-import-test --path=json/json_array.json
+  if [ $? == 0 ];then
+      fail_test "json_array.json should fail as the append flag was not sent"
   fi
   $FAUNA_CMD import --endpoint data-import-test --path=json/json_array.json --append
   if [ $? != 0 ];then
@@ -264,6 +324,10 @@ append_tests() {
   if [ $? != 0 ];then
     fail_test "json_l.jsonl failed to import initially"
   fi
+  $FAUNA_CMD import --endpoint data-import-test --path=json/json_l.jsonl
+  if [ $? == 0 ];then
+    fail_test "json_l.jsonl should fail as the append flag was not sent"
+  fi
   $FAUNA_CMD import --endpoint data-import-test --path=json/json_l.jsonl --append
   if [ $? != 0 ];then
     fail_test "json_l.jsonl failed to append"
@@ -273,6 +337,10 @@ append_tests() {
   if [ $? != 0 ];then
     fail_test "bool_type.csv didn't import intially with success"
   fi
+  $FAUNA_CMD import --endpoint data-import-test --type=favorite::bool --path=type_tests/bool_type.csv
+  if [ $? == 0 ];then
+    fail_test "bool_type.csv should fail as the append flag was not sent"
+  fi
   $FAUNA_CMD import --endpoint data-import-test --type=favorite::bool --path=type_tests/bool_type.csv --append
   if [ $? != 0 ];then
     fail_test "bool_type.csv didn't failed to append"
@@ -280,13 +348,15 @@ append_tests() {
 }
 
 # Comment out test batches as required.
-run_type_tests
-short_row_tests
-header_name_tests
-json_tests
-invalid_file_type_tests
-directory_tests
-append_tests
+# run_type_tests
+# short_row_tests
+# header_name_tests
+# json_tests
+# invalid_file_type_tests
+#directory_tests
+#append_tests
+directory_specify_collection_tests
+specify_db_tests
 
 echo "--------------------------------------------------"
 echo "ALL SCRAPPY TESTS PASSED!!"

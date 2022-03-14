@@ -28,7 +28,6 @@ class ImportCommand extends FaunaCommand {
 
     let importFn
     if (this.isDir(path)) {
-      this.flags.collection = undefined // use file name instead
       importFn = this.importDir
     } else {
       importFn = this.importFile
@@ -49,6 +48,14 @@ class ImportCommand extends FaunaCommand {
 
     const failedFiles = []
 
+    if (this.flags.collection) {
+      try {
+        await this.ensureCollection({ collection: this.flags.collection })
+      } catch (e) {
+        throw new Error(e.message)
+      }
+    }
+
     for (const file of files) {
       const subPath = p.resolve(path, file)
       if (this.isDir(subPath)) {
@@ -59,6 +66,9 @@ class ImportCommand extends FaunaCommand {
       }
       try {
         await this.importFile(subPath)
+        if (this.flags.collection) {
+          this.flags.append = true
+        }
       } catch (e) {
         const warning = e.message ? e.message : e
         failedFiles.push({ file, warning })
@@ -190,7 +200,7 @@ class ImportCommand extends FaunaCommand {
     this.error(error)
   }
 
-  async ensureCollection({ collection }) {
+  async ensureCollection({ collection, }) {
     const result = await this.client
       .query(
         q.Let(
@@ -230,20 +240,28 @@ class ImportCommand extends FaunaCommand {
 ImportCommand.description = 'Import data to Fauna'
 
 ImportCommand.examples = [
-  'File import examples',
+  'You can combine the options in any manner of you\'re choosing (although type translations cannot be applied to JSON or JSONL files). Below are examples.',
+  '\n ... File import examples',
   '',
+  '\nImport a file into a new collection - given the same name as the file:',
   '$ fauna import --path ./collection_name.csv',
+  '\nAppend a file into a pre-existing collection - having the same name as the file:',
   '$ fauna import --append --path ./collection.csv',
+  '\nImport a file into a new collection named "SampleCollection" in the child database "sampleDB":',
   '$ fauna import --db=sampleDB --collection=SampleCollection --path ./datafile.csv',
-  '$ fauna import --db=sampleDB --path ./dump',
+  '\nImport a file into a new collection named "SampleCollection" in the child database "sampleDB":',
   '$ fauna import --type=iso8601_date::dateString --type=hdr2::number --type=hdrX::bool --path ./collection.csv',
   '',
   ' ... Directory import examples',
   '',
-  '$ fauna import --path ./my_directory_to_create_sample_collection_from_and_then_append_to --collection=SampleCollection',
-  '$ fauna import --path ./my_directory_to_append_all_files_to_sample_collection --collection=SampleCollection --append',
-  '$ fauna import --path ./my_directory_with_many_files_each_file_will_create_a_collection_based_on_its_filename',
-  '$ fauna import --path ./my_directory_will_append_to_all_collections_matching_the_file_names --append',
+  'Import a directory - creating a new collection "SampleCollection" with data from every file in the directory:',
+  '$ fauna import --path ./my_directory --collection=SampleCollection',
+  '\nImport a directory - creating appending to the pre-existing collection "SampleCollection" with data from every file in the directory:',
+  '$ fauna import --path ./my_directory --collection=SampleCollection --append',
+  '\nImport a directory - creating creating a new collection named after the file name of each file:',
+  '$ fauna import --path ./my_directory',
+  '\nImport a directory - creating appending to pre-existing collections named after the file name of each file:',
+  '$ fauna import --path ./my_directory --append',
 ]
 
 const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags
@@ -252,7 +270,8 @@ ImportCommand.flags = {
   path: flags.string({
     required: true,
     description:
-      'Path to .csv/.json file, or path to folder containing .csv/.json files',
+      'Path to .csv/.json file, or path to folder containing .csv/.json files.\
+ if the path is to a folder, sub-folders will be skipped.',
   }),
   db: flags.string({
     description:
