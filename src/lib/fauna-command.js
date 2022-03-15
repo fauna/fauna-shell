@@ -62,6 +62,12 @@ class FaunaCommand extends Command {
       const client = new faunadb.Client({
         ...clientOptions,
         headers: {
+          /**
+           * The database currently relies on this value to be able to turn off the data importer for a specific
+           * customer while still allowing them to use the SDKs for traffic (where there production workloads are likely
+           * to originate from).  This is done to ensure that traffic from the data importer tool doesn't overload the
+           * system. Please consult the database team before changing this header value.
+           */
           'X-Fauna-Source': 'Fauna Shell',
         },
       })
@@ -97,6 +103,12 @@ class FaunaCommand extends Command {
       const client = new faunadb.Client({
         ...clientOptions,
         headers: {
+          /**
+           * The database currently relies on this value to be able to turn off the data importer for a specific
+           * customer while still allowing them to use the SDKs for traffic (where there production workloads are likely
+           * to originate from).  This is done to ensure that traffic from the data importer tool doesn't overload the
+           * system. Please consult the database team before changing this header value.
+           */
           'X-Fauna-Source': 'Fauna Shell',
         },
       })
