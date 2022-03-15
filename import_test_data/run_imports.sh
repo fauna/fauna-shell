@@ -348,13 +348,13 @@ append_tests() {
 }
 
 # Comment out test batches as required.
-# run_type_tests
-# short_row_tests
-# header_name_tests
-# json_tests
-# invalid_file_type_tests
-#directory_tests
-#append_tests
+run_type_tests
+short_row_tests
+header_name_tests
+json_tests
+invalid_file_type_tests
+directory_tests
+append_tests
 directory_specify_collection_tests
 specify_db_tests
 
