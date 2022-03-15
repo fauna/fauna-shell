@@ -35,7 +35,6 @@ describe('import', () => {
   })
 
   describe('successful imports', () => {
-
     async function deleteCollection(collectionName, sleep = false) {
       const response = await client.query(
         query.If(
@@ -48,6 +47,27 @@ describe('import', () => {
         // sucks but long timeout required
         return new Promise((resolve) => setTimeout(resolve, 60000))
       }
+    }
+
+    async function getAllItemsInCollection(collectionName) {
+      const results = []
+      var nextToken
+      do {
+        const response = await client.query(
+          query.Map(
+            query.Paginate(query.Documents(query.Collection(collectionName))),
+            query.Lambda('x', query.Get(query.Var('x')))
+          )
+        )
+        nextToken = response.after
+        results.push(...response.data.map((x) => x.data))
+      } while (nextToken)
+      return results
+    }
+
+    async function doCollectionAssertions(collection, expected) {
+      const results = await getAllItemsInCollection(collection)
+      expect(results).to.have.deep.members(expected)
     }
 
     test
@@ -64,8 +84,42 @@ describe('import', () => {
           '--path=import_test_data/type_tests/number_type.csv',
         ])
       )
-      .it('creates a collection', (ctx) => {
-        expect(ctx.stdout).to.contain(/Import from .* completed/)        
+      .it('creates a collection', async (ctx) => {
+        expect(ctx.stdout).to.contain(/Import from .* completed/)
+        const expected = [
+          { id: '1', name: 'mia', age: '14' },
+          { id: '3', name: 'pixie', age: '4.5' },
+          { id: '5', name: 'unborn', age: '-2' },
+          { id: '6', name: 'cliff' },
+        ]
+        doCollectionAssertions('number_type', expected)
+      })
+
+    test
+      .timeout(61000)
+      .do(async () => {
+        await deleteCollection('foo', true)
+      })
+      .finally(async () => {
+        await deleteCollection('foo', false)
+      })
+      .command(
+        withOpts([
+          'import',
+          '--path=import_test_data/type_tests/number_type.csv',
+          '--collection=foo',
+          '--type=age::number',
+        ])
+      )
+      .it('creates a collection with type translations', async (ctx) => {
+        expect(ctx.stdout).to.contain(/Import from .* completed/)
+        const expected = [
+          { id: '1', name: 'mia', age: 14 },
+          { id: '3', name: 'pixie', age: 4.5 },
+          { id: '5', name: 'unborn', age: -2 },
+          { id: '6', name: 'cliff' },
+        ]
+        doCollectionAssertions('foo', expected)
       })
   })
 })
