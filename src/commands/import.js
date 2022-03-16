@@ -9,6 +9,7 @@ const p = require('path')
 const q = faunadb.query
 const getFaunaImportWriter = require('../lib/fauna-import-writer')
 const { parse } = require('csv-parse')
+const ImportLimits = require('../lib/import-limits')
 
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json', '.jsonl']
@@ -40,7 +41,9 @@ class ImportCommand extends FaunaCommand {
     const files = fs.readdirSync(path)
 
     // check if folder size is approximately greater than 10GB
-    if (this.calculateFolderSize(path, files) > 10000) {
+    if (
+      this.calculateFolderSize(path, files) > ImportLimits.maximumImportSize()
+    ) {
       throw new Error(
         `Folder (${path}) size is greater than 10GB, can't proceed with the import`
       )
@@ -89,7 +92,7 @@ class ImportCommand extends FaunaCommand {
 
   async importFile(path) {
     // check if file size is approximately greater than 10GB
-    if (this.calculateFileSize(path) > 10000) {
+    if (this.calculateFileSize(path) > ImportLimits.maximumImportSize()) {
       throw new Error(
         `File (${path}) size is greater than 10GB, can't proceed with the import`
       )
@@ -200,6 +203,18 @@ class ImportCommand extends FaunaCommand {
     this.error(error)
   }
 
+  createConditionallyExpr(collection, isDryRun) {
+    if (isDryRun) {
+      return {}
+    } else {
+      return q.If(
+        q.Var('isCollectionExists'),
+        '',
+        q.CreateCollection({ name: collection })
+      )
+    }
+  }
+
   async ensureCollection({ collection }) {
     const result = await this.client
       .query(
@@ -207,10 +222,9 @@ class ImportCommand extends FaunaCommand {
           {
             ref: q.Collection(collection),
             isCollectionExists: q.Exists(q.Var('ref')),
-            collection: q.If(
-              q.Var('isCollectionExists'),
-              '',
-              q.CreateCollection({ name: collection })
+            collection: this.createConditionallyExpr(
+              collection,
+              Boolean(this.flags['dry-run'])
             ),
             isEmpty: q.If(
               q.Var('isCollectionExists'),
