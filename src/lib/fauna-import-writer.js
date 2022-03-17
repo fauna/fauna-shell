@@ -2,6 +2,7 @@ const q = require('faunadb').query
 const { FaunaObjectTranslator } = require('./fauna-object-translator')
 const sizeof = require('object-sizeof')
 const RateLimiter = require('limiter').RateLimiter
+const { backOff } = require('exponential-backoff')
 
 /**
  * Creates a function that consumes a stream of objects and writes creates each object
@@ -24,6 +25,7 @@ function getFaunaImportWriter(
   inputFile,
   isDryRun = false,
   logger = console.log,
+  allowRetries = false,
   bytesPerSecondLimit = 400000,
   maxParallelRequests = 10
 ) {
@@ -35,19 +37,55 @@ function getFaunaImportWriter(
     }
   }
 
+  const retryHandler = (e, attemptNumber) => {
+    let shouldRetry
+    console.log(attemptNumber)
+    switch (e.requestResult?.statusCode) {
+      case 400:
+        // contention - reduce requests/second + backoff and retry
+        shouldRetry = true
+      case 409:
+        // contention - reduce requests/second + backoff and retry
+        shouldRetry = true
+      case 410:
+        // account disabled - exit
+        logger('Account disabled')
+        shouldRetry = false
+      case 413:
+        // request too large - reduce request size + backoff and retry
+        shouldRetry = true
+      case 429:
+        // too many requests - reduce requests/second + backoff and retry
+        shouldRetry = true
+      case 503:
+        // request timeout - reduce requests/second
+        shouldRetry = false
+      default:
+        shouldRetry = false
+    }
+    // returning true will retry the request given attemptNumber < numOfAttempts
+    return shouldRetry && allowRetries
+  }
+
   const requestBatch = (batch) => {
-    return client.query(
-      q.Do(
-        batch.map((data) =>
-          q.Create(q.Collection(collection), {
-            data: Object.keys(data).reduce(
-              (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
-              {}
-            ),
-          })
+    const write = (batch) =>
+      client.query(
+        q.Do(
+          batch.map((data) =>
+            q.Create(q.Collection(collection), {
+              data: Object.keys(data).reduce(
+                (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
+                {}
+              ),
+            })
+          )
         )
       )
-    )
+    return backOff(() => write(batch), {
+      jitter: 'full',
+      retry: retryHandler,
+      numOfAttempts: 10,
+    })
   }
 
   const writeData = (itemsToBatch, itemNumbers) => {
@@ -58,8 +96,8 @@ function getFaunaImportWriter(
       promiseBatches.push(
         requestBatch(itemsToBatch.splice(0, batchSize)).catch((e) => {
           throw new Error(`item numbers: ${currentItemNumbers} \
-(zero-indexed) in your input file '${inputFile}' failed to persist in Fauna due to: \
-${e.message}. Continuing ...`)
+        (zero-indexed) in your input file '${inputFile}' failed to persist in Fauna due to: \
+        ${e.message}. Continuing ...`)
         })
       )
     }

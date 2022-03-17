@@ -145,7 +145,8 @@ class ImportCommand extends FaunaCommand {
           collection,
           path,
           Boolean(this.flags['dry-run']),
-          this.warn
+          this.warn,
+          Boolean(this.flags['allow-retries'])
         ),
         (error) => {
           if (error) return reject(error)
@@ -323,6 +324,9 @@ Enables you to detect issues with your file(s) before writing to your collection
       'Treat empty csv cells as empty strings or null, default is null.',
     options: ['empty', 'null'],
     default: 'null',
+  }),
+  'allow-retries': flags.boolean({
+    description: 'Retry if an import fails',
   }),
   ...commonFlags,
 }
