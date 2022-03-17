@@ -3,26 +3,16 @@ const fs = require('fs')
 const { flags } = require('@oclif/command')
 const FaunaCommand = require('../lib/fauna-command.js')
 const StreamJson = require('../lib/json-stream')
-const FaunaWriteStream = require('../lib/fauna-write-stream')
 const faunadb = require('faunadb')
 const { pipeline } = require('stream')
 const p = require('path')
-const CSVStream = require('../lib/csv-stream')
 const q = faunadb.query
+const getFaunaImportWriter = require('../lib/fauna-import-writer')
+const { parse } = require('csv-parse')
+const ImportLimits = require('../lib/import-limits')
+
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json', '.jsonl']
-
-  streamStrategy = {
-    '.csv': (flags) =>
-      new CSVStream({
-        flags,
-        escapeChar: '"',
-        enclosedChar: '"',
-        endLine: ['\r', '\n', '\r\n'],
-      }),
-    '.json': () => StreamJson.withParser(),
-    '.jsonl': () => StreamJson.withParser(),
-  }
 
   isDir(path) {
     return fs.lstatSync(path).isDirectory()
@@ -39,7 +29,6 @@ class ImportCommand extends FaunaCommand {
 
     let importFn
     if (this.isDir(path)) {
-      this.flags.collection = undefined // use file name instead
       importFn = this.importDir
     } else {
       importFn = this.importFile
@@ -52,13 +41,23 @@ class ImportCommand extends FaunaCommand {
     const files = fs.readdirSync(path)
 
     // check if folder size is approximately greater than 10GB
-    if (this.calculateFolderSize(path, files) > 10000) {
+    if (
+      this.calculateFolderSize(path, files) > ImportLimits.maximumImportSize()
+    ) {
       throw new Error(
         `Folder (${path}) size is greater than 10GB, can't proceed with the import`
       )
     }
 
     const failedFiles = []
+
+    if (this.flags.collection) {
+      try {
+        await this.ensureCollection({ collection: this.flags.collection })
+      } catch (e) {
+        throw new Error(e.message)
+      }
+    }
 
     for (const file of files) {
       const subPath = p.resolve(path, file)
@@ -70,6 +69,9 @@ class ImportCommand extends FaunaCommand {
       }
       try {
         await this.importFile(subPath)
+        if (this.flags.collection) {
+          this.flags.append = true
+        }
       } catch (e) {
         const warning = e.message ? e.message : e
         failedFiles.push({ file, warning })
@@ -90,7 +92,7 @@ class ImportCommand extends FaunaCommand {
 
   async importFile(path) {
     // check if file size is approximately greater than 10GB
-    if (this.calculateFileSize(path) > 10000) {
+    if (this.calculateFileSize(path) > ImportLimits.maximumImportSize()) {
       throw new Error(
         `File (${path}) size is greater than 10GB, can't proceed with the import`
       )
@@ -101,7 +103,7 @@ class ImportCommand extends FaunaCommand {
     if (!collection) {
       collection = source.name
     }
-    await this.dataImport({ source, collection })
+    await this.dataImport({ source, collection, path })
     this.success(`Import from ${path} to ${collection} completed`)
   }
 
@@ -128,33 +130,55 @@ class ImportCommand extends FaunaCommand {
     return { name, ext, path }
   }
 
-  async dataImport({ source, collection }) {
+  async dataImport({ source, collection, path }) {
     await this.ensureCollection({
       collection,
     })
 
-    const faunaWriteStream = new FaunaWriteStream({
-      source,
-      log: this.log,
-      warn: this.warn,
-      error: this.error,
-      collection,
-      client: this.client,
-      type: this.flags.type,
-    })
-    await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       pipeline(
         fs.createReadStream(source.path, { highWaterMark: 500000 }),
-        this.streamStrategy[source.ext](this.flags),
-        faunaWriteStream,
+        this.getTransformStreamStrategy(source.ext, this.flags),
+        getFaunaImportWriter(
+          source.ext === '.csv' ? this.flags.type : [],
+          this.client,
+          collection,
+          path,
+          Boolean(this.flags['dry-run']),
+          this.warn
+        ),
         (error) => {
-          faunaWriteStream.awaitAllRequestCompleted().then(() => {
-            if (error) return reject(error)
-            resolve()
-          })
+          if (error) return reject(error)
+          resolve()
         }
       )
     })
+  }
+
+  getTransformStreamStrategy(extension, flags) {
+    let strategies = {
+      '.csv': () =>
+        parse({
+          columns: true,
+          /* eslint-disable camelcase */
+          relax_column_count_less: Boolean(flags['allow-short-rows']),
+          skip_empty_lines: true,
+          /* eslint-enable camelcase */
+          cast: function (value, context) {
+            if (
+              value === '' &&
+              !context.quoting &&
+              flags['treat-empty-csv-cells-as'] === 'null'
+            ) {
+              return null
+            }
+            return value
+          },
+        }),
+      '.json': () => StreamJson.withParser(),
+      '.jsonl': () => StreamJson.withParser(),
+    }
+    return strategies[extension]()
   }
 
   handleError(error) {
@@ -179,6 +203,18 @@ class ImportCommand extends FaunaCommand {
     this.error(error)
   }
 
+  createConditionallyExpr(collection, isDryRun) {
+    if (isDryRun) {
+      return {}
+    } else {
+      return q.If(
+        q.Var('isCollectionExists'),
+        '',
+        q.CreateCollection({ name: collection })
+      )
+    }
+  }
+
   async ensureCollection({ collection }) {
     const result = await this.client
       .query(
@@ -186,10 +222,9 @@ class ImportCommand extends FaunaCommand {
           {
             ref: q.Collection(collection),
             isCollectionExists: q.Exists(q.Var('ref')),
-            collection: q.If(
-              q.Var('isCollectionExists'),
-              '',
-              q.CreateCollection({ name: collection })
+            collection: this.createConditionallyExpr(
+              collection,
+              Boolean(this.flags['dry-run'])
             ),
             isEmpty: q.If(
               q.Var('isCollectionExists'),
@@ -219,11 +254,28 @@ class ImportCommand extends FaunaCommand {
 ImportCommand.description = 'Import data to Fauna'
 
 ImportCommand.examples = [
+  "You can combine the options in any manner of you're choosing (although type translations cannot be applied to JSON or JSONL files). Below are examples.",
+  '\n ... File import examples',
+  '',
+  '\nImport a file into a new collection - given the same name as the file:',
   '$ fauna import --path ./collection_name.csv',
+  '\nAppend a file into a pre-existing collection - having the same name as the file:',
   '$ fauna import --append --path ./collection.csv',
+  '\nImport a file into a new collection named "SampleCollection" in the child database "sampleDB":',
   '$ fauna import --db=sampleDB --collection=SampleCollection --path ./datafile.csv',
-  '$ fauna import --db=sampleDB --path ./dump',
-  '$ fauna import --type=header_name::date --type=hdr2::number --type=hdrX::bool --path ./collection.csv',
+  '\nImport a file into a new collection named "SampleCollection" in the child database "sampleDB":',
+  '$ fauna import --type=iso8601_date::dateString --type=hdr2::number --type=hdrX::bool --path ./collection.csv',
+  '',
+  ' ... Directory import examples',
+  '',
+  'Import a directory - creating a new collection "SampleCollection" with data from every file in the directory:',
+  '$ fauna import --path ./my_directory --collection=SampleCollection',
+  '\nImport a directory - creating appending to the pre-existing collection "SampleCollection" with data from every file in the directory:',
+  '$ fauna import --path ./my_directory --collection=SampleCollection --append',
+  '\nImport a directory - creating creating a new collection named after the file name of each file:',
+  '$ fauna import --path ./my_directory',
+  '\nImport a directory - creating appending to pre-existing collections named after the file name of each file:',
+  '$ fauna import --path ./my_directory --append',
 ]
 
 const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags
@@ -232,7 +284,8 @@ ImportCommand.flags = {
   path: flags.string({
     required: true,
     description:
-      'Path to .csv/.json file, or path to folder containing .csv/.json files',
+      'Path to .csv/.json file, or path to folder containing .csv/.json files.\
+ if the path is to a folder, sub-folders will be skipped.',
   }),
   db: flags.string({
     description:
@@ -240,11 +293,18 @@ ImportCommand.flags = {
   }),
   collection: flags.string({
     description:
-      'Collection name. When not specified, the collection name is the filename when --path is file',
+      'Collection name. When not specified, the collection name is the filename.',
     required: false,
   }),
   type: flags.string({
-    description: `Column type casting, converts the column value to a Fauna type.\nFormat: <column>::<type>\n<column>: the name of the column to cast values\n<type>: one of 'number', 'bool', or 'date'.`,
+    description: `Column type casting - converts the column value to a Fauna type. Available only in CSVs; will be ignored in json/jsonl inputs. Null values will be treated as null and no conversion will be performed.\
+\nFormat: <column>::<type>\n<column>: the name of the column to cast values\
+\n<type>: one of\
+\n\t'number' - convert string to number\
+\n\t'bool' - convert 'true', 't', 'yes', or '1' to true and all other values to false (saving null which will be treated as null)\
+\n\t'dateString' - convert a ISO-8601 or RFC-2822 date string to a Fauna Time; will make a best effort on other formats,\
+\n\t'dateEpochMillis' - converts milliseconds since the epoch to a Fauna Time\
+\n\t'dateEpochSeconds' - converts seconds since the epoch to a Fauna Time`,
     multiple: true,
   }),
   append: flags.boolean({
@@ -252,6 +312,17 @@ ImportCommand.flags = {
   }),
   'allow-short-rows': flags.boolean({
     description: 'Allows rows which are shorter than the number of headers',
+  }),
+  'dry-run': flags.boolean({
+    description:
+      "Dry run the import - committing no documents to Fauna but converting all items to Fauna's format and applying all requested --type conversions. \
+Enables you to detect issues with your file(s) before writing to your collection(s).",
+  }),
+  'treat-empty-csv-cells-as': flags.string({
+    description:
+      'Treat empty csv cells as empty strings or null, default is null.',
+    options: ['empty', 'null'],
+    default: 'null',
   }),
   ...commonFlags,
 }

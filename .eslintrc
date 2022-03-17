@@ -10,18 +10,26 @@
     "max-nested-callbacks": "off",
     "no-else-return": "off",
     "no-console": "off",
+    "no-multi-str": "off",
     "no-prototype-builtins": "off",
     "node/no-extraneous-require": ["error", {
-      "allowModules": ["@oclif/errors"]
+      "allowModules": ["@oclif/errors", "expect", "jest-mock", "@jest/globals"]
      }]
   },
   "overrides": [
     {
       "files": ["*.test.js", "*.spec.js"],
       "rules": {
-        "no-unused-expressions": "off"
+        "no-unused-expressions": "off",
+        "camelcase": "off"
       }
     }
   ],
-  "parser": "babel-eslint"
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "requireConfigFile": false
+  },
+  "env": {
+    "mocha": true
+  }
 }
