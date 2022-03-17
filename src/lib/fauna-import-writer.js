@@ -39,29 +39,32 @@ function getFaunaImportWriter(
 
   const retryHandler = (e, attemptNumber) => {
     let shouldRetry
-    console.log(attemptNumber)
+    logger(`[${e.requestResult?.statusCode}] Attempt: ${attemptNumber}`)
     switch (e.requestResult?.statusCode) {
-      case 400:
-        // contention - reduce requests/second + backoff and retry
-        shouldRetry = true
       case 409:
         // contention - reduce requests/second + backoff and retry
         shouldRetry = true
+        break
       case 410:
         // account disabled - exit
         logger('Account disabled')
         shouldRetry = false
+        break
       case 413:
         // request too large - reduce request size + backoff and retry
         shouldRetry = true
+        break
       case 429:
         // too many requests - reduce requests/second + backoff and retry
         shouldRetry = true
+        break
       case 503:
         // request timeout - reduce requests/second
         shouldRetry = false
+        break
       default:
         shouldRetry = false
+        break
     }
     // returning true will retry the request given attemptNumber < numOfAttempts
     return shouldRetry && allowRetries
