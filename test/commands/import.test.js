@@ -1,4 +1,4 @@
-const { expect, test, st } = require('@oclif/test')
+const { expect, test } = require('@oclif/test')
 const { withOpts } = require('../helpers/utils.js')
 const { Client, query } = require('faunadb')
 const ImportLimits = require('../../src/lib/import-limits')

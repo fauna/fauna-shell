@@ -2,10 +2,22 @@ const expect = require('expect')
 const getFaunaImportWriter = require('../../src/lib/fauna-import-writer')
 const jestMock = require('jest-mock')
 const sizeof = require('object-sizeof')
+const { FaunaHTTPError } = require('faunadb').errors
+// const { raiseForStatusCode } = require('faunadb').errors.FaunaHTTPError
+
+const createErrorForStatusCode = (statusCode) => {
+  return new FaunaHTTPError('MockError', {
+    statusCode: statusCode,
+    responseContent: {
+      errors: [{ description: 'Foo Bar' }],
+    },
+  })
+}
 
 describe('FaunaImportWriter', () => {
   describe('Error handling', () => {
     let myAsyncIterable
+    let myAsyncIterable2
     let myMock
     let mockClient
     let myImportWriter
@@ -35,6 +47,11 @@ describe('FaunaImportWriter', () => {
           yield { goodField: '1', numberField: '9' }
         },
       }
+      myAsyncIterable2 = {
+        async *[Symbol.asyncIterator]() {
+          yield { goodField: '1', numberField: '0' }
+        },
+      }
       myMock = jestMock.fn()
       mockClient = {
         query: myMock,
@@ -52,6 +69,7 @@ describe('FaunaImportWriter', () => {
         'my-file',
         false,
         console.log,
+        true,
         tinySize,
         2
       )
@@ -62,6 +80,7 @@ describe('FaunaImportWriter', () => {
         'my-file',
         true,
         console.log,
+        false,
         tinySize,
         2
       )
@@ -73,7 +92,6 @@ describe('FaunaImportWriter', () => {
 
     it('Logs the line numbers of items that fail to translate or persist to the DB', async () => {
       myMock
-        .mockReturnValue(Promise.resolve())
         .mockReturnValueOnce(Promise.resolve())
         .mockReturnValueOnce(
           Promise.reject(new Error('Transaction failure one'))
@@ -82,6 +100,7 @@ describe('FaunaImportWriter', () => {
         .mockReturnValueOnce(
           Promise.reject(new Error('Transaction failure two'))
         )
+        .mockReturnValue(Promise.resolve())
       await myImportWriter(myAsyncIterable)
       expect(logHistory.length).toBe(4)
       expect(logHistory[0]).toContain(
@@ -123,6 +142,43 @@ into the requested format due to: Invalid number 'bar' cannot be translated \
 to a number. Skipping this item and continuing."
       )
       expect(myMock).not.toHaveBeenCalled()
+    })
+
+    it('Retries appropriate status codes', async () => {
+      // Status codes to be retried are 409 and 429
+      myMock
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(409)))
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(409)))
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(429)))
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(429)))
+        .mockReturnValue(Promise.resolve())
+      await myImportWriter(myAsyncIterable2)
+      expect(myMock).toHaveBeenCalledTimes(5)
+    })
+
+    it('Does not retry appropriate status codes', async () => {
+      // Each run should fail on the 1st attempt
+      myMock
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(400)))
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(400)))
+      await myImportWriter(myAsyncIterable2)
+
+      myMock
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(410)))
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(410)))
+      await myImportWriter(myAsyncIterable2)
+
+      myMock
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(413)))
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(413)))
+      await myImportWriter(myAsyncIterable2)
+
+      myMock
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(503)))
+        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(503)))
+      await myImportWriter(myAsyncIterable2)
+
+      expect(myMock).toHaveBeenCalledTimes(4)
     })
   })
 })

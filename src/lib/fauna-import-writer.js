@@ -37,37 +37,25 @@ function getFaunaImportWriter(
     }
   }
 
-  const retryHandler = (e, attemptNumber) => {
-    let shouldRetry
-    logger(`[${e.requestResult?.statusCode}] Attempt: ${attemptNumber}`)
+  /**
+  Status codes of interest:
+  * [409] Contention - attempt to retry
+  * [410] Account disabled - do not retry
+  * [413] Request too large - should not happen
+  * [429] Too many requests - attempt to retry
+  * [503] Timeout - do not retry
+  */
+  const retryHandler = (e) => {
     switch (e.requestResult?.statusCode) {
       case 409:
-        // contention - reduce requests/second + backoff and retry
-        shouldRetry = true
-        break
-      case 410:
-        // account disabled - exit
-        logger('Account disabled')
-        shouldRetry = false
-        break
-      case 413:
-        // request too large - reduce request size + backoff and retry
-        shouldRetry = true
-        break
+        // contention
+        return true
       case 429:
-        // too many requests - reduce requests/second + backoff and retry
-        shouldRetry = true
-        break
-      case 503:
-        // request timeout - reduce requests/second
-        shouldRetry = false
-        break
+        // too many requests
+        return true
       default:
-        shouldRetry = false
-        break
+        return false
     }
-    // returning true will retry the request given attemptNumber < numOfAttempts
-    return shouldRetry && allowRetries
   }
 
   const requestBatch = (batch) => {
@@ -84,11 +72,13 @@ function getFaunaImportWriter(
           )
         )
       )
-    return backOff(() => write(batch), {
-      jitter: 'full',
-      retry: retryHandler,
-      numOfAttempts: 10,
-    })
+    if (allowRetries)
+      return backOff(() => write(batch), {
+        jitter: 'full',
+        retry: retryHandler,
+        numOfAttempts: 10,
+      })
+    return write(batch)
   }
 
   const writeData = (itemsToBatch, itemNumbers) => {
@@ -99,8 +89,8 @@ function getFaunaImportWriter(
       promiseBatches.push(
         requestBatch(itemsToBatch.splice(0, batchSize)).catch((e) => {
           throw new Error(`item numbers: ${currentItemNumbers} \
-        (zero-indexed) in your input file '${inputFile}' failed to persist in Fauna due to: \
-        ${e.message}. Continuing ...`)
+(zero-indexed) in your input file '${inputFile}' failed to persist in Fauna due to: \
+${e.message}. Continuing ...`)
         })
       )
     }
