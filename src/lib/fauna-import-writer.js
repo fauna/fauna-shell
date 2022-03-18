@@ -3,6 +3,7 @@ const { FaunaObjectTranslator } = require('./fauna-object-translator')
 const sizeof = require('object-sizeof')
 const RateLimiter = require('limiter').RateLimiter
 const { backOff } = require('exponential-backoff')
+const FaunaHTTPError = require('faunadb').errors.FaunaHTTPError
 
 /**
  * Creates a function that consumes a stream of objects and writes creates each object
@@ -29,6 +30,14 @@ function getFaunaImportWriter(
   bytesPerSecondLimit = 400000,
   maxParallelRequests = 10
 ) {
+  class BatchError extends Error {
+    statusCode
+
+    constructor(message, statusCode) {
+      super(message)
+      this.statusCode = statusCode
+    }
+  }
   const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
 
   const waitForRateLimitTokens = (tokens, rateLimiter) => {
@@ -88,9 +97,17 @@ function getFaunaImportWriter(
       const currentItemNumbers = itemNumbers.splice(0, batchSize)
       promiseBatches.push(
         requestBatch(itemsToBatch.splice(0, batchSize)).catch((e) => {
-          throw new Error(`item numbers: ${currentItemNumbers} \
-(zero-indexed) in your input file '${inputFile}' failed to persist in Fauna due to: \
-${e.message}. Continuing ...`)
+          const getMessage = (
+            subMessage
+          ) => `item numbers: ${currentItemNumbers} (zero-indexed) in your \
+input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - Continuing ...`
+          if (e instanceof FaunaHTTPError) {
+            throw new BatchError(
+              getMessage(e.description),
+              e.requestResult.statusCode
+            )
+          }
+          throw new Error(getMessage(e.message))
         })
       )
     }
@@ -100,7 +117,7 @@ ${e.message}. Continuing ...`)
   const logSettlements = (settlements) => {
     for (let settlement of settlements) {
       if (settlement.status === 'rejected') {
-        logger(settlement.reason)
+        logger(settlement.reason.message)
       }
     }
   }

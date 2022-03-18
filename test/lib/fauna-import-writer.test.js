@@ -2,8 +2,7 @@ const expect = require('expect')
 const getFaunaImportWriter = require('../../src/lib/fauna-import-writer')
 const jestMock = require('jest-mock')
 const sizeof = require('object-sizeof')
-const { FaunaHTTPError } = require('faunadb').errors
-// const { raiseForStatusCode } = require('faunadb').errors.FaunaHTTPError
+const { TooManyRequests, FaunaHTTPError } = require('faunadb').errors
 
 const createErrorForStatusCode = (statusCode) => {
   return new FaunaHTTPError('MockError', {
@@ -98,7 +97,14 @@ describe('FaunaImportWriter', () => {
         )
         .mockReturnValueOnce(Promise.resolve())
         .mockReturnValueOnce(
-          Promise.reject(new Error('Transaction failure two'))
+          Promise.reject(
+            new TooManyRequests({
+              statusCode: 429,
+              responseContent: {
+                errors: [{ description: 'Too many pending requests.' }],
+              },
+            })
+          )
         )
         .mockReturnValue(Promise.resolve())
       await myImportWriter(myAsyncIterable)
@@ -108,22 +114,18 @@ describe('FaunaImportWriter', () => {
 into the requested format due to: Invalid number 'foo' cannot be translated to a \
 number. Skipping this item and continuing."
       )
-      expect(logHistory[1]).toMatchObject(
-        new Error(
-          "item numbers: 3,4 (zero-indexed) in your input file 'my-file' failed to persist in Fauna due to: \
-Transaction failure one. Continuing ..."
-        )
+      expect(logHistory[1]).toContain(
+        "item numbers: 3,4 (zero-indexed) in your input file 'my-file' failed to persist in Fauna due to: \
+'Transaction failure one' - Continuing ..."
       )
       expect(logHistory[2]).toContain(
         "item number 7 (zero-indexed) in your input file 'my-file' could not be translated \
 into the requested format due to: Invalid number 'bar' cannot be translated \
 to a number. Skipping this item and continuing."
       )
-      expect(logHistory[3]).toMatchObject(
-        new Error(
-          "item numbers: 8,9 (zero-indexed) in your input file 'my-file' failed to persist in Fauna due to: \
-Transaction failure two. Continuing ..."
-        )
+      expect(logHistory[3]).toContain(
+        "item numbers: 8,9 (zero-indexed) in your input file 'my-file' failed to persist in Fauna due to: \
+'Too many pending requests.' - Continuing ..."
       )
       expect(myMock).toHaveBeenCalledTimes(4)
     })
