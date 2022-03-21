@@ -2,7 +2,7 @@ const expect = require('expect')
 const getFaunaImportWriter = require('../../src/lib/fauna-import-writer')
 const jestMock = require('jest-mock')
 const sizeof = require('object-sizeof')
-const { TooManyRequests, FaunaHTTPError } = require('faunadb').errors
+const { UnavailableError, FaunaHTTPError } = require('faunadb').errors
 
 const createErrorForStatusCode = (statusCode) => {
   return new FaunaHTTPError('MockError', {
@@ -16,7 +16,6 @@ const createErrorForStatusCode = (statusCode) => {
 describe('FaunaImportWriter', () => {
   describe('Error handling', () => {
     let myAsyncIterable
-    let myAsyncIterable2
     let myMock
     let mockClient
     let myImportWriter
@@ -44,11 +43,6 @@ describe('FaunaImportWriter', () => {
           yield { goodField: '1', numberField: 'bar' }
           yield { goodField: '1', numberField: '8' }
           yield { goodField: '1', numberField: '9' }
-        },
-      }
-      myAsyncIterable2 = {
-        async *[Symbol.asyncIterator]() {
-          yield { goodField: '1', numberField: '0' }
         },
       }
       myMock = jestMock.fn()
@@ -98,10 +92,10 @@ describe('FaunaImportWriter', () => {
         .mockReturnValueOnce(Promise.resolve())
         .mockReturnValueOnce(
           Promise.reject(
-            new TooManyRequests({
-              statusCode: 429,
+            new UnavailableError({
+              statusCode: 503,
               responseContent: {
-                errors: [{ description: 'Too many pending requests.' }],
+                errors: [{ description: 'Service unavailable.' }],
               },
             })
           )
@@ -125,7 +119,7 @@ to a number. Skipping this item and continuing."
       )
       expect(logHistory[3]).toContain(
         "item numbers: 8,9 (zero-indexed) in your input file 'my-file' failed to persist in Fauna due to: \
-'Too many pending requests.' - Continuing ..."
+'Service unavailable.' - Continuing ..."
       )
       expect(myMock).toHaveBeenCalledTimes(4)
     })
@@ -154,33 +148,10 @@ to a number. Skipping this item and continuing."
         .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(429)))
         .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(429)))
         .mockReturnValue(Promise.resolve())
-      await myImportWriter(myAsyncIterable2)
-      expect(myMock).toHaveBeenCalledTimes(5)
-    })
-
-    it('Does not retry appropriate status codes', async () => {
-      // Each run should fail on the 1st attempt
-      myMock
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(400)))
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(400)))
-      await myImportWriter(myAsyncIterable2)
-
-      myMock
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(410)))
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(410)))
-      await myImportWriter(myAsyncIterable2)
-
-      myMock
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(413)))
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(413)))
-      await myImportWriter(myAsyncIterable2)
-
-      myMock
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(503)))
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(503)))
-      await myImportWriter(myAsyncIterable2)
-
-      expect(myMock).toHaveBeenCalledTimes(4)
+      await myImportWriter(myAsyncIterable)
+      expect(logHistory.length).toBe(2)
+      // 6 failures and 2 successes
+      expect(myMock).toHaveBeenCalledTimes(8)
     })
   })
 })
