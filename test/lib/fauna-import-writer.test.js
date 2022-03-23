@@ -4,7 +4,7 @@ const jestMock = require('jest-mock')
 const sizeof = require('object-sizeof')
 const { UnavailableError, FaunaHTTPError } = require('faunadb').errors
 
-const createErrorForStatusCode = (statusCode) => {
+const createFaunaErrorForStatusCode = (statusCode) => {
   return new FaunaHTTPError('MockError', {
     statusCode: statusCode,
     responseContent: {
@@ -85,6 +85,7 @@ describe('FaunaImportWriter', () => {
 
     it('Logs the line numbers of items that fail to translate or persist to the DB', async () => {
       myMock
+        .mockReturnValue(Promise.resolve())
         .mockReturnValueOnce(Promise.resolve())
         .mockReturnValueOnce(
           Promise.reject(new Error('Transaction failure one'))
@@ -100,7 +101,6 @@ describe('FaunaImportWriter', () => {
             })
           )
         )
-        .mockReturnValue(Promise.resolve())
       await myImportWriter(myAsyncIterable)
       expect(logHistory.length).toBe(4)
       expect(logHistory[0]).toContain(
@@ -141,14 +141,33 @@ to a number. Skipping this item and continuing."
     })
 
     it('Retries appropriate status codes', async () => {
-      // Status codes to be retried are 409 and 429
-      myMock
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(409)))
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(409)))
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(429)))
-        .mockReturnValue(Promise.resolve())
-      await myImportWriter(myAsyncIterable)
-      expect(myMock).toHaveBeenCalledTimes(6)
+      const statusCodes = [409, 429]
+      for (let i = 0; i < statusCodes.length; i++) {
+        myMock
+          .mockResolvedValue()
+          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
+          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
+          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
+          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
+        await myImportWriter(myAsyncIterable)
+        expect(myMock).toHaveBeenCalledTimes(8)
+        myMock.mockClear()
+      }
+    })
+
+    it('Does not retry non-retriable status codes', async () => {
+      const statusCodes = [410, 413, 503]
+      for (let i = 0; i < statusCodes.length; i++) {
+        myMock
+          .mockResolvedValue()
+          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
+          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
+          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
+          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
+        await myImportWriter(myAsyncIterable)
+        expect(myMock).toHaveBeenCalledTimes(4)
+        myMock.mockClear()
+      }
     })
   })
 })
