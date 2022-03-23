@@ -57,10 +57,8 @@ function getFaunaImportWriter(
   const retryHandler = (e) => {
     switch (e.requestResult?.statusCode) {
       case 409:
-        // contention
         return true
       case 429:
-        // too many requests
         return true
       default:
         return false

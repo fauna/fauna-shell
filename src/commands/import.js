@@ -326,7 +326,7 @@ Enables you to detect issues with your file(s) before writing to your collection
     default: 'null',
   }),
   'allow-retries': flags.boolean({
-    description: 'Retry if an import fails',
+    description: 'Retry requests for certain status codes.',
   }),
   ...commonFlags,
 }
