@@ -146,12 +146,9 @@ to a number. Skipping this item and continuing."
         .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(409)))
         .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(409)))
         .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(429)))
-        .mockReturnValueOnce(Promise.reject(createErrorForStatusCode(429)))
         .mockReturnValue(Promise.resolve())
       await myImportWriter(myAsyncIterable)
-      expect(logHistory.length).toBe(2)
-      // 6 failures and 2 successes
-      expect(myMock).toHaveBeenCalledTimes(8)
+      expect(myMock).toHaveBeenCalledTimes(6)
     })
   })
 })

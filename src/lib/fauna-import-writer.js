@@ -27,7 +27,7 @@ function getFaunaImportWriter(
   isDryRun = false,
   logger = console.log,
   allowRetries = false,
-  bytesPerSecondLimit = 400000,
+  bytesPerSecondLimit = 400000, // TODO make rate limit based on write-ops
   maxParallelRequests = 10
 ) {
   class BatchError extends Error {
@@ -68,6 +68,7 @@ function getFaunaImportWriter(
   }
 
   const requestBatch = (batch) => {
+    // TODO have the call (or client) return the write-ops
     const write = (batch) =>
       client.query(
         q.Do(
@@ -115,11 +116,16 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
   }
 
   const logSettlements = (settlements) => {
+    // TODO ingest the write-ops consumed by each request and sum them
     for (let settlement of settlements) {
       if (settlement.status === 'rejected') {
+        // TODO here - insspect settlement.reason.statusCode
+        // and apply the rate limit penantly if applicable
         logger(settlement.reason.message)
       }
     }
+    // TODO consider returning the write-ops consumed and if penalty
+    // action should be taken
   }
 
   const streamConsumer = async (inputStream) => {
@@ -146,6 +152,8 @@ this item and continuing.`
       if (thisItem !== undefined) {
         const thisItemSize = sizeof(thisItem)
         if (dataSize + thisItemSize > bytesPerSecondLimit && !isDryRun) {
+          // TODO - you'll probably need to move rate limiting to be AFTER
+          // the call
           waitForRateLimitTokens(
             Math.min(bytesPerSecondLimit, dataSize),
             requestLimiter
