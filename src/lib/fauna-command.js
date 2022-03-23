@@ -85,6 +85,11 @@ class FaunaCommand extends Command {
     return errorOut(err, 1)
   }
 
+  getQueryStats(res) {
+    if (!res || !res.responseHeaders) return
+    console.log(res.responseHeaders)
+  }
+
   async getClient({ dbScope, role } = {}) {
     let connectionOptions
     try {
@@ -96,6 +101,7 @@ class FaunaCommand extends Command {
       const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions
       const client = new faunadb.Client({
         ...clientOptions,
+        observer: this.getQueryStats,
         headers: {
           'X-Fauna-Source': 'Fauna Shell',
         },
