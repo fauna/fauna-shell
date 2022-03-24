@@ -139,15 +139,12 @@ to a number. Skipping this item and continuing."
     })
 
     it('Retries appropriate status codes', async () => {
+      const retryLimit = 3
       const statusCodes = [409, 429]
       for (let i = 0; i < statusCodes.length; i++) {
-        myMock
-          .mockResolvedValue()
-          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
-          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
-          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
+        myMock.mockRejectedValue(createFaunaErrorForStatusCode(statusCodes[i]))
         await myImportWriter(myAsyncIterable)
-        expect(myMock).toHaveBeenCalledTimes(7)
+        expect(myMock).toHaveBeenCalledTimes(4 * retryLimit)
         myMock.mockClear()
       }
     }).timeout(5000)
@@ -155,11 +152,7 @@ to a number. Skipping this item and continuing."
     it('Does not retry non-retriable status codes', async () => {
       const statusCodes = [410, 413, 503]
       for (let i = 0; i < statusCodes.length; i++) {
-        myMock
-          .mockResolvedValue()
-          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
-          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
-          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
+        myMock.mockRejectedValue(createFaunaErrorForStatusCode(statusCodes[i]))
         await myImportWriter(myAsyncIterable)
         expect(myMock).toHaveBeenCalledTimes(4)
         myMock.mockClear()
