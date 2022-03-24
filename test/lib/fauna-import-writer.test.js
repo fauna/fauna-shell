@@ -41,8 +41,8 @@ describe('FaunaImportWriter', () => {
           yield { goodField: '1', numberField: '5' }
           yield { goodField: '1', numberField: '6' }
           yield { goodField: '1', numberField: 'bar' }
-          yield { goodField: '1', numberField: '7' }
           yield { goodField: '1', numberField: '8' }
+          yield { goodField: '1', numberField: '9' }
         },
       }
       myMock = jestMock.fn()
