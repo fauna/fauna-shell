@@ -2,6 +2,7 @@ const q = require('faunadb').query
 const { FaunaObjectTranslator } = require('./fauna-object-translator')
 const sizeof = require('object-sizeof')
 const RateLimiter = require('limiter').RateLimiter
+const { backOff } = require('exponential-backoff')
 const FaunaHTTPError = require('faunadb').errors.FaunaHTTPError
 
 /**
@@ -44,20 +45,48 @@ function getFaunaImportWriter(
     }
   }
 
+  /**
+  Status codes of interest:
+  * [409] Contention - attempt to retry
+  * [410] Account disabled - do not retry
+  * [413] Request too large - should not happen
+  * [429] Too many requests - attempt to retry
+  * [503] Timeout - do not retry
+  */
+  const retryHandler = (e) => {
+    switch (e.requestResult?.statusCode) {
+      case 409:
+        return true
+      case 429:
+        return true
+      default:
+        return false
+    }
+  }
+
   const requestBatch = (batch) => {
     // TODO have the call (or client) return the write-ops
-    return client.query(
-      q.Do(
-        batch.map((data) =>
-          q.Create(q.Collection(collection), {
-            data: Object.keys(data).reduce(
-              (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
-              {}
-            ),
-          })
+    const write = (batch) =>
+      client.query(
+        q.Do(
+          batch.map((data) =>
+            q.Create(q.Collection(collection), {
+              data: Object.keys(data).reduce(
+                (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
+                {}
+              ),
+            })
+          )
         )
       )
-    )
+    // retry appropriate failed requests using exponential backoff with jitter
+    return backOff(() => write(batch), {
+      jitter: 'full',
+      retry: retryHandler,
+      numOfAttempts: 3,
+      startingDelay: 500,
+      timeMultiple: 2,
+    })
   }
 
   const writeData = (itemsToBatch, itemNumbers) => {

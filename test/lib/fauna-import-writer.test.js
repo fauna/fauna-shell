@@ -2,7 +2,16 @@ const expect = require('expect')
 const getFaunaImportWriter = require('../../src/lib/fauna-import-writer')
 const jestMock = require('jest-mock')
 const sizeof = require('object-sizeof')
-const { TooManyRequests } = require('faunadb').errors
+const { UnavailableError, FaunaHTTPError } = require('faunadb').errors
+
+const createFaunaErrorForStatusCode = (statusCode) => {
+  return new FaunaHTTPError('MockError', {
+    statusCode: statusCode,
+    responseContent: {
+      errors: [{ description: 'Foo Bar' }],
+    },
+  })
+}
 
 describe('FaunaImportWriter', () => {
   describe('Error handling', () => {
@@ -82,10 +91,10 @@ describe('FaunaImportWriter', () => {
         .mockReturnValueOnce(Promise.resolve())
         .mockReturnValueOnce(
           Promise.reject(
-            new TooManyRequests({
-              statusCode: 429,
+            new UnavailableError({
+              statusCode: 503,
               responseContent: {
-                errors: [{ description: 'Too many pending requests.' }],
+                errors: [{ description: 'Service unavailable.' }],
               },
             })
           )
@@ -108,7 +117,7 @@ to a number. Skipping this item and continuing."
       )
       expect(logHistory[3]).toContain(
         "item numbers: 8,9 (zero-indexed) in your input file 'my-file' failed to persist in Fauna due to: \
-'Too many pending requests.' - Continuing ..."
+'Service unavailable.' - Continuing ..."
       )
       expect(myMock).toHaveBeenCalledTimes(4)
     })
@@ -128,5 +137,26 @@ to a number. Skipping this item and continuing."
       )
       expect(myMock).not.toHaveBeenCalled()
     })
+
+    it('Retries appropriate status codes', async () => {
+      const retryLimit = 3
+      const statusCodes = [409, 429]
+      for (let i = 0; i < statusCodes.length; i++) {
+        myMock.mockRejectedValue(createFaunaErrorForStatusCode(statusCodes[i]))
+        await myImportWriter(myAsyncIterable)
+        expect(myMock).toHaveBeenCalledTimes(4 * retryLimit)
+        myMock.mockClear()
+      }
+    }).timeout(5000)
+
+    it('Does not retry non-retriable status codes', async () => {
+      const statusCodes = [410, 413, 503]
+      for (let i = 0; i < statusCodes.length; i++) {
+        myMock.mockRejectedValue(createFaunaErrorForStatusCode(statusCodes[i]))
+        await myImportWriter(myAsyncIterable)
+        expect(myMock).toHaveBeenCalledTimes(4)
+        myMock.mockClear()
+      }
+    }).timeout(5000)
   })
 })
