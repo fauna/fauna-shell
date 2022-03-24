@@ -1,7 +1,6 @@
 const q = require('faunadb').query
 const { FaunaObjectTranslator } = require('./fauna-object-translator')
 const sizeof = require('object-sizeof')
-// const RateLimiter = require('limiter').RateLimiter
 const { backOff } = require('exponential-backoff')
 const FaunaHTTPError = require('faunadb').errors.FaunaHTTPError
 const { RateLimiterMemory } = require('rate-limiter-flexible')
@@ -38,6 +37,7 @@ function getFaunaImportWriter(
       this.statusCode = statusCode
     }
   }
+
   const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
 
   const rateLimiter = new RateLimiterMemory({
@@ -46,11 +46,12 @@ function getFaunaImportWriter(
   })
 
   const applyRateLimitPenalty = () => {
-    rateLimiter.points /= 2
+    const bytesPerSecondFloor = 50000
+    if (rateLimiter.points > bytesPerSecondFloor) rateLimiter.points /= 2
   }
 
   const bumpRateLimit = () => {
-    const increment = 1000
+    const increment = 10000
     if (rateLimiter.points < bytesPerSecondLimit - increment) {
       rateLimiter.points += increment
     }
