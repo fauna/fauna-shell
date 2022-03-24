@@ -62,7 +62,6 @@ describe('FaunaImportWriter', () => {
         'my-file',
         false,
         console.log,
-        true,
         tinySize,
         2
       )
@@ -73,7 +72,6 @@ describe('FaunaImportWriter', () => {
         'my-file',
         true,
         console.log,
-        false,
         tinySize,
         2
       )

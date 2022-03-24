@@ -26,7 +26,6 @@ function getFaunaImportWriter(
   inputFile,
   isDryRun = false,
   logger = console.log,
-  allowRetries = false,
   bytesPerSecondLimit = 400000, // TODO make rate limit based on write-ops
   maxParallelRequests = 10
 ) {
@@ -81,15 +80,13 @@ function getFaunaImportWriter(
         )
       )
     // retry appropriate failed requests using exponential backoff with jitter
-    if (allowRetries)
-      return backOff(() => write(batch), {
-        jitter: 'full',
-        retry: retryHandler,
-        numOfAttempts: 3,
-        startingDelay: 500,
-        timeMultiple: 2,
-      })
-    return write(batch)
+    return backOff(() => write(batch), {
+      jitter: 'full',
+      retry: retryHandler,
+      numOfAttempts: 3,
+      startingDelay: 500,
+      timeMultiple: 2,
+    })
   }
 
   const writeData = (itemsToBatch, itemNumbers) => {
