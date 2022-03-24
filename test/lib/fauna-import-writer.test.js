@@ -163,7 +163,6 @@ to a number. Skipping this item and continuing."
           .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
           .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
           .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
-          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
         await myImportWriter(myAsyncIterable)
         expect(myMock).toHaveBeenCalledTimes(4)
         myMock.mockClear()

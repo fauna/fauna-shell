@@ -80,11 +80,14 @@ function getFaunaImportWriter(
           )
         )
       )
+    // retry appropriate failed requests using exponential backoff with jitter
     if (allowRetries)
       return backOff(() => write(batch), {
         jitter: 'full',
         retry: retryHandler,
-        numOfAttempts: 10,
+        numOfAttempts: 3,
+        startingDelay: 500,
+        timeMultiple: 2,
       })
     return write(batch)
   }
