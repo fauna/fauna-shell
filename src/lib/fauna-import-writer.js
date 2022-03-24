@@ -1,9 +1,10 @@
 const q = require('faunadb').query
 const { FaunaObjectTranslator } = require('./fauna-object-translator')
 const sizeof = require('object-sizeof')
-const RateLimiter = require('limiter').RateLimiter
+// const RateLimiter = require('limiter').RateLimiter
 const { backOff } = require('exponential-backoff')
 const FaunaHTTPError = require('faunadb').errors.FaunaHTTPError
+const { RateLimiterMemory } = require('rate-limiter-flexible')
 
 /**
  * Creates a function that consumes a stream of objects and writes creates each object
@@ -39,8 +40,30 @@ function getFaunaImportWriter(
   }
   const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
 
+  const rateLimiter = new RateLimiterMemory({
+    duration: 1, // seconds
+    points: bytesPerSecondLimit,
+  })
+
+  const applyRateLimitPenalty = () => {
+    rateLimiter.points /= 2
+  }
+
+  const bumpRateLimit = () => {
+    const increment = 1000
+    if (rateLimiter.points < bytesPerSecondLimit - increment) {
+      rateLimiter.points += increment
+    }
+  }
+
   const waitForRateLimitTokens = (tokens, rateLimiter) => {
-    while (!rateLimiter.tryRemoveTokens(tokens)) {
+    const tryToConsumeTokens = () => {
+      return rateLimiter
+        .consume('', tokens)
+        .then(() => true)
+        .catch(() => false)
+    }
+    while (!tryToConsumeTokens()) {
       // keep trying until we have enough tokens
     }
   }
@@ -113,12 +136,36 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     return Promise.allSettled(promiseBatches)
   }
 
+  const settlementHandler = (s) => {
+    switch (s.reason?.statusCode) {
+      case 409:
+        applyRateLimitPenalty()
+        break
+      case 410:
+        // exit
+        break
+      case 413:
+        // exit
+        break
+      case 429:
+        applyRateLimitPenalty()
+        break
+      case 503:
+        applyRateLimitPenalty()
+        break
+      default:
+        bumpRateLimit()
+        break
+    }
+  }
+
   const logSettlements = (settlements) => {
     // TODO ingest the write-ops consumed by each request and sum them
     for (let settlement of settlements) {
       if (settlement.status === 'rejected') {
         // TODO here - insspect settlement.reason.statusCode
         // and apply the rate limit penantly if applicable
+        settlementHandler(settlement)
         logger(settlement.reason.message)
       }
     }
@@ -131,10 +178,7 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     let items = []
     let itemNumbers = []
     let itemNumber = -1
-    const requestLimiter = new RateLimiter({
-      tokensPerInterval: bytesPerSecondLimit,
-      interval: 'second',
-    })
+
     for await (const chunk of inputStream) {
       itemNumber++
       let thisItem
@@ -154,7 +198,7 @@ this item and continuing.`
           // the call
           waitForRateLimitTokens(
             Math.min(bytesPerSecondLimit, dataSize),
-            requestLimiter
+            rateLimiter
           )
           // writeData has side effect of clearing out items and itemNumbers
           logSettlements(await writeData(items, itemNumbers))
