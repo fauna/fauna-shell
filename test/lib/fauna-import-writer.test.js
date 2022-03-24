@@ -41,8 +41,8 @@ describe('FaunaImportWriter', () => {
           yield { goodField: '1', numberField: '5' }
           yield { goodField: '1', numberField: '6' }
           yield { goodField: '1', numberField: 'bar' }
+          yield { goodField: '1', numberField: '7' }
           yield { goodField: '1', numberField: '8' }
-          yield { goodField: '1', numberField: '9' }
         },
       }
       myMock = jestMock.fn()
@@ -146,12 +146,11 @@ to a number. Skipping this item and continuing."
           .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
           .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
           .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
-          .mockRejectedValueOnce(createFaunaErrorForStatusCode(statusCodes[i]))
         await myImportWriter(myAsyncIterable)
-        expect(myMock).toHaveBeenCalledTimes(8)
+        expect(myMock).toHaveBeenCalledTimes(7)
         myMock.mockClear()
       }
-    })
+    }).timeout(5000)
 
     it('Does not retry non-retriable status codes', async () => {
       const statusCodes = [410, 413, 503]
@@ -165,6 +164,6 @@ to a number. Skipping this item and continuing."
         expect(myMock).toHaveBeenCalledTimes(4)
         myMock.mockClear()
       }
-    })
+    }).timeout(5000)
   })
 })
