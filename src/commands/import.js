@@ -22,7 +22,7 @@ class ImportCommand extends FaunaCommand {
     const { db, path } = this.flags
     const { client } = await (db
       ? this.ensureDbScopeClient(db)
-      : this.getClient())
+      : this.getClient({ withStats: true }))
     this.client = client
 
     this.log(`Database${db ? `'${db}'` : ''} connection established`)

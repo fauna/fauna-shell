@@ -90,7 +90,7 @@ class FaunaCommand extends Command {
     console.log(res.responseHeaders)
   }
 
-  async getClient({ dbScope, role } = {}) {
+  async getClient({ dbScope, role, withStats = false } = {}) {
     let connectionOptions
     try {
       connectionOptions = await buildConnectionOptions(
@@ -99,13 +99,22 @@ class FaunaCommand extends Command {
         role
       )
       const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions
-      const client = new faunadb.Client({
-        ...clientOptions,
-        observer: this.getQueryStats,
-        headers: {
-          'X-Fauna-Source': 'Fauna Shell',
-        },
-      })
+      const client = new faunadb.Client(
+        withStats
+          ? {
+              ...clientOptions,
+              observer: this.getQueryStats,
+              headers: {
+                'X-Fauna-Source': 'Fauna Shell',
+              },
+            }
+          : {
+              ...clientOptions,
+              headers: {
+                'X-Fauna-Source': 'Fauna Shell',
+              },
+            }
+      )
 
       await client.query(q.Now())
 
