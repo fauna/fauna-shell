@@ -408,6 +408,17 @@ function stringifyEndpoint(endpoint) {
   return res
 }
 
+const commafy = (number) => {
+  if (!number) return number
+  number = number.toString()
+  return number.replace(
+    /(^|[^\w.])(\d{4,})/g,
+    function($0, $1, $2) {
+      return $1 + $2.replace(/\d(?=(?:\d\d\d)+(?!\d))/g, "$&,")
+    }
+  )
+}
+
 module.exports = {
   saveEndpointOrError: saveEndpointOrError,
   saveEndpoint: saveEndpoint,
@@ -422,4 +433,5 @@ module.exports = {
   runQueries: runQueries,
   stringifyEndpoint: stringifyEndpoint,
   getConfigFile: getConfigFile,
+  commafy: commafy,
 }

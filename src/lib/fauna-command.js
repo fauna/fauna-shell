@@ -3,10 +3,51 @@ const {
   buildConnectionOptions,
   errorOut,
   stringifyEndpoint,
+  commafy,
 } = require('../lib/misc.js')
 const faunadb = require('faunadb')
 const chalk = require('chalk')
 const q = faunadb.query
+
+// The response headers that contain query metrics
+const metricsHeaders = {
+  'bytesIn':    'x-query-bytes-in',
+  'bytesOut':   'x-query-bytes-out',
+  'queryTime':  'x-query-time',
+  'readOps':    'x-read-ops',
+  'writeOps':   'x-write-ops',
+  'computeOps': 'x-compute-ops',
+  'readBytes':  'x-storage-bytes-read',
+  'writeBytes': 'x-storage-bytes-write',
+  'retries':    'x-txn-retries',
+}
+
+// Query metrics counters
+const metrics = {
+  'bytesIn':    0,
+  'bytesOut':   0,
+  'queryTime':  0,
+  'readOps':    0,
+  'writeOps':   0,
+  'computeOps': 0,
+  'readBytes':  0,
+  'writeBytes': 0,
+  'retries':    0,
+}
+
+// Track the widths of metrics for justification
+var metricsKeyWidth   = 0
+var metricsValueWidth = 0
+
+// left justify a value into a specified width
+const lj = (value, width) => {
+  return value + (' '.repeat(width - value.toString().length))
+}
+
+// right justify a value into a specified width
+const rj = (value, width) => {
+  return ' '.repeat(width - value.toString().length) + value
+}
 
 /**
  * This is the base class for all fauna-shell commands.
@@ -66,11 +107,58 @@ class FaunaCommand extends Command {
         },
       })
       await client.query(q.Now())
+
+      if (this.flags.metrics) {
+        client._observer = async (res) => { this.collectMetrics(res) }
+      }
+
       //TODO this should return a Promise
       return f(client, connectionOptions)
     } catch (err) {
       return this.mapConnectionError({ err, connectionOptions })
     }
+  }
+
+  // Gather metrics from the response
+  collectMetrics(res) {
+    if (!res || !res.responseHeaders) return
+    const h = res.responseHeaders
+
+    const stats = {}
+    Object.keys(metrics).forEach((key) => {
+      stats[key] = parseInt(h[metricsHeaders[key]], 10)
+    })
+
+    var needTotals = false
+    Object.keys(stats).forEach((key) => {
+      var width = key.length
+      if (width > metricsKeyWidth) metricsKeyWidth = width
+
+      metrics[key] += stats[key]
+      width = commafy(metrics[key]).toString().length
+      if (width > metricsValueWidth) metricsValueWidth = width
+      if (metrics[key] !== stats[key]) needTotals = true
+    })
+  }
+
+  // Emit a metrics report
+  showMetrics(label) {
+    var output = `${label}: `
+
+    const len = output.length
+    output = `${chalk.cyan(label)}: `
+    const items = Object.keys(metrics).length - 1
+    Object.keys(metrics).forEach((key, index) => {
+     const indent = (index === 0) ? output : ' '.repeat(len)
+      const comma = index === items ? '' : ','
+      const name = lj(key + comma, metricsKeyWidth + 1)
+      const value = rj(commafy(metrics[key] ?? 0), metricsValueWidth)
+      const sep = (index < items && (index + 1) % 3 === 0)
+        ? `\n${indent}`
+        : ' '
+      output += `${value} ${chalk.grey(name)}${sep}`
+    })
+    console.log(output)
   }
 
   mapConnectionError({ err, connectionOptions }) {
@@ -102,6 +190,11 @@ class FaunaCommand extends Command {
       })
 
       await client.query(q.Now())
+
+      if (this.flags.metrics) {
+        console.log('Metrics needed!')
+        client._observer = async (res) => { this.collectMetrics(res) }
+      }
 
       const hashKey = [dbScope, role].join('_')
       this.clients[hashKey] = { client, connectionOptions }

@@ -10,6 +10,7 @@ const q = faunadb.query
 const getFaunaImportWriter = require('../lib/fauna-import-writer')
 const { parse } = require('csv-parse')
 const ImportLimits = require('../lib/import-limits')
+const chalk = require('chalk')
 
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json', '.jsonl']
@@ -34,7 +35,9 @@ class ImportCommand extends FaunaCommand {
       importFn = this.importFile
     }
 
-    return importFn.call(this, path).catch((error) => this.handleError(error))
+    return importFn.call(this, path)
+      .then((res) => console.log(this.showMetrics('Import metrics:')))
+      .catch((error) => this.handleError(error))
   }
 
   async importDir(path) {
@@ -323,6 +326,10 @@ Enables you to detect issues with your file(s) before writing to your collection
       'Treat empty csv cells as empty strings or null, default is null.',
     options: ['empty', 'null'],
     default: 'null',
+  }),
+  metrics: flags.boolean({
+    required: false,
+    description: 'also show import metrics',
   }),
   ...commonFlags,
 }
