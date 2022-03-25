@@ -40,20 +40,22 @@ function getFaunaImportWriter(
 
   const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
 
-  const rateLimiter = new RateLimiterMemory({
-    duration: 1, // seconds
-    points: bytesPerSecondLimit,
-  })
-
-  const waitForRateLimitTokens = (tokens, rateLimiter) => {
+  const waitForRateLimitTokens = async (tokens, rateLimiter) => {
     const tryToConsumeTokens = () => {
       return rateLimiter
-        .consume('', tokens)
-        .then(() => true)
-        .catch(() => false)
+        .consume('bytes', tokens)
+        .then(() => {
+          return true
+        })
+        .catch(() => {
+          return false
+        })
     }
-    while (!tryToConsumeTokens()) {
+
+    let tokensConsumed = await tryToConsumeTokens()
+    while (!tokensConsumed) {
       // keep trying until we have enough tokens
+      tokensConsumed = await tryToConsumeTokens()
     }
   }
 
@@ -143,6 +145,10 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     let items = []
     let itemNumbers = []
     let itemNumber = -1
+    const rateLimiter = new RateLimiterMemory({
+      duration: 1, // seconds
+      points: bytesPerSecondLimit,
+    })
 
     for await (const chunk of inputStream) {
       itemNumber++
@@ -161,7 +167,7 @@ this item and continuing.`
         if (dataSize + thisItemSize > bytesPerSecondLimit && !isDryRun) {
           // TODO - you'll probably need to move rate limiting to be AFTER
           // the call
-          waitForRateLimitTokens(
+          await waitForRateLimitTokens(
             Math.min(bytesPerSecondLimit, dataSize),
             rateLimiter
           )
@@ -176,7 +182,9 @@ this item and continuing.`
     }
 
     if (items.length >= 1 && !isDryRun) {
+      await waitForRateLimitTokens(dataSize, rateLimiter)
       logSettlements(await writeData(items, itemNumbers))
+      dataSize = 0
     }
   }
 

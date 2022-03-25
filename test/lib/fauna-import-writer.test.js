@@ -158,5 +158,17 @@ to a number. Skipping this item and continuing."
         myMock.mockClear()
       }
     }).timeout(5000)
+
+    // it('Rate limits requests', async () => {
+    //   myMock.mockReturnValue(Promise.resolve())
+    //   let start = new Date()
+    //   console.log(start)
+    //   await myImportWriter(myAsyncIterable)
+    //   let end = new Date()
+    //   console.log(end)
+    //   let difference = (end.getTime() - start.getTime()) / 1000
+    //   console.log(difference)
+    //   expect(difference).toBeGreaterThanOrEqual(2)
+    // })
   })
 })
