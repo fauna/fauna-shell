@@ -19,11 +19,16 @@ describe('FaunaImportWriter', () => {
     let myMock
     let mockClient
     let myImportWriter
+    let mySlowImportWriter
     let myDryRunWriter
     let logHistory
     let originalConsoleLog
 
     beforeEach(() => {
+      const tiniestSize = sizeof([
+        { goodField: '1', numberField: '0' },
+        { goodField: '1', numberField: '0' },
+      ])
       const tinySize = sizeof([
         { goodField: '1', numberField: '0' },
         { goodField: '1', numberField: '0' },
@@ -65,6 +70,16 @@ describe('FaunaImportWriter', () => {
         tinySize,
         2
       )
+      mySlowImportWriter = getFaunaImportWriter(
+        ['numberField::number'],
+        mockClient,
+        'the-collection',
+        'my-file',
+        false,
+        console.log,
+        tiniestSize,
+        2
+      )
       myDryRunWriter = getFaunaImportWriter(
         ['numberField::number'],
         mockClient,
@@ -83,21 +98,17 @@ describe('FaunaImportWriter', () => {
 
     it('Logs the line numbers of items that fail to translate or persist to the DB', async () => {
       myMock
-        .mockReturnValue(Promise.resolve())
-        .mockReturnValueOnce(Promise.resolve())
-        .mockReturnValueOnce(
-          Promise.reject(new Error('Transaction failure one'))
-        )
-        .mockReturnValueOnce(Promise.resolve())
-        .mockReturnValueOnce(
-          Promise.reject(
-            new UnavailableError({
-              statusCode: 503,
-              responseContent: {
-                errors: [{ description: 'Service unavailable.' }],
-              },
-            })
-          )
+        .mockResolvedValue()
+        .mockResolvedValueOnce()
+        .mockRejectedValueOnce(new Error('Transaction failure one'))
+        .mockResolvedValueOnce()
+        .mockRejectedValueOnce(
+          new UnavailableError({
+            statusCode: 503,
+            responseContent: {
+              errors: [{ description: 'Service unavailable.' }],
+            },
+          })
         )
       await myImportWriter(myAsyncIterable)
       expect(logHistory.length).toBe(4)
@@ -158,5 +169,14 @@ to a number. Skipping this item and continuing."
         myMock.mockClear()
       }
     }).timeout(5000)
+
+    it('Rate limits requests', async () => {
+      myMock.mockResolvedValue()
+      let start = new Date()
+      await mySlowImportWriter(myAsyncIterable)
+      let end = new Date()
+      let differenceSeconds = (end.getTime() - start.getTime()) / 1000
+      expect(differenceSeconds).toBeGreaterThanOrEqual(5)
+    }).timeout(10000)
   })
 })

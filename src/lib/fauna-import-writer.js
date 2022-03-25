@@ -1,9 +1,9 @@
 const q = require('faunadb').query
 const { FaunaObjectTranslator } = require('./fauna-object-translator')
 const sizeof = require('object-sizeof')
-const RateLimiter = require('limiter').RateLimiter
 const { backOff } = require('exponential-backoff')
 const FaunaHTTPError = require('faunadb').errors.FaunaHTTPError
+const { RateLimiterMemory, RateLimiterQueue } = require('rate-limiter-flexible')
 
 /**
  * Creates a function that consumes a stream of objects and writes creates each object
@@ -37,13 +37,8 @@ function getFaunaImportWriter(
       this.statusCode = statusCode
     }
   }
-  const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
 
-  const waitForRateLimitTokens = (tokens, rateLimiter) => {
-    while (!rateLimiter.tryRemoveTokens(tokens)) {
-      // keep trying until we have enough tokens
-    }
-  }
+  const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
 
   /**
   Status codes of interest:
@@ -131,10 +126,13 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     let items = []
     let itemNumbers = []
     let itemNumber = -1
-    const requestLimiter = new RateLimiter({
-      tokensPerInterval: bytesPerSecondLimit,
-      interval: 'second',
-    })
+    const rateLimiter = new RateLimiterQueue(
+      new RateLimiterMemory({
+        duration: 1, // seconds
+        points: bytesPerSecondLimit,
+      })
+    )
+
     for await (const chunk of inputStream) {
       itemNumber++
       let thisItem
@@ -152,9 +150,8 @@ this item and continuing.`
         if (dataSize + thisItemSize > bytesPerSecondLimit && !isDryRun) {
           // TODO - you'll probably need to move rate limiting to be AFTER
           // the call
-          waitForRateLimitTokens(
-            Math.min(bytesPerSecondLimit, dataSize),
-            requestLimiter
+          await rateLimiter.removeTokens(
+            Math.min(bytesPerSecondLimit, dataSize)
           )
           // writeData has side effect of clearing out items and itemNumbers
           logSettlements(await writeData(items, itemNumbers))
@@ -167,7 +164,9 @@ this item and continuing.`
     }
 
     if (items.length >= 1 && !isDryRun) {
+      await rateLimiter.removeTokens(Math.min(bytesPerSecondLimit, dataSize))
       logSettlements(await writeData(items, itemNumbers))
+      dataSize = 0
     }
   }
 
