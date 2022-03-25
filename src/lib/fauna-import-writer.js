@@ -3,7 +3,7 @@ const { FaunaObjectTranslator } = require('./fauna-object-translator')
 const sizeof = require('object-sizeof')
 const { backOff } = require('exponential-backoff')
 const FaunaHTTPError = require('faunadb').errors.FaunaHTTPError
-const { RateLimiterMemory } = require('rate-limiter-flexible')
+const { RateLimiterMemory, RateLimiterQueue } = require('rate-limiter-flexible')
 
 /**
  * Creates a function that consumes a stream of objects and writes creates each object
@@ -39,25 +39,6 @@ function getFaunaImportWriter(
   }
 
   const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
-
-  const waitForRateLimitTokens = async (tokens, rateLimiter) => {
-    const tryToConsumeTokens = () => {
-      return rateLimiter
-        .consume('bytes', tokens)
-        .then(() => {
-          return true
-        })
-        .catch(() => {
-          return false
-        })
-    }
-
-    let tokensConsumed = await tryToConsumeTokens()
-    while (!tokensConsumed) {
-      // keep trying until we have enough tokens
-      tokensConsumed = await tryToConsumeTokens()
-    }
-  }
 
   /**
   Status codes of interest:
@@ -145,10 +126,12 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     let items = []
     let itemNumbers = []
     let itemNumber = -1
-    const rateLimiter = new RateLimiterMemory({
-      duration: 1, // seconds
-      points: bytesPerSecondLimit,
-    })
+    const rateLimiter = new RateLimiterQueue(
+      new RateLimiterMemory({
+        duration: 1, // seconds
+        points: bytesPerSecondLimit,
+      })
+    )
 
     for await (const chunk of inputStream) {
       itemNumber++
@@ -167,9 +150,8 @@ this item and continuing.`
         if (dataSize + thisItemSize > bytesPerSecondLimit && !isDryRun) {
           // TODO - you'll probably need to move rate limiting to be AFTER
           // the call
-          await waitForRateLimitTokens(
-            Math.min(bytesPerSecondLimit, dataSize),
-            rateLimiter
+          await rateLimiter.removeTokens(
+            Math.min(bytesPerSecondLimit, dataSize)
           )
           // writeData has side effect of clearing out items and itemNumbers
           logSettlements(await writeData(items, itemNumbers))
@@ -182,7 +164,7 @@ this item and continuing.`
     }
 
     if (items.length >= 1 && !isDryRun) {
-      await waitForRateLimitTokens(dataSize, rateLimiter)
+      await rateLimiter.removeTokens(Math.min(bytesPerSecondLimit, dataSize))
       logSettlements(await writeData(items, itemNumbers))
       dataSize = 0
     }

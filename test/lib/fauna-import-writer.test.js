@@ -19,11 +19,16 @@ describe('FaunaImportWriter', () => {
     let myMock
     let mockClient
     let myImportWriter
+    let mySlowImportWriter
     let myDryRunWriter
     let logHistory
     let originalConsoleLog
 
     beforeEach(() => {
+      const tiniestSize = sizeof([
+        { goodField: '1', numberField: '0' },
+        { goodField: '1', numberField: '0' },
+      ])
       const tinySize = sizeof([
         { goodField: '1', numberField: '0' },
         { goodField: '1', numberField: '0' },
@@ -63,6 +68,16 @@ describe('FaunaImportWriter', () => {
         false,
         console.log,
         tinySize,
+        2
+      )
+      mySlowImportWriter = getFaunaImportWriter(
+        ['numberField::number'],
+        mockClient,
+        'the-collection',
+        'my-file',
+        false,
+        console.log,
+        tiniestSize,
         2
       )
       myDryRunWriter = getFaunaImportWriter(
@@ -159,16 +174,13 @@ to a number. Skipping this item and continuing."
       }
     }).timeout(5000)
 
-    // it('Rate limits requests', async () => {
-    //   myMock.mockReturnValue(Promise.resolve())
-    //   let start = new Date()
-    //   console.log(start)
-    //   await myImportWriter(myAsyncIterable)
-    //   let end = new Date()
-    //   console.log(end)
-    //   let difference = (end.getTime() - start.getTime()) / 1000
-    //   console.log(difference)
-    //   expect(difference).toBeGreaterThanOrEqual(2)
-    // })
+    it('Rate limits requests', async () => {
+      myMock.mockReturnValue(Promise.resolve())
+      let start = new Date()
+      await mySlowImportWriter(myAsyncIterable)
+      let end = new Date()
+      let differenceSeconds = (end.getTime() - start.getTime()) / 1000
+      expect(differenceSeconds).toBeGreaterThanOrEqual(5)
+    }).timeout(10000)
   })
 })
