@@ -46,12 +46,11 @@ function getFaunaImportWriter(
   })
 
   const applyRateLimitPenalty = () => {
-    const bytesPerSecondFloor = 50000
-    if (rateLimiter.points > bytesPerSecondFloor) rateLimiter.points /= 2
+    rateLimiter.points /= 2
   }
 
   const bumpRateLimit = () => {
-    const increment = 10000
+    const increment = bytesPerSecondLimit / 100
     if (rateLimiter.points < bytesPerSecondLimit - increment) {
       rateLimiter.points += increment
     }
