@@ -45,17 +45,6 @@ function getFaunaImportWriter(
     points: bytesPerSecondLimit,
   })
 
-  const applyRateLimitPenalty = () => {
-    rateLimiter.points /= 2
-  }
-
-  const bumpRateLimit = () => {
-    const increment = bytesPerSecondLimit / 100
-    if (rateLimiter.points < bytesPerSecondLimit - increment) {
-      rateLimiter.points += increment
-    }
-  }
-
   const waitForRateLimitTokens = (tokens, rateLimiter) => {
     const tryToConsumeTokens = () => {
       return rateLimiter
@@ -136,36 +125,12 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     return Promise.allSettled(promiseBatches)
   }
 
-  const settlementHandler = (s) => {
-    switch (s.reason?.statusCode) {
-      case 409:
-        applyRateLimitPenalty()
-        break
-      case 410:
-        // exit
-        break
-      case 413:
-        // exit
-        break
-      case 429:
-        applyRateLimitPenalty()
-        break
-      case 503:
-        applyRateLimitPenalty()
-        break
-      default:
-        bumpRateLimit()
-        break
-    }
-  }
-
   const logSettlements = (settlements) => {
     // TODO ingest the write-ops consumed by each request and sum them
     for (let settlement of settlements) {
       if (settlement.status === 'rejected') {
         // TODO here - insspect settlement.reason.statusCode
         // and apply the rate limit penantly if applicable
-        settlementHandler(settlement)
         logger(settlement.reason.message)
       }
     }
