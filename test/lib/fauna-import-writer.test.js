@@ -98,21 +98,17 @@ describe('FaunaImportWriter', () => {
 
     it('Logs the line numbers of items that fail to translate or persist to the DB', async () => {
       myMock
-        .mockReturnValue(Promise.resolve())
-        .mockReturnValueOnce(Promise.resolve())
-        .mockReturnValueOnce(
-          Promise.reject(new Error('Transaction failure one'))
-        )
-        .mockReturnValueOnce(Promise.resolve())
-        .mockReturnValueOnce(
-          Promise.reject(
-            new UnavailableError({
-              statusCode: 503,
-              responseContent: {
-                errors: [{ description: 'Service unavailable.' }],
-              },
-            })
-          )
+        .mockResolvedValue()
+        .mockResolvedValueOnce()
+        .mockRejectedValueOnce(new Error('Transaction failure one'))
+        .mockResolvedValueOnce()
+        .mockRejectedValueOnce(
+          new UnavailableError({
+            statusCode: 503,
+            responseContent: {
+              errors: [{ description: 'Service unavailable.' }],
+            },
+          })
         )
       await myImportWriter(myAsyncIterable)
       expect(logHistory.length).toBe(4)
@@ -175,7 +171,7 @@ to a number. Skipping this item and continuing."
     }).timeout(5000)
 
     it('Rate limits requests', async () => {
-      myMock.mockReturnValue(Promise.resolve())
+      myMock.mockResolvedValue()
       let start = new Date()
       await mySlowImportWriter(myAsyncIterable)
       let end = new Date()
