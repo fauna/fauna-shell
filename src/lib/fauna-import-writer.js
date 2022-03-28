@@ -133,6 +133,17 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
       })
     )
 
+    const processItems = async () => {
+      // TODO - you'll probably need to move rate limiting to be AFTER the call
+      await rateLimiter.removeTokens(Math.min(bytesPerSecondLimit, dataSize))
+      // check if we let through any extra bytes
+      const leftOverTokens = Math.max(0, dataSize - bytesPerSecondLimit)
+      // writeData has side effect of clearing out items and itemNumbers
+      logSettlements(await writeData(items, itemNumbers))
+      await rateLimiter.removeTokens(leftOverTokens)
+      dataSize = 0
+    }
+
     for await (const chunk of inputStream) {
       itemNumber++
       let thisItem
@@ -148,14 +159,7 @@ this item and continuing.`
       if (thisItem !== undefined) {
         const thisItemSize = sizeof(thisItem)
         if (dataSize + thisItemSize > bytesPerSecondLimit && !isDryRun) {
-          // TODO - you'll probably need to move rate limiting to be AFTER
-          // the call
-          await rateLimiter.removeTokens(
-            Math.min(bytesPerSecondLimit, dataSize)
-          )
-          // writeData has side effect of clearing out items and itemNumbers
-          logSettlements(await writeData(items, itemNumbers))
-          dataSize = 0
+          await processItems()
         }
         items.push(thisItem)
         itemNumbers.push(itemNumber)
@@ -164,9 +168,7 @@ this item and continuing.`
     }
 
     if (items.length >= 1 && !isDryRun) {
-      await rateLimiter.removeTokens(Math.min(bytesPerSecondLimit, dataSize))
-      logSettlements(await writeData(items, itemNumbers))
-      dataSize = 0
+      await processItems()
     }
   }
 
