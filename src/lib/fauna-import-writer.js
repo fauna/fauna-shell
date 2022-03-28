@@ -134,7 +134,6 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     )
 
     const processItems = async () => {
-      // TODO - you'll probably need to move rate limiting to be AFTER the call
       await rateLimiter.removeTokens(Math.min(bytesPerSecondLimit, dataSize))
       // check if we let through any extra bytes
       const leftOverTokens = Math.max(0, dataSize - bytesPerSecondLimit)
