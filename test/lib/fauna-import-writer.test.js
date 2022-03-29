@@ -21,6 +21,7 @@ describe('FaunaImportWriter', () => {
     let myImportWriter
     let mySlowImportWriterBytes
     let mySlowImportWriterWriteOps
+    let mySlowImportWriterRequests
     let myDryRunWriter
     let logHistory = []
     let originalConsoleLog = console.log
@@ -44,6 +45,7 @@ describe('FaunaImportWriter', () => {
       logger: console.log,
       bytesPerSecondLimit: tinySize,
       writeOpsPerSecondLimit: 100,
+      requestsPerSecondLimit: 5,
       maxParallelRequests: 2,
     }
     const responseWithMetrics = () => {
@@ -99,6 +101,13 @@ describe('FaunaImportWriter', () => {
         'the-collection',
         'my-file',
         { ...defaultOptions, writeOpsPerSecondLimit: 1 }
+      )
+      mySlowImportWriterRequests = getFaunaImportWriter(
+        ['numberField::number'],
+        mockClient,
+        'the-collection',
+        'my-file',
+        { ...defaultOptions, requestsPerSecondLimit: 1 }
       )
       myDryRunWriter = getFaunaImportWriter(
         ['numberField::number'],
@@ -200,6 +209,15 @@ to a number. Skipping this item and continuing."
       myMock.mockResolvedValue(responseWithMetrics())
       let start = new Date()
       await mySlowImportWriterWriteOps(myAsyncIterable)
+      let end = new Date()
+      let differenceSeconds = (end.getTime() - start.getTime()) / 1000
+      expect(differenceSeconds).toBeGreaterThanOrEqual(3)
+    }).timeout(5000)
+
+    it('Rate limits by the number of requests', async () => {
+      myMock.mockResolvedValue(responseWithMetrics())
+      let start = new Date()
+      await mySlowImportWriterRequests(myAsyncIterable)
       let end = new Date()
       let differenceSeconds = (end.getTime() - start.getTime()) / 1000
       expect(differenceSeconds).toBeGreaterThanOrEqual(3)
