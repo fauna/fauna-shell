@@ -1,4 +1,7 @@
 #! /bin/sh
+# To run setup your ~/.fauna-shell to include a data-import-test section
+# that points to the fauna db instance you want to test (e.g. a local container)
+# after setup, just run the script from this directory
 
 if [ -x "bin/run" ]; then
   FAUNA_CMD="bin/run"
