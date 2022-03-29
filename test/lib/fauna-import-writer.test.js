@@ -45,7 +45,7 @@ describe('FaunaImportWriter', () => {
       logger: console.log,
       bytesPerSecondLimit: tinySize,
       writeOpsPerSecondLimit: 100,
-      requestsPerSecondLimit: 5,
+      requestsPerSecondLimit: 10,
       maxParallelRequests: 2,
     }
     const responseWithMetrics = () => {
@@ -220,7 +220,7 @@ to a number. Skipping this item and continuing."
       await mySlowImportWriterRequests(myAsyncIterable)
       let end = new Date()
       let differenceSeconds = (end.getTime() - start.getTime()) / 1000
-      expect(differenceSeconds).toBeGreaterThanOrEqual(3)
+      expect(differenceSeconds).toBeGreaterThanOrEqual(1)
     }).timeout(5000)
   })
 })

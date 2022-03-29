@@ -12,9 +12,9 @@ const { RateLimiterMemory, RateLimiterQueue } = require('rate-limiter-flexible')
  * @param {faunadb.Client} client - a {faunadb.Client} configured for the account to store the data in.
  * @param {string} collection - the name of the {fauna.query.Collection} to write data to.
  * @param {string} inputFile - the path to the input file.
- * @param {object} options - options object containing optional arguments.
+ * @param {object} options - object containing optional arguments.
  * @param {boolean} options.isDryRun - if true dry run the import - committing no documents. to Fauna. Otherwise, write documents to Fauna. Defaults to false.
- * @param {function} options.logger - the default logger, defaults to console.log.
+ * @param {function} options.logger - the logger to be used, defaults to console.log.
  * @param {number} options.bytesPerSecondLimit - the rate at which data can be written to Fauna, defaults to 400000 bytes per second.
  * @param {number} options.writeOpsPerSecondLimit - the rate at which data can be written to Fauna, defaults to 100 write ops per second.
  * @param {number} options.requestsPerSecondLimit - the rate at which data can be written to Fauna, defaults to 10 requests per second.
@@ -116,7 +116,10 @@ function getFaunaImportWriter(
   }
 
   const writeData = (itemsToBatch, itemNumbers) => {
-    const batchSize = Math.ceil(itemsToBatch.length / maxParallelRequests)
+    const batchSize = Math.ceil(
+      itemsToBatch.length /
+        Math.min(maxParallelRequests, requestsPerSecondLimit)
+    )
     const promiseBatches = []
     while (itemsToBatch.length > 0) {
       const currentItemNumbers = itemNumbers.splice(0, batchSize)
