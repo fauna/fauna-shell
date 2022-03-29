@@ -70,6 +70,15 @@ function getFaunaImportWriter(
     })
   )
 
+  const waitForRateLimiter = async (rateLimiter, tokens, limit) => {
+    let remainingTokens = tokens
+    while (remainingTokens > 0) {
+      const removedTokens = Math.min(limit, remainingTokens)
+      await rateLimiter.removeTokens(removedTokens)
+      remainingTokens = Math.max(0, remainingTokens - removedTokens)
+    }
+  }
+
   /**
   Status codes of interest:
   * [409] Contention - attempt to retry
@@ -95,12 +104,15 @@ function getFaunaImportWriter(
       client.query(
         q.Do(
           batch.map((data) =>
-            q.Create(q.Collection(collection), {
-              data: Object.keys(data).reduce(
-                (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
-                {}
-              ),
-            })
+            q.Create(
+              q.Collection(collection),
+              {
+                data: Object.keys(data).reduce(
+                  (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
+                  {}
+                ),
+              }
+            )
           )
         ),
         { metrics: true }
@@ -115,10 +127,13 @@ function getFaunaImportWriter(
     })
   }
 
-  const writeData = (itemsToBatch, itemNumbers) => {
-    const batchSize = Math.ceil(
-      itemsToBatch.length /
-        Math.min(maxParallelRequests, requestsPerSecondLimit)
+  const writeData = async (itemsToBatch, itemNumbers) => {
+    const numRequests = Math.min(maxParallelRequests, requestsPerSecondLimit)
+    const batchSize = Math.ceil(itemsToBatch.length / numRequests)
+    await waitForRateLimiter(
+      rateLimiterRequests,
+      numRequests,
+      requestsPerSecondLimit
     )
     const promiseBatches = []
     while (itemsToBatch.length > 0) {
@@ -142,15 +157,6 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     return Promise.allSettled(promiseBatches)
   }
 
-  const waitForRateLimiter = async (rateLimiter, tokens, limit) => {
-    let remainingTokens = tokens
-    while (remainingTokens > 0) {
-      const removedTokens = Math.min(limit, remainingTokens)
-      await rateLimiter.removeTokens(removedTokens)
-      remainingTokens = Math.max(0, remainingTokens - removedTokens)
-    }
-  }
-
   const processSettlements = async (settlements) => {
     let totalWriteOps = 0
     for (let settlement of settlements) {
@@ -161,7 +167,7 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
         totalWriteOps += settlement.value.metrics['x-byte-write-ops']
       }
     }
-    return [totalWriteOps, settlements.length]
+    return totalWriteOps
   }
 
   const streamConsumer = async (inputStream) => {
@@ -172,19 +178,14 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
 
     const processItems = async () => {
       // writeData has side effect of clearing out items and itemNumbers
-      const [writeOps, numRequests] = await processSettlements(
+      await waitForRateLimiter(rateLimiterBytes, dataSize, bytesPerSecondLimit)
+      const writeOps = await processSettlements(
         await writeData(items, itemNumbers)
       )
-      await waitForRateLimiter(rateLimiterBytes, dataSize, bytesPerSecondLimit)
       await waitForRateLimiter(
         rateLimiterWriteOps,
         writeOps,
         writeOpsPerSecondLimit
-      )
-      await waitForRateLimiter(
-        rateLimiterRequests,
-        numRequests,
-        requestsPerSecondLimit
       )
       dataSize = 0
     }
