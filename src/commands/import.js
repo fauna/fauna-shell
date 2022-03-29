@@ -144,8 +144,7 @@ class ImportCommand extends FaunaCommand {
           this.client,
           collection,
           path,
-          Boolean(this.flags['dry-run']),
-          this.warn
+          { isDryRun: Boolean(this.flags['dry-run']), logger: this.warn }
         ),
         (error) => {
           if (error) return reject(error)
