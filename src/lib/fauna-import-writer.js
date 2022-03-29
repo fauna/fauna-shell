@@ -24,10 +24,13 @@ function getFaunaImportWriter(
   client,
   collection,
   inputFile,
-  isDryRun = false,
-  logger = console.log,
-  bytesPerSecondLimit = 400000, // TODO make rate limit based on write-ops
-  maxParallelRequests = 10
+  {
+    isDryRun = false,
+    logger = console.log,
+    bytesPerSecondLimit = 400000,
+    writeOpsPerSecondLimit = 400000,
+    maxParallelRequests = 10,
+  }
 ) {
   class BatchError extends Error {
     statusCode
@@ -39,6 +42,20 @@ function getFaunaImportWriter(
   }
 
   const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
+
+  const rateLimiterBytes = new RateLimiterQueue(
+    new RateLimiterMemory({
+      duration: 1, // seconds
+      points: bytesPerSecondLimit,
+    })
+  )
+
+  const rateLimiterWriteOps = new RateLimiterQueue(
+    new RateLimiterMemory({
+      duration: 1, // seconds
+      points: writeOpsPerSecondLimit,
+    })
+  )
 
   /**
   Status codes of interest:
@@ -72,7 +89,8 @@ function getFaunaImportWriter(
               ),
             })
           )
-        )
+        ),
+        { metrics: true }
       )
     // retry appropriate failed requests using exponential backoff with jitter
     return backOff(() => write(batch), {
@@ -108,17 +126,30 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     return Promise.allSettled(promiseBatches)
   }
 
-  const logSettlements = (settlements) => {
-    // TODO ingest the write-ops consumed by each request and sum them
+  const waitForRateLimiter = async (rateLimiter, tokens, limit) => {
+    let remainingTokens = tokens
+    while (remainingTokens > 0) {
+      const removedTokens = Math.min(limit, remainingTokens)
+      await rateLimiter.removeTokens(removedTokens)
+      remainingTokens = Math.max(0, remainingTokens - removedTokens)
+    }
+  }
+
+  const logSettlements = async (settlements) => {
+    let totalWriteOps = 0
     for (let settlement of settlements) {
       if (settlement.status === 'rejected') {
-        // TODO here - insspect settlement.reason.statusCode
-        // and apply the rate limit penantly if applicable
         logger(settlement.reason.message)
       }
+      if (settlement.value?.metrics) {
+        totalWriteOps += settlement.value.metrics['x-byte-write-ops']
+      }
     }
-    // TODO consider returning the write-ops consumed and if penalty
-    // action should be taken
+    await waitForRateLimiter(
+      rateLimiterWriteOps,
+      totalWriteOps,
+      writeOpsPerSecondLimit
+    )
   }
 
   const streamConsumer = async (inputStream) => {
@@ -126,20 +157,11 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     let items = []
     let itemNumbers = []
     let itemNumber = -1
-    const rateLimiter = new RateLimiterQueue(
-      new RateLimiterMemory({
-        duration: 1, // seconds
-        points: bytesPerSecondLimit,
-      })
-    )
 
     const processItems = async () => {
-      await rateLimiter.removeTokens(Math.min(bytesPerSecondLimit, dataSize))
-      // check if we let through any extra bytes
-      const leftOverTokens = Math.max(0, dataSize - bytesPerSecondLimit)
       // writeData has side effect of clearing out items and itemNumbers
-      logSettlements(await writeData(items, itemNumbers))
-      await rateLimiter.removeTokens(leftOverTokens)
+      await logSettlements(await writeData(items, itemNumbers))
+      await waitForRateLimiter(rateLimiterBytes, dataSize, bytesPerSecondLimit)
       dataSize = 0
     }
 

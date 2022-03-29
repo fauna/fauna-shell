@@ -19,23 +19,47 @@ describe('FaunaImportWriter', () => {
     let myMock
     let mockClient
     let myImportWriter
-    let mySlowImportWriter
+    let mySlowImportWriterBytes
+    let mySlowImportWriterWriteOps
     let myDryRunWriter
-    let logHistory
-    let originalConsoleLog
+    let logHistory = []
+    let originalConsoleLog = console.log
+    console.log = function (message) {
+      logHistory.push(message)
+      originalConsoleLog(message)
+    }
+    const tiniestSize = sizeof([
+      { goodField: '1', numberField: '0' },
+      { goodField: '1', numberField: '0' },
+    ])
+    const tinySize = sizeof([
+      { goodField: '1', numberField: '0' },
+      { goodField: '1', numberField: '0' },
+      { goodField: '1', numberField: '0' },
+      { goodField: '1', numberField: '0' },
+      { goodField: '1', numberField: '0' },
+    ])
+    const defaultOptions = {
+      isDryRun: false,
+      logger: console.log,
+      bytesPerSecondLimit: tinySize,
+      writeOpsPerSecondLimit: 100,
+      maxParallelRequests: 2,
+    }
+    const responseWithMetrics = () => {
+      return {
+        value: true,
+        metrics: {
+          'x-compute-ops': 1,
+          'x-byte-read-ops': 1,
+          'x-byte-write-ops': 1,
+          'x-query-time': 1,
+          'x-txn-retries': 0,
+        },
+      }
+    }
 
     beforeEach(() => {
-      const tiniestSize = sizeof([
-        { goodField: '1', numberField: '0' },
-        { goodField: '1', numberField: '0' },
-      ])
-      const tinySize = sizeof([
-        { goodField: '1', numberField: '0' },
-        { goodField: '1', numberField: '0' },
-        { goodField: '1', numberField: '0' },
-        { goodField: '1', numberField: '0' },
-        { goodField: '1', numberField: '0' },
-      ])
       myAsyncIterable = {
         async *[Symbol.asyncIterator]() {
           yield { goodField: '1', numberField: '0' }
@@ -50,45 +74,38 @@ describe('FaunaImportWriter', () => {
           yield { goodField: '1', numberField: '9' }
         },
       }
+      logHistory = []
       myMock = jestMock.fn()
       mockClient = {
         query: myMock,
-      }
-      logHistory = []
-      originalConsoleLog = console.log
-      console.log = function (message) {
-        logHistory.push(message)
-        originalConsoleLog(message)
       }
       myImportWriter = getFaunaImportWriter(
         ['numberField::number'],
         mockClient,
         'the-collection',
         'my-file',
-        false,
-        console.log,
-        tinySize,
-        2
+        defaultOptions
       )
-      mySlowImportWriter = getFaunaImportWriter(
+      mySlowImportWriterBytes = getFaunaImportWriter(
         ['numberField::number'],
         mockClient,
         'the-collection',
         'my-file',
-        false,
-        console.log,
-        tiniestSize,
-        2
+        { ...defaultOptions, bytesPerSecondLimit: tiniestSize }
+      )
+      mySlowImportWriterWriteOps = getFaunaImportWriter(
+        ['numberField::number'],
+        mockClient,
+        'the-collection',
+        'my-file',
+        { ...defaultOptions, writeOpsPerSecondLimit: 1 }
       )
       myDryRunWriter = getFaunaImportWriter(
         ['numberField::number'],
         mockClient,
         'the-collection',
         'my-file',
-        true,
-        console.log,
-        tinySize,
-        2
+        { ...defaultOptions, isDryRun: true }
       )
     })
 
@@ -158,7 +175,7 @@ to a number. Skipping this item and continuing."
         expect(myMock).toHaveBeenCalledTimes(4 * retryLimit)
         myMock.mockClear()
       }
-    }).timeout(5000)
+    }).timeout(10000)
 
     it('Does not retry non-retriable status codes', async () => {
       const statusCodes = [410, 413, 503]
@@ -168,15 +185,24 @@ to a number. Skipping this item and continuing."
         expect(myMock).toHaveBeenCalledTimes(4)
         myMock.mockClear()
       }
-    }).timeout(5000)
+    }).timeout(10000)
 
-    it('Rate limits requests', async () => {
-      myMock.mockResolvedValue()
+    it('Rate limits requests by byte throughput', async () => {
+      myMock.mockResolvedValue(responseWithMetrics())
       let start = new Date()
-      await mySlowImportWriter(myAsyncIterable)
+      await mySlowImportWriterBytes(myAsyncIterable)
       let end = new Date()
       let differenceSeconds = (end.getTime() - start.getTime()) / 1000
       expect(differenceSeconds).toBeGreaterThanOrEqual(5)
     }).timeout(10000)
+
+    it('Rate limits requests by write ops', async () => {
+      myMock.mockResolvedValue(responseWithMetrics())
+      let start = new Date()
+      await mySlowImportWriterWriteOps(myAsyncIterable)
+      let end = new Date()
+      let differenceSeconds = (end.getTime() - start.getTime()) / 1000
+      expect(differenceSeconds).toBeGreaterThanOrEqual(3)
+    }).timeout(5000)
   })
 })
