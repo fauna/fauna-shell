@@ -35,7 +35,7 @@ function getFaunaImportWriter(
     logger = console.log,
     bytesPerSecondLimit = 400000,
     writeOpsPerSecondLimit = 100,
-    requestsPerSecondLimit = 10,
+    requestsPerSecondLimit = 1000,
     maxParallelRequests = 10,
   }
 ) {
