@@ -4,6 +4,7 @@ const sizeof = require('object-sizeof')
 const { backOff } = require('exponential-backoff')
 const FaunaHTTPError = require('faunadb').errors.FaunaHTTPError
 const { RateLimiterMemory, RateLimiterQueue } = require('rate-limiter-flexible')
+const { ImportPenalty } = require('./import-penalty')
 
 /**
  * Creates a function that consumes a stream of objects and writes creates each object
@@ -49,26 +50,68 @@ function getFaunaImportWriter(
 
   const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
 
-  const rateLimiterBytes = new RateLimiterQueue(
-    new RateLimiterMemory({
-      duration: 1, // seconds
-      points: bytesPerSecondLimit,
-    })
-  )
+  const penalties = {
+    bytes: new ImportPenalty(0, bytesPerSecondLimit),
+    writeOps: new ImportPenalty(0, writeOpsPerSecondLimit),
+    requests: new ImportPenalty(0, requestsPerSecondLimit),
+  }
 
-  const rateLimiterWriteOps = new RateLimiterQueue(
-    new RateLimiterMemory({
-      duration: 1, // seconds
-      points: writeOpsPerSecondLimit,
-    })
-  )
+  const rateLimiters = {
+    bytes: new RateLimiterQueue(
+      new RateLimiterMemory({
+        duration: 1, // seconds
+        points: bytesPerSecondLimit,
+      })
+    ),
+    writeOps: new RateLimiterQueue(
+      new RateLimiterMemory({
+        duration: 1, // seconds
+        points: writeOpsPerSecondLimit,
+      })
+    ),
+    requests: new RateLimiterQueue(
+      new RateLimiterMemory({
+        duration: 1, // seconds
+        points: requestsPerSecondLimit,
+      })
+    ),
+  }
 
-  const rateLimiterRequests = new RateLimiterQueue(
-    new RateLimiterMemory({
-      duration: 1, // seconds
-      points: requestsPerSecondLimit,
-    })
-  )
+  const applyPenalties = () => {
+    const nextBytesLimit = penalties.bytes.getNextPenalty(bytesPerSecondLimit)
+    const nextWriteOpsLimit = penalties.writeOps.getNextPenalty(
+      writeOpsPerSecondLimit
+    )
+    const nextRequestsLimit = penalties.requests.getNextPenalty(
+      requestsPerSecondLimit
+    )
+
+    bytesPerSecondLimit = nextBytesLimit
+    writeOpsPerSecondLimit = nextWriteOpsLimit
+    requestsPerSecondLimit = nextRequestsLimit
+
+    rateLimiters.bytes.points = nextBytesLimit
+    rateLimiters.writeOps.points = nextWriteOpsLimit
+    rateLimiters.requests.points = nextRequestsLimit
+  }
+
+  const reducePenalties = () => {
+    const nextBytesLimit = penalties.bytes.getNextIncrement(bytesPerSecondLimit)
+    const nextWriteOpsLimit = penalties.writeOps.getNextIncrement(
+      writeOpsPerSecondLimit
+    )
+    const nextRequestsLimit = penalties.requests.getNextIncrement(
+      requestsPerSecondLimit
+    )
+
+    bytesPerSecondLimit = nextBytesLimit
+    writeOpsPerSecondLimit = nextWriteOpsLimit
+    requestsPerSecondLimit = nextRequestsLimit
+
+    rateLimiters.bytes.points = nextBytesLimit
+    rateLimiters.writeOps.points = nextWriteOpsLimit
+    rateLimiters.requests.points = nextRequestsLimit
+  }
 
   const waitForRateLimiter = async (rateLimiter, tokens, limit) => {
     let remainingTokens = tokens
@@ -127,7 +170,7 @@ function getFaunaImportWriter(
     const numRequests = Math.min(maxParallelRequests, requestsPerSecondLimit)
     const batchSize = Math.ceil(itemsToBatch.length / numRequests)
     await waitForRateLimiter(
-      rateLimiterRequests,
+      rateLimiters.requests,
       numRequests,
       requestsPerSecondLimit
     )
@@ -153,11 +196,36 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     return Promise.allSettled(promiseBatches)
   }
 
+  const settlementHandler = (s) => {
+    switch (s.reason?.statusCode) {
+      case 409:
+        applyPenalties()
+        break
+      case 410:
+        // exit
+        break
+      case 413:
+        // exit
+        break
+      case 429:
+        applyPenalties()
+        break
+      case 503:
+        applyPenalties()
+        break
+      default:
+        break
+    }
+  }
+
   const processSettlements = async (settlements) => {
     let totalWriteOps = 0
     for (let settlement of settlements) {
       if (settlement.status === 'rejected') {
+        settlementHandler(settlement)
         logger(settlement.reason.message)
+      } else {
+        reducePenalties()
       }
       if (settlement.value?.metrics) {
         totalWriteOps += settlement.value.metrics['x-byte-write-ops']
@@ -174,12 +242,16 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
 
     const processItems = async () => {
       // writeData has side effect of clearing out items and itemNumbers
-      await waitForRateLimiter(rateLimiterBytes, dataSize, bytesPerSecondLimit)
+      await waitForRateLimiter(
+        rateLimiters.bytes,
+        dataSize,
+        bytesPerSecondLimit
+      )
       const writeOps = await processSettlements(
         await writeData(items, itemNumbers)
       )
       await waitForRateLimiter(
-        rateLimiterWriteOps,
+        rateLimiters.writeOps,
         writeOps,
         writeOpsPerSecondLimit
       )
