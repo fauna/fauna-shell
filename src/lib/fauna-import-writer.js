@@ -4,6 +4,7 @@ const sizeof = require('object-sizeof')
 const { backOff } = require('exponential-backoff')
 const FaunaHTTPError = require('faunadb').errors.FaunaHTTPError
 const { RateLimiterMemory, RateLimiterQueue } = require('rate-limiter-flexible')
+const { ImportPenalty } = require('./import-penalty')
 
 /**
  * Creates a function that consumes a stream of objects and writes creates each object
@@ -44,26 +45,6 @@ function getFaunaImportWriter(
     constructor(message, statusCode) {
       super(message)
       this.statusCode = statusCode
-    }
-  }
-
-  class ImportPenalty {
-    constructor(floor, ceiling) {
-      this.floor = floor
-      this.ceiling = ceiling
-    }
-
-    getNextPenalty(current) {
-      const next = current / 2
-      if (next < this.floor) return this.floor
-      return next
-    }
-
-    getNextIncrement(current) {
-      const inc = this.ceiling / 100
-      const next = current + inc
-      if (next > this.ceiling) return this.ceiling
-      return next
     }
   }
 
