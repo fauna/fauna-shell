@@ -175,19 +175,59 @@ to a number. Skipping this item and continuing."
       expect(myMock).not.toHaveBeenCalled()
     })
 
-    it('Retries appropriate status codes', async () => {
-      const retryLimit = 3
-      const statusCodes = [409, 429]
-      for (let i = 0; i < statusCodes.length; i++) {
-        myMock.mockRejectedValue(createFaunaErrorForStatusCode(statusCodes[i]))
-        await myImportWriter(myAsyncIterable)
-        expect(myMock).toHaveBeenCalledTimes(4 * retryLimit)
-        myMock.mockClear()
-      }
-    }).timeout(10000)
+    it('Retries and cuts rate limits for 409 status codes', async () => {
+      // retry limit is 3
+      // initial max parallel requests is 2, with payload limit for a batch of 5 items
+      // after the first failure:
+      // 1. the first batch will have 2 requests of 2-3 items each. these will both
+      //    retry twice - leading to 6 requests.
+      // 2. Due to the status code, a penalty will be applied. This penalty will cut
+      //    the size down to 2.5 items based on payload,  the max parallel requests to 1,
+      //    and the requests per second to 5. This will cause the next batch to be 2
+      //    items in one request tried a total of 3 times.
+      // 3. Now we'll get cut down to 1 item at a time for the remaining 3 items. Leading
+      //    9 total requests
+      await testBackoffAndCutLimit(409, 18)
+    }).timeout(30000)
+
+    it('Retries and cuts rate limits for 429 status codes', async () => {
+      // retry limit is 3
+      // initial max parallel requests is 2, with payload limit for a batch of 5 items
+      // after the first failure:
+      // 1. the first batch will have 2 requests of 2-3 items each. these will both
+      //    retry twice - leading to 6 requests.
+      // 2. Due to the status code, a penalty will be applied. This penalty will cut
+      //    the size down to 2.5 items based on payload,  the max parallel requests to 1,
+      //    and the requests per second to 5. This will cause the next batch to be 2
+      //    items in one request tried a total of 3 times.
+      // 3. Now we'll get cut down to 1 item at a time for the remaining 3 items. Leading
+      //    9 total requests
+      await testBackoffAndCutLimit(429, 18)
+    }).timeout(30000)
+
+    it('Cuts rate limits for 503 status codes; does not retry', async () => {
+      // no retries
+      // initial max parallel requests is 2, with payload limit for a batch of 5 items
+      // after the first failure:
+      // 1. the first batch will have 2 requests of 2-3 items each. these will fail and return.
+      // 2. Due to the status code, a penalty will be applied. This penalty will cut
+      //    the size down to 2.5 items based on payload,  the max parallel requests to 1,
+      //    and the requests per second to 5. This will cause the next batch to be 2
+      //    items in 1 request tried exactly once.
+      // 3. Now we'll get cut down to 1 item at a time for the remaining 3 items. Leading
+      //    3 more requests
+      await testBackoffAndCutLimit(503, 6)
+    }).timeout(30000)
+
+    async function testBackoffAndCutLimit(statusCode, expectedCallCount) {
+      myMock.mockRejectedValue(createFaunaErrorForStatusCode(statusCode))
+      await myImportWriter(myAsyncIterable)
+      expect(myMock).toHaveBeenCalledTimes(expectedCallCount)
+      myMock.mockClear()
+    }
 
     it('Does not retry non-retriable status codes', async () => {
-      const statusCodes = [410, 413, 503]
+      const statusCodes = [410, 413]
       for (let i = 0; i < statusCodes.length; i++) {
         myMock.mockRejectedValue(createFaunaErrorForStatusCode(statusCodes[i]))
         await myImportWriter(myAsyncIterable)
