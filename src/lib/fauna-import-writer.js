@@ -11,9 +11,14 @@ const { RateLimiterMemory, RateLimiterQueue } = require('rate-limiter-flexible')
  * @param {Array<string>} typeTranslations - any custom type translations to perform on fields.
  * @param {faunadb.Client} client - a {faunadb.Client} configured for the account to store the data in.
  * @param {string} collection - the name of the {fauna.query.Collection} to write data to.
- * @param {boolean} isDryRun - if true dry run the import - committing no documents. to Fauna. Otherwise, write documents to Fauna. Defaults to false.
- * @param {number} bytesPerSecondLimit - the rate at which data can be written to Fauna, defaults to 400000 bytes per second
- * @param {number} maxParallelRequests - the maximum number of parallel requests to issue to Fauna
+ * @param {string} inputFile - the path to the input file.
+ * @param {object} options - object containing optional arguments.
+ * @param {boolean} options.isDryRun - if true dry run the import - committing no documents. to Fauna. Otherwise, write documents to Fauna. Defaults to false.
+ * @param {function} options.logger - the logger to be used, defaults to console.log.
+ * @param {number} options.bytesPerSecondLimit - the rate at which data can be written to Fauna, defaults to 400000 bytes per second.
+ * @param {number} options.writeOpsPerSecondLimit - the rate at which data can be written to Fauna, defaults to 100 write ops per second.
+ * @param {number} options.requestsPerSecondLimit - the rate at which data can be written to Fauna, defaults to 10 requests per second.
+ * @param {number} options.maxParallelRequests - the maximum number of parallel requests to issue to Fauna, defaults to 10.
  * @return {(inputStream: ReadableStream) => void} a function that asynchronously writes
  * all the data in the inputSteam to Fauna. All data will be written to the collection specified
  * in input, and will use the provided client. This function is capable of consuming a stream
@@ -28,7 +33,8 @@ function getFaunaImportWriter(
     isDryRun = false,
     logger = console.log,
     bytesPerSecondLimit = 400000,
-    writeOpsPerSecondLimit = 400000,
+    writeOpsPerSecondLimit = 100,
+    requestsPerSecondLimit = 10,
     maxParallelRequests = 10,
   }
 ) {
@@ -57,6 +63,22 @@ function getFaunaImportWriter(
     })
   )
 
+  const rateLimiterRequests = new RateLimiterQueue(
+    new RateLimiterMemory({
+      duration: 1, // seconds
+      points: requestsPerSecondLimit,
+    })
+  )
+
+  const waitForRateLimiter = async (rateLimiter, tokens, limit) => {
+    let remainingTokens = tokens
+    while (remainingTokens > 0) {
+      const removedTokens = Math.min(limit, remainingTokens)
+      await rateLimiter.removeTokens(removedTokens)
+      remainingTokens = Math.max(0, remainingTokens - removedTokens)
+    }
+  }
+
   /**
   Status codes of interest:
   * [409] Contention - attempt to retry
@@ -82,12 +104,15 @@ function getFaunaImportWriter(
       client.query(
         q.Do(
           batch.map((data) =>
-            q.Create(q.Collection(collection), {
-              data: Object.keys(data).reduce(
-                (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
-                {}
-              ),
-            })
+            q.Create(
+              q.Collection(collection),
+              {
+                data: Object.keys(data).reduce(
+                  (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
+                  {}
+                ),
+              }
+            )
           )
         ),
         { metrics: true }
@@ -102,8 +127,14 @@ function getFaunaImportWriter(
     })
   }
 
-  const writeData = (itemsToBatch, itemNumbers) => {
-    const batchSize = Math.ceil(itemsToBatch.length / maxParallelRequests)
+  const writeData = async (itemsToBatch, itemNumbers) => {
+    const numRequests = Math.min(maxParallelRequests, requestsPerSecondLimit)
+    const batchSize = Math.ceil(itemsToBatch.length / numRequests)
+    await waitForRateLimiter(
+      rateLimiterRequests,
+      numRequests,
+      requestsPerSecondLimit
+    )
     const promiseBatches = []
     while (itemsToBatch.length > 0) {
       const currentItemNumbers = itemNumbers.splice(0, batchSize)
@@ -126,16 +157,7 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     return Promise.allSettled(promiseBatches)
   }
 
-  const waitForRateLimiter = async (rateLimiter, tokens, limit) => {
-    let remainingTokens = tokens
-    while (remainingTokens > 0) {
-      const removedTokens = Math.min(limit, remainingTokens)
-      await rateLimiter.removeTokens(removedTokens)
-      remainingTokens = Math.max(0, remainingTokens - removedTokens)
-    }
-  }
-
-  const logSettlements = async (settlements) => {
+  const processSettlements = async (settlements) => {
     let totalWriteOps = 0
     for (let settlement of settlements) {
       if (settlement.status === 'rejected') {
@@ -145,11 +167,7 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
         totalWriteOps += settlement.value.metrics['x-byte-write-ops']
       }
     }
-    await waitForRateLimiter(
-      rateLimiterWriteOps,
-      totalWriteOps,
-      writeOpsPerSecondLimit
-    )
+    return totalWriteOps
   }
 
   const streamConsumer = async (inputStream) => {
@@ -160,8 +178,15 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
 
     const processItems = async () => {
       // writeData has side effect of clearing out items and itemNumbers
-      await logSettlements(await writeData(items, itemNumbers))
       await waitForRateLimiter(rateLimiterBytes, dataSize, bytesPerSecondLimit)
+      const writeOps = await processSettlements(
+        await writeData(items, itemNumbers)
+      )
+      await waitForRateLimiter(
+        rateLimiterWriteOps,
+        writeOps,
+        writeOpsPerSecondLimit
+      )
       dataSize = 0
     }
 
