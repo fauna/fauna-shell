@@ -79,7 +79,7 @@ describe('FaunaImportWriter', () => {
       logHistory = []
       myMock = jestMock.fn()
       mockClient = {
-        query: myMock,
+        queryWithMetrics: myMock,
       }
       myImportWriter = getFaunaImportWriter(
         ['numberField::number'],

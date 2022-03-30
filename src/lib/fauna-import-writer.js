@@ -101,21 +101,17 @@ function getFaunaImportWriter(
   const requestBatch = (batch) => {
     // TODO have the call (or client) return the write-ops
     const write = (batch) =>
-      client.query(
+      client.queryWithMetrics(
         q.Do(
           batch.map((data) =>
-            q.Create(
-              q.Collection(collection),
-              {
-                data: Object.keys(data).reduce(
-                  (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
-                  {}
-                ),
-              }
-            )
+            q.Create(q.Collection(collection), {
+              data: Object.keys(data).reduce(
+                (memo, next) => ({ ...memo, [next.trim()]: data[next] }),
+                {}
+              ),
+            })
           )
-        ),
-        { metrics: true }
+        )
       )
     // retry appropriate failed requests using exponential backoff with jitter
     return backOff(() => write(batch), {
