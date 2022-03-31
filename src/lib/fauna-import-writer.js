@@ -131,8 +131,6 @@ function getFaunaImportWriter(
   * [503] Timeout - do not retry
   */
   const retryHandler = (e) => {
-    /* logger(new Date().toISOString())
-     * logger(e) */
     if (e.code === 'ECONNRESET') {
       return true
     }
