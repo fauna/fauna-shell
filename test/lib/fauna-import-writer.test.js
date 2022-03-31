@@ -175,6 +175,13 @@ to a number. Skipping this item and continuing."
       expect(myMock).not.toHaveBeenCalled()
     })
 
+    it('Retries ECONNRESET', async () => {
+      // retry limit is 3; no rate limit cutting is applied here.
+      let error = new Error()
+      error.code = 'ECONNRESET'
+      await testBackoffAndCutLimit(error, 12)
+    }).timeout(30000)
+
     it('Retries and cuts rate limits for 409 status codes', async () => {
       // retry limit is 3
       // initial max parallel requests is 2, with payload limit for a batch of 5 items
@@ -187,7 +194,7 @@ to a number. Skipping this item and continuing."
       //    items in one request tried a total of 3 times.
       // 3. Now we'll get cut down to 1 item at a time for the remaining 3 items. Leading
       //    9 total requests
-      await testBackoffAndCutLimit(409, 18)
+      await testBackoffAndCutLimitForStatusCode(409, 18)
     }).timeout(30000)
 
     it('Retries and cuts rate limits for 429 status codes', async () => {
@@ -202,7 +209,7 @@ to a number. Skipping this item and continuing."
       //    items in one request tried a total of 3 times.
       // 3. Now we'll get cut down to 1 item at a time for the remaining 3 items. Leading
       //    9 total requests
-      await testBackoffAndCutLimit(429, 18)
+      await testBackoffAndCutLimitForStatusCode(429, 18)
     }).timeout(30000)
 
     it('Cuts rate limits for 503 status codes; does not retry', async () => {
@@ -216,11 +223,21 @@ to a number. Skipping this item and continuing."
       //    items in 1 request tried exactly once.
       // 3. Now we'll get cut down to 1 item at a time for the remaining 3 items. Leading
       //    3 more requests
-      await testBackoffAndCutLimit(503, 6)
+      await testBackoffAndCutLimitForStatusCode(503, 6)
     }).timeout(30000)
 
-    async function testBackoffAndCutLimit(statusCode, expectedCallCount) {
-      myMock.mockRejectedValue(createFaunaErrorForStatusCode(statusCode))
+    async function testBackoffAndCutLimitForStatusCode(
+      statusCode,
+      expectedCallCount
+    ) {
+      await testBackoffAndCutLimit(
+        createFaunaErrorForStatusCode(statusCode),
+        expectedCallCount
+      )
+    }
+
+    async function testBackoffAndCutLimit(error, expectedCallCount) {
+      myMock.mockRejectedValue(error)
       await myImportWriter(myAsyncIterable)
       expect(myMock).toHaveBeenCalledTimes(expectedCallCount)
       myMock.mockClear()

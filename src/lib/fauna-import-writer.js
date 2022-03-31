@@ -131,6 +131,9 @@ function getFaunaImportWriter(
   * [503] Timeout - do not retry
   */
   const retryHandler = (e) => {
+    if (e.code === 'ECONNRESET') {
+      return true
+    }
     switch (e.requestResult?.statusCode) {
       case 409:
         return true
@@ -142,7 +145,6 @@ function getFaunaImportWriter(
   }
 
   const requestBatch = (batch) => {
-    // TODO have the call (or client) return the write-ops
     const write = (batch) =>
       client.queryWithMetrics(
         q.Do(
@@ -154,7 +156,11 @@ function getFaunaImportWriter(
               ),
             })
           )
-        )
+        ),
+        {
+          timeout: 121, // read timeout should be > query timeout,
+          queryTimeout: 120 * 1000, // witnessed some creates taking ~= 2 min for expensive indexes
+        }
       )
     // retry appropriate failed requests using exponential backoff with jitter
     return backOff(() => write(batch), {
