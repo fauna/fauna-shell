@@ -86,6 +86,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         defaultOptions
       )
       mySlowImportWriterBytes = getFaunaImportWriter(
@@ -93,6 +94,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         { ...defaultOptions, bytesPerSecondLimit: tiniestSize }
       )
       mySlowImportWriterWriteOps = getFaunaImportWriter(
@@ -100,6 +102,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         { ...defaultOptions, writeOpsPerSecondLimit: 1 }
       )
       mySlowImportWriterRequests = getFaunaImportWriter(
@@ -107,6 +110,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         { ...defaultOptions, requestsPerSecondLimit: 1 }
       )
       myDryRunWriter = getFaunaImportWriter(
@@ -114,6 +118,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         { ...defaultOptions, isDryRun: true }
       )
     })

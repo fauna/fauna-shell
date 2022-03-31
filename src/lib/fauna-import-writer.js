@@ -30,6 +30,7 @@ function getFaunaImportWriter(
   client,
   collection,
   inputFile,
+  failedRowsObj,
   {
     isDryRun = false,
     logger = console.log,
@@ -224,6 +225,7 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
       if (settlement.status === 'rejected') {
         settlementHandler(settlement)
         logger(settlement.reason.message)
+        failedRowsObj.numberFailedRows++
       } else {
         reducePenalties()
       }
