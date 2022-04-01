@@ -47,10 +47,13 @@ ensure_db () {
 
   $FAUNA_CMD eval --stdin --endpoint data-import-test &> /dev/null << CMD
     If(
-      Exists(Database("db")),
-      "Database exists!",
-      CreateDatabase({name: "$DB"})
+      Exists(Database("$DB")),
+      Delete(Database("$DB")),
+      "already deleted"
     )
+CMD
+  $FAUNA_CMD eval --stdin --endpoint data-import-test &> /dev/null << CMD
+    CreateDatabase({name: "$DB"})
 CMD
 }
 
