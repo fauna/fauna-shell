@@ -25,7 +25,7 @@ describe('FaunaImportWriter', () => {
     let myDryRunWriter
     let logHistory = []
     let originalConsoleLog = console.log
-    let mockInfoLogger
+    let mockInfoLogger = jestMock.fn()
     console.log = function (message) {
       logHistory.push(message)
       originalConsoleLog(message)
@@ -60,6 +60,7 @@ describe('FaunaImportWriter', () => {
     }
 
     beforeEach(() => {
+      mockInfoLogger.mockClear()
       myAsyncIterable = {
         async *[Symbol.asyncIterator]() {
           yield { goodField: '1', numberField: '0' }
@@ -76,7 +77,6 @@ describe('FaunaImportWriter', () => {
       }
       logHistory = []
       myMock = jestMock.fn()
-      mockInfoLogger = jestMock.fn()
       mockClient = {
         queryWithMetrics: myMock,
       }
@@ -218,7 +218,7 @@ to a number. Skipping this item and continuing."
       // retry limit is 3; no rate limit cutting is applied here.
       let error = new Error()
       error.code = 'ECONNRESET'
-      await testBackoffAndCutLimit(error, 12)
+      await testBackoff(error, 12)
     }).timeout(30000)
 
     it('Retries and cuts rate limits for 409 status codes', async () => {
@@ -277,11 +277,17 @@ to a number. Skipping this item and continuing."
       )
     }
 
-    async function testBackoffAndCutLimit(error, expectedCallCount) {
+    async function testBackoff(error, expectedCallCount) {
       myMock.mockRejectedValue(error)
       await myImportWriter(myAsyncIterable)
       expect(myMock).toHaveBeenCalledTimes(expectedCallCount)
-      myMock.mockClear()
+    }
+
+    async function testBackoffAndCutLimit(error, expectedCallCount) {
+      await testBackoff(error, expectedCallCount)
+      expect(mockInfoLogger).toHaveBeenCalledWith(
+        'Throttling encountered, slowing your throughput down ...'
+      )
     }
 
     it('Does not retry non-retriable status codes', async () => {
@@ -329,12 +335,10 @@ to a number. Skipping this item and continuing."
       await estimationWriter(myAsyncIterable)
       let end = new Date()
       let differenceSeconds = (end.getTime() - start.getTime()) / 1000
-      console.log(differenceSeconds)
       // first reqeust - 1 item, will wait 1 second
-      // second request - new estimate 0 indexes; will do 5 items
-      // third reqeust - new estimate 1 index; will do 2 items
-      // fourth reqeust - new estimate 1 index; will do 2 items
-      expect(differenceSeconds).toBeGreaterThanOrEqual(4)
+      // 2nd + 3rd request - new estimate 0 indexes; will do 4 items in 2 threads
+      // 4-8 reqeust - new estimate 2 index; will do 1 item at a time
+      expect(differenceSeconds).toBeGreaterThanOrEqual(8)
       expect(myMock).toHaveBeenCalledTimes(8)
     }).timeout(20000)
 

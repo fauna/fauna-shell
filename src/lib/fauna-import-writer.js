@@ -77,6 +77,7 @@ function getFaunaImportWriter(
   }
 
   const applyPenalties = () => {
+    infoLogger('Throttling encountered, slowing your throughput down ...')
     const nextBytesLimit = penalties.bytes.getNextPenalty(bytesPerSecondLimit)
     const nextRequestsLimit = penalties.requests.getNextPenalty(
       requestsPerSecondLimit
@@ -192,40 +193,27 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     return Promise.allSettled(promiseBatches)
   }
 
-  const settlementHandler = (s) => {
-    switch (s.reason?.statusCode) {
-      case 409:
-        applyPenalties()
-        break
-      case 410:
-        // exit
-        break
-      case 413:
-        // exit
-        break
-      case 429:
-        applyPenalties()
-        break
-      case 503:
-        applyPenalties()
-        break
-      default:
-        break
-    }
+  const doPenaltiesApply = (s) => {
+    return [409, 429, 503].includes(s.reason?.statusCode)
   }
 
   const processSettlements = async (settlements) => {
     let totalWriteOps = 0
+    let shouldApplyPenalties = false
     for (let settlement of settlements) {
       if (settlement.status === 'rejected') {
-        settlementHandler(settlement)
+        shouldApplyPenalties =
+          shouldApplyPenalties || doPenaltiesApply(settlement)
         logger(settlement.reason.message)
-      } else {
-        reducePenalties()
       }
       if (settlement.value?.metrics) {
         totalWriteOps += settlement.value.metrics['x-byte-write-ops']
       }
+    }
+    if (shouldApplyPenalties) {
+      applyPenalties()
+    } else {
+      reducePenalties()
     }
     return totalWriteOps
   }
@@ -240,9 +228,6 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     let isFirstRequest = true
 
     const processItems = async () => {
-      /* console.log(`Index estimation ${indexEstimation}`)
-       * console.log(`num items ${items.length}`)
-       * console.log(`dataSize ${dataSize}`) */
       const [estimatedBytes, estimatedWriteOps, estimatedWriteOpsNoIndex] = [
         RateEstimator.estimateWriteOpsAsBytes(dataSize, indexEstimation),
         RateEstimator.estimateWriteOps(dataSize, indexEstimation),
@@ -257,11 +242,8 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
         // writeData has side effect of clearing out items and itemNumbers
         await writeData(items, itemNumbers)
       )
-      /* console.log(`actualWriteOps ${actualWriteOps}`)
-       * console.log(`estimatedWriteOps ${estimatedWriteOps}`)
-       * console.log(`estimatedWriteOpsNoIndex ${estimatedWriteOpsNoIndex}`) */
       if (actualWriteOps > 0) {
-        if (actualWriteOps < estimatedWriteOps && isFirstRequest) {
+        if (actualWriteOps <= estimatedWriteOps && isFirstRequest) {
           indexEstimation =
             Math.ceil(actualWriteOps / estimatedWriteOpsNoIndex) - 1
           isFirstRequest = false
