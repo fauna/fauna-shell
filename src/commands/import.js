@@ -9,7 +9,7 @@ const p = require('path')
 const q = faunadb.query
 const getFaunaImportWriter = require('../lib/fauna-import-writer')
 const { parse } = require('csv-parse')
-const ImportLimits = require('../lib/import-limits')
+const { ImportLimits } = require('../lib/import-limits')
 
 class ImportCommand extends FaunaCommand {
   supportedExt = ['.csv', '.json', '.jsonl']

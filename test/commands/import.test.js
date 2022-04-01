@@ -1,7 +1,7 @@
 const { expect, test } = require('@oclif/test')
 const { withOpts } = require('../helpers/utils.js')
 const { Client, query } = require('faunadb')
-const ImportLimits = require('../../src/lib/import-limits')
+const { ImportLimits } = require('../../src/lib/import-limits')
 
 const client = new Client({
   secret: 'secret',
