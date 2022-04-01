@@ -5,6 +5,7 @@ const { backOff } = require('exponential-backoff')
 const FaunaHTTPError = require('faunadb').errors.FaunaHTTPError
 const { RateLimiterMemory, RateLimiterQueue } = require('rate-limiter-flexible')
 const { ImportPenalty } = require('./import-penalty')
+const { RateEstimator } = require('./import-limits')
 
 /**
  * Creates a function that consumes a stream of objects and writes creates each object
@@ -15,8 +16,8 @@ const { ImportPenalty } = require('./import-penalty')
  * @param {string} inputFile - the path to the input file.
  * @param {object} options - object containing optional arguments.
  * @param {boolean} options.isDryRun - if true dry run the import - committing no documents. to Fauna. Otherwise, write documents to Fauna. Defaults to false.
- * @param {function} options.logger - the logger to be used, defaults to console.log.
- * @param {number} options.bytesPerSecondLimit - the rate at which data can be written to Fauna, defaults to 400000 bytes per second.
+ * @param {(string) => any} options.logger - the logger to be used to issue warnings
+ * @param {(string) => any} options.infoLogger - the logger to be used to issue informational messages
  * @param {number} options.writeOpsPerSecondLimit - the rate at which data can be written to Fauna, defaults to 100 write ops per second.
  * @param {number} options.requestsPerSecondLimit - the rate at which data can be written to Fauna, defaults to 10 requests per second.
  * @param {number} options.maxParallelRequests - the maximum number of parallel requests to issue to Fauna, defaults to 10.
@@ -34,12 +35,16 @@ function getFaunaImportWriter(
   {
     isDryRun = false,
     logger = console.log,
-    bytesPerSecondLimit = 400000,
+    infoLogger = console.log,
     writeOpsPerSecondLimit = 100,
     requestsPerSecondLimit = 1000,
     maxParallelRequests = 10,
+    indexEstimation = 10,
   }
 ) {
+  const BYTES_PER_WRITE_OP = 1000
+  let bytesPerSecondLimit = writeOpsPerSecondLimit * BYTES_PER_WRITE_OP
+
   class BatchError extends Error {
     statusCode
 
@@ -53,7 +58,6 @@ function getFaunaImportWriter(
 
   const penalties = {
     bytes: new ImportPenalty(0, bytesPerSecondLimit),
-    writeOps: new ImportPenalty(0, writeOpsPerSecondLimit),
     requests: new ImportPenalty(0, requestsPerSecondLimit),
   }
 
@@ -62,12 +66,6 @@ function getFaunaImportWriter(
       new RateLimiterMemory({
         duration: 1, // seconds
         points: bytesPerSecondLimit,
-      })
-    ),
-    writeOps: new RateLimiterQueue(
-      new RateLimiterMemory({
-        duration: 1, // seconds
-        points: writeOpsPerSecondLimit,
       })
     ),
     requests: new RateLimiterQueue(
@@ -79,38 +77,29 @@ function getFaunaImportWriter(
   }
 
   const applyPenalties = () => {
+    infoLogger('Throttling encountered, slowing your throughput down ...')
     const nextBytesLimit = penalties.bytes.getNextPenalty(bytesPerSecondLimit)
-    const nextWriteOpsLimit = penalties.writeOps.getNextPenalty(
-      writeOpsPerSecondLimit
-    )
     const nextRequestsLimit = penalties.requests.getNextPenalty(
       requestsPerSecondLimit
     )
-
     bytesPerSecondLimit = nextBytesLimit
-    writeOpsPerSecondLimit = nextWriteOpsLimit
     requestsPerSecondLimit = nextRequestsLimit
 
     rateLimiters.bytes.points = nextBytesLimit
-    rateLimiters.writeOps.points = nextWriteOpsLimit
     rateLimiters.requests.points = nextRequestsLimit
   }
 
   const reducePenalties = () => {
-    const nextBytesLimit = penalties.bytes.getNextIncrement(bytesPerSecondLimit)
-    const nextWriteOpsLimit = penalties.writeOps.getNextIncrement(
-      writeOpsPerSecondLimit
-    )
+    const nextBytesOpsLimit =
+      penalties.bytes.getNextIncrement(bytesPerSecondLimit)
     const nextRequestsLimit = penalties.requests.getNextIncrement(
       requestsPerSecondLimit
     )
 
-    bytesPerSecondLimit = nextBytesLimit
-    writeOpsPerSecondLimit = nextWriteOpsLimit
+    bytesPerSecondLimit = nextBytesOpsLimit
     requestsPerSecondLimit = nextRequestsLimit
 
-    rateLimiters.bytes.points = nextBytesLimit
-    rateLimiters.writeOps.points = nextWriteOpsLimit
+    rateLimiters.bytes.points = nextBytesOpsLimit
     rateLimiters.requests.points = nextRequestsLimit
   }
 
@@ -204,65 +193,74 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     return Promise.allSettled(promiseBatches)
   }
 
-  const settlementHandler = (s) => {
-    switch (s.reason?.statusCode) {
-      case 409:
-        applyPenalties()
-        break
-      case 410:
-        // exit
-        break
-      case 413:
-        // exit
-        break
-      case 429:
-        applyPenalties()
-        break
-      case 503:
-        applyPenalties()
-        break
-      default:
-        break
-    }
+  const doPenaltiesApply = (s) => {
+    return [409, 429, 503].includes(s.reason?.statusCode)
   }
 
   const processSettlements = async (settlements) => {
     let totalWriteOps = 0
+    let shouldApplyPenalties = false
     for (let settlement of settlements) {
       if (settlement.status === 'rejected') {
-        settlementHandler(settlement)
+        shouldApplyPenalties =
+          shouldApplyPenalties || doPenaltiesApply(settlement)
         logger(settlement.reason.message)
-      } else {
-        reducePenalties()
       }
       if (settlement.value?.metrics) {
         totalWriteOps += settlement.value.metrics['x-byte-write-ops']
       }
     }
+    if (shouldApplyPenalties) {
+      applyPenalties()
+    } else {
+      reducePenalties()
+    }
     return totalWriteOps
   }
 
   const streamConsumer = async (inputStream) => {
+    infoLogger('Starting Import!')
     let dataSize = 0
     let items = []
     let itemNumbers = []
     let itemNumber = -1
+    let nextItemToLog = 100
+    let isFirstRequest = true
 
     const processItems = async () => {
-      // writeData has side effect of clearing out items and itemNumbers
+      const [estimatedBytes, estimatedWriteOps, estimatedWriteOpsNoIndex] = [
+        RateEstimator.estimateWriteOpsAsBytes(dataSize, indexEstimation),
+        RateEstimator.estimateWriteOps(dataSize, indexEstimation),
+        RateEstimator.estimateWriteOps(dataSize, 0),
+      ]
       await waitForRateLimiter(
         rateLimiters.bytes,
-        dataSize,
+        estimatedBytes,
         bytesPerSecondLimit
       )
-      const writeOps = await processSettlements(
+      const actualWriteOps = await processSettlements(
+        // writeData has side effect of clearing out items and itemNumbers
         await writeData(items, itemNumbers)
       )
-      await waitForRateLimiter(
-        rateLimiters.writeOps,
-        writeOps,
-        writeOpsPerSecondLimit
-      )
+      if (actualWriteOps > 0) {
+        if (
+          (actualWriteOps <= estimatedWriteOps && isFirstRequest) ||
+          actualWriteOps > estimatedWriteOps
+        ) {
+          indexEstimation = RateEstimator.estimateNumberOfIndexes(
+            actualWriteOps,
+            estimatedWriteOpsNoIndex
+          )
+          isFirstRequest = false
+        }
+        if (actualWriteOps > estimatedWriteOps) {
+          await waitForRateLimiter(
+            rateLimiters.bytes,
+            (actualWriteOps - estimatedWriteOps) * BYTES_PER_WRITE_OP,
+            bytesPerSecondLimit
+          )
+        }
+      }
       dataSize = 0
     }
 
@@ -281,8 +279,22 @@ this item and continuing.`
       }
       if (thisItem !== undefined) {
         const thisItemSize = sizeof(thisItem)
-        if (dataSize + thisItemSize > bytesPerSecondLimit && !isDryRun) {
+        if (
+          RateEstimator.estimateWriteOpsAsBytes(
+            dataSize + thisItemSize,
+            indexEstimation
+          ) > bytesPerSecondLimit &&
+          !isDryRun
+        ) {
           await processItems()
+        }
+        if (itemNumber >= nextItemToLog) {
+          infoLogger(`${itemNumber} items processed`)
+          if (itemNumber < 1000) {
+            nextItemToLog += 100
+          } else {
+            nextItemToLog += 1000
+          }
         }
         items.push(thisItem)
         itemNumbers.push(itemNumber)
