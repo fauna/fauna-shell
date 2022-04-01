@@ -19,6 +19,7 @@ describe('FaunaImportWriter', () => {
     let myMock
     let mockClient
     let myImportWriter
+    let myFailingImportWriter
     let mySlowImportWriterBytes
     let mySlowImportWriterWriteOps
     let mySlowImportWriterRequests
@@ -86,6 +87,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         defaultOptions
       )
       mySlowImportWriterBytes = getFaunaImportWriter(
@@ -93,6 +95,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         { ...defaultOptions, bytesPerSecondLimit: tiniestSize }
       )
       mySlowImportWriterWriteOps = getFaunaImportWriter(
@@ -100,6 +103,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         { ...defaultOptions, writeOpsPerSecondLimit: 1 }
       )
       mySlowImportWriterRequests = getFaunaImportWriter(
@@ -107,6 +111,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         { ...defaultOptions, requestsPerSecondLimit: 1 }
       )
       myDryRunWriter = getFaunaImportWriter(
@@ -114,12 +119,33 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         { ...defaultOptions, isDryRun: true }
       )
     })
 
     afterEach(() => {
       console.log = originalConsoleLog
+    })
+
+    it('Correctly tracks number of failing rows', async () => {
+      myMock
+        .mockRejectedValueOnce(new Error('Transaction failure one'))
+        .mockRejectedValueOnce(new Error('Transaction failure two'))
+        .mockRejectedValueOnce(new Error('Transaction failure three'))
+        .mockRejectedValueOnce(new Error('Transaction failure four'))
+
+      const failingRows = { numberFailedRows: 0 }
+      myFailingImportWriter = getFaunaImportWriter(
+        ['numberField::number'],
+        mockClient,
+        'the-collection',
+        'my-file',
+        failingRows,
+        defaultOptions
+      )
+      await myFailingImportWriter(myAsyncIterable)
+      expect(failingRows.numberFailedRows).toEqual(10)
     })
 
     it('Logs the line numbers of items that fail to translate or persist to the DB', async () => {

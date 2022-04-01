@@ -47,10 +47,13 @@ ensure_db () {
 
   $FAUNA_CMD eval --stdin --endpoint data-import-test &> /dev/null << CMD
     If(
-      Exists(Database("db")),
-      "Database exists!",
-      CreateDatabase({name: "$DB"})
+      Exists(Database("$DB")),
+      Delete(Database("$DB")),
+      "already deleted"
     )
+CMD
+  $FAUNA_CMD eval --stdin --endpoint data-import-test &> /dev/null << CMD
+    CreateDatabase({name: "$DB"})
 CMD
 }
 
@@ -92,20 +95,20 @@ run_type_tests () {
   
   cleanup_collection "date_type"
   $FAUNA_CMD import --endpoint data-import-test --type=birthday::dateString --path=type_tests/date_type.csv
-  if [ $? != 0 ];then
-    fail_test "date_type.csv didn't import with success"
+  if [ $? == 0 ];then
+    fail_test "date_type.csv didn't fail"
   fi
   
   cleanup_collection "bad_date_type"
   $FAUNA_CMD import --endpoint data-import-test --type=birthday::dateString --path=type_tests/bad_date_type.csv
-  if [ $? != 0 ];then
-    fail_test "bad_date_type.csv failed, but should succeed as it will skip bad rows"
+  if [ $? == 0 ];then
+    fail_test "bad_date_type.csv succeeded"
   fi
 
   cleanup_collection "bad_date_type"
   $FAUNA_CMD import --endpoint data-import-test --type=birthday::dateString --path=type_tests/bad_date_type.csv --dry-run
-  if [ $? != 0 ];then
-    fail_test "bad_date_type.csv imported in dry-run mode should have succeeded"
+  if [ $? == 0 ];then
+    fail_test "bad_date_type.csv imported in dry-run mode should have failed"
   fi
     
   cleanup_collection "number_type"
@@ -115,26 +118,26 @@ run_type_tests () {
   fi
 
   cleanup_collection "bad_number_type"
-  $FAUNA_CMD import --endpoint data-import-test --type=birthday::number --path=type_tests/bad_number_type.csv --dry-run
-  if [ $? != 0 ];then
-    fail_test "bad_number_type.csv imported in dry-run mode should have succeeded"
+  $FAUNA_CMD import --endpoint data-import-test --type=age::number --path=type_tests/bad_number_type.csv --dry-run
+  if [ $? == 0 ];then
+    fail_test "bad_number_type.csv imported in dry-run mode should have failed"
   fi
   
   cleanup_collection "bad_number_type"
   $FAUNA_CMD import --endpoint data-import-test --type=age::number --path=type_tests/bad_number_type.csv
-  if [ $? != 0 ];then
-    fail_test "bad_number_type.csv didn't didn't succeed, but should as it will skip bad rows"
+  if [ $? == 0 ];then
+    fail_test "bad_number_type.csv didn't fail"
   fi
 
   cleanup_collection "auto_type_translation"
   $FAUNA_CMD import --endpoint data-import-test --type=age::number --path=type_tests/auto_type_translation.csv
-  if [ $? == 1 ];then
+  if [ $? != 0 ];then
     fail_test "auto_type_translation.csv didn't import with success"
   fi
 
   cleanup_collection "default_null_inference"
   $FAUNA_CMD import --endpoint data-import-test --path=type_tests/default_null_inference.csv
-  if [ $? == 1 ];then
+  if [ $? != 0 ];then
     fail_test "default_null_inference.csv didn't import with success"
   fi
 }
@@ -160,8 +163,8 @@ short_row_tests () {
 
   cleanup_collection "short_rows_with_type_translations"
   $FAUNA_CMD import --endpoint data-import-test --allow-short-rows --type=number::number --type=date::dateString --type=boolean::bool --path=csv_row_len_tests/short_rows_with_type_translations.csv
-  if [ $? != 0 ];then
-    fail_test "short_rows_with_type_translations.csv import should have succeeded with --allow-short-rows flag"
+  if [ $? == 0 ];then
+    fail_test "short_rows_with_type_translations.csv import should have failed due to bad data"
   fi
 
   cleanup_collection "too_long_rows"
@@ -242,23 +245,23 @@ directory_tests() {
   cleanup_all_collections
   $FAUNA_CMD import --endpoint data-import-test --path=json
   if [ $? != 0 ];then
-    fail_test "directory import should always succeed even if files fail"
+    fail_test "directory should have succeeded"
   fi
   $FAUNA_CMD import --endpoint data-import-test --path=type_tests
   if [ $? != 0 ];then
-    fail_test "directory import should always succeed even if files fail"
+    fail_test "directory should have succeeded"
   fi
   $FAUNA_CMD import --endpoint data-import-test --path=csv_row_len_tests
-  if [ $? != 0 ];then
-    fail_test "directory import should always succeed even if files fail"
+  if [ $? == 0 ];then
+    fail_test "directory should have failed"
   fi
   $FAUNA_CMD import --endpoint data-import-test --path=header_tests
   if [ $? != 0 ];then
-    fail_test "directory import should always succeed even if files fail"
+    fail_test "directory should have succeeded"
   fi
   $FAUNA_CMD import --endpoint data-import-test --path=invalid_file_types
-  if [ $? != 0 ];then
-    fail_test "directory import should always succeed even if files fail"
+  if [ $? == 0 ];then
+    fail_test "directory should have failed"
   fi
   $FAUNA_CMD import --endpoint data-import-test --path=type_tests --collection=foo
 }
