@@ -240,9 +240,9 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     let isFirstRequest = true
 
     const processItems = async () => {
-      console.log(`Index estimation ${indexEstimation}`)
-      console.log(`num items ${items.length}`)
-      console.log(`dataSize ${dataSize}`)
+      /* console.log(`Index estimation ${indexEstimation}`)
+       * console.log(`num items ${items.length}`)
+       * console.log(`dataSize ${dataSize}`) */
       const [estimatedBytes, estimatedWriteOps, estimatedWriteOpsNoIndex] = [
         RateEstimator.estimateWriteOpsAsBytes(dataSize, indexEstimation),
         RateEstimator.estimateWriteOps(dataSize, indexEstimation),
@@ -257,9 +257,9 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
         // writeData has side effect of clearing out items and itemNumbers
         await writeData(items, itemNumbers)
       )
-      console.log(`actualWriteOps ${actualWriteOps}`)
-      console.log(`estimatedWriteOps ${estimatedWriteOps}`)
-      console.log(`estimatedWriteOpsNoIndex ${estimatedWriteOpsNoIndex}`)
+      /* console.log(`actualWriteOps ${actualWriteOps}`)
+       * console.log(`estimatedWriteOps ${estimatedWriteOps}`)
+       * console.log(`estimatedWriteOpsNoIndex ${estimatedWriteOpsNoIndex}`) */
       if (actualWriteOps > 0) {
         if (actualWriteOps < estimatedWriteOps && isFirstRequest) {
           indexEstimation =

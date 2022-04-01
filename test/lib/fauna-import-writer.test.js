@@ -25,7 +25,7 @@ describe('FaunaImportWriter', () => {
     let myDryRunWriter
     let logHistory = []
     let originalConsoleLog = console.log
-    let mockInfoLogger = jestMock.fn()
+    let mockInfoLogger
     console.log = function (message) {
       logHistory.push(message)
       originalConsoleLog(message)
@@ -76,6 +76,7 @@ describe('FaunaImportWriter', () => {
       }
       logHistory = []
       myMock = jestMock.fn()
+      mockInfoLogger = jestMock.fn()
       mockClient = {
         queryWithMetrics: myMock,
       }
@@ -322,6 +323,7 @@ to a number. Skipping this item and continuing."
         mockClient,
         'the-collection',
         'my-file',
+        { numberFailedRows: 0 },
         { ...defaultOptions, indexEstimation: 10 }
       )
       await estimationWriter(myAsyncIterable)
