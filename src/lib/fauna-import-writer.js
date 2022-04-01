@@ -243,13 +243,22 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
         await writeData(items, itemNumbers)
       )
       if (actualWriteOps > 0) {
-        if (actualWriteOps <= estimatedWriteOps && isFirstRequest) {
-          indexEstimation =
-            Math.ceil(actualWriteOps / estimatedWriteOpsNoIndex) - 1
+        if (
+          (actualWriteOps <= estimatedWriteOps && isFirstRequest) ||
+          actualWriteOps > estimatedWriteOps
+        ) {
+          indexEstimation = RateEstimator.estimateNumberOfIndexes(
+            actualWriteOps,
+            estimatedWriteOpsNoIndex
+          )
           isFirstRequest = false
-        } else if (actualWriteOps > estimatedWriteOps) {
-          indexEstimation =
-            Math.ceil(actualWriteOps / estimatedWriteOpsNoIndex) - 1
+        }
+        if (actualWriteOps > estimatedWriteOps) {
+          await waitForRateLimiter(
+            rateLimiters.bytes,
+            (actualWriteOps - estimatedWriteOps) * BYTES_PER_WRITE_OP,
+            bytesPerSecondLimit
+          )
         }
       }
       dataSize = 0

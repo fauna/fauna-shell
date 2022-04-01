@@ -29,6 +29,16 @@ class RateEstimator {
     }
     return Math.ceil((totalBytes * (1 + numberOfIndexes)) / 1000)
   }
+
+  static estimateNumberOfIndexes(actualWriteOps, estimatedWriteOpsNoIndex) {
+    if (actualWriteOps <= 0) {
+      throw new Error('Invalid argument actualWriteOps must be > 0')
+    }
+    if (estimatedWriteOpsNoIndex <= 0) {
+      throw new Error('Invalid argument estimatedWriteOpsNoIndex must be > 0')
+    }
+    return Math.ceil(actualWriteOps / estimatedWriteOpsNoIndex) - 1
+  }
 }
 
 module.exports.ImportLimits = ImportLimits
