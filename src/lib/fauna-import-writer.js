@@ -180,6 +180,7 @@ function getFaunaImportWriter(
       const currentItemNumbers = itemNumbers.splice(0, batchSize)
       promiseBatches.push(
         requestBatch(itemsToBatch.splice(0, batchSize)).catch((e) => {
+          failedRowsObj.numberFailedRows += currentItemNumbers.length
           const getMessage = (
             subMessage
           ) => `item numbers: ${currentItemNumbers} (zero-indexed) in your \
@@ -225,7 +226,6 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
       if (settlement.status === 'rejected') {
         settlementHandler(settlement)
         logger(settlement.reason.message)
-        failedRowsObj.numberFailedRows++
       } else {
         reducePenalties()
       }
@@ -266,6 +266,7 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
       try {
         thisItem = faunaObjectTranslator.getRecord(chunk)
       } catch (e) {
+        failedRowsObj.numberFailedRows++
         logger(
           `item number ${itemNumber} (zero-indexed) in your input file '${inputFile}' could \
 not be translated into the requested format due to: ${e.message} Skipping \

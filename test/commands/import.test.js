@@ -290,10 +290,14 @@ describe('import', () => {
           '--type=age::number',
         ])
       )
+      .catch((err) => {
+        expect(err.message).to.contain('rows/object failed to import')
+        expect(err.oclif.exit).to.not.equal(0)
+      })
       .it(
         'creates a collection with type translations from a CSV; ignoring bad data',
         async (ctx) => {
-          expect(ctx.stdout).to.match(/Import from .* completed/)
+          expect(ctx.stdout).to.match(/Database connection established/)
           expect(ctx.stderr).to.match(/item number 1 \(zero-indexed\)/)
           const expected = [{ id: '1', name: 'mia', age: 14, sign: 'cancer' }]
           await doCollectionAssertions('zed', expected)
@@ -315,8 +319,12 @@ describe('import', () => {
           '--dry-run',
         ])
       )
+      .catch((err) => {
+        expect(err.message).to.contain('failed to import')
+        expect(err.oclif.exit).to.not.equal(0)
+      })
       .it('dry-run creates no collection but prints errors', async (ctx) => {
-        expect(ctx.stdout).to.match(/Import from .* completed/)
+        expect(ctx.stdout).to.match(/Database connection established/)
         expect(ctx.stderr).to.match(/item number 1 \(zero-indexed\)/)
         await assertCollectionDoesNotExist('nada')
       })

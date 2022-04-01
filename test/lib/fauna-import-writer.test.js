@@ -145,7 +145,7 @@ describe('FaunaImportWriter', () => {
         defaultOptions
       )
       await myFailingImportWriter(myAsyncIterable)
-      expect(failingRows.numberFailedRows).toEqual(4)
+      expect(failingRows.numberFailedRows).toEqual(10)
     })
 
     it('Logs the line numbers of items that fail to translate or persist to the DB', async () => {

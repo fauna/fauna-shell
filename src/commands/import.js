@@ -85,13 +85,11 @@ class ImportCommand extends FaunaCommand {
 
     this.log('\n\nImport completed')
     if (failedFiles.length > 0) {
-      this.warn(`${failedFiles.length} files failed to import`)
       failedFiles.forEach((failed) =>
         this.warn(`${failed.file} => ${failed.warning}`)
       )
-    } else if (failedRows.numberFailedRows > 0) {
-      this.warn(
-        `Directory import finished incomplete. Total ${failedRows.numberFailedRows} rows/objects failed to import`
+      this.error(
+        `${failedFiles.length} files failed to import. Inspect each file message for the reason.`
       )
     } else {
       this.success('All files imported')
@@ -114,7 +112,7 @@ class ImportCommand extends FaunaCommand {
     const failedBeforeFile = failedRows.numberFailedRows
     await this.dataImport({ source, collection, path, failedRows })
     if (failedRows.numberFailedRows > failedBeforeFile) {
-      this.warn(
+      this.error(
         `File import from ${path} to ${collection} incomplete. ${failedRows.numberFailedRows} rows/object failed to import`
       )
     } else {
@@ -140,7 +138,7 @@ class ImportCommand extends FaunaCommand {
     const { name, ext } = p.parse(p.basename(path))
 
     if (!this.supportedExt.includes(ext)) {
-      throw new Error(`File (${path}) extension isn't supported`)
+      throw this.error(`File (${path}) extension isn't supported`)
     }
     return { name, ext, path }
   }
