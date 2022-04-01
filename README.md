@@ -452,10 +452,10 @@ Map(
 You can tell Fauna Shell to execute all those queries for you by running the following command:
 
 ```bash
-$ fauna run-queries my_app --file=./queries.fql
+$ fauna eval my_app --file=./queries.fql
 ```
 
-Where `my_app` is the name of your database, and `./queries.fql` is the path to the file where you saved the queries.
+Where `my_app` is the name of your database, and `./queries.fql` is the path to the file where you saved the queries.  If `my_app` is left out it will execute the queries file on the default fauna shell endpoint.  This was previously called `run-queries`.
 
 Queries have to be written in the syntax supported by FaunaDB's Javascript [driver](https://github.com/fauna/faunadb-js).
 
