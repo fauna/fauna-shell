@@ -265,6 +265,7 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
     }
 
     for await (const chunk of inputStream) {
+      failedRowsObj.totalRows++
       itemNumber++
       let thisItem
       try {

@@ -34,14 +34,14 @@ class ImportCommand extends FaunaCommand {
       importFn = this.importFile
     }
 
-    const failedRows = { numberFailedRows: 0 }
+    const progressTracker = { totalRows: 0, numberFailedRows: 0 }
 
     return importFn
-      .call(this, path, failedRows)
+      .call(this, path, progressTracker)
       .catch((error) => this.handleError(error))
   }
 
-  async importDir(path, failedRows) {
+  async importDir(path, progressTracker) {
     const files = fs.readdirSync(path)
 
     // check if folder size is approximately greater than 10GB
@@ -71,8 +71,9 @@ class ImportCommand extends FaunaCommand {
         this.warn(warning)
         continue
       }
+      let localProgressTracker = { totalRows: 0, numberFailedRows: 0 }
       try {
-        await this.importFile(subPath, failedRows)
+        await this.importFile(subPath, localProgressTracker)
         if (this.flags.collection) {
           this.flags.append = true
         }
@@ -80,6 +81,10 @@ class ImportCommand extends FaunaCommand {
         const warning = e.message ? e.message : e
         failedFiles.push({ file, warning })
         this.warn(warning)
+      } finally {
+        progressTracker.totalRows += localProgressTracker.totalRows
+        progressTracker.numberFailedRows +=
+          localProgressTracker.numberFailedRows
       }
     }
 
@@ -89,14 +94,22 @@ class ImportCommand extends FaunaCommand {
         this.warn(`${failed.file} => ${failed.warning}`)
       )
       this.error(
-        `${failedFiles.length} files failed to import. Inspect each file message for the reason.`
+        `${
+          failedFiles.length
+        } files failed to import. Inspect each file message for the reason. ${
+          progressTracker.numberFailedRows
+        } rows/object failed to import. ${
+          progressTracker.totalRows - progressTracker.numberFailedRows
+        } rows/object succeeded`
       )
     } else {
-      this.success('All files imported')
+      this.success(
+        `All files completed. ${progressTracker.totalRows} rows/object imported.`
+      )
     }
   }
 
-  async importFile(path, failedRows) {
+  async importFile(path, progressTracker) {
     // check if file size is approximately greater than 10GB
     if (this.calculateFileSize(path) > ImportLimits.maximumImportSize()) {
       throw new Error(
@@ -109,14 +122,19 @@ class ImportCommand extends FaunaCommand {
     if (!collection) {
       collection = source.name
     }
-    const failedBeforeFile = failedRows.numberFailedRows
-    await this.dataImport({ source, collection, path, failedRows })
-    if (failedRows.numberFailedRows > failedBeforeFile) {
+    await this.dataImport({ source, collection, path, progressTracker })
+    if (progressTracker.numberFailedRows > 0) {
       this.error(
-        `File import from ${path} to ${collection} incomplete. ${failedRows.numberFailedRows} rows/object failed to import`
+        `File import from ${path} to ${collection} incomplete. ${
+          progressTracker.numberFailedRows
+        } rows/object failed to import. ${
+          progressTracker.totalRows - progressTracker.numberFailedRows
+        } rows/object succeeded`
       )
     } else {
-      this.success(`Import from ${path} to ${collection} completed`)
+      this.success(
+        `Import from ${path} to ${collection} completed. ${progressTracker.totalRows} rows/object imported.`
+      )
     }
   }
 
@@ -143,7 +161,7 @@ class ImportCommand extends FaunaCommand {
     return { name, ext, path }
   }
 
-  async dataImport({ source, collection, path, failedRows }) {
+  async dataImport({ source, collection, path, progressTracker }) {
     await this.ensureCollection({
       collection,
     })
@@ -157,7 +175,7 @@ class ImportCommand extends FaunaCommand {
           this.client,
           collection,
           path,
-          failedRows,
+          progressTracker,
           { isDryRun: Boolean(this.flags['dry-run']), logger: this.warn }
         ),
         (error) => {
