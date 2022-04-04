@@ -23,6 +23,20 @@ describe('eval', () => {
     .it('runs eval on nested db', (ctx) => {
       expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal('nested')
     })
+
+  test
+    .stderr()
+    .command(withOpts(['eval', '[Add(1, 2), Abort("boom")]']))
+    .exit(1)
+    .it('Exits with non-zero code when the command fails')
+
+  test
+    .stderr()
+    .command(withOpts(['eval', '[Add(1, 2), Abort("boom")]']))
+    .catch((e) => {
+      expect(e.message).to.contain('transaction aborted')
+    })
+    .it('It pretty-prints an error message the command fails')
 })
 
 function mockQuery(api) {

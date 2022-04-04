@@ -59,14 +59,12 @@ function performQuery(client, fqlQuery, outputFile, outputFormat) {
       return writeFormattedOutput(outputFile, response, outputFormat)
     })
     .catch(function (error) {
-      console.error(
+      errorOut(
         util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
           depth: null,
           compact: false,
         })
       )
-    
-      process.exit(1)
     })
 }
 
