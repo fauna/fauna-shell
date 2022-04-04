@@ -16,7 +16,7 @@ services:
       - FAUNA_DOMAIN
       - FAUNA_SCHEME
       - FAUNA_PORT
-    image: node:15.14.0-alpine3.10
+    image: node:16.14.2-alpine3.14
     container_name: mytests
     depends_on:
       - faunadb
