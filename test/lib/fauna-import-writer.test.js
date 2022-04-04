@@ -85,7 +85,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
-        { numberFailedRows: 0 },
+        { totalRows: 0, numberFailedRows: 0 },
         defaultOptions
       )
       mySlowImportWriterWriteOps = getFaunaImportWriter(
@@ -93,7 +93,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
-        { numberFailedRows: 0 },
+        { totalRows: 0, numberFailedRows: 0 },
         {
           ...defaultOptions,
           // 3 items per second
@@ -106,7 +106,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
-        { numberFailedRows: 0 },
+        { totalRows: 0, numberFailedRows: 0 },
         { ...defaultOptions, requestsPerSecondLimit: 1 }
       )
       myDryRunWriter = getFaunaImportWriter(
@@ -114,7 +114,7 @@ describe('FaunaImportWriter', () => {
         mockClient,
         'the-collection',
         'my-file',
-        { numberFailedRows: 0 },
+        { totalRows: 0, numberFailedRows: 0 },
         { ...defaultOptions, isDryRun: true }
       )
     })
@@ -124,13 +124,9 @@ describe('FaunaImportWriter', () => {
     })
 
     it('Correctly tracks number of failing rows', async () => {
-      myMock
-        .mockRejectedValueOnce(new Error('Transaction failure one'))
-        .mockRejectedValueOnce(new Error('Transaction failure two'))
-        .mockRejectedValueOnce(new Error('Transaction failure three'))
-        .mockRejectedValueOnce(new Error('Transaction failure four'))
+      myMock.mockRejectedValue().mockResolvedValueOnce().mockResolvedValueOnce()
 
-      const failingRows = { numberFailedRows: 0 }
+      const failingRows = { totalRows: 0, numberFailedRows: 0 }
       myFailingImportWriter = getFaunaImportWriter(
         ['numberField::number'],
         mockClient,
@@ -140,7 +136,9 @@ describe('FaunaImportWriter', () => {
         defaultOptions
       )
       await myFailingImportWriter(myAsyncIterable)
-      expect(failingRows.numberFailedRows).toEqual(10)
+      // two "chunks" and one bad translation
+      expect(failingRows.numberFailedRows).toEqual(6)
+      expect(failingRows.totalRows).toEqual(10)
     })
 
     it('Logs informational messages about progress', async () => {
