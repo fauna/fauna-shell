@@ -100,7 +100,7 @@ class ImportCommand extends FaunaCommand {
           progressTracker.numberFailedRows
         } rows/object failed to import. ${
           progressTracker.totalRows - progressTracker.numberFailedRows
-        } rows/object succeeded`
+        } rows/object succeeded. (These numbers don't account for files that failed to be read, were badly formatted, or had an invalid extension)`
       )
     } else {
       this.success(
