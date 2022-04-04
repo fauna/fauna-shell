@@ -54,6 +54,15 @@ function getFaunaImportWriter(
     }
   }
 
+  class NetworkError extends Error {
+    code
+
+    constructor(message, code) {
+      super(message)
+      this.code = code
+    }
+  }
+
   const faunaObjectTranslator = new FaunaObjectTranslator(typeTranslations)
 
   const penalties = {
@@ -186,6 +195,9 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
               e.requestResult.statusCode
             )
           }
+          if (['ECONNRESET', 'ETIMEDOUT'].includes(e.code)) {
+            throw new NetworkError(getMessage(e.message), e.code)
+          }
           throw new Error(getMessage(e.message))
         })
       )
@@ -194,7 +206,10 @@ input file '${inputFile}' failed to persist in Fauna due to: '${subMessage}' - C
   }
 
   const doPenaltiesApply = (s) => {
-    return [409, 429, 503].includes(s.reason?.statusCode)
+    return (
+      [409, 429, 503].includes(s.reason?.statusCode) ||
+      ['ECONNRESET', 'ETIMEDOUT'].includes(s.reason?.code)
+    )
   }
 
   const processSettlements = async (settlements) => {

@@ -214,11 +214,18 @@ to a number. Skipping this item and continuing."
       expect(myMock).not.toHaveBeenCalled()
     })
 
-    it('Retries ECONNRESET', async () => {
+    it('Retries and cuts rate limits for ECONNRESET', async () => {
       // retry limit is 3; no rate limit cutting is applied here.
       let error = new Error()
       error.code = 'ECONNRESET'
-      await testBackoff(error, 12)
+      await testBackoffAndCutLimit(error, 18)
+    }).timeout(30000)
+
+    it('Cuts rate limits but does not retry for ETIMEDOUT', async () => {
+      // retry limit is 3; no rate limit cutting is applied here.
+      let error = new Error()
+      error.code = 'ETIMEDOUT'
+      await testBackoffAndCutLimit(error, 6)
     }).timeout(30000)
 
     it('Retries and cuts rate limits for 409 status codes', async () => {
