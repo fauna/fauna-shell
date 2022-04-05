@@ -6,10 +6,16 @@ on:
 
 jobs:
   create_ticket_from_issue:
-    name: Create ticket from issue
+    name: Create JIRA ticket
     runs-on: ubuntu-latest
-    uses: ./.github/workflows/jira-login.yml
     steps:
+      - name: Login
+        uses: atlassian/gajira-login@master
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
       - name: Create
         id: create
         uses: atlassian/gajira-create@master
