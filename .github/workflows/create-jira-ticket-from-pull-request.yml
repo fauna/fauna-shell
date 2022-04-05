@@ -6,24 +6,18 @@ on:
 
 jobs:
   create_ticket_from_pr:
-    name: Create JIRA ticket
+    name: Create ticket from pr
     runs-on: ubuntu-latest
+    uses: ./jira-login.yml
     steps:
-      - name: Login
-        uses: atlassian/gajira-login@master
-        env:
-          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-
       - name: Create
         id: create
         uses: atlassian/gajira-create@master
         with:
           project: FE
           issuetype: Task
-          summary: PR [${{ github.event.pull_request.number }}] ${{ github.event.pull_request.title }}
-          description: ${{ github.event.pull_request.html_url }} \n\n ${{ github.event.pull_request.body }}
+          summary: PR \#${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}
+          description: ${{ github.event.pull_request.html_url }}
           fields: '{"labels": ["github", "pr", "dx-ops"], "components": [{ "name": "Fauna Shell" }]}'
 
       - name: Complete

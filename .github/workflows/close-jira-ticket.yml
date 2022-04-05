@@ -8,14 +8,8 @@ jobs:
   set_done_for_closed_issued:
     name: Set JIRA ticket to DONE
     runs-on: ubuntu-latest
+    uses: ./jira-login.yml
     steps:
-      - name: Login
-        uses: atlassian/gajira-login@master
-        env:
-          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-
       - name: Find comment with ticket number
         uses: peter-evans/find-comment@v1
         id: comment
