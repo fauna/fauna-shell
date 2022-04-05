@@ -5,7 +5,7 @@ set -eou
 cd ./fauna-shell-repository
 
 mkdir dist
-yarn install
+npm install
 
 PACKAGE_VERSION=$(node -p -e "require('./package.json').version")
 NPM_LATEST_VERSION=$(npm view fauna-shell version)
