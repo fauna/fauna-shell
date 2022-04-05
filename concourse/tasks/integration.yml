@@ -23,4 +23,4 @@ services:
     volumes:
       - "../../:/tmp/app"
     working_dir: "/tmp/app"
-    command: [sh, -c, "yarn install && yarn test"]
+    command: [sh, -c, "npm install && npm run test"]
