@@ -426,7 +426,7 @@ describe('import', () => {
         ])
       )
       .it('creates a collection for each file', async (ctx) => {
-        expect(ctx.stdout).to.match(/All files imported/)
+        expect(ctx.stdout).to.match(/All files completed/)
         const expectedJsonArray = [
           {
             id: '1',
@@ -551,7 +551,7 @@ describe('import', () => {
       .it(
         'creates a single collection from all files when collection specified',
         async (ctx) => {
-          expect(ctx.stdout).to.match(/All files imported/)
+          expect(ctx.stdout).to.match(/All files completed/)
           const expectedJsonArray = [
             {
               id: '1',
@@ -680,7 +680,7 @@ describe('import', () => {
         ])
       )
       .it('appends to an existing, non-empty collection', async (ctx) => {
-        expect(ctx.stdout).to.match(/All files imported/)
+        expect(ctx.stdout).to.match(/All files completed/)
         const expectedJsonArray = [
           {
             id: '1',
