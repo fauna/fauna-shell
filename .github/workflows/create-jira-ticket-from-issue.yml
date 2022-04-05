@@ -8,7 +8,7 @@ jobs:
   create_ticket_from_issue:
     name: Create ticket from issue
     runs-on: ubuntu-latest
-    uses: ./.github/workflows/jira-login/yml
+    uses: ./.github/workflows/jira-login.yml
     steps:
       - name: Create
         id: create
