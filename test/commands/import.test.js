@@ -4,10 +4,10 @@ const { Client, query } = require('faunadb')
 const { ImportLimits } = require('../../src/lib/import-limits')
 
 const client = new Client({
-  secret: 'secret',
-  domain: 'localhost',
-  port: 8443,
-  scheme: 'http',
+  secret: process.env.FAUNA_SECRET,
+  domain: process.env.FAUNA_DOMAIN,
+  port: process.env.FAUNA_PORT,
+  scheme: process.env.FAUNA_SCHEME,
   checkNewVersion: false,
   keepAlive: true,
 })
@@ -15,10 +15,10 @@ const client = new Client({
 function getClient(database = undefined) {
   if (database) {
     return new Client({
-      secret: `secret:${database}:admin`,
-      domain: 'localhost',
-      port: 8443,
-      scheme: 'http',
+      secret: `${process.env.FAUNA_SECRET}:${database}:admin`,
+      domain: process.env.FAUNA_DOMAIN,
+      port: process.env.FAUNA_PORT,
+      scheme: process.env.FAUNA_SCHEME,
       checkNewVersion: false,
       keepAlive: true,
     })
