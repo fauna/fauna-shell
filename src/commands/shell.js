@@ -105,15 +105,16 @@ class ShellCommand extends FaunaCommand {
       .catch((error) => {
         ctx.lastError = error
         this.log('Error:', error.faunaError.message)
-        console.log(
-          util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
-            depth: null,
-            compact: false,
-          })
-        )
-
-        if (error instanceof faunadb.errors.FaunaHTTPError) {
-          console.log(util.inspect(error.errors(), { depth: null }))
+        if (error.faunaError instanceof faunadb.errors.FaunaHTTPError) {
+          console.log(
+            util.inspect(
+              JSON.parse(error.faunaError.requestResult.responseRaw),
+              {
+                depth: null,
+                compact: false,
+              }
+            )
+          )
         }
       })
   }
