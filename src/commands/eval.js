@@ -2,6 +2,7 @@ const util = require('util')
 const fs = require('fs')
 const esprima = require('esprima')
 const { flags } = require('@oclif/command')
+const faunadb = require('faunadb')
 const FaunaCommand = require('../lib/fauna-command.js')
 const { readFile, runQueries, errorOut, writeFile } = require('../lib/misc.js')
 
@@ -60,10 +61,15 @@ function performQuery(client, fqlQuery, outputFile, outputFormat) {
     })
     .catch(function (error) {
       errorOut(
-        util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
-          depth: null,
-          compact: false,
-        })
+        error.faunaError instanceof faunadb.errors.FaunaHTTPError
+          ? util.inspect(
+              JSON.parse(error.faunaError.requestResult.responseRaw),
+              {
+                depth: null,
+                compact: false,
+              }
+            )
+          : error.faunaError.message
       )
     })
 }
