@@ -20,7 +20,7 @@ class CloudLoginCommand extends FaunaCommand {
     this.environment = {
       defaultAlias: 'cloud',
       db: 'https://db.fauna.com',
-      auth: 'https://auth.console.fauna.com',
+      auth: 'https://auth-console.fauna.com',
       graphql: 'https://graphql.fauna.com',
       dashboard: 'https://dashboard.fauna.com',
     }
@@ -81,7 +81,7 @@ class CloudLoginCommand extends FaunaCommand {
               value: {
                 defaultAlias: 'cloud',
                 db: 'https://db.fauna.com',
-                auth: 'https://auth.console.fauna.com',
+                auth: 'https://auth-console.fauna.com',
                 graphql: 'https://graphql.fauna.com',
                 dashboard: 'https://dashboard.fauna.com',
               },
