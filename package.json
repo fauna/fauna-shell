@@ -47,7 +47,7 @@
     "eslint-plugin-prettier": "^3.4.0",
     "husky": "^7.0.4",
     "jest": "^27.5.1",
-    "mocha": "^7.1.1",
+    "mocha": "^10.2.0",
     "mock-require": "^3.0.3",
     "nock": "^13.1.0",
     "nyc": "^14.1.1",
