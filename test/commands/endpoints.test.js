@@ -72,6 +72,8 @@ describe('endpoints', () => {
       'test',
       '--key',
       'secret',
+      '--version',
+      'v4',
     ])
     .it('runs add-endpoint', () => {
       expect(fs.writeFile.getCall(0).args[1]).to.equal(
@@ -82,6 +84,7 @@ describe('endpoints', () => {
             port: 443,
             scheme: 'http',
             secret: 'secret',
+            version: 'v4',
           },
         })
       )

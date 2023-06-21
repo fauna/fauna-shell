@@ -180,6 +180,9 @@ FaunaCommand.flags = {
   graphqlPort: flags.string({
     description: 'GraphQL port',
   }),
+  version: flags.string({
+    description: 'FQL Version',
+  }),
 }
 
 module.exports = FaunaCommand

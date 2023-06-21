@@ -9,6 +9,7 @@ class AddEndpointCommand extends FaunaCommand {
     const endpoint = this.args.endpoint
     let secret = this.flags.key
     let alias = this.flags.alias
+    let version = this.flags.version
     const log = this.log
 
     const newEndpoint = url.parse(endpoint)
@@ -26,11 +27,22 @@ class AddEndpointCommand extends FaunaCommand {
         default: newEndpoint.hostname,
         timeout: 120000,
       })
+    if (!version)
+      version = await cli.prompt('FQL Version', {
+        default: 'v4',
+        timeout: 120000,
+      })
 
     if (!this.flags.alias && (alias === 'default' || alias === 'cloud')) {
-      throw new `The word '${alias}' cannot be used as an alias.`()
+      throw new Error(`The word '${alias}' cannot be used as an alias.`)
     }
-    return saveEndpointOrError(newEndpoint, alias, secret)
+
+    if (!this.flags.version && version !== 'v4' && version !== 'v10') {
+      throw new Error(
+        `'${version}' cannot be set as FQL Version. It should be either v4 or v10.`
+      )
+    }
+    return saveEndpointOrError(newEndpoint, alias, secret, version)
       .then(function () {
         log(`Endpoint '${alias}' saved.`)
       })
@@ -46,7 +58,7 @@ Adds a connection endpoint for FaunaDB
 
 AddEndpointCommand.examples = [
   '$ fauna add-endpoint https://db.fauna.com:443',
-  '$ fauna add-endpoint http://localhost:8443/ --alias localhost --key secret',
+  '$ fauna add-endpoint http://localhost:8443/ --alias localhost --key secret --version v10',
 ]
 
 // clear the default FaunaCommand flags that accept --host, --port, etc.
@@ -57,6 +69,10 @@ AddEndpointCommand.flags = {
   }),
   key: flags.string({
     description: 'FaunaDB server endpoint key',
+    required: false,
+  }),
+  version: flags.string({
+    description: 'FQL version',
     required: false,
   }),
 }

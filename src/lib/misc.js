@@ -26,18 +26,18 @@ const ERROR_SPECIFY_SECRET_KEY =
  *   from the user.
  * - If no other endpoint exists, then the endpoint will be set as the default one.
  */
-function saveEndpointOrError(newEndpoint, alias, secret) {
+function saveEndpointOrError(newEndpoint, alias, secret, version) {
   return loadEndpoints().then(function (endpoints) {
     if (endpointExists(endpoints, alias)) {
       return confirmEndpointOverwrite(alias).then(function (overwrite) {
         if (overwrite) {
-          return saveEndpoint(endpoints, newEndpoint, alias, secret)
+          return saveEndpoint(endpoints, newEndpoint, alias, secret, version)
         } else {
           throw new Error('Try entering a different endpoint alias.')
         }
       })
     } else {
-      return saveEndpoint(endpoints, newEndpoint, alias, secret)
+      return saveEndpoint(endpoints, newEndpoint, alias, secret, version)
     }
   })
 }
@@ -132,23 +132,23 @@ function confirmEndpointDelete(alias) {
   )
 }
 
-function saveEndpoint(config, endpoint, alias, secret) {
+function saveEndpoint(config, endpoint, alias, secret, version) {
   var port = endpoint.port ? `:${endpoint.port}` : ''
   var uri = `${endpoint.protocol}//${endpoint.hostname}${port}`
 
   return fetch(uri, { method: 'HEAD' }).then(function (res) {
     if (res.headers.get('x-faunadb-build')) {
-      return saveConfig(addEndpoint(config, endpoint, alias, secret))
+      return saveConfig(addEndpoint(config, endpoint, alias, secret, version))
     }
     throw new Error(`'${alias}' is not a FaunaDB endopoint`)
   })
 }
 
-function addEndpoint(config, endpoint, alias, secret) {
+function addEndpoint(config, endpoint, alias, secret, version) {
   if (shouldSetAsDefaultEndpoint(config)) {
     config.default = alias
   }
-  config[alias] = buildEndpointObject(endpoint, secret)
+  config[alias] = buildEndpointObject(endpoint, secret, version)
   return config
 }
 
@@ -168,12 +168,13 @@ function shouldSetAsDefaultEndpoint(config) {
   return 'default' in config === false
 }
 
-function buildEndpointObject(endpoint, secret) {
+function buildEndpointObject(endpoint, secret, version) {
   return {
     ...(endpoint.hostname && { domain: endpoint.hostname }),
     ...(endpoint.port && { port: endpoint.port }),
     ...(endpoint.protocol && { scheme: endpoint.protocol.slice(0, -1) }),
     ...(secret && { secret }),
+    ...(version && { version }),
     ...(endpoint.graphql &&
       endpoint.graphql.hostname && {
         graphqlHost: endpoint.graphql.hostname,
