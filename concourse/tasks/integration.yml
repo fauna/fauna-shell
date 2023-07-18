@@ -5,7 +5,7 @@ services:
     image: fauna/faunadb
     container_name: faunadb
     healthcheck:
-      test: ["CMD", "curl" ,"http://faunadb:8443/ping"]
+      test: ["CMD", "curl", "http://faunadb:8443/ping"]
       interval: 1s
       timeout: 3s
       retries: 30

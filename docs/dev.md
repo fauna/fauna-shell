@@ -1,8 +1,8 @@
-# Fauna Shell #
+# Fauna Shell
 
 This is an attempt to describe what are the project goals, and give an architectural overview of where things are implemented.
 
-## Project Goals ##
+## Project Goals
 
 1. Help people get started with FaunaDB.
 
@@ -47,7 +47,7 @@ Commands should provide clear error messages. A confusing error message could pu
 
 Commands should also provide guidance. For example `create-database` explains to the user how to go from there, like how to start a shell for that particular database.
 
-## Adding New Commands ##
+## Adding New Commands
 
 The project uses the [oclif](https://oclif.io/) framework for creating CLI tools (It was created by Heroku for their own tooling). Check their docs if you want to learn the details about how to create commands.
 
@@ -57,9 +57,8 @@ If your command needs to connect to FaunaDB and accept parameters `like`, `domai
 
 ```javascript
 MyNewCommandCommand.flags = {
-	...FaunaCommand.flags
-}
-
+  ...FaunaCommand.flags,
+};
 ```
 
 Besides that, `FaunaCommand` offers a set of helper methods that let you work with FaunaDB queries without worrying about having to create a connection:
@@ -73,13 +72,13 @@ class MyNewCommandCommand extends FaunaCommand {
 
 See other commands for complete examples on how to do that, and check the FaunaCommand API to see a list of available methods.
 
-## Helper Functions ##
+## Helper Functions
 
 Helper functions are defined in the [misc](https://github.com/fauna/fauna-shell/blob/main/src/lib/misc.js) module.
 
 These functions let you do things from reading/writing the shell's config file, to building configuration options for creating a connection to FaunaDB.
 
-## Running Tests ##
+## Running Tests
 
 To run the tests you need to setup the following shell flags: `FAUNA_SECRET, FAUNA_DOMAIN, FAUNA_SCHEME, FAUNA_PORT`
 

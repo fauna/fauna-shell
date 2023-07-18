@@ -18,7 +18,7 @@ executors:
 
 commands:
   build_and_test:
-    description: 'Run fauna-shell tests'
+    description: "Run fauna-shell tests"
     steps:
       - checkout
 

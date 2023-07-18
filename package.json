@@ -91,7 +91,8 @@
     "test": "export $(cat .env.test | xargs); nyc mocha --forbid-only \"test/**/*.test.js\"",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
-    "version": "oclif-dev readme && git add README.md"
+    "version": "oclif-dev readme && git add README.md",
+    "fmt": "prettier -w ."
   },
   "husky": {
     "hooks": {
