@@ -3,6 +3,7 @@ const { buildConnectionOptions, stringifyEndpoint } = require("../lib/misc.js");
 const faunadb = require("faunadb");
 const chalk = require("chalk");
 const q = faunadb.query;
+const FaunaClient = require("./fauna-client.js");
 
 /**
  * This is the base class for all fauna-shell commands.
@@ -84,29 +85,57 @@ class FaunaCommand extends Command {
     return this.error(err);
   }
 
-  async getClient({ dbScope, role } = {}) {
-    let connectionOptions;
-    try {
-      connectionOptions = await buildConnectionOptions(
-        this.flags,
-        dbScope,
-        role
-      );
-      const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions;
-      const client = new faunadb.Client({
-        ...clientOptions,
-        headers: {
-          "X-Fauna-Source": "Fauna Shell",
-        },
-      });
+  async getClient({ dbScope, role, version } = {}) {
+    if (version == "4") {
+      // construct v4 client
+      let connectionOptions;
+      try {
+        connectionOptions = await buildConnectionOptions(
+          this.flags,
+          dbScope,
+          role
+        );
+        const { graphqlHost, graphqlPort, ...clientOptions } =
+          connectionOptions;
+        const client = new faunadb.Client({
+          ...clientOptions,
+          headers: {
+            "X-Fauna-Source": "Fauna Shell",
+          },
+        });
 
-      await client.query(q.Now());
+        // validate the client settings
+        await client.query(q.Now());
 
-      const hashKey = [dbScope, role].join("_");
-      this.clients[hashKey] = { client, connectionOptions };
-      return this.clients[hashKey];
-    } catch (err) {
-      return this.mapConnectionError({ err, connectionOptions });
+        const hashKey = [dbScope, role].join("_");
+        this.clients[hashKey] = { client, connectionOptions };
+        return this.clients[hashKey];
+      } catch (err) {
+        return this.mapConnectionError({ err, connectionOptions });
+      }
+    } else {
+      // construct v10 client
+      let connectionOptions;
+      try {
+        connectionOptions = await buildConnectionOptions(
+          this.flags,
+          dbScope,
+          role
+        );
+        const endpoint = new URL(
+          `${connectionOptions.scheme}://${connectionOptions.domain}:${connectionOptions.port}`
+        );
+        const client = new FaunaClient(endpoint, connectionOptions.secret);
+
+        // validate the client settings
+        await client.query("0");
+
+        const hashKey = [dbScope, role].join("_");
+        this.clients[hashKey] = { client, connectionOptions };
+        return this.clients[hashKey];
+      } catch (err) {
+        return this.mapConnectionError({ err, connectionOptions });
+      }
     }
   }
 
