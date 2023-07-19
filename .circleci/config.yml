@@ -28,7 +28,7 @@ commands:
 
       - run:
           name: Install dependencies
-          command: npm ci
+          command: yarn install
 
       - run:
           name: Wait FaunaDB init
@@ -37,7 +37,7 @@ commands:
 
       - run:
           name: Run Tests
-          command: npm test
+          command: yarn test
 
 jobs:
   fauna-shell-tests:
