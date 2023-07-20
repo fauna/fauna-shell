@@ -20,7 +20,6 @@ const {
   fqlToJsonString,
 } = require("../helpers/utils.js");
 const { query: q, Expr } = require("faunadb");
-const Config = require("@oclif/config");
 const nock = require("nock");
 
 // For some reason q.Now() is not mocked
@@ -51,13 +50,7 @@ describe.skip("shell", () => {
 
     const ShellCommand = mockRequire.reRequire("../../src/commands/shell");
 
-    const config = await Config.load(
-      (module.parent &&
-        module.parent.parent &&
-        module.parent.parent.filename) ||
-        __dirname
-    );
-    shell = new ShellCommand([], config);
+    shell = new ShellCommand([]);
     shell.args = {};
     shell.flags = { secret: process.env.FAUNA_SECRET };
     commandLogSpy = sinon.spy(shell, "log");

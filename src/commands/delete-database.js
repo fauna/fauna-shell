@@ -1,23 +1,22 @@
 const FaunaCommand = require("../lib/fauna-command.js");
-const { errorOut } = require("../lib/misc.js");
+const { Args } = require("@oclif/core");
 const faunadb = require("faunadb");
 const q = faunadb.query;
 
 class DeleteDatabaseCommand extends FaunaCommand {
   async run() {
-    const log = this.log;
     const dbname = this.args.dbname;
     return this.query(
       q.Delete(q.Database(dbname)),
       `deleting database '${dbname}'`,
-      function (_) {
-        log(`database '${dbname}' deleted`);
+      () => {
+        this.log(`database '${dbname}' deleted`);
       },
-      function (error) {
+      (error) => {
         if (error.message === "invalid ref") {
-          errorOut(`Database '${dbname}' not found`, 1);
+          this.error(`Database '${dbname}' not found`, 1);
         } else {
-          errorOut(`Error: ${error.message}`, 1);
+          this.error(`Error: ${error.message}`, 1);
         }
       }
     );
@@ -34,12 +33,11 @@ DeleteDatabaseCommand.flags = {
   ...FaunaCommand.flags,
 };
 
-DeleteDatabaseCommand.args = [
-  {
-    name: "dbname",
+DeleteDatabaseCommand.args = {
+  dbname: Args.string({
     required: true,
     description: "database name",
-  },
-];
+  }),
+};
 
 module.exports = DeleteDatabaseCommand;

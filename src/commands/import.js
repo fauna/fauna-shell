@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const { flags } = require("@oclif/command");
+const { Flags } = require("@oclif/core");
 const FaunaCommand = require("../lib/fauna-command.js");
 const StreamJson = require("../lib/json-stream");
 const faunadb = require("faunadb");
@@ -312,22 +312,22 @@ ImportCommand.examples = [
 const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags;
 
 ImportCommand.flags = {
-  path: flags.string({
+  path: Flags.string({
     required: true,
     description:
       "Path to .csv/.json file, or path to folder containing .csv/.json files.\
  if the path is to a folder, sub-folders will be skipped.",
   }),
-  db: flags.string({
+  db: Flags.string({
     description:
       "Child database name; imported documents are stored in this database",
   }),
-  collection: flags.string({
+  collection: Flags.string({
     description:
       "Collection name. When not specified, the collection name is the filename.",
     required: false,
   }),
-  type: flags.string({
+  type: Flags.string({
     description: `Column type casting - converts the column value to a Fauna type. Available only in CSVs; will be ignored in json/jsonl inputs. Null values will be treated as null and no conversion will be performed.\
 \nFormat: <column>::<type>\n<column>: the name of the column to cast values\
 \n<type>: one of\
@@ -338,18 +338,18 @@ ImportCommand.flags = {
 \n\t'dateEpochSeconds' - converts seconds since the epoch to a Fauna Time`,
     multiple: true,
   }),
-  append: flags.boolean({
+  append: Flags.boolean({
     description: "Allows appending documents to a non-empty collection",
   }),
-  "allow-short-rows": flags.boolean({
+  "allow-short-rows": Flags.boolean({
     description: "Allows rows which are shorter than the number of headers",
   }),
-  "dry-run": flags.boolean({
+  "dry-run": Flags.boolean({
     description:
       "Dry run the import - committing no documents to Fauna but converting all items to Fauna's format and applying all requested --type conversions. \
 Enables you to detect issues with your file(s) before writing to your collection(s).",
   }),
-  "treat-empty-csv-cells-as": flags.string({
+  "treat-empty-csv-cells-as": Flags.string({
     description:
       "Treat empty csv cells as empty strings or null, default is null.",
     options: ["empty", "null"],

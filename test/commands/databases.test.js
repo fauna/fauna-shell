@@ -64,7 +64,9 @@ describe("database test", () => {
     .stdout()
     .command(withOpts(["create-database", databases[0].name]))
     .catch((err) => {
-      expect(err.message).to.contain("instance already exists");
+      expect(err.message).to.contain(
+        `Database '${databases[0].name}' already exists`
+      );
       expect(err.oclif.exit).to.equal(1);
     })
     .it("runs create-database failed because of existing instance");

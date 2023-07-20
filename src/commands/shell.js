@@ -1,6 +1,7 @@
 const FaunaCommand = require("../lib/fauna-command.js");
 const { runQueries, stringifyEndpoint } = require("../lib/misc.js");
 const faunadb = require("faunadb");
+const { Args } = require("@oclif/core");
 const q = faunadb.query;
 const repl = require("repl");
 const util = require("util");
@@ -22,6 +23,7 @@ class ShellCommand extends FaunaCommand {
 
   async run() {
     const { dbname } = this.args;
+
     this.connection = dbname
       ? await this.ensureDbScopeClient(dbname)
       : await this.getClient();
@@ -30,6 +32,7 @@ class ShellCommand extends FaunaCommand {
 
   startShell() {
     const { dbname } = this.args;
+
     if (dbname) {
       this.log(`Starting shell for database ${dbname}`);
     }
@@ -140,12 +143,11 @@ ShellCommand.flags = {
   ...FaunaCommand.flags,
 };
 
-ShellCommand.args = [
-  {
-    name: "dbname",
+ShellCommand.args = {
+  dbname: Args.string({
     required: false,
     description: "database name",
-  },
-];
+  }),
+};
 
 module.exports = ShellCommand;

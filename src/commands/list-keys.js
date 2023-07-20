@@ -1,5 +1,4 @@
 const FaunaCommand = require("../lib/fauna-command.js");
-const { errorOut } = require("../lib/misc.js");
 const faunadb = require("faunadb");
 const q = faunadb.query;
 const Table = require("cli-table");
@@ -132,8 +131,7 @@ function childrenDbKeysQuery(q) {
 
 class ListKeysCommand extends FaunaCommand {
   async run() {
-    const log = this.log;
-    return this.withClient(async function (client, _) {
+    return this.withClient(async (client, _) => {
       try {
         // retrieving current and children db keys
         const [currentDb, childrenDbs] = await Promise.all([
@@ -144,12 +142,12 @@ class ListKeysCommand extends FaunaCommand {
         // i.e. union all the keys together
         childrenDbs.data.push(currentDb);
         if (childrenDbs.data.length > 0) {
-          log(buildTable(childrenDbs).toString());
+          this.log(buildTable(childrenDbs).toString());
         } else {
-          log("No databases found");
+          this.log("No databases found");
         }
       } catch (err) {
-        errorOut(err.message);
+        this.error(err.message);
       }
     });
   }

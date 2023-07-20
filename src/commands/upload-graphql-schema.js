@@ -1,9 +1,8 @@
 const FaunaCommand = require("../lib/fauna-command.js");
-const { flags } = require("@oclif/command");
+const { Flags, Args } = require("@oclif/core");
 const fetch = require("node-fetch");
 const fs = require("fs");
 const path = require("path");
-const { errorOut } = require("../lib/misc.js");
 
 class UploadGraphQLSchemaCommand extends FaunaCommand {
   allowedExt = [".graphql", ".gql"];
@@ -14,7 +13,7 @@ class UploadGraphQLSchemaCommand extends FaunaCommand {
       const { mode } = this.flags;
 
       if (!this.allowedExt.includes(path.extname(graphqlFilePath))) {
-        errorOut(
+        this.error(
           "Your GraphQL schema file must include the `.graphql` or `.gql` extension."
         );
       }
@@ -36,7 +35,7 @@ class UploadGraphQLSchemaCommand extends FaunaCommand {
       console.info("RESPONSE:");
       console.info(text);
     } catch (error) {
-      errorOut(error);
+      this.error(error);
     }
   }
 }
@@ -48,17 +47,16 @@ UploadGraphQLSchemaCommand.examples = [
   "$ fauna upload-graphql-schema ./schema.gql --mode override",
 ];
 
-UploadGraphQLSchemaCommand.args = [
-  {
-    name: "graphqlFilePath",
+UploadGraphQLSchemaCommand.args = {
+  graphqlFilePath: Args.string({
     required: true,
     description: "Path to GraphQL schema",
-  },
-];
+  }),
+};
 
 UploadGraphQLSchemaCommand.flags = {
   ...FaunaCommand.flags,
-  mode: flags.string({
+  mode: Flags.string({
     description: "Upload mode",
     default: "merge",
     options: ["merge", "override", "replace"],

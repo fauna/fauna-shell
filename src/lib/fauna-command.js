@@ -1,9 +1,5 @@
-const { Command, flags } = require("@oclif/command");
-const {
-  buildConnectionOptions,
-  errorOut,
-  stringifyEndpoint,
-} = require("../lib/misc.js");
+const { Command, Flags } = require("@oclif/core");
+const { buildConnectionOptions, stringifyEndpoint } = require("../lib/misc.js");
 const faunadb = require("faunadb");
 const chalk = require("chalk");
 const q = faunadb.query;
@@ -25,12 +21,12 @@ class FaunaCommand extends Command {
    * as follows, if it wants to inherit the flags defined in FaunaCommand:
    *
    * CreateKeyCommand.flags = {
-   *	...FaunaCommand.flags
+   *        ...FaunaCommand.flags
    * }
    *
    */
   async init() {
-    const { flags: f, args: a } = this.parse(this.constructor);
+    const { flags: f, args: a } = await this.parse(this.constructor);
     this.flags = f;
     this.args = a;
   }
@@ -38,6 +34,10 @@ class FaunaCommand extends Command {
   success(msg) {
     const bang = chalk.green(process.platform === "win32" ? "»" : "›");
     console.info(` ${bang}   Success: ${msg}`);
+  }
+
+  error(message) {
+    super.error(message, { exit: 1 });
   }
 
   /**
@@ -75,14 +75,13 @@ class FaunaCommand extends Command {
 
   mapConnectionError({ err, connectionOptions }) {
     if (err instanceof faunadb.errors.Unauthorized) {
-      return errorOut(
+      return this.error(
         `Could not Connect to ${stringifyEndpoint(
           connectionOptions
-        )} Unauthorized Secret`,
-        1
+        )} Unauthorized Secret`
       );
     }
-    return errorOut(err, 1);
+    return this.error(err);
   }
 
   async getClient({ dbScope, role } = {}) {
@@ -115,7 +114,7 @@ class FaunaCommand extends Command {
     const { client } = await this.getClient();
     const exists = await client.query(q.Exists(q.Database(dbname)));
     if (!exists) {
-      errorOut(`Database '${dbname}' doesn't exist`, 1);
+      this.error(`Database '${dbname}' doesn't exist`);
     }
 
     return this.getClient({
@@ -134,9 +133,8 @@ class FaunaCommand extends Command {
    * @param {function} failure   - On error callback.
    */
   query(queryExpr, logMsg, success, failure) {
-    const log = this.log;
-    return this.withClient(function (client, _) {
-      log(logMsg);
+    return this.withClient((client, _) => {
+      this.log(logMsg);
       return client.query(queryExpr).then(success).catch(failure);
     });
   }
@@ -155,29 +153,29 @@ class FaunaCommand extends Command {
  */
 FaunaCommand.flags = {
   ...Command.flags,
-  domain: flags.string({
+  domain: Flags.string({
     description: "FaunaDB server domain",
   }),
-  scheme: flags.string({
+  scheme: Flags.string({
     description: "Connection scheme",
     options: ["https", "http"],
   }),
-  port: flags.string({
+  port: Flags.string({
     description: "Connection port",
   }),
-  timeout: flags.string({
+  timeout: Flags.string({
     description: "Connection timeout in milliseconds",
   }),
-  secret: flags.string({
+  secret: Flags.string({
     description: "FaunaDB secret key",
   }),
-  endpoint: flags.string({
+  endpoint: Flags.string({
     description: "FaunaDB server endpoint",
   }),
-  graphqlHost: flags.string({
+  graphqlHost: Flags.string({
     description: "The Fauna GraphQL API host",
   }),
-  graphqlPort: flags.string({
+  graphqlPort: Flags.string({
     description: "GraphQL port",
   }),
 };
