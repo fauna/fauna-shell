@@ -8,10 +8,9 @@
   },
   "bugs": "https://github.com/fauna/fauna-shell/issues",
   "dependencies": {
-    "@oclif/command": "^1.5.19",
-    "@oclif/config": "^1.13.3",
-    "@oclif/plugin-autocomplete": "^0.1.4",
-    "@oclif/plugin-help": "^1.2.11",
+    "@oclif/core": "^2.9.4",
+    "@oclif/plugin-help": "^5.2.14",
+    "@oclif/plugin-plugins": "^2.4.7",
     "chalk": "^4.1.2",
     "cli-table": "^0.3.1",
     "cli-ux": "^4.8.0",
@@ -75,11 +74,12 @@
   "license": "MPL-2.0",
   "main": "src/index.js",
   "oclif": {
-    "commands": "./src/commands",
     "bin": "fauna",
+    "dirname": "fauna",
+    "commands": "./src/commands",
     "plugins": [
       "@oclif/plugin-help",
-      "@oclif/plugin-autocomplete"
+      "@oclif/plugin-plugins"
     ]
   },
   "repository": "fauna/fauna-shell",
