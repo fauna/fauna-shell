@@ -11,6 +11,11 @@ const files = {
   ],
 }
 
+const main = {
+  version: 0,
+  content: 'collection foo {}\n\nfunction bar(x, y) { x + y }\n',
+}
+
 describe('fauna schema:ls test', () => {
   test
     .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
@@ -27,5 +32,22 @@ describe('fauna schema:ls test', () => {
       expect(ctx.stdout).to.contain(
         'Schema files:\n\nmain.fsl\nfunctions.fsl\nlegacy.json'
       )
+    })
+})
+
+describe('fauna schema:pull test', () => {
+  test
+    .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
+      api
+        .persist()
+        .post('/', matchFqlReq(q.Now()))
+        .reply(200, new Date())
+        .get('/schema/1/files/main.fsl')
+        .reply(200, main)
+    )
+    .stdout()
+    .command(withOpts(['schema:pull', 'main.fsl']))
+    .it('runs schema:pull', (ctx) => {
+      expect(ctx.stdout).to.contain(`${main.content}`)
     })
 })
