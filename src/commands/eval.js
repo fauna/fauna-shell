@@ -1,12 +1,12 @@
-const util = require('util')
-const fs = require('fs')
-const esprima = require('esprima')
-const { flags } = require('@oclif/command')
-const faunadb = require('faunadb')
-const FaunaCommand = require('../lib/fauna-command.js')
-const { readFile, runQueries, errorOut, writeFile } = require('../lib/misc.js')
+const util = require("util");
+const fs = require("fs");
+const esprima = require("esprima");
+const { flags } = require("@oclif/command");
+const faunadb = require("faunadb");
+const FaunaCommand = require("../lib/fauna-command.js");
+const { readFile, runQueries, errorOut, writeFile } = require("../lib/misc.js");
 
-const EVAL_OUTPUT_FORMATS = ['json', 'shell']
+const EVAL_OUTPUT_FORMATS = ["json", "shell"];
 
 /**
  * Write json encoded output
@@ -15,11 +15,11 @@ const EVAL_OUTPUT_FORMATS = ['json', 'shell']
  * @param {Any}    data Data to encode
  */
 function writeFormattedJson(file, data) {
-  let str = JSON.stringify(data)
+  let str = JSON.stringify(data);
   if (file === null) {
-    return Promise.resolve(console.log(str))
+    return Promise.resolve(console.log(str));
   }
-  return writeFile(file, str)
+  return writeFile(file, str);
 }
 
 /**
@@ -29,11 +29,11 @@ function writeFormattedJson(file, data) {
  * @param {Any}    data Data to encode
  */
 function writeFormattedShell(file, data) {
-  let str = util.inspect(data, { depth: null })
+  let str = util.inspect(data, { depth: null });
   if (file === null) {
-    return Promise.resolve(console.log(str))
+    return Promise.resolve(console.log(str));
   }
-  return writeFile(file, str)
+  return writeFile(file, str);
 }
 
 /**
@@ -44,20 +44,20 @@ function writeFormattedShell(file, data) {
  * @param {*} format Format to write as
  */
 function writeFormattedOutput(file, data, format) {
-  if (format === 'json') return writeFormattedJson(file, data)
-  else if (format === 'shell') return writeFormattedShell(file, data)
-  else errorOut('Unsupported output format')
+  if (format === "json") return writeFormattedJson(file, data);
+  else if (format === "shell") return writeFormattedShell(file, data);
+  else errorOut("Unsupported output format");
 }
 
 function performQuery(client, fqlQuery, outputFile, outputFormat) {
-  let res = esprima.parseScript(fqlQuery)
-  if (res.body[0].type === 'BlockStatement') {
-    res = esprima.parseScript(`(${fqlQuery})`)
+  let res = esprima.parseScript(fqlQuery);
+  if (res.body[0].type === "BlockStatement") {
+    res = esprima.parseScript(`(${fqlQuery})`);
   }
 
   return runQueries(res.body, client)
     .then(function (response) {
-      return writeFormattedOutput(outputFile, response, outputFormat)
+      return writeFormattedOutput(outputFile, response, outputFormat);
     })
     .catch(function (error) {
       errorOut(
@@ -70,40 +70,40 @@ function performQuery(client, fqlQuery, outputFile, outputFormat) {
               }
             )
           : error.faunaError.message
-      )
-    })
+      );
+    });
 }
 
 class EvalCommand extends FaunaCommand {
   async run() {
-    const queryFromStdin = this.flags.stdin
-    let queriesFile = this.flags.file
-    const outputFile = this.flags.output
-    const outputFormat = this.flags.format
+    const queryFromStdin = this.flags.stdin;
+    let queriesFile = this.flags.file;
+    const outputFile = this.flags.output;
+    const outputFormat = this.flags.format;
 
-    const { dbname, query } = this.getArgs()
+    const { dbname, query } = this.getArgs();
 
     const noSourceSet =
-      !queryFromStdin && query === undefined && queriesFile === undefined
+      !queryFromStdin && query === undefined && queriesFile === undefined;
     if (noSourceSet) {
       return errorOut(
-        'No source set. Pass --stdin to  read from stdin or --file.'
-      )
+        "No source set. Pass --stdin to  read from stdin or --file."
+      );
     }
 
     try {
       const { client } = await (dbname
         ? this.ensureDbScopeClient(dbname)
-        : this.getClient())
+        : this.getClient());
 
-      const readQuery = queryFromStdin || queriesFile !== undefined
-      let queryFromFile
+      const readQuery = queryFromStdin || queriesFile !== undefined;
+      let queryFromFile;
       if (readQuery) {
         if (queryFromStdin && !fs.existsSync(queriesFile)) {
-          this.warn('Reading from stdin')
-          queriesFile = process.stdin.fd
+          this.warn("Reading from stdin");
+          queriesFile = process.stdin.fd;
         }
-        queryFromFile = await readFile(queriesFile)
+        queryFromFile = await readFile(queriesFile);
       }
 
       const result = await performQuery(
@@ -111,63 +111,63 @@ class EvalCommand extends FaunaCommand {
         queryFromFile || query,
         outputFile,
         outputFormat
-      )
-      return result
+      );
+      return result;
     } catch (err) {
-      return errorOut(err.message, 1)
+      return errorOut(err.message, 1);
     }
   }
 
   // Remap arguments if a user provide only one
   getArgs() {
-    const { stdin, file } = this.flags
-    const { dbname, query } = this.args
-    if (dbname && !query && !stdin && !file) return { query: dbname }
+    const { stdin, file } = this.flags;
+    const { dbname, query } = this.args;
+    if (dbname && !query && !stdin && !file) return { query: dbname };
 
-    return { dbname, query }
+    return { dbname, query };
   }
 }
 
 EvalCommand.examples = [
   '$ fauna eval "Paginate(Collections())"',
   '$ fauna eval nestedDbName "Paginate(Collections())"',
-  '$ fauna eval --file=/path/to/queries.fql',
+  "$ fauna eval --file=/path/to/queries.fql",
   '$ echo "Add(1,1)" | fauna eval --stdin',
   '$ fauna eval "Add(2,3)" --output=/tmp/result"',
   '$ fauna eval "Add(2,3)" --format=json --output=/tmp/result"',
-]
+];
 
 EvalCommand.flags = {
   ...FaunaCommand.flags,
   file: flags.string({
-    description: 'File where to read queries from',
+    description: "File where to read queries from",
   }),
   stdin: flags.boolean({
-    description: 'Read file input from stdin. Writes to stdout by default',
+    description: "Read file input from stdin. Writes to stdout by default",
     default: false,
   }),
   output: flags.string({
-    description: 'File to write output to',
+    description: "File to write output to",
     default: null,
   }),
   format: flags.string({
-    description: 'Output format',
-    default: 'json',
+    description: "Output format",
+    default: "json",
     options: EVAL_OUTPUT_FORMATS,
   }),
-}
+};
 
 EvalCommand.args = [
   {
-    name: 'dbname',
+    name: "dbname",
     required: false,
-    description: 'Database name',
+    description: "Database name",
   },
   {
-    name: 'query',
+    name: "query",
     required: false,
-    description: 'FQL query to execute',
+    description: "FQL query to execute",
   },
-]
+];
 
-module.exports = EvalCommand
+module.exports = EvalCommand;

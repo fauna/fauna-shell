@@ -1,165 +1,165 @@
-const FaunaCommand = require('../lib/fauna-command.js')
-const inquirer = require('inquirer')
-const fetch = require('node-fetch')
-const faunadb = require('faunadb')
-const url = require('url')
-const os = require('os')
+const FaunaCommand = require("../lib/fauna-command.js");
+const inquirer = require("inquirer");
+const fetch = require("node-fetch");
+const faunadb = require("faunadb");
+const url = require("url");
+const os = require("os");
 // const puppeteer = require('puppeteer')
 // const querystring = require('querystring')
 const {
   loadEndpoints,
   saveEndpoint,
   setDefaultEndpoint,
-} = require('../lib/misc.js')
+} = require("../lib/misc.js");
 
 class CloudLoginCommand extends FaunaCommand {
   async run() {
-    this.config = await loadEndpoints()
+    this.config = await loadEndpoints();
 
     // await this.aksEnvironment()
     this.environment = {
-      defaultAlias: 'cloud',
-      db: 'https://db.fauna.com',
-      auth: 'https://auth.console.fauna.com',
-      graphql: 'https://graphql.fauna.com',
-      dashboard: 'https://dashboard.fauna.com',
-    }
-    await this.askAlias()
+      defaultAlias: "cloud",
+      db: "https://db.fauna.com",
+      auth: "https://auth.console.fauna.com",
+      graphql: "https://graphql.fauna.com",
+      dashboard: "https://dashboard.fauna.com",
+    };
+    await this.askAlias();
 
-    const secrets = await this.askAuthAndGetSecret()
+    const secrets = await this.askAuthAndGetSecret();
 
     const endpoints = await Promise.all(
       Object.entries(secrets).map(([region, secret]) =>
         this.saveEndpoint({ region, secret })
       )
-    )
+    );
 
-    await this.askIsDefault(endpoints)
+    await this.askIsDefault(endpoints);
   }
 
   async askAuthAndGetSecret() {
     const reAskErrorMessages = [
-      'Target closed',
-      'Navigation failed because browser has disconnected!',
-    ]
+      "Target closed",
+      "Navigation failed because browser has disconnected!",
+    ];
     try {
-      await this.askAuth()
-      const secrets = await this[`${this.auth}Strategy`]()
-      return secrets
+      await this.askAuth();
+      const secrets = await this[`${this.auth}Strategy`]();
+      return secrets;
     } catch (err) {
       if (reAskErrorMessages.includes(err.message)) {
-        return this.askAuthAndGetSecret()
+        return this.askAuthAndGetSecret();
       }
 
-      throw err
+      throw err;
     }
   }
 
   async saveEndpoint({ region, secret }) {
     const newEndpoint = url.parse(
       this.maybeDomainWithRegion(this.environment.db, region)
-    )
+    );
     newEndpoint.graphql = url.parse(
       this.maybeDomainWithRegion(this.environment.graphql, region)
-    )
+    );
 
-    const alias = region === 'global' ? this.alias : `${this.alias}-${region}`
-    await saveEndpoint(this.config, newEndpoint, alias, secret)
-    return alias
+    const alias = region === "global" ? this.alias : `${this.alias}-${region}`;
+    await saveEndpoint(this.config, newEndpoint, alias, secret);
+    return alias;
   }
 
   aksEnvironment() {
     return inquirer
       .prompt([
         {
-          name: 'environment',
-          message: 'Select an environment:',
-          type: 'list',
+          name: "environment",
+          message: "Select an environment:",
+          type: "list",
           choices: [
             {
-              name: 'Production',
+              name: "Production",
               value: {
-                defaultAlias: 'cloud',
-                db: 'https://db.fauna.com',
-                auth: 'https://auth.console.fauna.com',
-                graphql: 'https://graphql.fauna.com',
-                dashboard: 'https://dashboard.fauna.com',
+                defaultAlias: "cloud",
+                db: "https://db.fauna.com",
+                auth: "https://auth.console.fauna.com",
+                graphql: "https://graphql.fauna.com",
+                dashboard: "https://dashboard.fauna.com",
               },
             },
             {
-              name: 'Preview',
+              name: "Preview",
               value: {
-                defaultAlias: 'preview',
-                db: 'https://db.fauna-preview.com',
-                auth: 'https://auth-console.fauna-preview.com',
-                graphql: 'https://graphql.fauna-preview.com',
-                dashboard: 'https://dashboard.fauna-preview.com',
+                defaultAlias: "preview",
+                db: "https://db.fauna-preview.com",
+                auth: "https://auth-console.fauna-preview.com",
+                graphql: "https://graphql.fauna-preview.com",
+                dashboard: "https://dashboard.fauna-preview.com",
               },
             },
           ],
         },
       ])
       .then(({ environment }) => {
-        this.environment = environment
-      })
+        this.environment = environment;
+      });
   }
 
   askAlias() {
     return inquirer
       .prompt([
         {
-          name: 'alias',
-          message: 'The endpoint alias prefix (to combine with a region):',
-          type: 'input',
+          name: "alias",
+          message: "The endpoint alias prefix (to combine with a region):",
+          type: "input",
           default: this.environment.defaultAlias,
 
           validate: (endpoint) =>
-            endpoint ? true : 'Provide an endpoint alias.',
+            endpoint ? true : "Provide an endpoint alias.",
         },
         {
-          name: 'overwrite',
-          message: 'The endpoint alias already exists. Overwrite?',
-          type: 'confirm',
+          name: "overwrite",
+          message: "The endpoint alias already exists. Overwrite?",
+          type: "confirm",
           when: ({ alias }) => Boolean(this.config[alias]),
         },
       ])
       .then((resp) => {
-        if (resp.hasOwnProperty('overwrite') && !resp.overwrite) {
-          return this.askAlias()
+        if (resp.hasOwnProperty("overwrite") && !resp.overwrite) {
+          return this.askAlias();
         } else {
-          this.alias = resp.alias
+          this.alias = resp.alias;
         }
-      })
+      });
   }
 
   askAuth() {
     return inquirer
       .prompt([
         {
-          name: 'auth',
-          message: 'How do you prefer to authenticate?',
-          type: 'list',
+          name: "auth",
+          message: "How do you prefer to authenticate?",
+          type: "list",
           choices: [
-            { name: 'Email and Password', value: 'password' },
-            { name: 'Secret', value: 'secret' },
+            { name: "Email and Password", value: "password" },
+            { name: "Secret", value: "secret" },
             // { name: 'GitHub', value: 'github' },
             // { name: 'Netlify', value: 'netlify' },
           ],
         },
       ])
       .then(({ auth }) => {
-        this.auth = auth
-      })
+        this.auth = auth;
+      });
   }
 
   async askIsDefault(endpoints) {
     if (!this.config.default && endpoints.length === 1) {
-      await setDefaultEndpoint(endpoints[0])
-      return this.log(`Endpoint '${endpoints[0]}' added as default`)
+      await setDefaultEndpoint(endpoints[0]);
+      return this.log(`Endpoint '${endpoints[0]}' added as default`);
     }
 
     if (this.config.default === endpoints[0] && endpoints.length === 1) {
-      return this.log(`Endpoint '${endpoints[0]}' added.`)
+      return this.log(`Endpoint '${endpoints[0]}' added.`);
     }
 
     // If 1 new endpoint which is not a default one (and default exists), ask a user to consider it as default
@@ -167,16 +167,16 @@ class CloudLoginCommand extends FaunaCommand {
 
     const { setDefault, defaultEndpoint } = await inquirer.prompt([
       {
-        name: 'setDefault',
+        name: "setDefault",
         message: `Would you like endpoint '${endpoints[0]}' to be default?`,
-        type: 'confirm',
+        type: "confirm",
         when: endpoints.length === 1,
       },
       {
-        name: 'defaultEndpoint',
+        name: "defaultEndpoint",
         message:
-          'Endpoints created. Would you like to set one of them as default?',
-        type: 'list',
+          "Endpoints created. Would you like to set one of them as default?",
+        type: "list",
         when: endpoints.length > 1,
         choices: [
           {
@@ -188,25 +188,25 @@ class CloudLoginCommand extends FaunaCommand {
             .map((e) => ({ name: e, value: e })),
         ],
       },
-    ])
+    ]);
 
     if (setDefault) {
-      return setDefaultEndpoint(endpoints[0]).then(this.log).catch(this.error)
+      return setDefaultEndpoint(endpoints[0]).then(this.log).catch(this.error);
     }
 
     if (defaultEndpoint) {
       return setDefaultEndpoint(defaultEndpoint)
         .then(this.log)
-        .catch(this.error)
+        .catch(this.error);
     }
   }
 
   githubStrategy() {
-    return this.oauthStrategy('github')
+    return this.oauthStrategy("github");
   }
 
   netlifyStrategy() {
-    return this.oauthStrategy('netlify')
+    return this.oauthStrategy("netlify");
   }
 
   // async oauthStrategy(provider) {
@@ -244,131 +244,131 @@ class CloudLoginCommand extends FaunaCommand {
   async secretStrategy() {
     const data = await inquirer.prompt([
       {
-        name: 'secret',
-        message: 'Secret (from a key or token):',
-        type: 'input',
+        name: "secret",
+        message: "Secret (from a key or token):",
+        type: "input",
       },
       {
-        name: 'region',
-        message: 'Select a region',
-        type: 'list',
+        name: "region",
+        message: "Select a region",
+        type: "list",
         choices: [
-          { name: 'Classic', value: 'global' },
-          { name: 'Europe (EU)', value: 'eu' },
-          { name: 'United States (US)', value: 'us' },
+          { name: "Classic", value: "global" },
+          { name: "Europe (EU)", value: "eu" },
+          { name: "United States (US)", value: "us" },
         ],
       },
-    ])
+    ]);
 
-    const dbUrl = this.maybeDomainWithRegion(this.environment.db, data.region)
+    const dbUrl = this.maybeDomainWithRegion(this.environment.db, data.region);
     const client = new faunadb.Client({
       secret: data.secret,
       domain: url.parse(dbUrl).hostname,
       headers: {
-        'X-Fauna-Source': 'Fauna Shell',
+        "X-Fauna-Source": "Fauna Shell",
       },
-    })
+    });
 
     try {
-      await client.query(faunadb.query.Now())
-      return { [data.region]: data.secret }
+      await client.query(faunadb.query.Now());
+      return { [data.region]: data.secret };
     } catch (err) {
       if (err instanceof faunadb.errors.Unauthorized) {
-        this.warn(`Could not Connect to ${dbUrl} Unauthorized Secret`)
-        return this.secretStrategy()
+        this.warn(`Could not Connect to ${dbUrl} Unauthorized Secret`);
+        return this.secretStrategy();
       }
 
-      throw err
+      throw err;
     }
   }
 
   async passwordStrategy() {
     this.credentials = await inquirer.prompt([
       {
-        name: 'email',
-        message: 'Email address:',
-        type: 'input',
+        name: "email",
+        message: "Email address:",
+        type: "input",
         validate: (email) => {
           return !email || !/\S+@\S+\.\S+/.test(email)
-            ? 'Provide a valid email address.'
-            : true
+            ? "Provide a valid email address."
+            : true;
         },
       },
       {
-        name: 'password',
-        message: 'Password:',
-        type: 'password',
+        name: "password",
+        message: "Password:",
+        type: "password",
       },
-    ])
+    ]);
 
-    return this.loginByPassword()
+    return this.loginByPassword();
   }
 
   async otp() {
     const { otp } = await inquirer.prompt([
       {
-        name: 'otp',
-        message: 'Enter your multi-factor authentication code',
-        type: 'input',
+        name: "otp",
+        message: "Enter your multi-factor authentication code",
+        type: "input",
       },
-    ])
+    ]);
 
     return this.loginByPassword({
       otp,
-    })
+    });
   }
 
   handlePasswordStrategyError({ error }) {
-    console.info(error)
-    if (['otp_required', 'otp_invalid'].includes(error.code)) {
-      if (error.code === 'otp_invalid') this.warn(error.message)
-      return this.otp()
+    console.info(error);
+    if (["otp_required", "otp_invalid"].includes(error.code)) {
+      if (error.code === "otp_invalid") this.warn(error.message);
+      return this.otp();
     }
 
-    if (error.code === 'invalid_credentials') {
-      this.warn(error.message)
-      return this.passwordStrategy()
+    if (error.code === "invalid_credentials") {
+      this.warn(error.message);
+      return this.passwordStrategy();
     }
 
-    throw error
+    throw error;
   }
 
   loginByPassword({ otp } = {}) {
-    return fetch([this.environment.auth, 'login'].join('/'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    return fetch([this.environment.auth, "login"].join("/"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...this.credentials,
-        session: 'Fauna Shell - ' + os.hostname(),
+        session: "Fauna Shell - " + os.hostname(),
         ...(otp && { otp }),
       }),
     })
       .then(async (resp) => {
         if (resp.ok) {
-          return resp.json()
+          return resp.json();
         }
 
-        throw await resp.json()
+        throw await resp.json();
       })
       .then((data) => ({
         global: data.secret || data.regionGroups.global.secret,
         eu: data.regionGroups.eu.secret,
         us: data.regionGroups.us.secret,
       }))
-      .catch((error) => this.handlePasswordStrategyError({ error }))
+      .catch((error) => this.handlePasswordStrategyError({ error }));
   }
 
   maybeDomainWithRegion(domain, region) {
-    return region && region !== 'global'
+    return region && region !== "global"
       ? domain
-          .replace('db.', `db.${region}.`)
-          .replace('graphql.', `graphql.${region}.`)
-      : domain
+          .replace("db.", `db.${region}.`)
+          .replace("graphql.", `graphql.${region}.`)
+      : domain;
   }
 }
 
-CloudLoginCommand.description = 'Adds the FaunaDB Cloud endpoint'
-CloudLoginCommand.examples = ['$ fauna cloud-login']
-CloudLoginCommand.flags = []
+CloudLoginCommand.description = "Adds the FaunaDB Cloud endpoint";
+CloudLoginCommand.examples = ["$ fauna cloud-login"];
+CloudLoginCommand.flags = [];
 
-module.exports = CloudLoginCommand
+module.exports = CloudLoginCommand;

@@ -1,18 +1,18 @@
-const { Command, flags } = require('@oclif/command')
+const { Command, flags } = require("@oclif/command");
 const {
   buildConnectionOptions,
   errorOut,
   stringifyEndpoint,
-} = require('../lib/misc.js')
-const faunadb = require('faunadb')
-const chalk = require('chalk')
-const q = faunadb.query
+} = require("../lib/misc.js");
+const faunadb = require("faunadb");
+const chalk = require("chalk");
+const q = faunadb.query;
 
 /**
  * This is the base class for all fauna-shell commands.
  */
 class FaunaCommand extends Command {
-  clients = {}
+  clients = {};
 
   /**
    * During init we parse the flags and arguments and assign them
@@ -30,14 +30,14 @@ class FaunaCommand extends Command {
    *
    */
   async init() {
-    const { flags: f, args: a } = this.parse(this.constructor)
-    this.flags = f
-    this.args = a
+    const { flags: f, args: a } = this.parse(this.constructor);
+    this.flags = f;
+    this.args = a;
   }
 
   success(msg) {
-    const bang = chalk.green(process.platform === 'win32' ? '»' : '›')
-    console.info(` ${bang}   Success: ${msg}`)
+    const bang = chalk.green(process.platform === "win32" ? "»" : "›");
+    console.info(` ${bang}   Success: ${msg}`);
   }
 
   /**
@@ -49,27 +49,27 @@ class FaunaCommand extends Command {
    * @param {string}   role    - The user role with which the function will be executed.
    */
   async withClient(f, dbScope, role) {
-    let connectionOptions
+    let connectionOptions;
     try {
       connectionOptions = await buildConnectionOptions(
         this.flags,
         dbScope,
         role
-      )
+      );
 
-      const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions
+      const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions;
 
       const client = new faunadb.Client({
         ...clientOptions,
         headers: {
-          'X-Fauna-Source': 'Fauna Shell',
+          "X-Fauna-Source": "Fauna Shell",
         },
-      })
-      await client.query(q.Now())
+      });
+      await client.query(q.Now());
       //TODO this should return a Promise
-      return f(client, connectionOptions)
+      return f(client, connectionOptions);
     } catch (err) {
-      return this.mapConnectionError({ err, connectionOptions })
+      return this.mapConnectionError({ err, connectionOptions });
     }
   }
 
@@ -80,48 +80,48 @@ class FaunaCommand extends Command {
           connectionOptions
         )} Unauthorized Secret`,
         1
-      )
+      );
     }
-    return errorOut(err, 1)
+    return errorOut(err, 1);
   }
 
   async getClient({ dbScope, role } = {}) {
-    let connectionOptions
+    let connectionOptions;
     try {
       connectionOptions = await buildConnectionOptions(
         this.flags,
         dbScope,
         role
-      )
-      const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions
+      );
+      const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions;
       const client = new faunadb.Client({
         ...clientOptions,
         headers: {
-          'X-Fauna-Source': 'Fauna Shell',
+          "X-Fauna-Source": "Fauna Shell",
         },
-      })
+      });
 
-      await client.query(q.Now())
+      await client.query(q.Now());
 
-      const hashKey = [dbScope, role].join('_')
-      this.clients[hashKey] = { client, connectionOptions }
-      return this.clients[hashKey]
+      const hashKey = [dbScope, role].join("_");
+      this.clients[hashKey] = { client, connectionOptions };
+      return this.clients[hashKey];
     } catch (err) {
-      return this.mapConnectionError({ err, connectionOptions })
+      return this.mapConnectionError({ err, connectionOptions });
     }
   }
 
   async ensureDbScopeClient(dbname) {
-    const { client } = await this.getClient()
-    const exists = await client.query(q.Exists(q.Database(dbname)))
+    const { client } = await this.getClient();
+    const exists = await client.query(q.Exists(q.Database(dbname)));
     if (!exists) {
-      errorOut(`Database '${dbname}' doesn't exist`, 1)
+      errorOut(`Database '${dbname}' doesn't exist`, 1);
     }
 
     return this.getClient({
       dbScope: dbname,
-      role: 'admin',
-    })
+      role: "admin",
+    });
   }
 
   /**
@@ -134,17 +134,17 @@ class FaunaCommand extends Command {
    * @param {function} failure   - On error callback.
    */
   query(queryExpr, logMsg, success, failure) {
-    const log = this.log
+    const log = this.log;
     return this.withClient(function (client, _) {
-      log(logMsg)
-      return client.query(queryExpr).then(success).catch(failure)
-    })
+      log(logMsg);
+      return client.query(queryExpr).then(success).catch(failure);
+    });
   }
 
   dbExists(dbName, callback) {
     return this.withClient(function (testDbClient, _) {
-      return testDbClient.query(q.Exists(q.Database(dbName))).then(callback)
-    })
+      return testDbClient.query(q.Exists(q.Database(dbName))).then(callback);
+    });
   }
 }
 
@@ -156,30 +156,30 @@ class FaunaCommand extends Command {
 FaunaCommand.flags = {
   ...Command.flags,
   domain: flags.string({
-    description: 'FaunaDB server domain',
+    description: "FaunaDB server domain",
   }),
   scheme: flags.string({
-    description: 'Connection scheme',
-    options: ['https', 'http'],
+    description: "Connection scheme",
+    options: ["https", "http"],
   }),
   port: flags.string({
-    description: 'Connection port',
+    description: "Connection port",
   }),
   timeout: flags.string({
-    description: 'Connection timeout in milliseconds',
+    description: "Connection timeout in milliseconds",
   }),
   secret: flags.string({
-    description: 'FaunaDB secret key',
+    description: "FaunaDB secret key",
   }),
   endpoint: flags.string({
-    description: 'FaunaDB server endpoint',
+    description: "FaunaDB server endpoint",
   }),
   graphqlHost: flags.string({
-    description: 'The Fauna GraphQL API host',
+    description: "The Fauna GraphQL API host",
   }),
   graphqlPort: flags.string({
-    description: 'GraphQL port',
+    description: "GraphQL port",
   }),
-}
+};
 
-module.exports = FaunaCommand
+module.exports = FaunaCommand;

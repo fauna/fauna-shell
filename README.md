@@ -135,6 +135,7 @@ In order to use Fauna Shell, you will need to meet these system requirements:
 By default, requests made when using the `cloud-login` command will hit `https://auth-console.fauna-preview.com/login`. You can change this behavior by defining the `FAUNA_SHELL_LOGIN_URL` environment variable in your `.env`
 
 For example:
+
 ```bash
 FAUNA_SHELL_LOGIN_URL=https://www.mycustomdomain.com/login
 ```
@@ -212,7 +213,7 @@ my_app >
     [
       "My cat and other marvels",
       "Pondering during a commute",
-      "Deep meanings in a latte"
+      "Deep meanings in a latte",
     ],
     Lambda(
       "post_title",
@@ -222,17 +223,17 @@ my_app >
     ({
       ref: Ref(Collection("posts"), "205904031076321792"),
       ts: 1532624236071215,
-      data: { title: "My cat and other marvels" }
+      data: { title: "My cat and other marvels" },
     },
     {
       ref: Ref(Collection("posts"), "205904031076320768"),
       ts: 1532624236071215,
-      data: { title: "Pondering during a commute" }
+      data: { title: "Pondering during a commute" },
     },
     {
       ref: Ref(Collection("posts"), "205904031076319744"),
       ts: 1532624236071215,
-      data: { title: "Deep meanings in a latte" }
+      data: { title: "Deep meanings in a latte" },
     })
   ];
 ```
@@ -433,14 +434,14 @@ CreateCollection({ name: "posts" });
 CreateIndex({
   name: "posts_by_title",
   source: Collection("posts"),
-  terms: [{ field: ["data", "title"] }]
+  terms: [{ field: ["data", "title"] }],
 });
 Create(Collection("posts"), { data: { title: "What I had for breakfast .." } });
 Map(
   [
     "My cat and other marvels",
     "Pondering during a commute",
-    "Deep meanings in a latte"
+    "Deep meanings in a latte",
   ],
   Lambda(
     "post_title",
@@ -455,7 +456,7 @@ You can tell Fauna Shell to execute all those queries for you by running the fol
 $ fauna eval my_app --file=./queries.fql
 ```
 
-Where `my_app` is the name of your database, and `./queries.fql` is the path to the file where you saved the queries.  If `my_app` is left out it will execute the queries file on the default fauna shell endpoint.  This was previously called `run-queries`.
+Where `my_app` is the name of your database, and `./queries.fql` is the path to the file where you saved the queries. If `my_app` is left out it will execute the queries file on the default fauna shell endpoint. This was previously called `run-queries`.
 
 Queries have to be written in the syntax supported by FaunaDB's Javascript [driver](https://github.com/fauna/faunadb-js).
 
@@ -956,6 +957,7 @@ EXAMPLES
 ```
 
 _See code: [src/commands/upload-graphql-schema.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/upload-graphql-schema.js)_
+
 ## `fauna import --path FILE_PATH`
 
 Import data to dana
@@ -993,13 +995,14 @@ EXAMPLES
 
 _See code: [src/commands/upload-graphql-schema.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/upload-graphql-schema.js)_
 
-
 <!-- commandsstop -->
 
 # Development
+
 All above commands starts with `fauna`, but you are able to run them this way after installation of the fauna-shell package.  
 During development, you might want to test your changes without installing the package every single time.  
 To do so, you can run commands like this:
+
 ```
 # don't forget to install dependencies for your fauna-shell project
 npm install
@@ -1007,4 +1010,4 @@ npm install
 # run a command you need
 ./bin/run cloud-login
 ./bin/run import
-``` 
+```

@@ -33,4 +33,4 @@ jobs:
         uses: atlassian/gajira-transition@master
         with:
           issue: ${{ steps.ticket.outputs.issue }}
-          transition: 'DONE'
+          transition: "DONE"
