@@ -30,7 +30,7 @@ class CreateKeyCommand extends FaunaCommand {
         this.log(successMessage(dbname, success.role, success.secret));
       })
       .catch((error) => {
-        errorOut(error.message, 1);
+        this.error(error.message, 1);
       });
   }
 }
