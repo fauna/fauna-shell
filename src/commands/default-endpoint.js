@@ -22,6 +22,7 @@ DefaultEndpointCommand.examples = ["$ fauna default-endpoint endpoint"];
 DefaultEndpointCommand.flags = {};
 
 DefaultEndpointCommand.args = {
+  // eslint-disable-next-line camelcase
   endpoint_alias: Args.string({
     required: true,
     description: "FaunaDB server endpoint alias",

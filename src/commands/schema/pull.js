@@ -10,10 +10,13 @@ class PullSchemaCommand extends FaunaCommand {
     } = await this.getClient();
 
     try {
-      const res = await fetch(`${scheme}://${domain}:${port}/schema/1/files/${filename}`, {
-        method: "GET",
-        headers: { AUTHORIZATION: `Bearer ${secret}` },
-      });
+      const res = await fetch(
+        `${scheme}://${domain}:${port}/schema/1/files/${filename}`,
+        {
+          method: "GET",
+          headers: { AUTHORIZATION: `Bearer ${secret}` },
+        }
+      );
       const json = await res.json();
       this.log(json.content);
     } catch (err) {

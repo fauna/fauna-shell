@@ -51,7 +51,13 @@ function writeFormattedOutput(file, data, format) {
   }
 }
 
-async function performQuery(command, client, fqlQuery, outputFile, outputFormat) {
+async function performQuery(
+  command,
+  client,
+  fqlQuery,
+  outputFile,
+  outputFormat
+) {
   let res = esprima.parseScript(fqlQuery);
   if (res.body[0].type === "BlockStatement") {
     res = esprima.parseScript(`(${fqlQuery})`);
@@ -63,13 +69,10 @@ async function performQuery(command, client, fqlQuery, outputFile, outputFormat)
   } catch (error) {
     command.error(
       error.faunaError instanceof faunadb.errors.FaunaHTTPError
-        ? util.inspect(
-          JSON.parse(error.faunaError.requestResult.responseRaw),
-          {
+        ? util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
             depth: null,
             compact: false,
-          }
-        )
+          })
         : error.faunaError.message
     );
   }
@@ -116,7 +119,6 @@ class EvalCommand extends FaunaCommand {
       );
       return result;
     } catch (err) {
-      throw err;
       return this.error(err.message, 1);
     }
   }

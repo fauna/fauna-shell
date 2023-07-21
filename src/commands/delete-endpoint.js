@@ -21,6 +21,7 @@ DeleteEndpoint.examples = ["$ fauna delete-endpoint endpoint_alias"];
 DeleteEndpoint.flags = {};
 
 DeleteEndpoint.args = {
+  // eslint-disable-next-line camelcase
   endpoint_alias: Args.string({
     required: true,
     description: "FaunaDB server endpoint alias",
