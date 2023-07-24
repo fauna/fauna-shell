@@ -41,7 +41,7 @@ describe("fauna schema:ls test", () => {
     });
 });
 
-describe("fauna schema:pull test", () => {
+describe("fauna schema:cat test", () => {
   test
     .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
       api
@@ -52,8 +52,8 @@ describe("fauna schema:pull test", () => {
         .reply(200, main)
     )
     .stdout()
-    .command(withOpts(["schema:pull", "main.fsl"]))
-    .it("runs schema:pull", (ctx) => {
+    .command(withOpts(["schema:cat", "main.fsl"]))
+    .it("runs schema:cat", (ctx) => {
       expect(ctx.stdout).to.contain(`${main.content}`);
     });
 });
