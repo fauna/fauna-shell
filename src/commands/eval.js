@@ -147,12 +147,15 @@ class EvalCommand extends FaunaCommand {
   }
 
   /**
-   * @param flags should be an object with
-   * {
-   *   version: "4" | "10";
-   *   format: "json" | "json-tagged" | "shell";
-   *   typecheck?: boolean;
-   * }
+   * Perform a v4 or v10 query, depending on the FQL version
+   *
+   * @param {Object} client - An instance of the client used to execute the query.
+   * @param {string} fqlQuery - The FQL v4 query to be executed.
+   * @param {string} outputFile - Target filename
+   * @param {Object} flags - Options for the query execution.
+   * @param {("4" | "10")} flags.version - FQL version number
+   * @param {("json" | "json-tagged" | "shell")} flags.format - Result format
+   * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
    */
   async performQuery(client, fqlQuery, outputFile, flags) {
     if (flags.version === "4") {
