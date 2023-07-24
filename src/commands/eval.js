@@ -6,7 +6,7 @@ const faunadb = require("faunadb");
 const FaunaCommand = require("../lib/fauna-command.js");
 const { readFile, runQueries, writeFile } = require("../lib/misc.js");
 
-const EVAL_OUTPUT_FORMATS = ["json", "shell"];
+const EVAL_OUTPUT_FORMATS = ["json", "json-tagged", "shell"];
 
 /**
  * Write json encoded output
@@ -14,12 +14,13 @@ const EVAL_OUTPUT_FORMATS = ["json", "shell"];
  * @param {String} file Target filename
  * @param {Any}    data Data to encode
  */
-function writeFormattedJson(file, data) {
+async function writeFormattedJson(file, data) {
   let str = JSON.stringify(data);
   if (file === null) {
-    return Promise.resolve(console.log(str));
+    console.log(str);
+  } else {
+    await writeFile(file, str);
   }
-  return writeFile(file, str);
 }
 
 /**
@@ -28,12 +29,12 @@ function writeFormattedJson(file, data) {
  * @param {String} file Target filename
  * @param {Any}    data Data to encode
  */
-function writeFormattedShell(file, data) {
-  let str = util.inspect(data, { depth: null });
+async function writeFormattedShell(file, str) {
   if (file === null) {
-    return Promise.resolve(console.log(str));
+    console.log(str);
+  } else {
+    await writeFile(file, str);
   }
-  return writeFile(file, str);
 }
 
 /**
@@ -43,38 +44,11 @@ function writeFormattedShell(file, data) {
  * @param {*} data Data to write
  * @param {*} format Format to write as
  */
-function writeFormattedOutput(file, data, format) {
+async function writeFormattedOutput(file, data, format) {
   if (format === "json") {
-    return writeFormattedJson(file, data);
+    await writeFormattedJson(file, data);
   } else if (format === "shell") {
-    return writeFormattedShell(file, data);
-  }
-}
-
-async function performQuery(
-  command,
-  client,
-  fqlQuery,
-  outputFile,
-  outputFormat
-) {
-  let res = esprima.parseScript(fqlQuery);
-  if (res.body[0].type === "BlockStatement") {
-    res = esprima.parseScript(`(${fqlQuery})`);
-  }
-
-  try {
-    const response = await runQueries(res.body, client);
-    return writeFormattedOutput(outputFile, response, outputFormat);
-  } catch (error) {
-    command.error(
-      error.faunaError instanceof faunadb.errors.FaunaHTTPError
-        ? util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
-            depth: null,
-            compact: false,
-          })
-        : error.faunaError.message
-    );
+    await writeFormattedShell(file, util.inspect(data, { depth: null }));
   }
 }
 
@@ -82,8 +56,6 @@ class EvalCommand extends FaunaCommand {
   async run() {
     const queryFromStdin = this.flags.stdin;
     let queriesFile = this.flags.file;
-    const outputFile = this.flags.output;
-    const outputFormat = this.flags.format;
 
     const { dbname, query } = this.getArgs();
 
@@ -98,7 +70,7 @@ class EvalCommand extends FaunaCommand {
     try {
       const { client } = await (dbname
         ? this.ensureDbScopeClient(dbname)
-        : this.getClient());
+        : this.getClient({ version: this.flags.version }));
 
       const readQuery = queryFromStdin || queriesFile !== undefined;
       let queryFromFile;
@@ -110,16 +82,133 @@ class EvalCommand extends FaunaCommand {
         queryFromFile = await readFile(queriesFile);
       }
 
-      const result = await performQuery(
-        this,
+      // In v10, we check if its a TTY for shell/json format. In v4, default to json (to avoid breaking compatability).
+      const format =
+        this.flags.format ??
+        (this.flags.version === "10"
+          ? process.stdout.isTTY
+            ? "shell"
+            : "json"
+          : "json");
+
+      const result = await this.performQuery(
         client,
         queryFromFile || query,
-        outputFile,
-        outputFormat
+        this.flags.output,
+        {
+          format: format,
+          version: this.flags.version,
+          typecheck: this.flags.typecheck,
+        }
       );
+
+      // required to make the process not hang
+      client.close();
+
       return result;
     } catch (err) {
       return this.error(err.message, 1);
+    }
+  }
+
+  async writeFormattedOutputV10(file, res, format) {
+    const isOk = res.status >= 200 && res.status <= 299;
+
+    if (format === "json" || format === "json-tagged") {
+      if (isOk) {
+        await writeFormattedJson(file, res.body.data);
+      } else {
+        await writeFormattedJson(file, {
+          error: res.body.error,
+          summary: res.body.summary,
+        });
+      }
+    } else if (format === "shell") {
+      let output = "";
+      if (isOk) {
+        output += res.body.summary ?? "";
+        if (output) {
+          output += "\n\n";
+        }
+        output += res.body.data ?? "";
+      } else {
+        output = `${res.body.error?.code ?? ""}: ${
+          res.body.error?.message ?? ""
+        }`;
+        if (res.body.summary) {
+          output += "\n\n";
+          output += res.body.summary ?? "";
+        }
+      }
+      await writeFormattedShell(file, output);
+    } else {
+      return this.error("Unsupported output format");
+    }
+  }
+
+  /**
+   * Perform a v4 or v10 query, depending on the FQL version
+   *
+   * @param {Object} client - An instance of the client used to execute the query.
+   * @param {string} fqlQuery - The FQL v4 query to be executed.
+   * @param {string} outputFile - Target filename
+   * @param {Object} flags - Options for the query execution.
+   * @param {("4" | "10")} flags.version - FQL version number
+   * @param {("json" | "json-tagged" | "shell")} flags.format - Result format
+   * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
+   */
+  async performQuery(client, fqlQuery, outputFile, flags) {
+    if (flags.version === "4") {
+      await this.performV4Query(client, fqlQuery, outputFile, flags);
+    } else {
+      await this.performV10Query(client, fqlQuery, outputFile, flags);
+    }
+  }
+
+  async performV10Query(client, fqlQuery, outputFile, flags) {
+    try {
+      let format;
+      if (flags.format === "shell") {
+        format = "decorated";
+      } else if (flags.format === "json-tagged") {
+        format = "tagged";
+      } else {
+        format = "simple";
+      }
+
+      const res = await client.query(fqlQuery, format, flags.typecheck);
+
+      await this.writeFormattedOutputV10(outputFile, res, flags.format);
+    } catch (error) {
+      this.error(`${error.code}\n\n${error.queryInfo.summary}`);
+    }
+  }
+
+  async performV4Query(client, fqlQuery, outputFile, flags) {
+    if (flags.format === "json-tagged") {
+      flags.format = "json";
+    }
+
+    let res = esprima.parseScript(fqlQuery);
+    if (res.body[0].type === "BlockStatement") {
+      res = esprima.parseScript(`(${fqlQuery})`);
+    }
+
+    try {
+      const response = await runQueries(res.body, client);
+      await writeFormattedOutput(outputFile, response, flags.format);
+    } catch (error) {
+      this.error(
+        error.faunaError instanceof faunadb.errors.FaunaHTTPError
+          ? util.inspect(
+              JSON.parse(error.faunaError.requestResult.responseRaw),
+              {
+                depth: null,
+                compact: false,
+              }
+            )
+          : error.faunaError.message
+      );
     }
   }
 
@@ -157,8 +246,19 @@ EvalCommand.flags = {
   }),
   format: Flags.string({
     description: "Output format",
-    default: "json",
+    default: undefined,
     options: EVAL_OUTPUT_FORMATS,
+  }),
+  version: Flags.string({
+    description: "FQL Version",
+    default: "4",
+    options: ["4", "10"],
+  }),
+
+  // v10 specific options
+  typecheck: Flags.boolean({
+    description: "Enable typechecking",
+    default: undefined,
   }),
 };
 

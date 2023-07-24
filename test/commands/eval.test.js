@@ -39,6 +39,63 @@ describe("eval", () => {
     .it("It pretty-prints an error message the command fails");
 });
 
+describe("eval in v10", () => {
+  test
+    .stdout()
+    .command(
+      withOpts([
+        "eval",
+        "--version",
+        "10",
+        "{ exists: Collection.byName('doesnt_exist').exists() }",
+      ])
+    )
+    .it("runs eval", (ctx) => {
+      expect(ctx.stdout).to.equal("{\n  exists: false\n}\n");
+    });
+
+  test
+    .stdout()
+    .command(
+      withOpts([
+        "eval",
+        "--version",
+        "10",
+        "{ exists: Collection.byName('doesnt_exist').exists() }",
+        "--format",
+        "json",
+      ])
+    )
+    .it("runs eval in json format", (ctx) => {
+      expect(JSON.parse(ctx.stdout)).to.deep.equal({ exists: false });
+    });
+
+  test
+    .stdout()
+    .command(
+      withOpts(["eval", "--version", "10", "{ two: 2 }", "--format", "json"])
+    )
+    .it("runs eval in json simple format", (ctx) => {
+      expect(JSON.parse(ctx.stdout)).to.deep.equal({ two: 2 });
+    });
+
+  test
+    .stdout()
+    .command(
+      withOpts([
+        "eval",
+        "--version",
+        "10",
+        "{ two: 2 }",
+        "--format",
+        "json-tagged",
+      ])
+    )
+    .it("runs eval in json tagged format", (ctx) => {
+      expect(JSON.parse(ctx.stdout)).to.deep.equal({ two: { "@int": "2" } });
+    });
+});
+
 function mockQuery(api) {
   api
     .persist()
