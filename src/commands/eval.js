@@ -95,8 +95,11 @@ class EvalCommand extends FaunaCommand {
         client,
         queryFromFile || query,
         this.flags.output,
-        format,
-        this.flags.version
+        {
+          format: format,
+          version: this.flags.version,
+          typecheck: this.flags.typecheck
+        }
       );
 
       // required to make the process not hang
@@ -129,8 +132,9 @@ class EvalCommand extends FaunaCommand {
         }
         output += res.body.data ?? "";
       } else {
-        output = `${res.body.error?.code ?? ""}: ${res.body.error?.message ?? ""
-          }`;
+        output = `${res.body.error?.code ?? ""}: ${
+          res.body.error?.message ?? ""
+        }`;
         if (res.body.summary) {
           output += "\n\n";
           output += res.body.summary ?? "";
@@ -142,42 +146,42 @@ class EvalCommand extends FaunaCommand {
     }
   }
 
-  async performQuery(
-    client,
-    fqlQuery,
-    outputFile,
-    outputFormat,
-    version
-  ) {
-    if (version == "4") {
-      await this.performV4Query(client, fqlQuery, outputFile, outputFormat);
+  // Flags should be
+  // {
+  //   version: "4" | "10";
+  //   format: "json" | "json-tagged" | "shell";
+  //   typecheck?: boolean;
+  // }
+  async performQuery(client, fqlQuery, outputFile, flags) {
+    if (flags.version == "4") {
+      await this.performV4Query(client, fqlQuery, outputFile, flags);
     } else {
-      await this.performV10Query(client, fqlQuery, outputFile, outputFormat);
+      await this.performV10Query(client, fqlQuery, outputFile, flags);
     }
-  };
+  }
 
-  async performV10Query(client, fqlQuery, outputFile, outputFormat) {
+  async performV10Query(client, fqlQuery, outputFile, flags) {
     try {
       let format;
-      if (outputFormat == "shell") {
+      if (flags.format == "shell") {
         format = "decorated";
-      } else if (outputFormat == "json-tagged") {
+      } else if (flags.format == "json-tagged") {
         format = "tagged";
       } else {
         format = "simple";
       }
 
-      const res = await client.query(fqlQuery, format);
+      const res = await client.query(fqlQuery, format, flags.typecheck);
 
-      await this.writeFormattedOutputV10(outputFile, res, outputFormat);
+      await this.writeFormattedOutputV10(outputFile, res, flags.format);
     } catch (error) {
       this.error(`${error.code}\n\n${error.queryInfo.summary}`);
     }
-  };
+  }
 
-  async performV4Query(client, fqlQuery, outputFile, outputFormat) {
-    if (outputFormat == "json-tagged") {
-      outputFormat = "json";
+  async performV4Query(client, fqlQuery, outputFile, flags) {
+    if (flags.format == "json-tagged") {
+      flags.format = "json";
     }
 
     let res = esprima.parseScript(fqlQuery);
@@ -187,18 +191,21 @@ class EvalCommand extends FaunaCommand {
 
     try {
       const response = await runQueries(res.body, client);
-      await writeFormattedOutput(outputFile, response, outputFormat);
+      await writeFormattedOutput(outputFile, response, flags.format);
     } catch (error) {
       this.error(
         error.faunaError instanceof faunadb.errors.FaunaHTTPError
-          ? util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
-            depth: null,
-            compact: false,
-          })
+          ? util.inspect(
+              JSON.parse(error.faunaError.requestResult.responseRaw),
+              {
+                depth: null,
+                compact: false,
+              }
+            )
           : error.faunaError.message
       );
     }
-  };
+  }
 
   // Remap arguments if a user provide only one
   getArgs() {
@@ -241,6 +248,12 @@ EvalCommand.flags = {
     description: "FQL Version",
     default: "4",
     options: ["4", "10"],
+  }),
+
+  // v10 specific options
+  typecheck: Flags.boolean({
+    description: "Enable typechecking",
+    default: undefined,
   }),
 };
 

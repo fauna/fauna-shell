@@ -14,7 +14,7 @@ module.exports = class FaunaClient {
     this.secret = secret;
   }
 
-  async query(query, format = "simple") {
+  async query(query, format = "simple", typecheck = undefined) {
     return new Promise((resolvePromise, rejectPromise) => {
       let req;
       const onResponse = (http2ResponseHeaders) => {
@@ -40,6 +40,7 @@ module.exports = class FaunaClient {
           "X-Fauna-Source": "Fauna Shell",
           [http2.constants.HTTP2_HEADER_PATH]: "/query/1",
           [http2.constants.HTTP2_HEADER_METHOD]: "POST",
+          ...(typecheck && { "x-typecheck": typecheck }),
         };
 
         req = this.session
