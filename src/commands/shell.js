@@ -1,13 +1,14 @@
 const FaunaCommand = require("../lib/fauna-command.js");
 const { runQueries, stringifyEndpoint } = require("../lib/misc.js");
 const faunadb = require("faunadb");
-const { Args } = require("@oclif/core");
+const { Flags, Args } = require("@oclif/core");
 const q = faunadb.query;
 const repl = require("repl");
 const util = require("util");
 const esprima = require("esprima");
+const EvalCommand = require("./eval.js");
 
-class ShellCommand extends FaunaCommand {
+class ShellCommand extends EvalCommand {
   commands = [
     {
       cmd: "clear",
@@ -26,7 +27,7 @@ class ShellCommand extends FaunaCommand {
 
     this.connection = dbname
       ? await this.ensureDbScopeClient(dbname)
-      : await this.getClient();
+      : await this.getClient({ version: this.flags.version });
     this.startShell();
   }
 
@@ -45,8 +46,11 @@ class ShellCommand extends FaunaCommand {
     this.repl = repl.start({
       prompt: `${dbname || ""}> `,
       ignoreUndefined: true,
+      preview: this.flags.version !== "10",
+      // TODO: Integrate with fql-analyzer for completions
+      completer: this.flags.version === "10" ? () => [] : undefined,
     });
-    this.repl.eval = this.withFaunaEval(this.repl.eval);
+    this.repl.eval = this.eval(this.repl.eval);
     this.repl.context.lastError = undefined;
     Object.assign(this.repl.context, q);
 
@@ -67,32 +71,44 @@ class ShellCommand extends FaunaCommand {
     const keys = Object.keys(commands);
     var filteredCommands = {};
     keys
-      .filter(function (k) {
+      .filter(function(k) {
         return !unwanted.includes(k);
       })
-      .forEach(function (k) {
+      .forEach(function(k) {
         filteredCommands[k] = commands[k];
       });
     return filteredCommands;
   }
 
-  withFaunaEval(originalEval) {
-    return (cmd, ctx, filename, cb) => {
+  eval(originalEval) {
+    return async (cmd, ctx, filename, cb) => {
       if (cmd.trim() === "") return cb();
 
-      originalEval(cmd, ctx, filename, async (_err, result) => {
-        try {
-          if (_err) throw _err;
-          const res = esprima.parseScript(`(${cmd})`);
-          await this.executeFql({ ctx, fql: res.body }).then(cb);
-        } catch (error) {
-          if (error.name === "SyntaxError") {
-            cb(new repl.Recoverable(error));
-          } else {
-            cb(error, result);
+      if (this.flags.version === "10") {
+        const res = await this.performV10Query(this.connection.client, cmd, null, {
+          format: "shell",
+          version: "10",
+          typecheck: this.flags.typecheck,
+        });
+
+        console.log(res);
+
+        return cb(null);
+      } else {
+        originalEval(cmd, ctx, filename, async (_err, result) => {
+          try {
+            if (_err) throw _err;
+            const res = esprima.parseScript(`(${cmd})`);
+            await this.executeFql({ ctx, fql: res.body }).then(cb);
+          } catch (error) {
+            if (error.name === "SyntaxError") {
+              cb(new repl.Recoverable(error));
+            } else {
+              cb(error, result);
+            }
           }
-        }
-      });
+        });
+      }
     };
   }
 
@@ -141,6 +157,17 @@ ShellCommand.examples = ["$ fauna shell dbname"];
 
 ShellCommand.flags = {
   ...FaunaCommand.flags,
+  version: Flags.string({
+    description: "FQL Version",
+    default: "4",
+    options: ["4", "10"],
+  }),
+
+  // v10 specific options
+  typecheck: Flags.boolean({
+    description: "Enable typechecking",
+    default: undefined,
+  }),
 };
 
 ShellCommand.args = {
