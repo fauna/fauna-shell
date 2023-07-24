@@ -146,12 +146,14 @@ class EvalCommand extends FaunaCommand {
     }
   }
 
-  // Flags should be
-  // {
-  //   version: "4" | "10";
-  //   format: "json" | "json-tagged" | "shell";
-  //   typecheck?: boolean;
-  // }
+  /**
+   * Flags should be
+   * {
+   *   version: "4" | "10";
+   *   format: "json" | "json-tagged" | "shell";
+   *   typecheck?: boolean;
+   * }
+   */
   async performQuery(client, fqlQuery, outputFile, flags) {
     if (flags.version === "4") {
       await this.performV4Query(client, fqlQuery, outputFile, flags);
