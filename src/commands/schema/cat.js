@@ -2,7 +2,7 @@ const FaunaCommand = require("../../lib/fauna-command.js");
 const { Args } = require("@oclif/core");
 const fetch = require("node-fetch");
 
-class PullSchemaCommand extends FaunaCommand {
+class CatSchemaCommand extends FaunaCommand {
   async run() {
     const filename = this.args.filename;
     const {
@@ -25,19 +25,18 @@ class PullSchemaCommand extends FaunaCommand {
   }
 }
 
-PullSchemaCommand.description =
-  "Pull a database schema file and display its contents";
+CatSchemaCommand.description = "Display the contents of a schema file";
 
-PullSchemaCommand.examples = ["$ fauna schema:pull main.fsl"];
+CatSchemaCommand.examples = ["$ fauna schema:cat main.fsl"];
 
-PullSchemaCommand.args = {
+CatSchemaCommand.args = {
   filename: Args.string({
     required: true,
     description: "name of schema file",
   }),
 };
 
-PullSchemaCommand.flags = {
+CatSchemaCommand.flags = {
   ...FaunaCommand.flags,
 };
-module.exports = PullSchemaCommand;
+module.exports = CatSchemaCommand;
