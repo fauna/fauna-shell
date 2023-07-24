@@ -147,7 +147,7 @@ class EvalCommand extends FaunaCommand {
   }
 
   /**
-   * Flags should be
+   * @param flags should be an object with
    * {
    *   version: "4" | "10";
    *   format: "json" | "json-tagged" | "shell";
