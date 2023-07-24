@@ -128,7 +128,7 @@ class FaunaCommand extends Command {
         const client = new FaunaClient(
           endpoint,
           connectionOptions.secret,
-          this.flags.timeout ? parseInt(this.flags.timeout) : undefined
+          this.flags.timeout ? parseInt(this.flags.timeout, 10) : undefined
         );
 
         // validate the client settings
