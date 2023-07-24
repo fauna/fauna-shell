@@ -46,9 +46,9 @@ async function writeFormattedShell(file, str) {
  */
 async function writeFormattedOutput(file, data, format) {
   if (format === "json") {
-    return await writeFormattedJson(file, data);
+    return writeFormattedJson(file, data);
   } else if (format === "shell") {
-    return await writeFormattedShell(file, util.inspect(data, { depth: null }));
+    return writeFormattedShell(file, util.inspect(data, { depth: null }));
   }
 }
 
@@ -120,9 +120,9 @@ class EvalCommand extends FaunaCommand {
 
     if (format === "json" || format === "json-tagged") {
       if (isOk) {
-        return await writeFormattedJson(file, res.body.data);
+        return writeFormattedJson(file, res.body.data);
       } else {
-        return await writeFormattedJson(file, {
+        return writeFormattedJson(file, {
           error: res.body.error,
           summary: res.body.summary,
         });
@@ -144,7 +144,7 @@ class EvalCommand extends FaunaCommand {
           output += res.body.summary ?? "";
         }
       }
-      return await writeFormattedShell(file, output);
+      return writeFormattedShell(file, output);
     } else {
       return this.error("Unsupported output format");
     }
@@ -163,9 +163,9 @@ class EvalCommand extends FaunaCommand {
    */
   async performQuery(client, fqlQuery, outputFile, flags) {
     if (flags.version === "4") {
-      return await this.performV4Query(client, fqlQuery, outputFile, flags);
+      return this.performV4Query(client, fqlQuery, outputFile, flags);
     } else {
-      return await this.performV10Query(client, fqlQuery, outputFile, flags);
+      return this.performV10Query(client, fqlQuery, outputFile, flags);
     }
   }
 
