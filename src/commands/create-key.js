@@ -1,5 +1,5 @@
 const FaunaCommand = require("../lib/fauna-command.js");
-const { errorOut } = require("../lib/misc.js");
+const { Args } = require("@oclif/core");
 const faunadb = require("faunadb");
 const q = faunadb.query;
 
@@ -16,7 +16,6 @@ function successMessage(database, role, secret) {
 
 class CreateKeyCommand extends FaunaCommand {
   async run() {
-    const log = this.log;
     const dbname = this.args.dbname;
     const role = this.args.role || "admin";
 
@@ -24,14 +23,14 @@ class CreateKeyCommand extends FaunaCommand {
       ? this.ensureDbScopeClient(dbname)
       : this.getClient());
 
-    log(`creating key for database '${dbname}' with role '${role}'`);
+    this.log(`creating key for database '${dbname}' with role '${role}'`);
     return client
       .query(q.CreateKey({ role }))
       .then((success) => {
-        log(successMessage(dbname, success.role, success.secret));
+        this.log(successMessage(dbname, success.role, success.secret));
       })
       .catch((error) => {
-        errorOut(error.message, 1);
+        this.error(error.message, 1);
       });
   }
 }
@@ -46,17 +45,15 @@ CreateKeyCommand.flags = {
   ...FaunaCommand.flags,
 };
 
-CreateKeyCommand.args = [
-  {
-    name: "dbname",
+CreateKeyCommand.args = {
+  dbname: Args.string({
     required: true,
     description: "database name",
-  },
-  {
-    name: "role",
+  }),
+  role: Args.string({
     description: "key user role",
     options: ["admin", "server", "server-readonly", "client"],
-  },
-];
+  }),
+};
 
 module.exports = CreateKeyCommand;

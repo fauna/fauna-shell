@@ -1,4 +1,4 @@
-const { flags } = require("@oclif/command");
+const { Flags } = require("@oclif/core");
 const FaunaCommand = require("../lib/fauna-command.js");
 const EvalCommand = require("./eval");
 
@@ -24,7 +24,7 @@ RunQueriesCommand.examples = [
 
 RunQueriesCommand.flags = {
   ...FaunaCommand.flags,
-  file: flags.string({
+  file: Flags.string({
     description: "File where to read queries from",
     required: true,
   }),

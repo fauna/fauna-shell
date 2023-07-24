@@ -1,5 +1,5 @@
 const FaunaCommand = require("../lib/fauna-command.js");
-const { errorOut } = require("../lib/misc.js");
+const { Args } = require("@oclif/core");
 const faunadb = require("faunadb");
 const q = faunadb.query;
 
@@ -19,19 +19,18 @@ function successMessage(database) {
 
 class CreateDatabaseCommand extends FaunaCommand {
   async run() {
-    const log = this.log;
     const dbname = this.args.dbname;
     return this.query(
       q.CreateDatabase({ name: dbname }),
       `creating database ${dbname}`,
-      function (_) {
-        log(successMessage(dbname));
+      () => {
+        this.log(successMessage(dbname));
       },
-      function (error) {
-        if (error.message === "instance not unique") {
-          errorOut(`Database '${dbname}' already exists.`, 1);
+      (error) => {
+        if (error.message === "instance already exists") {
+          this.error(`Database '${dbname}' already exists.`);
         } else {
-          errorOut(`Error: ${error.message}`, 1);
+          this.error(`Error: ${error.message}`);
         }
       }
     );
@@ -48,12 +47,11 @@ CreateDatabaseCommand.flags = {
   ...FaunaCommand.flags,
 };
 
-CreateDatabaseCommand.args = [
-  {
-    name: "dbname",
+CreateDatabaseCommand.args = {
+  dbname: Args.string({
     required: true,
     description: "database name",
-  },
-];
+  }),
+};
 
 module.exports = CreateDatabaseCommand;

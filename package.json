@@ -8,10 +8,9 @@
   },
   "bugs": "https://github.com/fauna/fauna-shell/issues",
   "dependencies": {
-    "@oclif/command": "^1.5.19",
-    "@oclif/config": "^1.13.3",
-    "@oclif/plugin-autocomplete": "^0.1.4",
-    "@oclif/plugin-help": "^1.2.11",
+    "@oclif/core": "^2.9.4",
+    "@oclif/plugin-help": "^5.2.14",
+    "@oclif/plugin-plugins": "^2.4.7",
     "chalk": "^4.1.2",
     "cli-table": "^0.3.1",
     "cli-ux": "^4.8.0",
@@ -38,8 +37,8 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.17.0",
-    "@oclif/dev-cli": "^1.22.2",
-    "@oclif/test": "^1.2.5",
+    "@oclif/test": "^2.3.31",
+    "oclif": "^3.9.2",
     "chai": "^4.2.0",
     "eslint": "^8.10.0",
     "eslint-config-oclif": "^1.5.1",
@@ -47,7 +46,7 @@
     "eslint-plugin-prettier": "^3.4.0",
     "husky": "^7.0.4",
     "jest": "^27.5.1",
-    "mocha": "^7.1.1",
+    "mocha": "^10.2.0",
     "mock-require": "^3.0.3",
     "nock": "^13.1.0",
     "nyc": "^14.1.1",
@@ -75,11 +74,12 @@
   "license": "MPL-2.0",
   "main": "src/index.js",
   "oclif": {
-    "commands": "./src/commands",
     "bin": "fauna",
+    "dirname": "fauna",
+    "commands": "./src/commands",
     "plugins": [
       "@oclif/plugin-help",
-      "@oclif/plugin-autocomplete"
+      "@oclif/plugin-plugins"
     ]
   },
   "repository": "fauna/fauna-shell",

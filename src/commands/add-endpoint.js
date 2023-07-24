@@ -1,6 +1,6 @@
 const { cli } = require("cli-ux");
-const { flags } = require("@oclif/command");
-const { saveEndpointOrError, errorOut } = require("../lib/misc.js");
+const { Flags, Args } = require("@oclif/core");
+const { saveEndpointOrError } = require("../lib/misc.js");
 const FaunaCommand = require("../lib/fauna-command.js");
 const url = require("url");
 
@@ -9,7 +9,6 @@ class AddEndpointCommand extends FaunaCommand {
     const endpoint = this.args.endpoint;
     let secret = this.flags.key;
     let alias = this.flags.alias;
-    const log = this.log;
 
     const newEndpoint = url.parse(endpoint);
     if (!newEndpoint.hostname) {
@@ -31,11 +30,11 @@ class AddEndpointCommand extends FaunaCommand {
       throw new `The word '${alias}' cannot be used as an alias.`();
     }
     return saveEndpointOrError(newEndpoint, alias, secret)
-      .then(function () {
-        log(`Endpoint '${alias}' saved.`);
+      .then(() => {
+        this.log(`Endpoint '${alias}' saved.`);
       })
-      .catch(function (err) {
-        errorOut(err.message, 1);
+      .catch((err) => {
+        this.error(err.message, 1);
       });
   }
 }
@@ -51,22 +50,21 @@ AddEndpointCommand.examples = [
 
 // clear the default FaunaCommand flags that accept --host, --port, etc.
 AddEndpointCommand.flags = {
-  alias: flags.string({
+  alias: Flags.string({
     description: "FaunaDB server endpoint alias",
     required: false,
   }),
-  key: flags.string({
+  key: Flags.string({
     description: "FaunaDB server endpoint key",
     required: false,
   }),
 };
 
-AddEndpointCommand.args = [
-  {
-    name: "endpoint",
+AddEndpointCommand.args = {
+  endpoint: Args.string({
     required: true,
     description: "FaunaDB server endpoint",
-  },
-];
+  }),
+};
 
 module.exports = AddEndpointCommand;

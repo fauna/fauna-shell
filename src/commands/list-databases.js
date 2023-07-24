@@ -1,5 +1,4 @@
 const FaunaCommand = require("../lib/fauna-command.js");
-const { errorOut } = require("../lib/misc.js");
 const faunadb = require("faunadb");
 const q = faunadb.query;
 
@@ -16,22 +15,21 @@ function allDatabasesQuery(q) {
 
 class ListDatabasesCommand extends FaunaCommand {
   async run() {
-    const log = this.log;
-    return this.withClient(function (client, _) {
-      log("listing databases");
+    return this.withClient((client, _) => {
+      this.log("listing databases");
       return client
         .query(allDatabasesQuery(q))
-        .then(function (res) {
+        .then((res) => {
           if (res.data.length > 0) {
-            res.data.forEach(function (el) {
-              log(el.ref.id);
+            res.data.forEach((el) => {
+              this.log(el.ref.id);
             });
           } else {
-            log("No databases created");
+            this.log("No databases created");
           }
         })
         .catch(function (err) {
-          errorOut(err.message);
+          this.error(err.message);
         });
     });
   }

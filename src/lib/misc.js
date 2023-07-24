@@ -7,7 +7,6 @@ const ini = require("ini");
 const { cli } = require("cli-ux");
 const faunadb = require("faunadb");
 const escodegen = require("escodegen");
-const Errors = require("@oclif/errors");
 const fetch = require("node-fetch");
 
 const FAUNA_CLOUD_DOMAIN = "db.fauna.com";
@@ -43,23 +42,19 @@ function saveEndpointOrError(newEndpoint, alias, secret) {
 }
 
 function deleteEndpointOrError(alias) {
-  return loadEndpoints()
-    .then(function (endpoints) {
-      if (endpointExists(endpoints, alias)) {
-        return confirmEndpointDelete(alias).then(function (del) {
-          if (del) {
-            return deleteEndpoint(endpoints, alias);
-          } else {
-            throw new Error("Couldn't override endpoint");
-          }
-        });
-      } else {
-        throw new Error(`The endpoint '${alias}' doesn't exist`);
-      }
-    })
-    .catch(function (err) {
-      errorOut(err, 1);
-    });
+  return loadEndpoints().then(function (endpoints) {
+    if (endpointExists(endpoints, alias)) {
+      return confirmEndpointDelete(alias).then(function (del) {
+        if (del) {
+          return deleteEndpoint(endpoints, alias);
+        } else {
+          throw new Error("Couldn't override endpoint");
+        }
+      });
+    } else {
+      throw new Error(`The endpoint '${alias}' doesn't exist`);
+    }
+  });
 }
 
 /**
@@ -227,14 +222,6 @@ function writeFile(fileName, data, mode) {
  */
 function fileNotFound(err) {
   return err.code === "ENOENT" && err.syscall === "open";
-}
-
-/**
- * Throws error with `msg` and exit code `code`.
- */
-function errorOut(msg, code) {
-  code = code || 1;
-  return Errors.error(msg, { exit: code });
 }
 
 /**
@@ -418,7 +405,6 @@ module.exports = {
   validCloudEndpoint: validCloudEndpoint,
   loadEndpoints: loadEndpoints,
   buildConnectionOptions: buildConnectionOptions,
-  errorOut: errorOut,
   readFile: readFile,
   writeFile: writeFile,
   runQueries: runQueries,

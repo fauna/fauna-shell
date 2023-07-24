@@ -1,23 +1,22 @@
 const FaunaCommand = require("../lib/fauna-command.js");
-const { errorOut } = require("../lib/misc.js");
+const { Args } = require("@oclif/core");
 const faunadb = require("faunadb");
 const q = faunadb.query;
 
 class DeleteKeyCommand extends FaunaCommand {
   async run() {
     const keyname = this.args.keyname;
-    const log = this.log;
     return this.query(
       q.Delete(q.Ref(q.Keys(null), keyname)),
       `deleting key ${keyname}`,
-      function (success) {
-        log(`key ${success.ref.id} deleted`);
+      (success) => {
+        this.log(`key ${success.ref.id} deleted`);
       },
-      function (error) {
+      (error) => {
         if (error.message === "instance not found") {
-          errorOut(`Key ${keyname} not found`, 1);
+          this.error(`Key ${keyname} not found`, 1);
         } else {
-          errorOut(error.message, 1);
+          this.error(error.message, 1);
         }
       }
     );
@@ -34,12 +33,11 @@ DeleteKeyCommand.flags = {
   ...FaunaCommand.flags,
 };
 
-DeleteKeyCommand.args = [
-  {
-    name: "keyname",
+DeleteKeyCommand.args = {
+  keyname: Args.string({
     required: true,
     description: "key name",
-  },
-];
+  }),
+};
 
 module.exports = DeleteKeyCommand;
