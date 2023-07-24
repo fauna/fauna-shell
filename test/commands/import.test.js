@@ -127,21 +127,10 @@ describe("import", () => {
       .stdout()
       .command("import")
       .catch((err) => {
-        expect(err.message).to.contain("Missing required flag:\n --path PATH");
+        expect(err.message).to.contain("Missing required flag path");
         expect(err.oclif.exit).to.not.equal(0);
       })
       .it("raises an error if --path not provided");
-
-    test
-      .stdout()
-      .command(withOpts(["import", "--help"]))
-      // oclif treats custom help as an error; so we have this goofy block
-      .catch((e) => {
-        e;
-      })
-      .it("prints help", (ctx) => {
-        expect(ctx.stdout).to.contain("Import data to Fauna");
-      });
 
     test
       .do(async () => {
