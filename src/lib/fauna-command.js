@@ -86,7 +86,7 @@ class FaunaCommand extends Command {
   }
 
   async getClient({ dbScope, role, version } = {}) {
-    if (version == "4") {
+    if (version === "4" || version === undefined) {
       // construct v4 client
       let connectionOptions;
       try {
