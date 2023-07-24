@@ -176,7 +176,10 @@ class ImportCommand extends FaunaCommand {
           collection,
           path,
           progressTracker,
-          { isDryRun: Boolean(this.flags["dry-run"]), logger: this.warn }
+          {
+            isDryRun: Boolean(this.flags["dry-run"]),
+            logger: (msg) => this.warn(msg),
+          }
         ),
         (error) => {
           if (error) return reject(error);
