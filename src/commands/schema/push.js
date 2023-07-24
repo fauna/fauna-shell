@@ -57,7 +57,7 @@ class PushSchemaCommand extends FaunaCommand {
 
 PushSchemaCommand.description = "Push a database schema file to Fauna";
 
-PushSchemaCommand.examples = ["$ fauna schema:push main.fsl"];
+PushSchemaCommand.examples = ["$ fauna schema push main.fsl"];
 
 PushSchemaCommand.args = {
   filename: Args.string({

@@ -29,7 +29,7 @@ class ListSchemaCommand extends FaunaCommand {
 
 ListSchemaCommand.description = "List database schema files";
 
-ListSchemaCommand.examples = ["$ fauna schema:ls"];
+ListSchemaCommand.examples = ["$ fauna schema ls"];
 
 ListSchemaCommand.args = [];
 
