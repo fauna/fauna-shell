@@ -81,7 +81,8 @@
     "plugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-plugins"
-    ]
+    ],
+    "topicSeparator": " "
   },
   "repository": "fauna/fauna-shell",
   "scripts": {

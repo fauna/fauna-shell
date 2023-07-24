@@ -27,7 +27,7 @@ class CatSchemaCommand extends FaunaCommand {
 
 CatSchemaCommand.description = "Display the contents of a schema file";
 
-CatSchemaCommand.examples = ["$ fauna schema:cat main.fsl"];
+CatSchemaCommand.examples = ["$ fauna schema cat main.fsl"];
 
 CatSchemaCommand.args = {
   filename: Args.string({

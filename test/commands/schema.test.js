@@ -22,7 +22,7 @@ const diff = {
   diff: "main.fsl ADD collection foo",
 };
 
-describe("fauna schema:ls test", () => {
+describe("fauna schema ls test", () => {
   test
     .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
       api
@@ -33,15 +33,15 @@ describe("fauna schema:ls test", () => {
         .reply(200, files)
     )
     .stdout()
-    .command(withOpts(["schema:ls"]))
-    .it("runs schema:ls", (ctx) => {
+    .command(withOpts(["schema ls"]))
+    .it("runs schema ls", (ctx) => {
       expect(ctx.stdout).to.contain(
         "Schema files:\n\nmain.fsl\nfunctions.fsl\nlegacy.json"
       );
     });
 });
 
-describe("fauna schema:cat test", () => {
+describe("fauna schema cat test", () => {
   test
     .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
       api
@@ -52,13 +52,13 @@ describe("fauna schema:cat test", () => {
         .reply(200, main)
     )
     .stdout()
-    .command(withOpts(["schema:cat", "main.fsl"]))
-    .it("runs schema:cat", (ctx) => {
+    .command(withOpts(["schema cat", "main.fsl"]))
+    .it("runs schema cat", (ctx) => {
       expect(ctx.stdout).to.contain(`${main.content}`);
     });
 });
 
-describe("fauna schema:push test", () => {
+describe("fauna schema push test", () => {
   test
     .stub(ux, "confirm", () => async () => true)
     .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
@@ -72,8 +72,8 @@ describe("fauna schema:push test", () => {
         .reply(200)
     )
     .stdout()
-    .command(withOpts(["schema:push", "main.fsl"]))
-    .it("runs schema:push", (ctx) => {
+    .command(withOpts(["schema push", "main.fsl"]))
+    .it("runs schema push", (ctx) => {
       expect(ctx.stdout).to.contain(`${diff.diff}`);
     });
 });
