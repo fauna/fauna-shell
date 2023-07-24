@@ -125,7 +125,11 @@ class FaunaCommand extends Command {
         const endpoint = new URL(
           `${connectionOptions.scheme}://${connectionOptions.domain}:${connectionOptions.port}`
         );
-        const client = new FaunaClient(endpoint, connectionOptions.secret);
+        const client = new FaunaClient(
+          endpoint,
+          connectionOptions.secret,
+          this.flags.timeout ? parseInt(this.flags.timeout) : undefined
+        );
 
         // validate the client settings
         await client.query("0");

@@ -4,7 +4,7 @@ const http2 = require("http2");
 // https://github.com/fauna/fauna-js/blob/main/src/http-client/node-http2-client.ts
 
 module.exports = class FaunaClient {
-  constructor(endpoint, secret) {
+  constructor(endpoint, secret, timeout) {
     this.session = http2
       .connect(endpoint, {
         peerMaxConcurrentStreams: 50,
@@ -12,6 +12,7 @@ module.exports = class FaunaClient {
       .once("error", () => this.close())
       .once("goaway", () => this.close());
     this.secret = secret;
+    this.timeout = timeout;
   }
 
   async query(query, format = "simple", typecheck = undefined) {
@@ -43,6 +44,7 @@ module.exports = class FaunaClient {
           [http2.constants.HTTP2_HEADER_PATH]: "/query/1",
           [http2.constants.HTTP2_HEADER_METHOD]: "POST",
           ...(typecheck && { "x-typecheck": typecheck }),
+          ...(this.timeout && { "x-query-timeout-ms": this.timeout }),
         };
 
         req = this.session
@@ -54,7 +56,7 @@ module.exports = class FaunaClient {
         req.write(JSON.stringify({ query }), "utf8");
 
         // req.setTimeout must be called before req.end()
-        req.setTimeout(5000, () => {
+        req.setTimeout((this.timeout ?? 0) + 5000, () => {
           req.destroy(new Error(`Client timeout`));
         });
 
