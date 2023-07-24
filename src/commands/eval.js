@@ -85,7 +85,7 @@ class EvalCommand extends FaunaCommand {
       // In v10, we check if its a TTY for shell/json format. In v4, default to json (to avoid breaking compatability).
       const format =
         this.flags.format ??
-        (this.flags.version == "10"
+        (this.flags.version === "10"
           ? process.stdout.isTTY
             ? "shell"
             : "json"
@@ -98,7 +98,7 @@ class EvalCommand extends FaunaCommand {
         {
           format: format,
           version: this.flags.version,
-          typecheck: this.flags.typecheck
+          typecheck: this.flags.typecheck,
         }
       );
 
@@ -153,7 +153,7 @@ class EvalCommand extends FaunaCommand {
   //   typecheck?: boolean;
   // }
   async performQuery(client, fqlQuery, outputFile, flags) {
-    if (flags.version == "4") {
+    if (flags.version === "4") {
       await this.performV4Query(client, fqlQuery, outputFile, flags);
     } else {
       await this.performV10Query(client, fqlQuery, outputFile, flags);
@@ -163,9 +163,9 @@ class EvalCommand extends FaunaCommand {
   async performV10Query(client, fqlQuery, outputFile, flags) {
     try {
       let format;
-      if (flags.format == "shell") {
+      if (flags.format === "shell") {
         format = "decorated";
-      } else if (flags.format == "json-tagged") {
+      } else if (flags.format === "json-tagged") {
         format = "tagged";
       } else {
         format = "simple";
@@ -180,7 +180,7 @@ class EvalCommand extends FaunaCommand {
   }
 
   async performV4Query(client, fqlQuery, outputFile, flags) {
-    if (flags.format == "json-tagged") {
+    if (flags.format === "json-tagged") {
       flags.format = "json";
     }
 

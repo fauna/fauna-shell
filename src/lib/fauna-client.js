@@ -22,7 +22,9 @@ module.exports = class FaunaClient {
           http2ResponseHeaders[http2.constants.HTTP2_HEADER_STATUS];
         let responseData = "";
 
-        req.on("data", (chunk) => (responseData += chunk));
+        req.on("data", (chunk) => {
+          responseData += chunk;
+        });
 
         req.on("end", () => {
           resolvePromise({
