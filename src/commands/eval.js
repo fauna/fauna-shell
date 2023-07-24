@@ -200,7 +200,7 @@ class EvalCommand extends FaunaCommand {
 
     try {
       const response = await runQueries(res.body, client);
-      await writeFormattedOutput(outputFile, response, flags.format);
+      return await writeFormattedOutput(outputFile, response, flags.format);
     } catch (error) {
       this.error(
         error.faunaError instanceof faunadb.errors.FaunaHTTPError

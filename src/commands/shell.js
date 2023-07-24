@@ -71,10 +71,10 @@ class ShellCommand extends EvalCommand {
     const keys = Object.keys(commands);
     var filteredCommands = {};
     keys
-      .filter(function(k) {
+      .filter(function (k) {
         return !unwanted.includes(k);
       })
-      .forEach(function(k) {
+      .forEach(function (k) {
         filteredCommands[k] = commands[k];
       });
     return filteredCommands;
@@ -85,11 +85,16 @@ class ShellCommand extends EvalCommand {
       if (cmd.trim() === "") return cb();
 
       if (this.flags.version === "10") {
-        const res = await this.performV10Query(this.connection.client, cmd, null, {
-          format: "shell",
-          version: "10",
-          typecheck: this.flags.typecheck,
-        });
+        const res = await this.performV10Query(
+          this.connection.client,
+          cmd,
+          null,
+          {
+            format: "shell",
+            version: "10",
+            typecheck: this.flags.typecheck,
+          }
+        );
 
         console.log(res);
 
