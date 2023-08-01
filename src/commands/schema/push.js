@@ -19,7 +19,7 @@ class PushSchemaCommand extends FaunaCommand {
       return fd;
     };
 
-    if (this.args.force) {
+    if (this.flags.force) {
       // Just push.
       return fetch(`${scheme}://${domain}:${port}/schema/1/update?force=true`, {
         method: "POST",
