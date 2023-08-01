@@ -60,9 +60,9 @@ class PushSchemaCommand extends FaunaCommand {
               body: body(),
             }
           );
-          const json = await res.json();
-          if (json.error) {
-            this.error(json.error.message);
+          const json0 = await res.json();
+          if (json0.error) {
+            this.error(json0.error.message);
           }
         } else {
           this.log("Change cancelled");
