@@ -19,38 +19,57 @@ class PushSchemaCommand extends FaunaCommand {
       return fd;
     };
 
-    if (this.flags.force) {
-      // Just push.
-      return fetch(`${scheme}://${domain}:${port}/schema/1/update?force=true`, {
-        method: "POST",
-        headers: { AUTHORIZATION: `Bearer ${secret}` },
-        body: body(),
-      }).catch((err) => this.error(err));
-    } else {
-      // Confirm diff, then push it.
-      return fetch(`${scheme}://${domain}:${port}/schema/1/validate`, {
-        method: "POST",
-        headers: { AUTHORIZATION: `Bearer ${secret}` },
-        body: body(),
-      })
-        .then(async (res) => {
-          const json = await res.json();
-          this.log(`Proposed diff for ${filename}:\n`);
-          this.log(json.diff);
-          if (await ux.confirm("Accept and push the changes?")) {
-            await fetch(
-              `${scheme}://${domain}:${port}/schema/1/update?version=${json.version}`,
-              {
-                method: "POST",
-                headers: { AUTHORIZATION: `Bearer ${secret}` },
-                body: body(),
-              }
-            );
-          } else {
-            this.log("Change cancelled");
+    try {
+      if (this.flags.force) {
+        // Just push.
+        const res = await fetch(
+          `${scheme}://${domain}:${port}/schema/1/update?force=true`,
+          {
+            method: "POST",
+            headers: { AUTHORIZATION: `Bearer ${secret}` },
+            body: body(),
           }
-        })
-        .catch((err) => this.error(err));
+        );
+        const json = await res.json();
+        if (json.error) {
+          this.error(json.error.message);
+        }
+      } else {
+        // Confirm diff, then push it.
+        const res = await fetch(
+          `${scheme}://${domain}:${port}/schema/1/validate`,
+          {
+            method: "POST",
+            headers: { AUTHORIZATION: `Bearer ${secret}` },
+            body: body(),
+          }
+        );
+        const json = await res.json();
+        if (json.error) {
+          this.error(json.error.message);
+          return;
+        }
+        this.log(`Proposed diff for ${filename}:\n`);
+        this.log(json.diff);
+        if (await ux.confirm("Accept and push the changes?")) {
+          const res = await fetch(
+            `${scheme}://${domain}:${port}/schema/1/update?version=${json.version}`,
+            {
+              method: "POST",
+              headers: { AUTHORIZATION: `Bearer ${secret}` },
+              body: body(),
+            }
+          );
+          const json0 = await res.json();
+          if (json0.error) {
+            this.error(json0.error.message);
+          }
+        } else {
+          this.log("Change cancelled");
+        }
+      }
+    } catch (err) {
+      this.error(err);
     }
   }
 }

@@ -13,7 +13,9 @@ class ListSchemaCommand extends FaunaCommand {
         headers: { Authorization: `Bearer ${secret}` },
       });
       const json = await res.json();
-      if (json.files.length > 0) {
+      if (json.error) {
+        this.error(json.error.message);
+      } else if (json.files.length > 0) {
         this.log("Schema files:\n");
         json.files.forEach((file) => {
           this.log(file.filename);

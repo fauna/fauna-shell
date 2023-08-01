@@ -18,7 +18,11 @@ class CatSchemaCommand extends FaunaCommand {
         }
       );
       const json = await res.json();
-      this.log(json.content);
+      if (json.error) {
+        this.error(json.error.message);
+      } else {
+        this.log(json.content);
+      }
     } catch (err) {
       this.error(err);
     }
