@@ -37,7 +37,7 @@ class PushSchemaCommand extends FaunaCommand {
       } else {
         // Confirm diff, then push it.
         const res = await fetch(
-          `${scheme}://${domain}:${port}/schema/1/validate`,
+          `${scheme}://${domain}:${port}/schema/1/validate?force=true`,
           {
             method: "POST",
             headers: { AUTHORIZATION: `Bearer ${secret}` },

@@ -22,6 +22,8 @@ const diff = {
   diff: "main.fsl ADD collection foo",
 };
 
+const updated = { version: 1 };
+
 describe("fauna schema ls test", () => {
   test
     .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
@@ -66,10 +68,10 @@ describe("fauna schema push test", () => {
         .persist()
         .post("/", matchFqlReq(q.Now()))
         .reply(200, new Date())
-        .post("/schema/1/validate")
+        .post("/schema/1/validate?force=true")
         .reply(200, diff)
         .post("/schema/1/update?version=0")
-        .reply(200)
+        .reply(200, updated)
     )
     .stdout()
     .command(withOpts(["schema push", "main.fsl"]))
