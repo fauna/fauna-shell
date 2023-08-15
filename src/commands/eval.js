@@ -82,14 +82,8 @@ class EvalCommand extends FaunaCommand {
         queryFromFile = await readFile(queriesFile);
       }
 
-      // In v10, we check if its a TTY for shell/json format. In v4, default to json (to avoid breaking compatability).
       const format =
-        this.flags.format ??
-        (this.flags.version === "10"
-          ? process.stdout.isTTY
-            ? "shell"
-            : "json"
-          : "json");
+        this.flags.format ?? (process.stdout.isTTY ? "shell" : "json");
 
       const result = await this.performQuery(
         client,
