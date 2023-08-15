@@ -436,7 +436,7 @@ Collection.create({
 })
 ```
 
-Once the collection is created, you can execute queries against in in another `.fql` file:
+Once the collection is created, you can execute queries against it in another `.fql` file:
 
 ```
 Post.create({
