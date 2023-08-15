@@ -164,7 +164,7 @@ ShellCommand.flags = {
   ...FaunaCommand.flags,
   version: Flags.string({
     description: "FQL Version",
-    default: "4",
+    default: "10",
     options: ["4", "10"],
   }),
 
