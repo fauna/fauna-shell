@@ -7,7 +7,7 @@
 [![Downloads/week](https://img.shields.io/npm/dw/fauna.svg)](https://npmjs.org/package/fauna)
 [![License](https://img.shields.io/npm/l/fauna.svg)](https://github.com/fauna/fauna/blob/master/package.json) -->
 
-This tools gives you access to [FaunaDB](http://fauna.com/) directly from your CLI.
+This tools gives you access to [Fauna](http://fauna.com/) directly from your CLI.
 
 It also includes a [Shell](#shell) so you can issue queries to FaunaDB without needing to install additional libraries.
 
@@ -42,7 +42,7 @@ Let's run the following command:
 $ fauna cloud-login
 ```
 
-You will be prompted for your `email` and `password` from your [FaunaDB Cloud](https://dashboard.fauna.com/) account.
+You will be prompted for your `email` and `password` from your [Fauna](https://dashboard.fauna.com/) account.
 
 If you would like to use 3rd party identity providers like Github or Netlify, please refer to [this guide](https://docs.fauna.com/fauna/current/start/cloud-github.html).
 
@@ -163,134 +163,130 @@ my_app>
 Once you have the prompt ready, you can start issues queries against your FaunaDB instance. (Note that the results shown here might vary from the ones you see while running the examples).
 
 ```javascript
-my_app> CreateCollection({ name: "posts" })
+my_app> Collection.create({ name: "Post" })
 {
-  ref: Collection("posts"),
-  ts: 1532624109799742,
-  history_days: 30,
-  name: 'posts'
+  name: "Post",
+  coll: Collection,
+  ts: Time("2023-08-15T16:06:01.120Z"),
+  indexes: {},
+  constraints: []
 }
 ```
 
-Let's create an index for our _posts_.
+Let's create an index for our collection `Post`.
 
 ```javascript
-my_app> CreateIndex(
-    {
-      name: "posts_by_title",
-      source: Collection("posts"),
-      terms: [{ field: ["data", "title"] }]
-    })
+
+my_app> Post.definition.update({ indexes: { byTitle: { terms: [{ field: ".title" }] } } })
 {
-  ref: Index("posts_by_title"),
-  ts: 1532624135128797,
-  active: false,
-  partitions: 1,
-  name: 'posts_by_title',
-  source: Collection("posts"),
-  terms: [ { field: [ 'data', 'title' ] } ]
+  name: "Post",
+  coll: Collection,
+  ts: Time("2023-08-15T16:07:10.800Z"),
+  indexes: {
+    byTitle: {
+      terms: [
+        {
+          field: ".title"
+        }
+      ],
+      queryable: true,
+      status: "complete"
+    }
+  },
+  constraints: []
 }
 ```
 
-Let's insert a _post_ item:
+Let's insert a new `Post` document:
 
 ```javascript
-my_app> Create(
-    Collection("posts"),
-    { data: { title: "What I had for breakfast .." } })
+my_app> Post.create({ title: "What I had for breakfast .." })
 {
-  ref: Ref(Collection("posts"), "205904004461363712"),
-  ts: 1532624210670859,
-  data: { title: 'What I had for breakfast ..' }
+  id: "373143369066480128",
+  coll: Post,
+  ts: Time("2023-08-15T16:14:57.440Z"),
+  title: "What I had for breakfast .."
 }
 ```
 
-We can also insert items in bulk by using the `Map` function.
+We can also insert items in bulk by using iterator functions on arrays.
 
 ```javascript
-my_app >
-  Map(
-    [
-      "My cat and other marvels",
-      "Pondering during a commute",
-      "Deep meanings in a latte",
-    ],
-    Lambda(
-      "post_title",
-      Create(Collection("posts"), { data: { title: Var("post_title") } })
-    )
-  )[
-    ({
-      ref: Ref(Collection("posts"), "205904031076321792"),
-      ts: 1532624236071215,
-      data: { title: "My cat and other marvels" },
-    },
-    {
-      ref: Ref(Collection("posts"), "205904031076320768"),
-      ts: 1532624236071215,
-      data: { title: "Pondering during a commute" },
-    },
-    {
-      ref: Ref(Collection("posts"), "205904031076319744"),
-      ts: 1532624236071215,
-      data: { title: "Deep meanings in a latte" },
-    })
-  ];
+my_app> ["My cat and other marvels", "Pondering during a commute", "Deep meanings in a latte"].map(title => Post.create({ title: title }))
+[
+  {
+    id: "373143473418666496",
+    coll: Post,
+    ts: Time("2023-08-15T16:16:36.960Z"),
+    title: "My cat and other marvels"
+  },
+  {
+    id: "373143473419715072",
+    coll: Post,
+    ts: Time("2023-08-15T16:16:36.960Z"),
+    title: "Pondering during a commute"
+  },
+  {
+    id: "373143473420763648",
+    coll: Post,
+    ts: Time("2023-08-15T16:16:36.960Z"),
+    title: "Deep meanings in a latte"
+  }
+]
 ```
 
 Now let's try to fetch our post about _latte_. We need to access it by _id_ like this:
 
 ```javascript
-my_app> Get(Ref(Collection("posts"),"205904031076319744"))
+my_app> Post.byId("373143473420763648")
 {
-  ref: Ref(Collection("posts"), "205904031076319744"),
-  ts: 1532624236071215,
-  data: { title: 'Deep meanings in a latte' }
+  id: "373143473420763648",
+  coll: Post,
+  ts: Time("2023-08-15T16:16:36.960Z"),
+  title: "Deep meanings in a latte"
 }
 ```
 
 Now let's update our post about our cat, by adding some tags:
 
 ```javascript
-my_app> Update(
-    Ref(Collection("posts"), "205904031076321792"),
-    { data: { tags: ["pet", "cute"] } })
+my_app> Post.byId("373143473420763648")!.update({ tags: ["cute", "pet"] })
 {
-  ref: Ref(Collection("posts"), "205904031076321792"),
-  ts: 1532624327263554,
-  data: { title: 'My cat and other marvels', tags: [ 'pet', 'cute' ] }
+  id: "373143473420763648",
+  coll: Post,
+  ts: Time("2023-08-15T16:17:41Z"),
+  title: "Deep meanings in a latte",
+  tags: [
+    "cute",
+    "pet"
+  ]
 }
 ```
 
 And now let's try to change the content of that post:
 
 ```javascript
-my_app> Replace(
-    Ref(Collection("posts"), "205904031076321792"),
-    { data: { title: "My dog and other marvels" } })
+my_app> Post.byId("373143473418666496")!.replace({ title: "My dog and other marvels" })
 {
-  ref: Ref(Collection("posts"), "205904031076321792"),
-  ts: 1532624352388889,
-  data: { title: 'My dog and other marvels' }
+  id: "373143473418666496",
+  coll: Post,
+  ts: Time("2023-08-15T16:18:32.680Z"),
+  title: "My dog and other marvels"
 }
 ```
 
 Now let's try to delete our post about _latte_:
 
 ```javascript
-my_app> Delete(Ref(Collection("posts"), "205904031076319744"))
-{
-  ref: Ref(Collection("posts"), "205904031076319744"),
-  ts: 1532624236071215,
-  data: { title: 'Deep meanings in a latte' }
-}
+my_app> Post.byId("373143473420763648")!.delete()
+Post.byId("373143473420763648") /* not found */
 ```
 
-If we try to fetch it, we will receive an error:
+If we try to fetch it, we will receive a null document:
 
 ```javascript
-my_app> Get(Ref(Collection("posts"), "205904031076319744"))
- Error: instance not found
+my_app> Post.byId("373143473420763648")
+Post.byId("373143473420763648") /* not found */
 ```
 
 Finally you can exit the _shell_ by pressing `ctrl+d`.
@@ -427,32 +423,41 @@ Any options that are not specified either via the `.fauna-shell` config file or 
 
 # Executing queries from a file
 
-You can also tell the shell to execute a list of queries that you have stored in a file. For example, you can have a filed called `queries.fql` with the following content:
+You can also tell the shell to execute a list of queries that you have stored in a file. For example, you can have a file that creates a collection called `setup.fql`:
 
 ```javascript
-CreateCollection({ name: "posts" });
-CreateIndex({
-  name: "posts_by_title",
-  source: Collection("posts"),
-  terms: [{ field: ["data", "title"] }],
-});
-Create(Collection("posts"), { data: { title: "What I had for breakfast .." } });
-Map(
-  [
-    "My cat and other marvels",
-    "Pondering during a commute",
-    "Deep meanings in a latte",
-  ],
-  Lambda(
-    "post_title",
-    Create(Collection("posts"), { data: { title: Var("post_title") } })
-  )
-);
+Collection.create({
+  name: "Post",
+  indexes: {
+    byTitle: {
+      terms: [{ field: ".title" }]
+    }
+  }
+})
+```
+
+Once the collection is created, you can execute queries against in in another `.fql` file:
+
+```
+Post.create({
+  title: "What I had for breakfast .."
+})
+
+[
+  "My cat and other marvels",
+  "Pondering during a commute",
+  "Deep meanings in a latte",
+].map(title => {
+  Post.create({
+    title: title
+  })
+})
 ```
 
 You can tell Fauna Shell to execute all those queries for you by running the following command:
 
 ```bash
+$ fauna eval my_app --file=./setup.fql
 $ fauna eval my_app --file=./queries.fql
 ```
 
@@ -843,6 +848,7 @@ OPTIONS
   --scheme=https|http  Connection scheme
   --secret=secret      FaunaDB secret key
   --timeout=timeout    Connection timeout in milliseconds
+  --version=4|10       [default: 10] FQL version to use
 
 DESCRIPTION
   Starts a FaunaDB shell
@@ -866,16 +872,17 @@ ARGUMENTS
   DBNAME Database name
 
 OPTIONS
-  --domain=domain      FaunaDB server domain
-  --endpoint=endpoint  FaunaDB server endpoint
-  --file=file          File where to read queries from
-  --format=json|shell  [default: json] Output format
-  --output=output      File to write output to
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
-  --stdin              Read file input from stdin. Writes to stdout by default
-  --timeout=timeout    Connection timeout in milliseconds
+  --domain=domain                  FaunaDB server domain
+  --endpoint=endpoint              FaunaDB server endpoint
+  --file=file                      File where to read queries from
+  --format=json|shell|json-tagged  [default: shell if tty, json if no tty] Output format
+  --output=output                  File to write output to
+  --port=port                      Connection port
+  --scheme=https|http              Connection scheme
+  --secret=secret                  FaunaDB secret key
+  --stdin                          Read file input from stdin. Writes to stdout by default
+  --timeout=timeout                Connection timeout in milliseconds
+  --version=4|10                   [default: 10] FQL version to use
 
 DESCRIPTION
   Runs the specified query. Can read from stdin, file or command line.
@@ -883,12 +890,12 @@ DESCRIPTION
   Output format can be specified.
 
 EXAMPLES
-  $ fauna eval "Paginate(Collections())"
-  $ fauna eval nestedDbName "Paginate(Collections())"
+  $ fauna eval "Collection.all()"
+  $ fauna eval nestedDbName "Collection.all()"
   $ fauna eval --file=/path/to/queries.fql
-  $ echo "Add(1,1)" | fauna eval --stdin
-  $ fauna eval "Add(2,3)" "--output=/tmp/result"
-  $ fauna eval "Add(2,3)" "--format=json" "--output=/tmp/result"
+  $ echo "1 + 1" | fauna eval
+  $ fauna eval "2 + 3" --output=/tmp/result"
+  $ fauna eval "2 + 3" --format=json --output=/tmp/result"
 ```
 
 _See code: [src/commands/eval.js](src/commands/eval.js)_
