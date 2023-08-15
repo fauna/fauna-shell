@@ -221,12 +221,12 @@ class EvalCommand extends FaunaCommand {
 }
 
 EvalCommand.examples = [
-  '$ fauna eval "Paginate(Collections())"',
-  '$ fauna eval nestedDbName "Paginate(Collections())"',
+  '$ fauna eval "Collection.all()"',
+  '$ fauna eval nestedDbName "Collection.all()"',
   "$ fauna eval --file=/path/to/queries.fql",
-  '$ echo "Add(1,1)" | fauna eval --stdin',
-  '$ fauna eval "Add(2,3)" --output=/tmp/result"',
-  '$ fauna eval "Add(2,3)" --format=json --output=/tmp/result"',
+  '$ echo "1 + 1" | fauna eval',
+  '$ fauna eval "2 + 3" --output=/tmp/result"',
+  '$ fauna eval "2 + 3" --format=json --output=/tmp/result"',
 ];
 
 EvalCommand.flags = {
