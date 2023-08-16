@@ -547,14 +547,14 @@ _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomp
 
 ## `fauna cloud-login`
 
-Adds the Fauna Cloud endpoint.
+Adds a Fauna endpoint.
 
 ```
 USAGE
   $ fauna cloud-login
 
 DESCRIPTION
-  Adds the Fauna Cloud endpoint
+  Adds a Fauna endpoint.
 
 EXAMPLE
   $ fauna cloud-login

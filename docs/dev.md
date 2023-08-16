@@ -8,7 +8,7 @@ This is an attempt to describe what are the project goals, and give an architect
 
 The ideal path would be:
 
-- Login to Fauna Cloud: `$ fauna cloud-login`
+- Login to Fauna: `$ fauna cloud-login`
 - Create a Database: `$ fauna create-database my_app`
 - Start an interactive shell: `$ fauna shell my_app`
 - Send queries to Fauna from the interactive Shell: `my_app> CreateCollection({ name: "posts" })`
@@ -29,7 +29,7 @@ For that the shell offers a file called `.fauna-shell`, stored at their home dir
 
 Adding an endpoint should be as easy as typing: `$ fauna add-endpoint "https://example.org:443"`.
 
-Connecting to the Fauna Cloud should be as easy as typing: `$ fauna cloud-login`. The user will be prompted for their email & passwords, and their key will be saved in the `.fauna-shell` file.
+Connecting to Fauna should be as easy as typing: `$ fauna cloud-login`. The user will be prompted for their email & passwords, and their key will be saved in the `.fauna-shell` file.
 
 3. Provide an easy to use shell (REPL) for interacting with Fauna.
 
