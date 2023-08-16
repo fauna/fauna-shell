@@ -40,7 +40,7 @@ class AddEndpointCommand extends FaunaCommand {
 }
 
 AddEndpointCommand.description = `
-Adds a connection endpoint for FaunaDB
+Adds a connection endpoint for Fauna.
 `;
 
 AddEndpointCommand.examples = [
@@ -51,11 +51,11 @@ AddEndpointCommand.examples = [
 // clear the default FaunaCommand flags that accept --host, --port, etc.
 AddEndpointCommand.flags = {
   alias: Flags.string({
-    description: "FaunaDB server endpoint alias",
+    description: "Fauna server endpoint alias",
     required: false,
   }),
   key: Flags.string({
-    description: "FaunaDB server endpoint key",
+    description: "Fauna server endpoint key",
     required: false,
   }),
 };
@@ -63,7 +63,7 @@ AddEndpointCommand.flags = {
 AddEndpointCommand.args = {
   endpoint: Args.string({
     required: true,
-    description: "FaunaDB server endpoint",
+    description: "Fauna server endpoint",
   }),
 };
 

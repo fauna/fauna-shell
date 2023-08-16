@@ -32,7 +32,7 @@ class ListEndpointsCommand extends FaunaCommand {
 }
 
 ListEndpointsCommand.description = `
-Lists FaunaDB connection endpoints
+Lists connection endpoints.
 `;
 
 ListEndpointsCommand.examples = ["$ fauna list-endpoints"];

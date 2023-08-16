@@ -12,7 +12,7 @@ class DeleteEndpoint extends FaunaCommand {
 }
 
 DeleteEndpoint.description = `
-Deletes a connection endpoint for FaunaDB
+Deletes a connection endpoint.
 `;
 
 DeleteEndpoint.examples = ["$ fauna delete-endpoint endpoint_alias"];
@@ -24,7 +24,7 @@ DeleteEndpoint.args = {
   // eslint-disable-next-line camelcase
   endpoint_alias: Args.string({
     required: true,
-    description: "FaunaDB server endpoint alias",
+    description: "Fauna server endpoint alias",
   }),
 };
 
