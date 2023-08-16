@@ -15,7 +15,7 @@ const ERROR_NO_DEFAULT_ENDPOINT =
 const ERROR_WRONG_CLOUD_ENDPOINT =
   "You already have an endpoint 'cloud' defined and it doesn't point to 'db.fauna.com'.\nPlease fix your '~/.fauna-shell' file.";
 const ERROR_SPECIFY_SECRET_KEY =
-  "You must specify a secret key to connect to FaunaDB";
+  "You must specify a secret key to connect to Fauna";
 
 /**
  * Takes a parsed endpointURL, an endpoint alias, and the endpoint secret,
@@ -137,7 +137,7 @@ function saveEndpoint(config, endpoint, alias, secret) {
     if (res.headers.get("x-faunadb-build")) {
       return saveConfig(addEndpoint(config, endpoint, alias, secret));
     }
-    throw new Error(`'${alias}' is not a FaunaDB endopoint`);
+    throw new Error(`'${alias}' is not a Fauna endopoint`);
   });
 }
 

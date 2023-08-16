@@ -7,9 +7,9 @@
 [![Downloads/week](https://img.shields.io/npm/dw/fauna.svg)](https://npmjs.org/package/fauna)
 [![License](https://img.shields.io/npm/l/fauna.svg)](https://github.com/fauna/fauna/blob/master/package.json) -->
 
-This tools gives you access to [FaunaDB](http://fauna.com/) directly from your CLI.
+This tools gives you access to [Fauna](http://fauna.com/) directly from your CLI.
 
-It also includes a [Shell](#shell) so you can issue queries to FaunaDB without needing to install additional libraries.
+It also includes a [Shell](#shell) so you can issue queries to Fauna without needing to install additional libraries.
 
 You can install it via npm like this:
 
@@ -34,7 +34,7 @@ $ npm install -g fauna-shell
 
 The **fauna-shell** allows you to do things like _creating_, _deleting_ and _listings_ databases.
 
-First lets configure our connection to the FaunaDB cloud. (If you don't have an account, you can create a free account [here](https://fauna.com/sign-up)).
+First lets configure our connection to a Fauna account. (If you don't have an account, you can create a free one [here](https://dashboard.fauna.com)).
 
 Let's run the following command:
 
@@ -42,11 +42,11 @@ Let's run the following command:
 $ fauna cloud-login
 ```
 
-You will be prompted for your `email` and `password` from your [FaunaDB Cloud](https://dashboard.fauna.com/) account.
+You will be prompted for your `email` and `password` from your [Fauna](https://dashboard.fauna.com) account.
 
 If you would like to use 3rd party identity providers like Github or Netlify, please refer to [this guide](https://docs.fauna.com/fauna/current/start/cloud-github.html).
 
-Now that we have an endpoint to connect to we can try to create a database to start playing with FaunaDB. See [connecting to different endpoints](#connecting-to-different-endpoints).
+Now that we have an endpoint to connect to we can try to create a database to start interacting with Fauna. See [connecting to different endpoints](#connecting-to-different-endpoints).
 
 This is how you can create a database called `my_app`:
 
@@ -99,7 +99,7 @@ the driver library for your language of choice using
 the above secret.
 ```
 
-This is how to list keys (the results may differ from what you see in your instance of FaunaDB)
+This is how to list keys (the results may differ from what you see in your database)
 
 ```sh-session
 $ fauna list-keys
@@ -142,9 +142,9 @@ FAUNA_SHELL_LOGIN_URL=https://www.mycustomdomain.com/login
 
 # Shell
 
-The Fauna Shell lets you issue queries directly to your FaunaDB instance without the need for installing additional libraries.
+The Fauna Shell lets you issue queries directly to your Fauna database without the need for installing additional libraries.
 
-Let's create a database and then we'll jump straight into the Shell to start playing with FaunaDB's data model.
+Let's create a database and then we'll jump straight into the Shell to start playing with Fauna's data model.
 
 ```sh-session
 $ fauna create-database my_app
@@ -160,137 +160,133 @@ Type Ctrl+D or .exit to exit the shell
 my_app>
 ```
 
-Once you have the prompt ready, you can start issues queries against your FaunaDB instance. (Note that the results shown here might vary from the ones you see while running the examples).
+Once you have the prompt ready, you can start issues queries against your Fauna database. (Note that the results shown here might vary from the ones you see while running the examples).
 
 ```javascript
-my_app> CreateCollection({ name: "posts" })
+my_app> Collection.create({ name: "Post" })
 {
-  ref: Collection("posts"),
-  ts: 1532624109799742,
-  history_days: 30,
-  name: 'posts'
+  name: "Post",
+  coll: Collection,
+  ts: Time("2023-08-15T16:06:01.120Z"),
+  indexes: {},
+  constraints: []
 }
 ```
 
-Let's create an index for our _posts_.
+Let's create an index for our collection `Post`.
 
 ```javascript
-my_app> CreateIndex(
-    {
-      name: "posts_by_title",
-      source: Collection("posts"),
-      terms: [{ field: ["data", "title"] }]
-    })
+
+my_app> Post.definition.update({ indexes: { byTitle: { terms: [{ field: ".title" }] } } })
 {
-  ref: Index("posts_by_title"),
-  ts: 1532624135128797,
-  active: false,
-  partitions: 1,
-  name: 'posts_by_title',
-  source: Collection("posts"),
-  terms: [ { field: [ 'data', 'title' ] } ]
+  name: "Post",
+  coll: Collection,
+  ts: Time("2023-08-15T16:07:10.800Z"),
+  indexes: {
+    byTitle: {
+      terms: [
+        {
+          field: ".title"
+        }
+      ],
+      queryable: true,
+      status: "complete"
+    }
+  },
+  constraints: []
 }
 ```
 
-Let's insert a _post_ item:
+Let's insert a new `Post` document:
 
 ```javascript
-my_app> Create(
-    Collection("posts"),
-    { data: { title: "What I had for breakfast .." } })
+my_app> Post.create({ title: "What I had for breakfast .." })
 {
-  ref: Ref(Collection("posts"), "205904004461363712"),
-  ts: 1532624210670859,
-  data: { title: 'What I had for breakfast ..' }
+  id: "373143369066480128",
+  coll: Post,
+  ts: Time("2023-08-15T16:14:57.440Z"),
+  title: "What I had for breakfast .."
 }
 ```
 
-We can also insert items in bulk by using the `Map` function.
+We can also insert items in bulk by using iterator functions on arrays.
 
 ```javascript
-my_app >
-  Map(
-    [
-      "My cat and other marvels",
-      "Pondering during a commute",
-      "Deep meanings in a latte",
-    ],
-    Lambda(
-      "post_title",
-      Create(Collection("posts"), { data: { title: Var("post_title") } })
-    )
-  )[
-    ({
-      ref: Ref(Collection("posts"), "205904031076321792"),
-      ts: 1532624236071215,
-      data: { title: "My cat and other marvels" },
-    },
-    {
-      ref: Ref(Collection("posts"), "205904031076320768"),
-      ts: 1532624236071215,
-      data: { title: "Pondering during a commute" },
-    },
-    {
-      ref: Ref(Collection("posts"), "205904031076319744"),
-      ts: 1532624236071215,
-      data: { title: "Deep meanings in a latte" },
-    })
-  ];
+my_app> ["My cat and other marvels", "Pondering during a commute", "Deep meanings in a latte"].map(title => Post.create({ title: title }))
+[
+  {
+    id: "373143473418666496",
+    coll: Post,
+    ts: Time("2023-08-15T16:16:36.960Z"),
+    title: "My cat and other marvels"
+  },
+  {
+    id: "373143473419715072",
+    coll: Post,
+    ts: Time("2023-08-15T16:16:36.960Z"),
+    title: "Pondering during a commute"
+  },
+  {
+    id: "373143473420763648",
+    coll: Post,
+    ts: Time("2023-08-15T16:16:36.960Z"),
+    title: "Deep meanings in a latte"
+  }
+]
 ```
 
 Now let's try to fetch our post about _latte_. We need to access it by _id_ like this:
 
 ```javascript
-my_app> Get(Ref(Collection("posts"),"205904031076319744"))
+my_app> Post.byId("373143473420763648")
 {
-  ref: Ref(Collection("posts"), "205904031076319744"),
-  ts: 1532624236071215,
-  data: { title: 'Deep meanings in a latte' }
+  id: "373143473420763648",
+  coll: Post,
+  ts: Time("2023-08-15T16:16:36.960Z"),
+  title: "Deep meanings in a latte"
 }
 ```
 
 Now let's update our post about our cat, by adding some tags:
 
 ```javascript
-my_app> Update(
-    Ref(Collection("posts"), "205904031076321792"),
-    { data: { tags: ["pet", "cute"] } })
+my_app> Post.byId("373143473420763648")!.update({ tags: ["cute", "pet"] })
 {
-  ref: Ref(Collection("posts"), "205904031076321792"),
-  ts: 1532624327263554,
-  data: { title: 'My cat and other marvels', tags: [ 'pet', 'cute' ] }
+  id: "373143473420763648",
+  coll: Post,
+  ts: Time("2023-08-15T16:17:41Z"),
+  title: "Deep meanings in a latte",
+  tags: [
+    "cute",
+    "pet"
+  ]
 }
 ```
 
 And now let's try to change the content of that post:
 
 ```javascript
-my_app> Replace(
-    Ref(Collection("posts"), "205904031076321792"),
-    { data: { title: "My dog and other marvels" } })
+my_app> Post.byId("373143473418666496")!.replace({ title: "My dog and other marvels" })
 {
-  ref: Ref(Collection("posts"), "205904031076321792"),
-  ts: 1532624352388889,
-  data: { title: 'My dog and other marvels' }
+  id: "373143473418666496",
+  coll: Post,
+  ts: Time("2023-08-15T16:18:32.680Z"),
+  title: "My dog and other marvels"
 }
 ```
 
 Now let's try to delete our post about _latte_:
 
 ```javascript
-my_app> Delete(Ref(Collection("posts"), "205904031076319744"))
-{
-  ref: Ref(Collection("posts"), "205904031076319744"),
-  ts: 1532624236071215,
-  data: { title: 'Deep meanings in a latte' }
-}
+my_app> Post.byId("373143473420763648")!.delete()
+Post.byId("373143473420763648") /* not found */
 ```
 
-If we try to fetch it, we will receive an error:
+If we try to fetch it, we will receive a null document:
 
 ```javascript
-my_app> Get(Ref(Collection("posts"), "205904031076319744"))
- Error: instance not found
+my_app> Post.byId("373143473420763648")
+Post.byId("373143473420763648") /* not found */
 ```
 
 Finally you can exit the _shell_ by pressing `ctrl+d`.
@@ -328,7 +324,7 @@ If we have defined many endpoints, we could set one of them as the default one w
 $ fauna default-endpoint cloud
 ```
 
-The _default endpoint_ will be used by the shell to connect to FaunaDB.
+The _default endpoint_ will be used by the shell to connect to Fauna if the `--endpoint` flag is not set.
 
 Endpoints can be listed with the `list-endpoints` command like this:
 
@@ -395,14 +391,14 @@ fauna shell --endpoint localhost
 
 # Overriding Connection Parameters
 
-Most commands support the following options. You can specify them if you want to connect to your local FaunaDB instance.
+Most commands support the following options. You can specify them if you want to connect to a local instance of Fauna.
 
 ```
 OPTIONS
-  --domain=domain      [default: db.fauna.com] FaunaDB server domain
+  --domain=domain      [default: db.fauna.com] Fauna server domain
   --port=port          [default: 443] Connection port
   --scheme=https|http  [default: https] Connection scheme
-  --secret=secret      FaunaDB secret key
+  --secret=secret      Fauna secret key
   --timeout=timeout    [default: 80] Connection timeout in milliseconds
   --endpoint=alias     Overrides the default endpoint set in ~/.fauna-shell
   --graphqlHost=domain [default: graphql.fauna.com] The Fauna GraphQL API host
@@ -427,38 +423,45 @@ Any options that are not specified either via the `.fauna-shell` config file or 
 
 # Executing queries from a file
 
-You can also tell the shell to execute a list of queries that you have stored in a file. For example, you can have a filed called `queries.fql` with the following content:
+You can also tell the shell to execute a list of queries that you have stored in a file. For example, you can have a file that creates a collection called `setup.fql`:
 
 ```javascript
-CreateCollection({ name: "posts" });
-CreateIndex({
-  name: "posts_by_title",
-  source: Collection("posts"),
-  terms: [{ field: ["data", "title"] }],
-});
-Create(Collection("posts"), { data: { title: "What I had for breakfast .." } });
-Map(
-  [
-    "My cat and other marvels",
-    "Pondering during a commute",
-    "Deep meanings in a latte",
-  ],
-  Lambda(
-    "post_title",
-    Create(Collection("posts"), { data: { title: Var("post_title") } })
-  )
-);
+Collection.create({
+  name: "Post",
+  indexes: {
+    byTitle: {
+      terms: [{ field: ".title" }]
+    }
+  }
+})
+```
+
+Once the collection is created, you can execute queries against it in another `.fql` file:
+
+```
+Post.create({
+  title: "What I had for breakfast .."
+})
+
+[
+  "My cat and other marvels",
+  "Pondering during a commute",
+  "Deep meanings in a latte",
+].map(title => {
+  Post.create({
+    title: title
+  })
+})
 ```
 
 You can tell Fauna Shell to execute all those queries for you by running the following command:
 
 ```bash
+$ fauna eval my_app --file=./setup.fql
 $ fauna eval my_app --file=./queries.fql
 ```
 
-Where `my_app` is the name of your database, and `./queries.fql` is the path to the file where you saved the queries. If `my_app` is left out it will execute the queries file on the default fauna shell endpoint. This was previously called `run-queries`.
-
-Queries have to be written in the syntax supported by FaunaDB's Javascript [driver](https://github.com/fauna/faunadb-js).
+Where `my_app` is the name of your database, and `./queries.fql` is the path to the file where you saved the queries. If `my_app` is left out it will execute the queries file on the default fauna shell endpoint.
 
 <!-- detailsstop -->
 
@@ -500,17 +503,17 @@ Queries have to be written in the syntax supported by FaunaDB's Javascript [driv
 
 ## `fauna add-endpoint ENDPOINT`
 
-Adds a connection endpoint for FaunaDB
+Adds a connection endpoint for Fauna.
 
 ```
 USAGE
   $ fauna add-endpoint ENDPOINT
 
 ARGUMENTS
-  ENDPOINT  FaunaDB server endpoint
+  ENDPOINT  Fauna server endpoint
 
 DESCRIPTION
-  Adds a connection endpoint for FaunaDB
+  Adds a connection endpoint for Fauna.
 
 EXAMPLE
   $ fauna add-endpoint https://db.fauna.com:443
@@ -544,14 +547,14 @@ _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomp
 
 ## `fauna cloud-login`
 
-Adds the FaunaDB Cloud endpoint.
+Adds a Fauna endpoint.
 
 ```
 USAGE
   $ fauna cloud-login
 
 DESCRIPTION
-  Adds the FaunaDB Cloud endpoint
+  Adds a Fauna endpoint.
 
 EXAMPLE
   $ fauna cloud-login
@@ -571,11 +574,11 @@ ARGUMENTS
   DBNAME  database name
 
 OPTIONS
-  --domain=domain      FaunaDB server domain
-  --endpoint=endpoint  FaunaDB server endpoint
+  --domain=domain      Fauna server domain
+  --endpoint=endpoint  Fauna server endpoint
   --port=port          Connection port
   --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
+  --secret=secret      Fauna secret key
   --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
@@ -600,11 +603,11 @@ ARGUMENTS
   ROLE    (admin|server|server-readonly|client) key user role
 
 OPTIONS
-  --domain=domain      FaunaDB server domain
-  --endpoint=endpoint  FaunaDB server endpoint
+  --domain=domain      Fauna server domain
+  --endpoint=endpoint  Fauna server endpoint
   --port=port          Connection port
   --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
+  --secret=secret      Fauna secret key
   --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
@@ -625,7 +628,7 @@ USAGE
   $ fauna default-endpoint ENDPOINT_ALIAS
 
 ARGUMENTS
-  ENDPOINT_ALIAS  FaunaDB server endpoint alias
+  ENDPOINT_ALIAS  Fauna server endpoint alias
 
 DESCRIPTION
   Sets an endpoint as the default one
@@ -648,11 +651,11 @@ ARGUMENTS
   DBNAME  database name
 
 OPTIONS
-  --domain=domain      FaunaDB server domain
-  --endpoint=endpoint  FaunaDB server endpoint
+  --domain=domain      Fauna server domain
+  --endpoint=endpoint  Fauna server endpoint
   --port=port          Connection port
   --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
+  --secret=secret      Fauna secret key
   --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
@@ -666,17 +669,17 @@ _See code: [src/commands/delete-database.js](src/commands/delete-database.js)_
 
 ## `fauna delete-endpoint ENDPOINT_ALIAS`
 
-Deletes a connection endpoint for FaunaDB
+Deletes a connection endpoint.
 
 ```
 USAGE
   $ fauna delete-endpoint ENDPOINT_ALIAS
 
 ARGUMENTS
-  ENDPOINT_ALIAS  FaunaDB server endpoint alias
+  ENDPOINT_ALIAS  Fauna server endpoint alias
 
 DESCRIPTION
-  Deletes a connection endpoint for FaunaDB
+  Deletes a connection endpoint.
 
 EXAMPLE
   $ fauna delete-endpoint endpoint_alias
@@ -696,11 +699,11 @@ ARGUMENTS
   KEYNAME  key name
 
 OPTIONS
-  --domain=domain      FaunaDB server domain
-  --endpoint=endpoint  FaunaDB server endpoint
+  --domain=domain      Fauna server domain
+  --endpoint=endpoint  Fauna server endpoint
   --port=port          Connection port
   --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
+  --secret=secret      Fauna secret key
   --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
@@ -738,11 +741,11 @@ USAGE
   $ fauna list-databases
 
 OPTIONS
-  --domain=domain      FaunaDB server domain
-  --endpoint=endpoint  FaunaDB server endpoint
+  --domain=domain      Fauna server domain
+  --endpoint=endpoint  Fauna server endpoint
   --port=port          Connection port
   --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
+  --secret=secret      Fauna secret key
   --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
@@ -756,14 +759,14 @@ _See code: [src/commands/list-databases.js](src/commands/list-databases.js)_
 
 ## `fauna list-endpoints`
 
-Lists FaunaDB connection endpoints
+Lists connection endpoints.
 
 ```
 USAGE
   $ fauna list-endpoints
 
 DESCRIPTION
-  Lists FaunaDB connection endpoints
+  Lists connection endpoints.
 
 EXAMPLE
   $ fauna list-endpoints
@@ -780,11 +783,11 @@ USAGE
   $ fauna list-keys
 
 OPTIONS
-  --domain=domain      FaunaDB server domain
-  --endpoint=endpoint  FaunaDB server endpoint
+  --domain=domain      Fauna server domain
+  --endpoint=endpoint  Fauna server endpoint
   --port=port          Connection port
   --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
+  --secret=secret      Fauna secret key
   --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
@@ -808,12 +811,12 @@ ARGUMENTS
   DBNAME  database name
 
 OPTIONS
-  --domain=domain      FaunaDB server domain
-  --endpoint=endpoint  FaunaDB server endpoint
+  --domain=domain      Fauna server domain
+  --endpoint=endpoint  Fauna server endpoint
   --file=file          File where to read queries from
   --port=port          Connection port
   --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
+  --secret=secret      Fauna secret key
   --timeout=timeout    Connection timeout in milliseconds
 
 DESCRIPTION
@@ -827,7 +830,7 @@ _See code: [src/commands/run-queries.js](src/commands/run-queries.js)_
 
 ## `fauna shell [DBNAME]`
 
-Starts a FaunaDB shell
+Starts an interactive shell.
 
 ```
 USAGE
@@ -837,15 +840,16 @@ ARGUMENTS
   DBNAME  database name
 
 OPTIONS
-  --domain=domain      FaunaDB server domain
-  --endpoint=endpoint  FaunaDB server endpoint
+  --domain=domain      Fauna server domain
+  --endpoint=endpoint  Fauna server endpoint
   --port=port          Connection port
   --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
+  --secret=secret      Fauna secret key
   --timeout=timeout    Connection timeout in milliseconds
+  --version=4|10       [default: 10] FQL version to use
 
 DESCRIPTION
-  Starts a FaunaDB shell
+  Starts an interactive shell.
 
 EXAMPLE
   $ fauna shell dbname
@@ -866,16 +870,17 @@ ARGUMENTS
   DBNAME Database name
 
 OPTIONS
-  --domain=domain      FaunaDB server domain
-  --endpoint=endpoint  FaunaDB server endpoint
-  --file=file          File where to read queries from
-  --format=json|shell  [default: json] Output format
-  --output=output      File to write output to
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      FaunaDB secret key
-  --stdin              Read file input from stdin. Writes to stdout by default
-  --timeout=timeout    Connection timeout in milliseconds
+  --domain=domain                  Fauna server domain
+  --endpoint=endpoint              Fauna server endpoint
+  --file=file                      File where to read queries from
+  --format=json|shell|json-tagged  [default: shell if tty, json if no tty] Output format
+  --output=output                  File to write output to
+  --port=port                      Connection port
+  --scheme=https|http              Connection scheme
+  --secret=secret                  Fauna secret key
+  --stdin                          Read file input from stdin. Writes to stdout by default
+  --timeout=timeout                Connection timeout in milliseconds
+  --version=4|10                   [default: 10] FQL version to use
 
 DESCRIPTION
   Runs the specified query. Can read from stdin, file or command line.
@@ -883,12 +888,12 @@ DESCRIPTION
   Output format can be specified.
 
 EXAMPLES
-  $ fauna eval "Paginate(Collections())"
-  $ fauna eval nestedDbName "Paginate(Collections())"
+  $ fauna eval "Collection.all()"
+  $ fauna eval nestedDbName "Collection.all()"
   $ fauna eval --file=/path/to/queries.fql
-  $ echo "Add(1,1)" | fauna eval --stdin
-  $ fauna eval "Add(2,3)" "--output=/tmp/result"
-  $ fauna eval "Add(2,3)" "--format=json" "--output=/tmp/result"
+  $ echo "1 + 1" | fauna eval
+  $ fauna eval "2 + 3" --output=/tmp/result"
+  $ fauna eval "2 + 3" --format=json --output=/tmp/result"
 ```
 
 _See code: [src/commands/eval.js](src/commands/eval.js)_
@@ -906,12 +911,12 @@ OPTIONS
   --append                 Allows appending documents to a non-empty collection
   --collection=collection  Collection name. When not specified, the collection name is the filename when --path is file
   --db=db                  Child database name; imported documents are stored in this database
-  --domain=domain          FaunaDB server domain
-  --endpoint=endpoint      FaunaDB server endpoint
+  --domain=domain          Fauna server domain
+  --endpoint=endpoint      Fauna server endpoint
   --path=path              (required) Path to .csv/.json file, or path to folder containing .csv/.json files
   --port=port              Connection port
   --scheme=https|http      Connection scheme
-  --secret=secret          FaunaDB secret key
+  --secret=secret          Fauna secret key
   --timeout=timeout        Connection timeout in milliseconds
 
   --type=type              Column type casting, converts the column value to a Fauna type.
@@ -941,14 +946,14 @@ ARGUMENTS
   GRAPHQLFILEPATH  Path to GraphQL schema
 
 OPTIONS
-  --domain=domain            FaunaDB server domain
-  --endpoint=endpoint        FaunaDB server endpoint
+  --domain=domain            Fauna server domain
+  --endpoint=endpoint        Fauna server endpoint
   --graphqlHost=graphqlHost  The Fauna GraphQL API host
   --graphqlPort=port         GraphQL port
   --mode=merge|override      [default: merge] Upload mode
   --port=port                Connection port
   --scheme=https|http        Connection scheme
-  --secret=secret            FaunaDB secret key
+  --secret=secret            Fauna secret key
   --timeout=timeout          Connection timeout in milliseconds
 
 EXAMPLES
@@ -972,12 +977,12 @@ OPTIONS
   --append                 Allows appending documents to a non-empty collection
   --collection=collection  Collection name. When not specified, the collection name is the filename when --path is file
   --db=db                  Child database name; imported documents are stored in this database
-  --domain=domain          FaunaDB server domain
-  --endpoint=endpoint      FaunaDB server endpoint
+  --domain=domain          Fauna server domain
+  --endpoint=endpoint      Fauna server endpoint
   --path=path              (required) Path to .csv/.json file, or path to folder containing .csv/.json files
   --port=port              Connection port
   --scheme=https|http      Connection scheme
-  --secret=secret          FaunaDB secret key
+  --secret=secret          Fauna secret key
   --timeout=timeout        Connection timeout in milliseconds
 
   --type=type              Column type casting, converts the column value to a Fauna type.

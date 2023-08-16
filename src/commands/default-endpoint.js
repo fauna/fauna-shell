@@ -25,7 +25,7 @@ DefaultEndpointCommand.args = {
   // eslint-disable-next-line camelcase
   endpoint_alias: Args.string({
     required: true,
-    description: "FaunaDB server endpoint alias",
+    description: "Fauna server endpoint alias",
   }),
 };
 

@@ -82,14 +82,8 @@ class EvalCommand extends FaunaCommand {
         queryFromFile = await readFile(queriesFile);
       }
 
-      // In v10, we check if its a TTY for shell/json format. In v4, default to json (to avoid breaking compatability).
       const format =
-        this.flags.format ??
-        (this.flags.version === "10"
-          ? process.stdout.isTTY
-            ? "shell"
-            : "json"
-          : "json");
+        this.flags.format ?? (process.stdout.isTTY ? "shell" : "json");
 
       const result = await this.performQuery(
         client,
@@ -227,12 +221,12 @@ class EvalCommand extends FaunaCommand {
 }
 
 EvalCommand.examples = [
-  '$ fauna eval "Paginate(Collections())"',
-  '$ fauna eval nestedDbName "Paginate(Collections())"',
+  '$ fauna eval "Collection.all()"',
+  '$ fauna eval nestedDbName "Collection.all()"',
   "$ fauna eval --file=/path/to/queries.fql",
-  '$ echo "Add(1,1)" | fauna eval --stdin',
-  '$ fauna eval "Add(2,3)" --output=/tmp/result"',
-  '$ fauna eval "Add(2,3)" --format=json --output=/tmp/result"',
+  '$ echo "1 + 1" | fauna eval',
+  '$ fauna eval "2 + 3" --output=/tmp/result"',
+  '$ fauna eval "2 + 3" --format=json --output=/tmp/result"',
 ];
 
 EvalCommand.flags = {
@@ -255,7 +249,7 @@ EvalCommand.flags = {
   }),
   version: Flags.string({
     description: "FQL Version",
-    default: "4",
+    default: "10",
     options: ["4", "10"],
   }),
 

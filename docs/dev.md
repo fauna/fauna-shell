@@ -4,24 +4,24 @@ This is an attempt to describe what are the project goals, and give an architect
 
 ## Project Goals
 
-1. Help people get started with FaunaDB.
+1. Help people get started with Fauna.
 
 The ideal path would be:
 
-- Login to Fauna Cloud: `$ fauna cloud-login`
+- Login to Fauna: `$ fauna cloud-login`
 - Create a Database: `$ fauna create-database my_app`
 - Start an interactive shell: `$ fauna shell my_app`
-- Send queries to FaunaDB from the interactive Shell: `my_app> CreateCollection({ name: "posts" })`
+- Send queries to Fauna from the interactive Shell: `my_app> CreateCollection({ name: "posts" })`
 
 For that we offer installs via npm: https://www.npmjs.com/package/fauna-shell and Mac users have the option to also install via homebrew, so we support this repo: https://github.com/fauna/homebrew-fauna-shell-tap
 
-The project uses the [faunadb-js](https://github.com/fauna/faunadb-js) client. The idea is to bundle it with the shell so the user doesn't need to install any extra software or libraries to get started with FaunaDB.
+The project uses the [faunadb-js](https://github.com/fauna/faunadb-js) client. The idea is to bundle it with the shell so the user doesn't need to install any extra software or libraries to get started with Fauna.
 
 2. Help people clear initial hurdles.
 
-A required step before start experimenting with FaunaDB is to have a database with its respective key. The shell offers a set of commands that help the user with tasks like creating/deleting databases and keys.
+A required step before start experimenting with Fauna is to have a database with its respective key. The shell offers a set of commands that help the user with tasks like creating/deleting databases and keys.
 
-3. Help people connect to FaunaDB (cloud or self hosted)
+3. Help people connect to Fauna (cloud or self hosted)
 
 The user should have an easy way to handle the configuration to the various endpoints they might want to connect to.
 
@@ -29,11 +29,11 @@ For that the shell offers a file called `.fauna-shell`, stored at their home dir
 
 Adding an endpoint should be as easy as typing: `$ fauna add-endpoint "https://example.org:443"`.
 
-Connecting to the FaunaDB Cloud should be as easy as typing: `$ fauna cloud-login`. The user will be prompted for their email & passwords, and their key will be saved in the `.fauna-shell` file.
+Connecting to Fauna should be as easy as typing: `$ fauna cloud-login`. The user will be prompted for their email & passwords, and their key will be saved in the `.fauna-shell` file.
 
-3. Provide an easy to use shell (REPL) for interacting with FaunaDB.
+3. Provide an easy to use shell (REPL) for interacting with Fauna.
 
-When the user starts the shell by typing `$ fauna shell my_app`, they get an interactive prompt where they can type FaunaDB queries right away.
+When the user starts the shell by typing `$ fauna shell my_app`, they get an interactive prompt where they can type Fauna queries right away.
 
 Usually queries are wrapped around the `Query()` constructor. This is not required in the shell.
 
@@ -43,7 +43,7 @@ The less key strokes the user has to type, the better.
 
 4. Make the experience as smooth as possible.
 
-Commands should provide clear error messages. A confusing error message could put a user away from FaunaDB. We want to prevent that as much as possible.
+Commands should provide clear error messages. A confusing error message could put a user away from Fauna. We want to prevent that as much as possible.
 
 Commands should also provide guidance. For example `create-database` explains to the user how to go from there, like how to start a shell for that particular database.
 
@@ -53,7 +53,7 @@ The project uses the [oclif](https://oclif.io/) framework for creating CLI tools
 
 All commands extend our custom [FaunaCommand](https://github.com/fauna/fauna-shell/blob/main/src/lib/fauna_command.js).
 
-If your command needs to connect to FaunaDB and accept parameters `like`, `domain`, `scheme`, `port`, `timeout` or `secret`, then extending FaunaCommand will handle that for you. The only requisite is that you define your command [flags](https://oclif.io/docs/flags.html) like this:
+If your command needs to connect to Fauna and accept parameters `like`, `domain`, `scheme`, `port`, `timeout` or `secret`, then extending FaunaCommand will handle that for you. The only requisite is that you define your command [flags](https://oclif.io/docs/flags.html) like this:
 
 ```javascript
 MyNewCommandCommand.flags = {
@@ -61,7 +61,7 @@ MyNewCommandCommand.flags = {
 };
 ```
 
-Besides that, `FaunaCommand` offers a set of helper methods that let you work with FaunaDB queries without worrying about having to create a connection:
+Besides that, `FaunaCommand` offers a set of helper methods that let you work with Fauna queries without worrying about having to create a connection:
 
 ```javascript
 class MyNewCommandCommand extends FaunaCommand {
@@ -76,7 +76,7 @@ See other commands for complete examples on how to do that, and check the FaunaC
 
 Helper functions are defined in the [misc](https://github.com/fauna/fauna-shell/blob/main/src/lib/misc.js) module.
 
-These functions let you do things from reading/writing the shell's config file, to building configuration options for creating a connection to FaunaDB.
+These functions let you do things from reading/writing the shell's config file, to building configuration options for creating a connection to Fauna.
 
 ## Running Tests
 

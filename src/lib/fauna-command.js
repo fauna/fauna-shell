@@ -189,7 +189,7 @@ class FaunaCommand extends Command {
 FaunaCommand.flags = {
   ...Command.flags,
   domain: Flags.string({
-    description: "FaunaDB server domain",
+    description: "Fauna server domain",
   }),
   scheme: Flags.string({
     description: "Connection scheme",
@@ -202,10 +202,10 @@ FaunaCommand.flags = {
     description: "Connection timeout in milliseconds",
   }),
   secret: Flags.string({
-    description: "FaunaDB secret key",
+    description: "Fauna secret key",
   }),
   endpoint: Flags.string({
-    description: "FaunaDB server endpoint",
+    description: "Fauna server endpoint",
   }),
   graphqlHost: Flags.string({
     description: "The Fauna GraphQL API host",
