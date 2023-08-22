@@ -3,7 +3,7 @@ version: "3.3"
 services:
   faunadb:
     image: fauna/faunadb
-    container_name: faunadb
+    container_name: core
     healthcheck:
       test: ["CMD", "curl", "http://faunadb:8443/ping"]
       interval: 1s
@@ -23,4 +23,4 @@ services:
     volumes:
       - "../../:/tmp/app"
     working_dir: "/tmp/app"
-    command: [sh, -c, "npm install && npm run test"]
+    command: [sh, -c, "yarn install && yarn run test"]
