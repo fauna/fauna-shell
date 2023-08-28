@@ -54,8 +54,9 @@ class ShellCommand extends EvalCommand {
     // on v10. This causes it to actually die.
     //
     // Also, tests don't like `process.exit()`, so don't do this in tests.
-    if (typeof global.it !== 'function') {
-      this.repl.on('exit', (code) => {
+    if (typeof global.it !== "function") {
+      this.repl.on("exit", (code) => {
+        // eslint-disable-next-line no-process-exit, unicorn/no-process-exit
         process.exit(code);
       });
     }
