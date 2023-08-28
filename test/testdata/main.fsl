@@ -1,0 +1,3 @@
+collection foo {}
+
+function bar(x, y) { x + y }
