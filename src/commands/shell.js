@@ -52,9 +52,13 @@ class ShellCommand extends EvalCommand {
     });
     // The repl normally waits for the HTTP2 stream to close, so it just hangs
     // on v10. This causes it to actually die.
-    this.repl.on('exit', (code) => {
-      process.exit(code);
-    });
+    //
+    // Also, tests don't like `process.exit()`, so don't do this in tests.
+    if (typeof global.it !== 'function') {
+      this.repl.on('exit', (code) => {
+        process.exit(code);
+      });
+    }
     this.repl.eval = this.eval(this.repl.eval);
     this.repl.context.lastError = undefined;
     Object.assign(this.repl.context, q);
