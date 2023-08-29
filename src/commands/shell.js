@@ -50,6 +50,16 @@ class ShellCommand extends EvalCommand {
       // TODO: Integrate with fql-analyzer for completions
       completer: this.flags.version === "10" ? () => [] : undefined,
     });
+    // The repl normally waits for the HTTP2 stream to close, so it just hangs
+    // on v10. This causes it to actually die.
+    //
+    // Also, tests don't like `process.exit()`, so don't do this in tests.
+    if (typeof global.it !== "function") {
+      this.repl.on("exit", (code) => {
+        // eslint-disable-next-line no-process-exit, unicorn/no-process-exit
+        process.exit(code);
+      });
+    }
     this.repl.eval = this.eval(this.repl.eval);
     this.repl.context.lastError = undefined;
     Object.assign(this.repl.context, q);
