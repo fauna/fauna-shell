@@ -7,7 +7,7 @@ class SchemaCommand extends FaunaCommand {
     } = await this.getClient();
 
     return {
-      urlbase: `${scheme}://${domain}:${port ? port : "4443"}`,
+      urlbase: `${scheme ?? "https"}://${domain}${port ? `:${port}` : ""}`,
       secret: secret,
     };
   }
