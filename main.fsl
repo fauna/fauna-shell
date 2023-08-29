@@ -1,3 +1,0 @@
-function x2(x) {
-  x + x + x
-}
