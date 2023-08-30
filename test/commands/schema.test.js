@@ -24,6 +24,11 @@ const functions = {
   content: "function id(x) { x }",
 };
 
+const myrole = {
+  version: 0,
+  content: "role myrole { }",
+};
+
 const diff = {
   version: 0,
   diff: "main.fsl ADD collection foo",
@@ -31,7 +36,11 @@ const diff = {
 
 const pullfiles = {
   version: 0,
-  files: [{ filename: "main.fsl" }, { filename: "functions.fsl" }],
+  files: [
+    { filename: "main.fsl" },
+    { filename: "functions.fsl" },
+    { filename: "roles/myrole.fsl" },
+  ],
 };
 
 const updated = { version: 1 };
@@ -97,6 +106,7 @@ const testdir = "test/testdata";
 const setup = () => {
   try {
     fs.unlinkSync(path.join(testdir, "functions.fsl"));
+    fs.rmSync(path.join(testdir, "roles"), { recursive: true, force: true });
   } catch (err) {
     // 2023 technology.
     if (err.code === "ENOENT") {
@@ -128,6 +138,8 @@ for (const retain of [true, false]) {
           .reply(200, functions)
           .get("/schema/1/files/main.fsl")
           .reply(200, main)
+          .get("/schema/1/files/roles/myrole.fsl")
+          .reply(200, myrole)
       )
       .stdout()
       .command(withOpts(cmd))
@@ -139,6 +151,9 @@ for (const retain of [true, false]) {
         expect(
           fs.readFileSync(path.join(testdir, "main.fsl"), "utf8")
         ).to.equal(main.content);
+        expect(
+          fs.readFileSync(path.join(testdir, "roles", "myrole.fsl"), "utf8")
+        ).to.equal(myrole.content);
         expect(
           fs.statSync(path.join(testdir, "no.fsl")).isDirectory()
         ).to.equal(true);

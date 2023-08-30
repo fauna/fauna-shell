@@ -10,32 +10,40 @@ const FILESIZE_LIMIT_BYTES = 32 * 1024 * 1024;
 
 class PushSchemaCommand extends SchemaCommand {
   async run() {
-    const { urlbase, secret } = await this.fetchsetup();
-    const dir = this.flags.dir;
-    const filenames = fs.readdirSync(dir);
+    // Recursively gather all .fsl files.
+    const basedir = this.flags.dir;
     var totalsize = 0;
-    const files = filenames
-      .filter(
-        (filename) =>
-          filename.endsWith(".fsl") &&
-          !fs.statSync(path.join(dir, filename)).isDirectory()
-      )
-      .map((filename) => {
-        const content = fs.readFileSync(path.join(dir, filename));
-        totalsize += content.length;
-        if (totalsize > FILESIZE_LIMIT_BYTES) {
-          this.error(
-            `Too many bytes: at most ${FILESIZE_LIMIT_BYTES} may be pushed`
-          );
+    const files = [];
+    const go = (rel) => {
+      const names = fs.readdirSync(path.join(basedir, rel));
+      const subdirs = [];
+      for (const n of names) {
+        const fp = path.join(basedir, rel, n);
+        const relp = path.join(rel, n);
+        const isDir = fs.statSync(fp).isDirectory();
+        if (n.endsWith(".fsl") && !isDir) {
+          const content = fs.readFileSync(fp);
+          totalsize += content.length;
+          if (totalsize > FILESIZE_LIMIT_BYTES) {
+            this.error(
+              `Too many bytes: at most ${FILESIZE_LIMIT_BYTES} may be pushed`
+            );
+          }
+          files.push({ name: relp, content: content });
         }
-        return {
-          name: filename,
-          content: content,
-        };
-      });
+        if (isDir) {
+          subdirs.push(relp);
+        }
+      }
+      for (const reldir of subdirs) {
+        go(reldir);
+      }
+    };
+    go("");
     if (files.length > FILE_LIMIT) {
       this.error(`Too many files: ${files.length} > ${FILE_LIMIT}`);
     }
+
     const body = () => {
       const fd = new FormData();
       for (const file of files) {
@@ -45,6 +53,7 @@ class PushSchemaCommand extends SchemaCommand {
     };
 
     try {
+      const { urlbase, secret } = await this.fetchsetup();
       if (this.flags.force) {
         // Just push.
         const res = await fetch(`${urlbase}/schema/1/update?force=true`, {
