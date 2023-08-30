@@ -1,4 +1,4 @@
-const FaunaCommand = require("../../lib/fauna-command.js");
+const FaunaCommand = require("./fauna-command.js");
 
 class SchemaCommand extends FaunaCommand {
   async fetchsetup() {
