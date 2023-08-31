@@ -9,6 +9,20 @@ const FILE_LIMIT = 256;
 const FILESIZE_LIMIT_BYTES = 32 * 1024 * 1024;
 
 class PushSchemaCommand extends SchemaCommand {
+  static flags = {
+    ...SchemaCommand.flags,
+    force: Flags.boolean({
+      description: "Push the change without a diff or schema version check",
+      default: false,
+    }),
+    // NB: Required as a flag because it will become optional eventually,
+    //     once project configuration is implemented.
+    dir: Flags.string({
+      required: true,
+      description: "The directory of .fsl files to push",
+    }),
+  };
+
   async confirm() {
     const resp = await ux.prompt("Accept and push the changes?", {
       default: "no",
@@ -123,17 +137,4 @@ PushSchemaCommand.description = "Push a directory of .fsl files to Fauna";
 
 PushSchemaCommand.examples = ["$ fauna schema push --dir schemas/myschema"];
 
-PushSchemaCommand.flags = {
-  ...SchemaCommand.flags,
-  force: Flags.boolean({
-    description: "Push the change without a diff or schema version check",
-    default: false,
-  }),
-  // NB: Required as a flag because it will become optional eventually,
-  //     once project configuration is implemented.
-  dir: Flags.string({
-    required: true,
-    description: "The directory of .fsl files to push",
-  }),
-};
 module.exports = PushSchemaCommand;
