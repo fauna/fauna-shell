@@ -38,7 +38,7 @@ const updated = { version: 1 };
 
 describe("fauna schema push test", () => {
   test
-    .stub(ux, "confirm", () => async () => true)
+    .stub(ux, "prompt", async () => "Y")
     .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
       api
         .persist()

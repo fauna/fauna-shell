@@ -9,6 +9,20 @@ const FILE_LIMIT = 256;
 const FILESIZE_LIMIT_BYTES = 32 * 1024 * 1024;
 
 class PushSchemaCommand extends SchemaCommand {
+  async confirm() {
+    const resp = await ux.prompt("Accept and push the changes?", {
+      default: "no",
+    });
+    if (["yes", "y"].includes(resp.toLowerCase())) {
+      return true;
+    }
+    if (["no", "n"].includes(resp.toLowerCase())) {
+      return false;
+    }
+    console.log("Please type 'yes' or 'no'");
+    return this.confirm();
+  }
+
   async run() {
     // Recursively gather all .fsl files.
     const basedir = this.flags.dir;
@@ -79,7 +93,7 @@ class PushSchemaCommand extends SchemaCommand {
         }
         this.log(`Proposed diff:\n`);
         this.log(json.diff);
-        if (await ux.confirm("Accept and push the changes?")) {
+        if (await this.confirm()) {
           const res = await fetch(
             `${urlbase}/schema/1/update?version=${json.version}`,
             {
