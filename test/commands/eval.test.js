@@ -6,7 +6,16 @@ describe("eval", () => {
   test
     .nock(getEndpoint(), { allowUnmocked: true }, mockQuery)
     .stdout()
-    .command(withOpts(["eval", "--version", "4", "--format", "json", "Paginate(Collections())"]))
+    .command(
+      withOpts([
+        "eval",
+        "--version",
+        "4",
+        "--format",
+        "json",
+        "Paginate(Collections())",
+      ])
+    )
     .it("runs eval on root db", (ctx) => {
       expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal("root");
     });
@@ -19,7 +28,17 @@ describe("eval", () => {
       mockQuery(api);
     })
     .stdout()
-    .command(withOpts(["eval", "--version", "4", "--format", "json", "nested", "Paginate(Collections())"]))
+    .command(
+      withOpts([
+        "eval",
+        "--version",
+        "4",
+        "--format",
+        "json",
+        "nested",
+        "Paginate(Collections())",
+      ])
+    )
     .it("runs eval on nested db", (ctx) => {
       expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal("nested");
     });
@@ -68,23 +87,14 @@ describe("eval in v10", () => {
 
   test
     .stdout()
-    .command(
-      withOpts(["eval", "{ two: 2 }", "--format", "json"])
-    )
+    .command(withOpts(["eval", "{ two: 2 }", "--format", "json"]))
     .it("runs eval in json simple format", (ctx) => {
       expect(JSON.parse(ctx.stdout)).to.deep.equal({ two: 2 });
     });
 
   test
     .stdout()
-    .command(
-      withOpts([
-        "eval",
-        "{ two: 2 }",
-        "--format",
-        "json-tagged",
-      ])
-    )
+    .command(withOpts(["eval", "{ two: 2 }", "--format", "json-tagged"]))
     .it("runs eval in json tagged format", (ctx) => {
       expect(JSON.parse(ctx.stdout)).to.deep.equal({ two: { "@int": "2" } });
     });
@@ -96,7 +106,7 @@ function mockQuery(api) {
     .post("/", matchFqlReq(q.Now()))
     .reply(200, { resource: new Date() })
     .post("/", matchFqlReq(q.Paginate(q.Collections())))
-    .reply(200, function() {
+    .reply(200, function () {
       const auth = this.req.headers.authorization[0].split(":");
       return {
         resource: {
