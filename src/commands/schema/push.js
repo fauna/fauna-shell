@@ -67,11 +67,7 @@ class PushSchemaCommand extends SchemaCommand {
         }
       } else {
         // Confirm diff, then push it.
-        let vurl = `${urlbase}/schema/1/validate?force=true`;
-        if (this.flags.version) {
-          vurl = `${urlbase}/schema/1/validate?version=${this.flags.version}`;
-        }
-        const res = await fetch(vurl, {
+        const res = await fetch(`${urlbase}/schema/1/validate?force=true`, {
           method: "POST",
           headers: { AUTHORIZATION: `Bearer ${secret}` },
           body: body(),
@@ -84,15 +80,14 @@ class PushSchemaCommand extends SchemaCommand {
         this.log(`Proposed diff:\n`);
         this.log(json.diff);
         if (await ux.confirm("Accept and push the changes?")) {
-          let purl = `${urlbase}/schema/1/update?version=${json.version}`;
-          if (this.flags.version) {
-            purl = `${urlbase}/schema/1/update?version=${this.flags.version}`;
-          }
-          const res = await fetch(purl, {
-            method: "POST",
-            headers: { AUTHORIZATION: `Bearer ${secret}` },
-            body: body(),
-          });
+          const res = await fetch(
+            `${urlbase}/schema/1/update?version=${json.version}`,
+            {
+              method: "POST",
+              headers: { AUTHORIZATION: `Bearer ${secret}` },
+              body: body(),
+            }
+          );
           const json0 = await res.json();
           if (json0.error) {
             this.error(json0.error.message);
@@ -122,10 +117,6 @@ PushSchemaCommand.flags = {
   dir: Flags.string({
     required: true,
     description: "The directory of .fsl files to push",
-  }),
-  version: Flags.string({
-    required: false,
-    description: "The schema version expected in the database",
   }),
 };
 module.exports = PushSchemaCommand;
