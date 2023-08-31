@@ -89,7 +89,10 @@ class PushSchemaCommand extends SchemaCommand {
         const json = await res.json();
         if (json.error) {
           this.error(json.error.message);
-          return;
+        }
+        if (!json.diff) {
+          this.log("No changes to push");
+          this.exit(0);
         }
         this.log(`Proposed diff:\n`);
         this.log(json.diff);
