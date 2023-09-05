@@ -5,6 +5,21 @@ const path = require("path");
 const { Flags } = require("@oclif/core");
 
 class PullSchemaCommand extends SchemaCommand {
+  static flags = {
+    ...SchemaCommand.flags,
+    retain: Flags.boolean({
+      description:
+        "Retain .fsl files in the target directory that are not part of the database schema",
+      default: false,
+    }),
+    // NB: Required as a flag because it will become optional eventually,
+    //     once project configuration is implemented.
+    dir: Flags.string({
+      required: true,
+      description: "The target directory",
+    }),
+  };
+
   async run() {
     const { urlbase, secret } = await this.fetchsetup();
 
@@ -62,18 +77,4 @@ PullSchemaCommand.examples = [
   "$ fauna schema pull --dir schemas/myschema --retain",
 ];
 
-PullSchemaCommand.flags = {
-  ...SchemaCommand.flags,
-  retain: Flags.boolean({
-    description:
-      "Retain .fsl files in the target directory that are not part of the database schema",
-    default: false,
-  }),
-  // NB: Required as a flag because it will become optional eventually,
-  //     once project configuration is implemented.
-  dir: Flags.string({
-    required: true,
-    description: "The target directory",
-  }),
-};
 module.exports = PullSchemaCommand;
