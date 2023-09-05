@@ -36,6 +36,23 @@ const pullfiles = {
 
 const updated = { version: 1 };
 
+describe("fauna schema diff test", () => {
+  test
+    .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
+      api
+        .persist()
+        .post("/", matchFqlReq(q.Now()))
+        .reply(200, new Date())
+        .post("/schema/1/validate?force=true")
+        .reply(200, diff)
+    )
+    .stdout()
+    .command(withOpts(["schema diff", "--dir=test/testdata"]))
+    .it("runs schema diff", (ctx) => {
+      expect(ctx.stdout).to.contain(`${diff.diff}`);
+    });
+});
+
 describe("fauna schema push test", () => {
   test
     .stub(ux, "prompt", async () => "Y")
