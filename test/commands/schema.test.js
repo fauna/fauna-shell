@@ -91,14 +91,15 @@ const setup = () => {
   fs.writeFileSync(path.join(testdir, "extra.fsl"), "baaaaa");
 };
 
-for (const retain of [true, false]) {
-  describe(`fauna schema pull test (retain=${retain})`, () => {
+for (const ddelete of [false, true]) {
+  describe(`fauna schema pull test (delete=${ddelete})`, () => {
     let cmd = ["schema pull", `--dir=${testdir}`];
-    if (retain) {
-      cmd = ["schema pull", `--dir=${testdir}`, "--retain"];
+    if (ddelete) {
+      cmd = ["schema pull", `--dir=${testdir}`, "--delete"];
     }
     setup();
     test
+      .stub(ux, "prompt", async () => "Y")
       .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
         api
           .persist()
@@ -116,7 +117,7 @@ for (const retain of [true, false]) {
       .stdout()
       .command(withOpts(cmd))
       .it("runs schema pull", (ctx) => {
-        expect(ctx.stdout).to.contain("");
+        expect(ctx.stdout).to.contain("Pull makes the following changes:");
         expect(
           fs.readFileSync(path.join(testdir, "functions.fsl"), "utf8")
         ).to.equal(functions.content);
@@ -135,7 +136,7 @@ for (const retain of [true, false]) {
         expect(
           fs.statSync(path.join(testdir, "main.notfsl")).isFile()
         ).to.equal(true);
-        if (retain) {
+        if (!ddelete) {
           expect(
             fs.statSync(path.join(testdir, "extra.fsl")).isFile()
           ).to.equal(true);
