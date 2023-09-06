@@ -32,7 +32,8 @@ class PushSchemaCommand extends SchemaCommand {
   }
 
   async run() {
-    const files = await this.gather(this.flags.dir);
+    const fps = this.gather(this.flags.dir);
+    const files = this.read(this.flags.dir, fps);
     try {
       const { urlbase, secret } = await this.fetchsetup();
       if (this.flags.force) {

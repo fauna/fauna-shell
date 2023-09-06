@@ -14,7 +14,8 @@ class DiffSchemaCommand extends SchemaCommand {
   };
 
   async run() {
-    const files = await this.gather(this.flags.dir);
+    const fps = this.gather(this.flags.dir);
+    const files = this.read(this.flags.dir, fps);
     try {
       const { urlbase, secret } = await this.fetchsetup();
       const res = await fetch(`${urlbase}/schema/1/validate?force=true`, {
