@@ -1000,6 +1000,78 @@ EXAMPLES
 
 _See code: [src/commands/upload-graphql-schema.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/upload-graphql-schema.js)_
 
+## `fauna schema` Subcommands
+
+### `fauna schema diff --dir DIR`
+
+Print a diff between local schema files and Fauna schema.
+
+```
+USAGE
+  $ fauna schema diff --dir DIR
+
+
+OPTIONS
+  --dir=directory          (required) The root directory for the database's schema files
+  --domain=domain          Fauna server domain
+  --endpoint=endpoint      Fauna server endpoint
+  --port=port              Connection port
+  --scheme=https|http      Connection scheme
+  --secret=secret          Fauna secret key
+  --timeout=timeout        Connection timeout in milliseconds
+
+EXAMPLES
+  $ fauna schema diff --dir ./schemas/mydb
+```
+
+### `fauna schema push --dir DIR`
+
+Push local schema files to Fauna. Without `--force` set, the user must confirm a diff.
+
+```
+USAGE
+  $ fauna schema push --dir DIR
+
+
+OPTIONS
+  --dir=directory          (required) The root directory for the database's schema files
+  --domain=domain          Fauna server domain
+  --endpoint=endpoint      Fauna server endpoint
+  --force                  Push local files without confirming the diff
+  --port=port              Connection port
+  --scheme=https|http      Connection scheme
+  --secret=secret          Fauna secret key
+  --timeout=timeout        Connection timeout in milliseconds
+
+EXAMPLES
+  $ fauna schema push --dir ./schemas/mydb
+  $ fauna schema push --dir ./schemas/yourdb --force
+```
+
+### `fauna schema pull --dir DIR`
+
+Pull schema from Fauna and save as local schema files.
+
+```
+USAGE
+  $ fauna schema pull --dir DIR
+
+
+OPTIONS
+  --delete                 Delete local schema files not present in Fauna
+  --dir=directory          (required) A root directory for the database's schema files
+  --domain=domain          Fauna server domain
+  --endpoint=endpoint      Fauna server endpoint
+  --port=port              Connection port
+  --scheme=https|http      Connection scheme
+  --secret=secret          Fauna secret key
+  --timeout=timeout        Connection timeout in milliseconds
+
+EXAMPLES
+  $ fauna schema pull --dir ./schemas/mydb
+  $ fauna schema pull --dir ./schemas/yourdb --delete
+```
+
 <!-- commandsstop -->
 
 # Development
