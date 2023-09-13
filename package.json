@@ -39,7 +39,9 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.17.0",
     "@oclif/test": "^2.3.31",
-    "oclif": "^3.9.2",
+    "@types/chai": "^4.3.6",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.6.0",
     "chai": "^4.2.0",
     "eslint": "^8.10.0",
     "eslint-config-oclif": "^1.5.1",
@@ -51,8 +53,11 @@
     "mock-require": "^3.0.3",
     "nock": "^13.1.0",
     "nyc": "^14.1.1",
+    "oclif": "^3.9.2",
     "prettier": "^2.3.0",
     "sinon": "^11.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2",
     "word-wrap": "^1.2.3"
   },
   "engines": {
@@ -73,11 +78,11 @@
     "oclif"
   ],
   "license": "MPL-2.0",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "oclif": {
     "bin": "fauna",
     "dirname": "fauna",
-    "commands": "./src/commands",
+    "commands": "./dist/commands",
     "plugins": [
       "@oclif/plugin-help",
       "@oclif/plugin-plugins"
@@ -86,11 +91,12 @@
   },
   "repository": "fauna/fauna-shell",
   "scripts": {
+    "build": "rm -rf dist && tsc -b",
     "postpack": "rm -f oclif.manifest.json",
-    "prepack": "oclif manifest",
+    "prepack": "yarn build && oclif manifest",
     "pretest": "npm run fixlint",
-    "local-test": "export $(cat .env | xargs); nyc mocha --forbid-only \"test/**/*.test.js\"",
-    "test": "export $(cat .env.test | xargs); nyc mocha --forbid-only \"test/**/*.test.js\"",
+    "local-test": "export $(cat .env | xargs); nyc mocha --forbid-only \"test/**/*.test.{js,ts}\"",
+    "test": "export $(cat .env.test | xargs); nyc mocha --forbid-only \"test/**/*.test.{js,ts}\"",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
     "version": "oclif-dev readme && git add README.md",
