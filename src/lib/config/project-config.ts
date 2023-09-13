@@ -1,0 +1,51 @@
+import { RootConfig, Config, InvalidConfigError } from ".";
+
+// Represents `.fauna-project`
+export class ProjectConfig {
+  defaultStack?: string;
+  stacks: { [key: string]: Stack };
+
+  constructor(config: Config) {
+    this.defaultStack = config.strOpt("default");
+    this.stacks = Object.fromEntries(
+      config.objectsIn("stack").map(([k, v]) => [k, new Stack(v)])
+    );
+
+    if (this.defaultStack === "default") {
+      throw new InvalidConfigError("Default stack cannot be named 'default'");
+    } else if (
+      this.defaultStack &&
+      this.stacks[this.defaultStack] === undefined
+    ) {
+      throw new InvalidConfigError(
+        `Default stack '${this.defaultStack}' was not found`
+      );
+    }
+  }
+
+  validate(rootConfig: RootConfig) {
+    for (const stack of Object.values(this.stacks)) {
+      if (rootConfig.endpoints[stack.endpoint] === undefined) {
+        throw new InvalidConfigError(
+          `Endpoint '${stack.endpoint}' not found in ~/.fauna-shell`
+        );
+      }
+    }
+  }
+}
+
+export class Stack {
+  /**
+   * The endpoint name to use as a base.
+   */
+  endpoint: string;
+  /**
+   * The database path to use.
+   */
+  database?: string;
+
+  constructor(config: Config) {
+    this.endpoint = config.str("endpoint");
+    this.database = config.str("database");
+  }
+}
