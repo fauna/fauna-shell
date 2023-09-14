@@ -12,12 +12,12 @@ class SchemaCommand extends FaunaCommand {
 
   async fetchsetup() {
     const {
-      connectionOptions: { domain, port, scheme, secret },
+      connectionOptions: { url, secret },
     } = await this.getClient();
 
     return {
-      urlbase: `${scheme ?? "https"}://${domain}${port ? `:${port}` : ""}`,
-      secret: secret,
+      urlbase: url,
+      secret,
     };
   }
 

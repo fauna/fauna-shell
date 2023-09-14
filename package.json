@@ -100,7 +100,7 @@
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
     "version": "oclif-dev readme && git add README.md",
-    "fmt": "prettier -w ."
+    "fmt": "prettier -w src"
   },
   "husky": {
     "hooks": {

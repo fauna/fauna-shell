@@ -1,10 +1,11 @@
 const { Command, Flags } = require("@oclif/core");
-const { lookupEndpoint } = require("../lib/config.ts");
+const { lookupEndpoint } = require("../lib/config/index.ts");
 const { stringifyEndpoint } = require("../lib/misc.js");
 const faunadb = require("faunadb");
 const chalk = require("chalk");
 const q = faunadb.query;
 const FaunaClient = require("./fauna-client.js");
+const fetch = require("node-fetch");
 
 /**
  * This is the base class for all fauna-shell commands.
@@ -55,10 +56,17 @@ class FaunaCommand extends Command {
     try {
       connectionOptions = lookupEndpoint(this.flags, dbScope, role);
 
-      const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions;
+      const { hostname, port, protocol } = new URL(connectionOptions.url);
 
       const client = new faunadb.Client({
-        ...clientOptions,
+        domain: hostname,
+        port,
+        scheme: protocol?.replace(/:$/, ""),
+        secret: connectionOptions.secret,
+
+        // Force http1. See getClient.
+        fetch: fetch,
+
         headers: {
           "X-Fauna-Source": "Fauna Shell",
         },
@@ -88,10 +96,22 @@ class FaunaCommand extends Command {
       let connectionOptions;
       try {
         connectionOptions = lookupEndpoint(this.flags, dbScope, role);
-        const { graphqlHost, graphqlPort, ...clientOptions } =
-          connectionOptions;
+
+        const { hostname, port, protocol } = new URL(connectionOptions.url);
+
         const client = new faunadb.Client({
-          ...clientOptions,
+          domain: hostname,
+          port,
+          scheme: protocol?.replace(/:$/, ""),
+          secret: connectionOptions.secret,
+
+          // Force http1. Fixes tests I guess? I spent a solid 30 minutes
+          // debugging the whole `nock` thing in our tests, only to realize this
+          // `fetch` key wasn't set after switching to the new config parsing.
+          //
+          // TODO: Remove and just connect to a docker container.
+          fetch: fetch,
+
           headers: {
             "X-Fauna-Source": "Fauna Shell",
           },
@@ -112,7 +132,7 @@ class FaunaCommand extends Command {
       try {
         connectionOptions = lookupEndpoint(this.flags, dbScope, role);
         const client = new FaunaClient(
-          connectionOptions.endpoint,
+          connectionOptions.url,
           connectionOptions.secret,
           this.flags.timeout ? parseInt(this.flags.timeout, 10) : undefined
         );
