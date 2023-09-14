@@ -154,10 +154,10 @@ export class ShellConfig {
   endpoint: Endpoint;
 
   static read(flags: any, scope: string, role: string) {
-    const rootConfig = ini.parse(readFileOpt(getRootConfigFile()));
+    const rootConfig = ini.parse(readFileOpt(getRootConfigPath()));
     const projectConfigPath = getProjectConfigPath();
     const projectConfig = projectConfigPath
-      ? ini.parse(fs.readFileSync(projectConfigPath, "utf8"))
+      ? ini.parse(readFile(projectConfigPath))
       : undefined;
 
     return new ShellConfig({
@@ -279,16 +279,51 @@ const readFileOpt = (fileName: string) => {
   }
 };
 
-const getRootConfigFile = () => {
+const readFile = (fileName: string) => {
+  return fs.readFileSync(fileName, "utf8");
+};
+
+const getRootConfigPath = () => {
   return path.join(os.homedir(), ".fauna-shell");
 };
 
-// TODO: Search upwards for a `.fauna-project` file
-const getProjectConfigPath = () => {
-  const projectConfigPath = path.join(process.cwd(), ".fauna-project");
-  if (fs.existsSync(projectConfigPath)) {
-    return projectConfigPath;
-  } else {
+const getProjectConfigPath = (): string | undefined => {
+  let current;
+  try {
+    current = process.cwd();
+  } catch (err) {
+    // If the cwd is not accessible, just give up. If this happens, one of our
+    // dependencies actually explodes elsewhere, but we might as well handle
+    // errors where possible.
     return undefined;
   }
+
+  for (let i = 0; i < 2048; i++) {
+    const projPath = path.join(current, ".fauna-project");
+    let stat;
+    stat = fs.statSync(projPath, {
+      // returns undefined instead of throwing if the file doesn't exist
+      throwIfNoEntry: false,
+    });
+    if (stat !== undefined && stat.isFile()) {
+      return projPath;
+    }
+
+    const currPath = path.parse(current);
+    // break if at root
+    if (currPath.base === "") {
+      break;
+    }
+    current = currPath.dir;
+  }
+
+  // if we got here, it means:
+  // - there was no `.fauna-project` file.
+  // - `path.dirname` never got us to the root.
+  // - the cwd has more than 2048 elements. linux caps the path length at 4096
+  //   bytes, and windows caps it at 260 characters. so that is unlikely to say
+  //   the least.
+  //
+  // in any case, we give up.
+  return undefined;
 };
