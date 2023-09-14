@@ -287,7 +287,7 @@ const getRootConfigPath = () => {
   return path.join(os.homedir(), ".fauna-shell");
 };
 
-const getProjectConfigPath = (): string | undefined => {
+export const getProjectConfigPath = (): string | undefined => {
   let current;
   try {
     current = process.cwd();

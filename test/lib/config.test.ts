@@ -1,5 +1,11 @@
+import fs from "fs";
 import { expect } from "chai";
-import { ShellConfig, ShellOpts } from "../../src/lib/config";
+import {
+  ShellConfig,
+  ShellOpts,
+  getProjectConfigPath,
+} from "../../src/lib/config";
+import sinon from "sinon";
 
 const lookupEndpoint = (opts: ShellOpts) => {
   return new ShellConfig(opts).lookupEndpoint();
@@ -310,5 +316,82 @@ describe("local config with flags", () => {
       secret: "fn1234:my-db/my-scope",
       url: "http://localhost:8443",
     });
+  });
+});
+
+describe("getProjectConfigPath", () => {
+  it("searches cwd for a config", () => {
+    sinon.replace(process, "cwd", sinon.fake.returns("/foo/bar/baz"));
+
+    const stat = sinon.stub(fs, "statSync");
+    stat
+      .withArgs("/foo/bar/baz/.fauna-project", { throwIfNoEntry: false })
+      .returns({
+        isFile: () => true,
+      } as any);
+
+    expect(getProjectConfigPath()).to.equal("/foo/bar/baz/.fauna-project");
+    expect(stat.callCount).to.equal(1);
+
+    sinon.restore();
+  });
+
+  it("searches upwards for a config", () => {
+    sinon.replace(process, "cwd", sinon.fake.returns("/foo/bar/baz"));
+
+    const stat = sinon.stub(fs, "statSync");
+    stat
+      .withArgs("/foo/bar/baz/.fauna-project", { throwIfNoEntry: false })
+      .returns(undefined)
+      .withArgs("/foo/bar/.fauna-project", { throwIfNoEntry: false })
+      .returns({
+        isFile: () => true,
+      } as any);
+
+    expect(getProjectConfigPath()).to.equal("/foo/bar/.fauna-project");
+    expect(stat.callCount).to.equal(2);
+
+    sinon.restore();
+  });
+
+  it("stops searching after finding the root", () => {
+    sinon.replace(process, "cwd", sinon.fake.returns("/foo/bar/baz"));
+
+    const stat = sinon.stub(fs, "statSync");
+    stat
+      .withArgs("/foo/bar/baz/.fauna-project", { throwIfNoEntry: false })
+      .returns(undefined)
+      .withArgs("/foo/bar/.fauna-project", { throwIfNoEntry: false })
+      .returns(undefined)
+      .withArgs("/foo/.fauna-project", { throwIfNoEntry: false })
+      .returns(undefined)
+      .withArgs("/.fauna-project", { throwIfNoEntry: false })
+      .returns(undefined);
+
+    expect(getProjectConfigPath()).to.equal(undefined);
+    expect(stat.callCount).to.equal(4);
+
+    sinon.restore();
+  });
+
+  it("fails silently if the CWD couldn't be found", () => {
+    sinon.replace(process, "cwd", sinon.fake.throws(new Error("No CWD")));
+
+    expect(getProjectConfigPath()).to.equal(undefined);
+
+    sinon.restore();
+  });
+
+  it("explodes if `stat` fails", () => {
+    sinon.replace(process, "cwd", sinon.fake.returns("/foo/bar/baz"));
+
+    const stat = sinon.stub(fs, "statSync");
+    stat
+      .withArgs("/foo/bar/baz/.fauna-project", { throwIfNoEntry: false })
+      .throws(new Error("Couldn't stat"));
+
+    expect(() => getProjectConfigPath()).to.throw("Couldn't stat");
+
+    sinon.restore();
   });
 });
