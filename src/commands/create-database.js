@@ -1,4 +1,4 @@
-const FaunaCommand = require("../lib/fauna-command.js");
+const FaunaCommand = require("../lib/fauna-command.js").default;
 const { Args } = require("@oclif/core");
 const faunadb = require("faunadb");
 const q = faunadb.query;

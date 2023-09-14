@@ -1,6 +1,6 @@
 "use strict";
-const StreamBase = require("stream-json/streamers/StreamBase");
-const withParser = require("stream-json/utils/withParser");
+import StreamBase from "stream-json/streamers/StreamBase";
+import withParser from "stream-json/utils/withParser";
 
 class StreamJson extends StreamBase {
   static make(options) {
@@ -66,4 +66,4 @@ class StreamJson extends StreamBase {
 StreamJson.StreamJson = StreamJson.make;
 StreamJson.make.Constructor = StreamJson;
 
-module.exports = StreamJson;
+export default StreamJson;

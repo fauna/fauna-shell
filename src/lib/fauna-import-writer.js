@@ -1,14 +1,11 @@
-const q = require("faunadb").query;
-const { FaunaObjectTranslator } = require("./fauna-object-translator");
-const sizeof = require("object-sizeof");
-const { backOff } = require("exponential-backoff");
+import { query as q } from "faunadb";
+import { FaunaObjectTranslator } from "./fauna-object-translator";
+import sizeof from "object-sizeof";
+import { backOff } from "exponential-backoff";
 const FaunaHTTPError = require("faunadb").errors.FaunaHTTPError;
-const {
-  RateLimiterMemory,
-  RateLimiterQueue,
-} = require("rate-limiter-flexible");
-const { ImportPenalty } = require("./import-penalty");
-const { RateEstimator } = require("./import-limits");
+import { RateLimiterMemory, RateLimiterQueue } from "rate-limiter-flexible";
+import { ImportPenalty } from "./import-penalty";
+import { RateEstimator } from "./import-limits";
 
 /**
  * Creates a function that consumes a stream of objects and writes creates each object
@@ -329,4 +326,4 @@ this item and continuing.`
   return streamConsumer;
 }
 
-module.exports = getFaunaImportWriter;
+export default getFaunaImportWriter;

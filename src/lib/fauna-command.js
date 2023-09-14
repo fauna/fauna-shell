@@ -1,11 +1,10 @@
-const { Command, Flags } = require("@oclif/core");
-const { lookupEndpoint } = require("../lib/config/index.ts");
-const { stringifyEndpoint } = require("../lib/misc.js");
-const faunadb = require("faunadb");
-const chalk = require("chalk");
-const q = faunadb.query;
-const FaunaClient = require("./fauna-client.js");
-const fetch = require("node-fetch");
+import { Command, Flags } from "@oclif/core";
+import { lookupEndpoint } from "./config";
+import { stringifyEndpoint } from "./misc";
+import { query as q, errors } from "faunadb";
+import { green } from "chalk";
+import FaunaClient from "./fauna-client.js";
+import fetch from "node-fetch";
 
 /**
  * This is the base class for all fauna-shell commands.
@@ -35,7 +34,7 @@ class FaunaCommand extends Command {
   }
 
   success(msg) {
-    const bang = chalk.green(process.platform === "win32" ? "»" : "›");
+    const bang = green(process.platform === "win32" ? "»" : "›");
     console.info(` ${bang}   Success: ${msg}`);
   }
 
@@ -80,7 +79,7 @@ class FaunaCommand extends Command {
   }
 
   mapConnectionError({ err, connectionOptions }) {
-    if (err instanceof faunadb.errors.Unauthorized) {
+    if (err instanceof errors.Unauthorized) {
       return this.error(
         `Could not Connect to ${stringifyEndpoint(
           connectionOptions
@@ -222,4 +221,4 @@ FaunaCommand.flags = {
   }),
 };
 
-module.exports = FaunaCommand;
+export default FaunaCommand;

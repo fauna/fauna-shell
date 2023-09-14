@@ -1,13 +1,13 @@
 /*eslint no-unused-expressions: [2, { allowTernary: true }]*/
-const vm = require("vm");
-const os = require("os");
-const path = require("path");
-const fs = require("fs");
-const ini = require("ini");
-const { cli } = require("cli-ux");
-const faunadb = require("faunadb");
-const escodegen = require("escodegen");
-const fetch = require("node-fetch");
+import { createContext, runInContext } from "vm";
+import { homedir } from "os";
+import { join } from "path";
+import { readFile as _readFile, writeFile as _writeFile } from "fs";
+import { parse, stringify } from "ini";
+import { cli } from "cli-ux";
+import { query } from "faunadb";
+import { generate } from "escodegen";
+import fetch from "node-fetch";
 
 const FAUNA_CLOUD_DOMAIN = "db.fauna.com";
 const ERROR_NO_DEFAULT_ENDPOINT =
@@ -25,7 +25,7 @@ const ERROR_SPECIFY_SECRET_KEY =
  *   from the user.
  * - If no other endpoint exists, then the endpoint will be set as the default one.
  */
-function saveEndpointOrError(newEndpoint, alias, secret) {
+export function saveEndpointOrError(newEndpoint, alias, secret) {
   return loadEndpoints().then(function (endpoints) {
     if (endpointExists(endpoints, alias)) {
       return confirmEndpointOverwrite(alias).then(function (overwrite) {
@@ -41,7 +41,7 @@ function saveEndpointOrError(newEndpoint, alias, secret) {
   });
 }
 
-function deleteEndpointOrError(alias) {
+export function deleteEndpointOrError(alias) {
   return loadEndpoints().then(function (endpoints) {
     if (endpointExists(endpoints, alias)) {
       return confirmEndpointDelete(alias).then(function (del) {
@@ -61,7 +61,7 @@ function deleteEndpointOrError(alias) {
  * Validates that the 'cloud' endpoint points to FAUNA_CLOUD_DOMAIN.
  */
 // TODO: candidate to delete if new-cloud-login accepted
-function validCloudEndpoint() {
+export function validCloudEndpoint() {
   return loadEndpoints().then(function (config) {
     return new Promise(function (resolve, reject) {
       if (config.cloud && config.cloud.domain !== FAUNA_CLOUD_DOMAIN) {
@@ -77,7 +77,7 @@ function validCloudEndpoint() {
  * Sets `endpoint` as the default endpoint.
  * If `endpoint` doesn't exist, returns an error.
  */
-function setDefaultEndpoint(endpoint) {
+export function setDefaultEndpoint(endpoint) {
   return loadEndpoints().then(function (endpoints) {
     return new Promise(function (resolve, reject) {
       if (endpoints[endpoint]) {
@@ -100,10 +100,10 @@ function setDefaultEndpoint(endpoint) {
  * Loads the endpoints from the ~/.fauna-shell file.
  * If the file doesn't exist, returns an empty object.
  */
-function loadEndpoints() {
+export function loadEndpoints() {
   return readFile(getConfigFile())
     .then(function (configData) {
-      return ini.parse(configData);
+      return parse(configData);
     })
     .catch(function (err) {
       if (fileNotFound(err)) {
@@ -129,7 +129,7 @@ function confirmEndpointDelete(alias) {
   );
 }
 
-function saveEndpoint(config, endpoint, alias, secret) {
+export function saveEndpoint(config, endpoint, alias, secret) {
   var port = endpoint.port ? `:${endpoint.port}` : "";
   var uri = `${endpoint.protocol}//${endpoint.hostname}${port}`;
 
@@ -185,22 +185,22 @@ function buildEndpointObject(endpoint, secret) {
  * ~/.fauna-shell file.
  */
 function saveConfig(config) {
-  return writeFile(getConfigFile(), ini.stringify(config), 0o700);
+  return writeFile(getConfigFile(), stringify(config), 0o700);
 }
 
 /**
  * Returns the full path to the `.fauna-shell` config file
  */
-function getConfigFile() {
-  return path.join(os.homedir(), ".fauna-shell");
+export function getConfigFile() {
+  return join(homedir(), ".fauna-shell");
 }
 
 /**
  * Wraps `fs.readFile` into a Promise.
  */
-function readFile(fileName) {
+export function readFile(fileName) {
   return new Promise(function (resolve, reject) {
-    fs.readFile(fileName, "utf8", (err, data) => {
+    _readFile(fileName, "utf8", (err, data) => {
       err ? reject(err) : resolve(data);
     });
   });
@@ -209,9 +209,9 @@ function readFile(fileName) {
 /**
  * Wraps `fs.writeFile` into a Promise.
  */
-function writeFile(fileName, data, mode) {
+export function writeFile(fileName, data, mode) {
   return new Promise(function (resolve, reject) {
-    fs.writeFile(fileName, data, { mode: mode }, (err) => {
+    _writeFile(fileName, data, { mode: mode }, (err) => {
       err ? reject(err) : resolve(data);
     });
   });
@@ -246,12 +246,12 @@ function fileNotFound(err) {
  * @param {string} dbScope  - A database name to scope the connection to.
  * @param {string} role     - A user role: 'admin'|'server'|'server-readonly'|'client'.
  */
-function buildConnectionOptions(cmdFlags, dbScope, role) {
+export function buildConnectionOptions(cmdFlags, dbScope, role) {
   return new Promise(function (resolve, reject) {
     readFile(getConfigFile())
       .then(function (configData) {
         var endpoint = {};
-        const config = ini.parse(configData);
+        const config = parse(configData);
         // having a valid endpoint, assume there's a secret set
         if (hasValidEndpoint(config, cmdFlags.endpoint)) {
           endpoint = getEndpoint(config, cmdFlags.endpoint);
@@ -363,20 +363,18 @@ class QueryError extends Error {
 }
 
 function wrapQueries(expressions, client) {
-  const q = faunadb.query;
-  vm.createContext(q);
+  const q = query;
+  createContext(q);
   return expressions.map(function (exp, queryNumber) {
     return function () {
-      return client
-        .query(vm.runInContext(escodegen.generate(exp), q))
-        .catch(function (err) {
-          throw new QueryError(escodegen.generate(exp), err, queryNumber + 1);
-        });
+      return client.query(runInContext(generate(exp), q)).catch(function (err) {
+        throw new QueryError(generate(exp), err, queryNumber + 1);
+      });
     };
   });
 }
 
-function runQueries(expressions, client) {
+export function runQueries(expressions, client) {
   if (expressions.length === 1) {
     var f = wrapQueries(expressions, client)[0];
     return f();
@@ -385,7 +383,7 @@ function runQueries(expressions, client) {
   }
 }
 
-function stringifyEndpoint(endpoint) {
+export function stringifyEndpoint(endpoint) {
   var res = "";
   if (endpoint.scheme) {
     res += endpoint.scheme + "://";
@@ -396,18 +394,3 @@ function stringifyEndpoint(endpoint) {
   }
   return res;
 }
-
-module.exports = {
-  saveEndpointOrError: saveEndpointOrError,
-  saveEndpoint: saveEndpoint,
-  deleteEndpointOrError: deleteEndpointOrError,
-  setDefaultEndpoint: setDefaultEndpoint,
-  validCloudEndpoint: validCloudEndpoint,
-  loadEndpoints: loadEndpoints,
-  buildConnectionOptions: buildConnectionOptions,
-  readFile: readFile,
-  writeFile: writeFile,
-  runQueries: runQueries,
-  stringifyEndpoint: stringifyEndpoint,
-  getConfigFile: getConfigFile,
-};

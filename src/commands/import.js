@@ -1,13 +1,13 @@
 const fs = require("fs");
 
 const { Flags } = require("@oclif/core");
-const FaunaCommand = require("../lib/fauna-command.js");
-const StreamJson = require("../lib/json-stream");
+const FaunaCommand = require("../lib/fauna-command.js").default;
+const StreamJson = require("../lib/json-stream").default;
 const faunadb = require("faunadb");
 const { pipeline } = require("stream");
 const p = require("path");
 const q = faunadb.query;
-const getFaunaImportWriter = require("../lib/fauna-import-writer");
+const getFaunaImportWriter = require("../lib/fauna-import-writer").default;
 const { parse } = require("csv-parse");
 const { ImportLimits } = require("../lib/import-limits");
 

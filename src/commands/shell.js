@@ -1,4 +1,4 @@
-const FaunaCommand = require("../lib/fauna-command.js");
+const FaunaCommand = require("../lib/fauna-command.js").default;
 const { runQueries, stringifyEndpoint } = require("../lib/misc.js");
 const faunadb = require("faunadb");
 const { Flags, Args } = require("@oclif/core");

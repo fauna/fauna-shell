@@ -1,4 +1,4 @@
-const SchemaCommand = require("../../lib/schema-command.js");
+const SchemaCommand = require("../../lib/schema-command.js").default;
 const fetch = require("node-fetch");
 const { Flags, ux } = require("@oclif/core");
 
