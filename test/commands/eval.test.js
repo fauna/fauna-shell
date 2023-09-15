@@ -17,7 +17,7 @@ describe("eval", () => {
       ])
     )
     .it("runs eval on root db", (ctx) => {
-      expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal("root");
+      expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal("admin");
     });
 
   test
@@ -112,7 +112,7 @@ function mockQuery(api) {
         resource: {
           data: [
             {
-              targetDb: auth[1] || "root",
+              targetDb: auth[1] ?? "root",
             },
           ],
         },
