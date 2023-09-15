@@ -22,7 +22,9 @@
           "@jest/globals"
         ]
       }
-    ]
+    ],
+    // we use typescript so dynamic imports are fine
+    "node/no-unsupported-features": "off"
   },
   "ignorePatterns": ["dist/**/*"],
   "overrides": [
