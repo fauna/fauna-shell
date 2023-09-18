@@ -13,12 +13,12 @@ class ShellCommand extends EvalCommand {
     {
       cmd: "clear",
       help: "Clear the repl",
-      action: this.clear,
+      action: () => this.clear(),
     },
     {
       cmd: "last_error",
       help: "Display the last error",
-      action: this.lastError,
+      action: () => this.lastError(),
     },
   ];
 
@@ -66,28 +66,12 @@ class ShellCommand extends EvalCommand {
 
     // we don't want to allow people to call some of the default commands
     // from the node repl
-    this.repl.commands = this.filterCommands(this.repl.commands, [
-      "load",
-      "editor",
-      "clear",
-    ]);
+    const entries = Object.entries(this.repl.commands);
+    this.repl.commands = Object.fromEntries(entries.filter(([k, _]) => !["load", "save"].includes(k)));
 
     this.commands.forEach(({ cmd, ...cmdOptions }) =>
       this.repl.defineCommand(cmd, cmdOptions)
     );
-  }
-
-  filterCommands(commands, unwanted) {
-    const keys = Object.keys(commands);
-    var filteredCommands = {};
-    keys
-      .filter(function (k) {
-        return !unwanted.includes(k);
-      })
-      .forEach(function (k) {
-        filteredCommands[k] = commands[k];
-      });
-    return filteredCommands;
   }
 
   eval(originalEval) {
@@ -155,12 +139,12 @@ class ShellCommand extends EvalCommand {
 
   clear() {
     console.clear();
-    this.repl.displayPrompt();
+    this.repl.prompt();
   }
 
   lastError() {
     console.log(this.repl.context.lastError);
-    this.repl.displayPrompt();
+    this.repl.prompt();
   }
 }
 
