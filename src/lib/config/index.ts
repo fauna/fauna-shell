@@ -99,30 +99,6 @@ export class Config {
   }
 }
 
-/**
- * Builds the options provided to the faunajs client.
- * Tries to load the ~/.fauna-shell file and read the default endpoint from there.
- *
- * Assumes that if the file exists, it would have been created by fauna-shell,
- * therefore it would have a defined endpoint.
- *
- * Flags like --host, --port, etc., provided by the CLI take precedence over what's
- * stored in ~/.fauna-shell.
- *
- * The --endpoint flag overries the default endpoint from fauna-shell.
- *
- * If ~/.fauna-shell doesn't exist, tries to build the connection options from the
- * flags passed to the script.
- *
- * It always expect a secret key to be set in ~/.fauna-shell or provided via CLI
- * arguments.
- *
- * TODO: Remove and store a ShellConfig in `fauna-command`
- */
-export const lookupEndpoint = (flags: any, scope: string, role: string) => {
-  return ShellConfig.read(flags).lookupEndpoint({ scope, role });
-};
-
 export type ShellOpts = {
   flags?: { [key: string]: any };
   rootConfig?: { [key: string]: any };

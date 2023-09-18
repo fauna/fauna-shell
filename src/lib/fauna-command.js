@@ -1,5 +1,5 @@
 import { Command, Flags } from "@oclif/core";
-import { lookupEndpoint } from "./config";
+import { ShellConfig } from "./config";
 import { stringifyEndpoint } from "./misc";
 import { query as q, errors, Client } from "faunadb";
 import { green } from "chalk";
@@ -31,6 +31,7 @@ class FaunaCommand extends Command {
     const { flags: f, args: a } = await this.parse(this.constructor);
     this.flags = f;
     this.args = a;
+    this.shellConfig = ShellConfig.read(this.flags);
   }
 
   success(msg) {
@@ -53,7 +54,7 @@ class FaunaCommand extends Command {
   async withClient(f, dbScope, role) {
     let connectionOptions;
     try {
-      connectionOptions = lookupEndpoint(this.flags, dbScope, role);
+      connectionOptions = this.shellConfig.lookupEndpoint({ scope: dbScope, role });
 
       const { hostname, port, protocol } = new URL(connectionOptions.url);
 
@@ -94,7 +95,7 @@ class FaunaCommand extends Command {
       // construct v4 client
       let connectionOptions;
       try {
-        connectionOptions = lookupEndpoint(this.flags, dbScope, role);
+        connectionOptions = this.shellConfig.lookupEndpoint({ scope: dbScope, role });
 
         const { hostname, port, protocol } = new URL(connectionOptions.url);
 
@@ -129,7 +130,7 @@ class FaunaCommand extends Command {
       // construct v10 client
       let connectionOptions;
       try {
-        connectionOptions = lookupEndpoint(this.flags, dbScope, role);
+        connectionOptions = this.shellConfig.lookupEndpoint({ scope: dbScope, role });
         const client = new FaunaClient(
           connectionOptions.url,
           connectionOptions.secret,
