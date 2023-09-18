@@ -120,15 +120,13 @@ export class Config {
  * TODO: Remove and store a ShellConfig in `fauna-command`
  */
 export const lookupEndpoint = (flags: any, scope: string, role: string) => {
-  return ShellConfig.read(flags, scope, role).lookupEndpoint();
+  return ShellConfig.read(flags).lookupEndpoint({ scope, role });
 };
 
 export type ShellOpts = {
   flags?: { [key: string]: any };
   rootConfig?: { [key: string]: any };
   projectConfig?: { [key: string]: any };
-  scope?: string;
-  role?: string;
 };
 
 export type EndpointConfig = {
@@ -143,17 +141,13 @@ export class ShellConfig {
   flags: Config;
   rootConfig: RootConfig;
   projectConfig: ProjectConfig | undefined;
-  args: {
-    scope?: string;
-    role?: string;
-  };
 
   // The selected stack from the project config. If there is a project config, this will also be set.
   stack: Stack | undefined;
   // The fully configured endpoint, including command line flags that override things like the URL.
   endpoint: Endpoint;
 
-  static read(flags: any, scope: string, role: string) {
+  static read(flags: any) {
     const rootConfig = ini.parse(readFileOpt(getRootConfigPath()));
     const projectConfigPath = getProjectConfigPath();
     const projectConfig = projectConfigPath
@@ -164,8 +158,6 @@ export class ShellConfig {
       flags,
       rootConfig,
       projectConfig,
-      scope,
-      role,
     });
   }
 
@@ -180,11 +172,6 @@ export class ShellConfig {
       : undefined;
 
     this.projectConfig?.validate(this.rootConfig);
-
-    this.args = {
-      scope: opts.scope,
-      role: opts.role,
-    };
 
     const urlFlag = Endpoint.getURLFromConfig(this.flags);
     if (urlFlag !== undefined) {
@@ -258,16 +245,19 @@ export class ShellConfig {
     }
   }
 
-  lookupEndpoint = (): EndpointConfig => {
+  lookupEndpoint = (opts: {
+    scope?: string;
+    role?: string;
+  }): EndpointConfig => {
     let database = this.stack?.database ?? "";
-    if (this.args.scope !== undefined) {
+    if (opts.scope !== undefined) {
       if (this.stack !== undefined) {
         database += "/";
       }
-      database += this.args.scope;
+      database += opts.scope;
     }
 
-    return this.endpoint.makeScopedEndpoint(database, this.args.role);
+    return this.endpoint.makeScopedEndpoint(database, opts.role);
   };
 }
 

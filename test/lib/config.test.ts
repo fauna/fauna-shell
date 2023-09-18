@@ -7,8 +7,13 @@ import {
 } from "../../src/lib/config";
 import sinon from "sinon";
 
-const lookupEndpoint = (opts: ShellOpts) => {
-  return new ShellConfig(opts).lookupEndpoint();
+const lookupEndpoint = (
+  opts: ShellOpts & { role?: string; scope?: string }
+) => {
+  return new ShellConfig(opts).lookupEndpoint({
+    role: opts.role,
+    scope: opts.scope,
+  });
 };
 
 describe("root config", () => {
