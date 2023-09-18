@@ -18,7 +18,7 @@ describe("root config", () => {
         },
       })
     ).to.deep.contain({
-      secret: "fn1234:admin",
+      secret: "fn1234",
       url: "http://localhost:8443",
     });
   });
@@ -34,7 +34,7 @@ describe("root config", () => {
         },
       })
     ).to.deep.contain({
-      secret: "fn1234:admin",
+      secret: "fn1234",
       url: "https://db.fauna.com",
     });
   });
@@ -53,7 +53,7 @@ describe("root config", () => {
         },
       })
     ).to.deep.contain({
-      secret: "fn1234:admin",
+      secret: "fn1234",
       url: "http://localhost:8443",
     });
   });
@@ -77,7 +77,7 @@ describe("root config with flags", () => {
         },
       })
     ).to.deep.contain({
-      secret: "fn555:admin",
+      secret: "fn555",
       url: "https://db.fauna.com",
     });
   });
@@ -108,7 +108,7 @@ describe("local config", () => {
         },
       })
     ).to.deep.contain({
-      secret: "fn555:foo:admin",
+      secret: "fn555:foo",
       url: "https://db.fauna.com",
     });
   });
@@ -137,7 +137,7 @@ describe("local config", () => {
         },
       })
     ).to.deep.contain({
-      secret: "fn555:my-db:admin",
+      secret: "fn555:my-db",
       url: "https://db.fauna.com",
     });
   });
@@ -175,7 +175,7 @@ describe("local config with flags", () => {
         },
       })
     ).to.deep.contain({
-      secret: "fn888:foo:admin",
+      secret: "fn888:foo",
       url: "http://localhost:10443",
     });
   });
@@ -215,7 +215,7 @@ describe("local config with flags", () => {
         },
       })
     ).to.deep.contain({
-      secret: "fn888:bar:admin",
+      secret: "fn888:bar",
       url: "http://localhost:10443",
     });
   });
@@ -260,7 +260,7 @@ describe("local config with flags", () => {
         },
       })
     ).to.deep.contain({
-      secret: "fn999:my-db-3:admin",
+      secret: "fn999:my-db-3",
       url: "http://somewhere-else:10443",
     });
   });
@@ -279,7 +279,7 @@ describe("local config with flags", () => {
         scope: "my-scope",
       })
     ).to.deep.contain({
-      secret: "fn1234:my-scope:admin",
+      secret: "fn1234:my-scope",
       url: "http://localhost:8443",
     });
   });
@@ -307,7 +307,7 @@ describe("local config with flags", () => {
         scope: "my-scope",
       })
     ).to.deep.contain({
-      secret: "fn1234:my-db/my-scope:admin",
+      secret: "fn1234:my-db/my-scope",
       url: "http://localhost:8443",
     });
   });

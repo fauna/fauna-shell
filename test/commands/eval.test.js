@@ -17,7 +17,7 @@ describe("eval", () => {
       ])
     )
     .it("runs eval on root db", (ctx) => {
-      expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal("admin");
+      expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal("root");
     });
 
   test

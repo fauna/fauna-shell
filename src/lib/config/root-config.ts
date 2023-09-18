@@ -77,7 +77,7 @@ export class Endpoint {
     graphqlPort: number;
   } {
     const secret =
-      this.secret + (scope ? `:${scope}` : "") + ":" + (role ?? "admin");
+      this.secret + (scope ? `:${scope}` : "") + (role ? `:${role}` : "");
 
     return {
       secret,
