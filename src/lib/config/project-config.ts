@@ -11,12 +11,7 @@ export class ProjectConfig {
       config.objectsIn("stack").map(([k, v]) => [k, new Stack(v)])
     );
 
-    if (this.defaultStack === "default") {
-      throw new InvalidConfigError("Default stack cannot be named 'default'");
-    } else if (
-      this.defaultStack &&
-      this.stacks[this.defaultStack] === undefined
-    ) {
+    if (this.defaultStack && this.stacks[this.defaultStack] === undefined) {
       throw new InvalidConfigError(
         `Default stack '${this.defaultStack}' was not found`
       );
