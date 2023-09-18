@@ -249,6 +249,7 @@ export class ShellConfig {
       }
 
       // override endpoint with values from flags.
+      this.endpoint.secret = secretFlag ?? this.endpoint.secret;
       this.endpoint.url = urlFlag ?? this.endpoint.url;
       this.endpoint.graphqlHost =
         this.flags.strOpt("graphqlHost") ?? this.endpoint.graphqlHost;
@@ -258,22 +259,21 @@ export class ShellConfig {
   }
 
   lookupEndpoint = (): EndpointConfig => {
-    return this.endpoint.makeScopedEndpoint(
-      this.args.scope ?? this.stack?.database,
-      this.args.role
-    );
+    let database = this.stack?.database ?? "";
+    if (this.stack !== undefined && this.args.scope !== undefined) {
+      database += "/";
+    }
+    database += this.args.scope;
+
+    return this.endpoint.makeScopedEndpoint(database, this.args.role);
   };
 }
 
 const readFileOpt = (fileName: string) => {
-  try {
+  if (fs.existsSync(fileName)) {
     return fs.readFileSync(fileName, "utf8");
-  } catch (err) {
-    if (isFileNotFound(err)) {
-      return "";
-    } else {
-      throw err;
-    }
+  } else {
+    return "";
   }
 };
 
@@ -289,8 +289,4 @@ const getProjectConfigPath = () => {
   } else {
     return undefined;
   }
-};
-
-const isFileNotFound = (err: any) => {
-  return err.code === "ENOENT" && err.syscall === "open";
 };

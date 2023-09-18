@@ -37,7 +37,7 @@ export class Stack {
   /**
    * The database path to use.
    */
-  database?: string;
+  database: string;
 
   constructor(config: Config) {
     this.endpoint = config.str("endpoint");
