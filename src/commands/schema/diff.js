@@ -1,21 +1,14 @@
 const SchemaCommand = require("../../lib/schema-command.js").default;
 const fetch = require("node-fetch");
-const { Flags } = require("@oclif/core");
 
 class DiffSchemaCommand extends SchemaCommand {
   static flags = {
     ...SchemaCommand.flags,
-    // NB: Required as a flag because it will become optional eventually,
-    //     once project configuration is implemented.
-    dir: Flags.string({
-      required: true,
-      description: "The directory of .fsl files to push",
-    }),
   };
 
   async run() {
-    const fps = this.gather(this.flags.dir);
-    const files = this.read(this.flags.dir, fps);
+    const fps = this.gather();
+    const files = this.read(fps);
     try {
       const { urlbase, secret } = await this.fetchsetup();
       const res = await fetch(`${urlbase}/schema/1/validate?force=true`, {

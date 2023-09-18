@@ -9,12 +9,6 @@ class PushSchemaCommand extends SchemaCommand {
       description: "Push the change without a diff or schema version check",
       default: false,
     }),
-    // NB: Required as a flag because it will become optional eventually,
-    //     once project configuration is implemented.
-    dir: Flags.string({
-      required: true,
-      description: "The directory of .fsl files to push",
-    }),
   };
 
   async confirm() {
@@ -32,8 +26,8 @@ class PushSchemaCommand extends SchemaCommand {
   }
 
   async run() {
-    const fps = this.gather(this.flags.dir);
-    const files = this.read(this.flags.dir, fps);
+    const fps = this.gather();
+    const files = this.read(fps);
     try {
       const { urlbase, secret } = await this.fetchsetup();
       if (this.flags.force) {

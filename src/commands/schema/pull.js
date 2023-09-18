@@ -12,12 +12,6 @@ class PullSchemaCommand extends SchemaCommand {
         "Delete .fsl files in the target directory that are not part of the database schema",
       default: false,
     }),
-    // NB: Required as a flag because it will become optional eventually,
-    //     once project configuration is implemented.
-    dir: Flags.string({
-      required: true,
-      description: "The target directory",
-    }),
   };
 
   async confirm() {
@@ -37,8 +31,6 @@ class PullSchemaCommand extends SchemaCommand {
   async run() {
     const { urlbase, secret } = await this.fetchsetup();
 
-    const dir = this.flags.dir;
-
     try {
       // Gather remote schema files to download.
       const filesres = await fetch(`${urlbase}/schema/1/files`, {
@@ -56,7 +48,7 @@ class PullSchemaCommand extends SchemaCommand {
         .sort();
 
       // Gather local .fsl files to overwrite or delete.
-      const existing = this.gather(dir);
+      const existing = this.gather();
 
       // Summarize file changes.
       const adds = [];
@@ -92,7 +84,7 @@ class PullSchemaCommand extends SchemaCommand {
       if (this.flags.delete) {
         // Delete extra .fsl files.
         for (const deleteme of deletes) {
-          fs.unlinkSync(path.join(dir, deleteme));
+          fs.unlinkSync(path.join(this.dir, deleteme));
         }
       }
 
@@ -106,7 +98,7 @@ class PullSchemaCommand extends SchemaCommand {
           if (filejson.error) {
             this.error(filejson.error.message);
           }
-          const fp = path.join(dir, filename);
+          const fp = path.join(this.dir, filename);
           fs.mkdirSync(path.dirname(fp), { recursive: true });
           fs.writeFileSync(fp, filejson.content);
         }
@@ -122,6 +114,6 @@ class PullSchemaCommand extends SchemaCommand {
 PullSchemaCommand.description =
   "Pull a database schema's .fsl files into a directory";
 
-PullSchemaCommand.examples = ["$ fauna schema pull --dir schemas/myschema"];
+PullSchemaCommand.examples = ["$ fauna schema pull"];
 
 module.exports = PullSchemaCommand;

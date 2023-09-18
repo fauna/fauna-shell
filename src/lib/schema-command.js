@@ -1,13 +1,21 @@
 import FaunaCommand from "./fauna-command";
-import { readFileSync, readdirSync, statSync } from "fs";
-import { join } from "path";
+import * as fs from "fs";
+import * as path from "path";
 import FormData from "form-data";
+import { Flags } from "@oclif/core";
 
 class SchemaCommand extends FaunaCommand {
   static flags = (() => {
     // Remove flags that don't make sense.
     const { graphqlHost, graphqlPort, ...rest } = FaunaCommand.flags;
-    return rest;
+    return {
+      dir: Flags.string({
+        description:
+          "The directory of .fsl files to push. Defaults to the directory of `.fauna-project`",
+        required: false,
+      }),
+      ...rest,
+    };
   })();
 
   async fetchsetup() {
@@ -19,6 +27,25 @@ class SchemaCommand extends FaunaCommand {
       urlbase: url,
       secret,
     };
+  }
+
+  /**
+   * @type {string}
+   */
+  dir;
+
+  async init() {
+    await super.init();
+
+    if (this.flags.dir !== undefined) {
+      this.dir = this.flags.dir;
+    } else if (this.shellConfig.projectPath !== undefined) {
+      this.dir = this.shellConfig.projectPath;
+    } else {
+      this.error(
+        "No project found. Create a project with `fauna project init`."
+      );
+    }
   }
 
   // Helper to construct form data for a collection of files, as
@@ -34,13 +61,13 @@ class SchemaCommand extends FaunaCommand {
   // Reads the files using their relative-to-`basedir` paths and returns their
   // contents paired with the relative path.
   // Fails if the total size of the files is too large.
-  read(basedir, relpaths) {
+  read(relpaths) {
     const FILESIZE_LIMIT_BYTES = 32 * 1024 * 1024;
     const curr = [];
     var totalsize = 0;
     for (const relp of relpaths) {
-      const fp = join(basedir, relp);
-      const content = readFileSync(fp);
+      const fp = path.join(this.dir, relp);
+      const content = fs.readFileSync(fp);
       totalsize += content.length;
       if (totalsize > FILESIZE_LIMIT_BYTES) {
         this.error(
@@ -55,15 +82,15 @@ class SchemaCommand extends FaunaCommand {
   // Gathers all FSL files in the directory rooted at `basedir` and returns a
   // list of relative paths.
   // Fails if there are too many files.
-  gather(basedir) {
+  gather() {
     const FILE_LIMIT = 256;
     const go = (rel, curr) => {
-      const names = readdirSync(join(basedir, rel));
+      const names = fs.readdirSync(path.join(this.dir, rel));
       const subdirs = [];
       for (const n of names) {
-        const fp = join(basedir, rel, n);
-        const relp = join(rel, n);
-        const isDir = statSync(fp).isDirectory();
+        const fp = path.join(this.dir, rel, n);
+        const relp = path.join(rel, n);
+        const isDir = fs.statSync(fp).isDirectory();
         if (n.endsWith(".fsl") && !isDir) {
           curr.push(relp);
         }
