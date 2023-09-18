@@ -264,4 +264,51 @@ describe("local config with flags", () => {
       url: "http://somewhere-else:10443",
     });
   });
+
+  it("scope from args works", () => {
+    expect(
+      lookupEndpoint({
+        flags: {},
+        rootConfig: {
+          default: "my-endpoint",
+          "my-endpoint": {
+            secret: "fn1234",
+            url: "http://localhost:8443",
+          },
+        },
+        scope: "my-scope",
+      })
+    ).to.deep.contain({
+      secret: "fn1234:my-scope:admin",
+      url: "http://localhost:8443",
+    });
+  });
+
+  it("concats scope from args and stack", () => {
+    expect(
+      lookupEndpoint({
+        flags: {},
+        rootConfig: {
+          default: "my-endpoint",
+          "my-endpoint": {
+            secret: "fn1234",
+            url: "http://localhost:8443",
+          },
+        },
+        projectConfig: {
+          default: "my-app",
+          stack: {
+            "my-app": {
+              endpoint: "my-endpoint",
+              database: "my-db",
+            },
+          },
+        },
+        scope: "my-scope",
+      })
+    ).to.deep.contain({
+      secret: "fn1234:my-db/my-scope:admin",
+      url: "http://localhost:8443",
+    });
+  });
 });

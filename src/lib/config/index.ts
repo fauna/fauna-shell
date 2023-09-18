@@ -260,10 +260,12 @@ export class ShellConfig {
 
   lookupEndpoint = (): EndpointConfig => {
     let database = this.stack?.database ?? "";
-    if (this.stack !== undefined && this.args.scope !== undefined) {
-      database += "/";
+    if (this.args.scope !== undefined) {
+      if (this.stack !== undefined) {
+        database += "/";
+      }
+      database += this.args.scope;
     }
-    database += this.args.scope;
 
     return this.endpoint.makeScopedEndpoint(database, this.args.role);
   };
