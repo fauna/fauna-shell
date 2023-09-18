@@ -94,13 +94,13 @@
     "build": "rm -rf dist && tsc -b",
     "postpack": "rm -f oclif.manifest.json",
     "prepack": "yarn build && oclif manifest",
-    "pretest": "npm run fixlint",
+    "pretest": "yarn fixlint",
     "local-test": "export $(cat .env | xargs); nyc mocha --forbid-only \"test/**/*.test.{js,ts}\"",
     "test": "export $(cat .env.test | xargs); nyc mocha --forbid-only \"test/**/*.test.{js,ts}\"",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
     "version": "oclif-dev readme && git add README.md",
-    "fmt": "prettier -w ."
+    "fmt": "prettier -w src"
   },
   "husky": {
     "hooks": {

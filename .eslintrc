@@ -24,6 +24,7 @@
       }
     ]
   },
+  "ignorePatterns": ["dist/**/*"],
   "overrides": [
     {
       "files": ["*.test.js", "*.spec.js"],

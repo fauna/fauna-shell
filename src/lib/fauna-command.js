@@ -1,9 +1,11 @@
 const { Command, Flags } = require("@oclif/core");
-const { buildConnectionOptions, stringifyEndpoint } = require("../lib/misc.js");
+const { lookupEndpoint } = require("../lib/config/index.ts");
+const { stringifyEndpoint } = require("../lib/misc.js");
 const faunadb = require("faunadb");
 const chalk = require("chalk");
 const q = faunadb.query;
 const FaunaClient = require("./fauna-client.js");
+const fetch = require("node-fetch");
 
 /**
  * This is the base class for all fauna-shell commands.
@@ -52,16 +54,19 @@ class FaunaCommand extends Command {
   async withClient(f, dbScope, role) {
     let connectionOptions;
     try {
-      connectionOptions = await buildConnectionOptions(
-        this.flags,
-        dbScope,
-        role
-      );
+      connectionOptions = lookupEndpoint(this.flags, dbScope, role);
 
-      const { graphqlHost, graphqlPort, ...clientOptions } = connectionOptions;
+      const { hostname, port, protocol } = new URL(connectionOptions.url);
 
       const client = new faunadb.Client({
-        ...clientOptions,
+        domain: hostname,
+        port,
+        scheme: protocol?.replace(/:$/, ""),
+        secret: connectionOptions.secret,
+
+        // Force http1. See getClient.
+        fetch: fetch,
+
         headers: {
           "X-Fauna-Source": "Fauna Shell",
         },
@@ -90,15 +95,23 @@ class FaunaCommand extends Command {
       // construct v4 client
       let connectionOptions;
       try {
-        connectionOptions = await buildConnectionOptions(
-          this.flags,
-          dbScope,
-          role
-        );
-        const { graphqlHost, graphqlPort, ...clientOptions } =
-          connectionOptions;
+        connectionOptions = lookupEndpoint(this.flags, dbScope, role);
+
+        const { hostname, port, protocol } = new URL(connectionOptions.url);
+
         const client = new faunadb.Client({
-          ...clientOptions,
+          domain: hostname,
+          port,
+          scheme: protocol?.replace(/:$/, ""),
+          secret: connectionOptions.secret,
+
+          // Force http1. Fixes tests I guess? I spent a solid 30 minutes
+          // debugging the whole `nock` thing in our tests, only to realize this
+          // `fetch` key wasn't set after switching to the new config parsing.
+          //
+          // TODO: Remove and just connect to a docker container.
+          fetch: fetch,
+
           headers: {
             "X-Fauna-Source": "Fauna Shell",
           },
@@ -117,18 +130,9 @@ class FaunaCommand extends Command {
       // construct v10 client
       let connectionOptions;
       try {
-        connectionOptions = await buildConnectionOptions(
-          this.flags,
-          dbScope,
-          role
-        );
-        const endpoint = new URL(
-          `${connectionOptions.scheme ?? "https"}://${
-            connectionOptions.domain
-          }:${connectionOptions.port ?? 443}`
-        );
+        connectionOptions = lookupEndpoint(this.flags, dbScope, role);
         const client = new FaunaClient(
-          endpoint,
+          connectionOptions.url,
           connectionOptions.secret,
           this.flags.timeout ? parseInt(this.flags.timeout, 10) : undefined
         );
@@ -137,7 +141,10 @@ class FaunaCommand extends Command {
         await client.query("0");
 
         const hashKey = [dbScope, role].join("_");
-        this.clients[hashKey] = { client, connectionOptions };
+        this.clients[hashKey] = {
+          client,
+          connectionOptions,
+        };
         return this.clients[hashKey];
       } catch (err) {
         return this.mapConnectionError({ err, connectionOptions });

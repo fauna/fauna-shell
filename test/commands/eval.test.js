@@ -112,7 +112,7 @@ function mockQuery(api) {
         resource: {
           data: [
             {
-              targetDb: auth[1] || "root",
+              targetDb: auth[1] ?? "root",
             },
           ],
         },
