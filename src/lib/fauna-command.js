@@ -1,7 +1,7 @@
 import { Command, Flags } from "@oclif/core";
 import { lookupEndpoint } from "./config";
 import { stringifyEndpoint } from "./misc";
-import { query as q, errors } from "faunadb";
+import { query as q, errors, Client } from "faunadb";
 import { green } from "chalk";
 import FaunaClient from "./fauna-client.js";
 import fetch from "node-fetch";
@@ -57,7 +57,7 @@ class FaunaCommand extends Command {
 
       const { hostname, port, protocol } = new URL(connectionOptions.url);
 
-      const client = new faunadb.Client({
+      const client = new Client({
         domain: hostname,
         port,
         scheme: protocol?.replace(/:$/, ""),
@@ -98,7 +98,7 @@ class FaunaCommand extends Command {
 
         const { hostname, port, protocol } = new URL(connectionOptions.url);
 
-        const client = new faunadb.Client({
+        const client = new Client({
           domain: hostname,
           port,
           scheme: protocol?.replace(/:$/, ""),
@@ -181,9 +181,9 @@ class FaunaCommand extends Command {
   }
 
   dbExists(dbName, callback) {
-    return this.withClient(function (testDbClient, _) {
-      return testDbClient.query(q.Exists(q.Database(dbName))).then(callback);
-    });
+    return this.withClient((testDbClient, _) =>
+      testDbClient.query(q.Exists(q.Database(dbName))).then(callback)
+    );
   }
 }
 
