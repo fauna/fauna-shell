@@ -1,6 +1,6 @@
 const { setDefaultEndpoint } = require("../lib/misc.js");
 const { Args } = require("@oclif/core");
-const FaunaCommand = require("../lib/fauna-command.js");
+const FaunaCommand = require("../lib/fauna-command.js").default;
 
 class DefaultEndpointCommand extends FaunaCommand {
   async run() {

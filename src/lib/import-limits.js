@@ -1,6 +1,6 @@
 // these functions are present to make testing the import function easy.
 
-class ImportLimits {
+export class ImportLimits {
   /**
    * @return the maximum import size limit in MB
    **/
@@ -9,7 +9,7 @@ class ImportLimits {
   }
 }
 
-class RateEstimator {
+export class RateEstimator {
   static estimateWriteOpsAsBytes(totalBytes, numberOfIndexes) {
     if (totalBytes < 0) {
       throw new Error("Invalid argument totalBytes must be >= 0");
@@ -40,6 +40,3 @@ class RateEstimator {
     return Math.ceil(actualWriteOps / estimatedWriteOpsNoIndex) - 1;
   }
 }
-
-module.exports.ImportLimits = ImportLimits;
-module.exports.RateEstimator = RateEstimator;

@@ -1,4 +1,4 @@
-const SchemaCommand = require("../../lib/schema-command.js");
+const SchemaCommand = require("../../lib/schema-command.js").default;
 const fetch = require("node-fetch");
 const fs = require("fs");
 const path = require("path");

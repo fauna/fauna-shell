@@ -1,7 +1,7 @@
 const { cli } = require("cli-ux");
 const { Flags, Args } = require("@oclif/core");
 const { saveEndpointOrError } = require("../lib/misc.js");
-const FaunaCommand = require("../lib/fauna-command.js");
+const FaunaCommand = require("../lib/fauna-command.js").default;
 const url = require("url");
 
 class AddEndpointCommand extends FaunaCommand {

@@ -1,10 +1,10 @@
-const q = require("faunadb").query;
-const moment = require("moment");
+import { query as q } from "faunadb";
+import { utc, ISO_8601, RFC_2822, unix } from "moment";
 
 /**
  * An error translating an object with a {FaunaObjectTranslater}.
  */
-class TranslationError extends Error {}
+export class TranslationError extends Error {}
 
 /**
  * Helper class for cleaning objects prior to persistence in Fauna.
@@ -12,7 +12,7 @@ class TranslationError extends Error {}
  *   - trim input strings to remove unneeded whitespace
  *   - cast types as specified by input
  **/
-class FaunaObjectTranslator {
+export class FaunaObjectTranslator {
   static #NUMBER_REGEX = /(^\s*[+|-]?\d+\s*$)|(^\s*[+|-]?\d*\.\d+\s*$)/;
 
   static #TRULY = ["true", "t", "yes", "1", 1, true];
@@ -117,10 +117,10 @@ class FaunaObjectTranslator {
         )}' to a date.`
       );
     }
-    let theDate = moment.utc(val, moment.ISO_8601);
+    let theDate = utc(val, ISO_8601);
     if (!theDate.isValid()) {
       // fallback to other date formats
-      theDate = moment.utc(val, moment.RFC_2822);
+      theDate = utc(val, RFC_2822);
       if (!theDate.isValid()) {
         theDate = new Date(val);
         if (Number.isNaN(theDate.getTime())) {
@@ -139,8 +139,7 @@ Making a best-effort translation to '${theDate}'`);
   #epochMillisDate(val) {
     try {
       return q.Time(
-        moment
-          .unix(this.#getNumber(val) / 1000)
+        unix(this.#getNumber(val) / 1000)
           .utc()
           .toISOString()
       );
@@ -155,7 +154,7 @@ Making a best-effort translation to '${theDate}'`);
 
   #epochSecondsDate(val) {
     try {
-      return q.Time(moment.unix(this.#getNumber(val)).utc().toISOString());
+      return q.Time(unix(this.#getNumber(val)).utc().toISOString());
     } catch (e) {
       throw new TranslationError(
         `Cannot convert '${FaunaObjectTranslator.#getErrorValue(
@@ -189,6 +188,3 @@ Making a best-effort translation to '${theDate}'`);
     }, obj);
   }
 }
-
-exports.FaunaObjectTranslator = FaunaObjectTranslator;
-exports.TranslationError = TranslationError;

@@ -1,5 +1,5 @@
 const { Flags } = require("@oclif/core");
-const FaunaCommand = require("../lib/fauna-command.js");
+const FaunaCommand = require("../lib/fauna-command.js").default;
 const EvalCommand = require("./eval");
 
 const DEPRECATED_MSG =

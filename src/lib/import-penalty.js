@@ -1,4 +1,4 @@
-class ImportPenalty {
+export class ImportPenalty {
   constructor(floor, ceiling) {
     this.floor = floor;
     this.ceiling = ceiling;
@@ -17,5 +17,3 @@ class ImportPenalty {
     return next;
   }
 }
-
-exports.ImportPenalty = ImportPenalty;

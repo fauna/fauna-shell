@@ -1,4 +1,4 @@
-const FaunaCommand = require("../lib/fauna-command.js");
+const FaunaCommand = require("../lib/fauna-command.js").default;
 const inquirer = require("inquirer");
 const fetch = require("node-fetch");
 const faunadb = require("faunadb");

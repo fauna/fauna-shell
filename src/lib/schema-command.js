@@ -1,7 +1,7 @@
-const FaunaCommand = require("./fauna-command.js");
-const fs = require("fs");
-const path = require("path");
-const FormData = require("form-data");
+import FaunaCommand from "./fauna-command";
+import { readFileSync, readdirSync, statSync } from "fs";
+import { join } from "path";
+import FormData from "form-data";
 
 class SchemaCommand extends FaunaCommand {
   static flags = (() => {
@@ -39,8 +39,8 @@ class SchemaCommand extends FaunaCommand {
     const curr = [];
     var totalsize = 0;
     for (const relp of relpaths) {
-      const fp = path.join(basedir, relp);
-      const content = fs.readFileSync(fp);
+      const fp = join(basedir, relp);
+      const content = readFileSync(fp);
       totalsize += content.length;
       if (totalsize > FILESIZE_LIMIT_BYTES) {
         this.error(
@@ -58,12 +58,12 @@ class SchemaCommand extends FaunaCommand {
   gather(basedir) {
     const FILE_LIMIT = 256;
     const go = (rel, curr) => {
-      const names = fs.readdirSync(path.join(basedir, rel));
+      const names = readdirSync(join(basedir, rel));
       const subdirs = [];
       for (const n of names) {
-        const fp = path.join(basedir, rel, n);
-        const relp = path.join(rel, n);
-        const isDir = fs.statSync(fp).isDirectory();
+        const fp = join(basedir, rel, n);
+        const relp = join(rel, n);
+        const isDir = statSync(fp).isDirectory();
         if (n.endsWith(".fsl") && !isDir) {
           curr.push(relp);
         }
@@ -84,4 +84,4 @@ class SchemaCommand extends FaunaCommand {
   }
 }
 
-module.exports = SchemaCommand;
+export default SchemaCommand;
