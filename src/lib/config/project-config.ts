@@ -1,3 +1,6 @@
+const ini = require("ini");
+
+import * as fs from "fs";
 import { RootConfig, Config, InvalidConfigError } from ".";
 
 // Represents `.fauna-project`
@@ -26,6 +29,16 @@ export class ProjectConfig {
         );
       }
     }
+  }
+
+  save(path: string) {
+    const config = {
+      default: this.defaultStack,
+      stack: this.stacks,
+    };
+
+    const encoded = ini.encode(config);
+    fs.writeFileSync(path, encoded);
   }
 }
 

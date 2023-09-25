@@ -252,6 +252,19 @@ export class ShellConfig {
 
     return this.endpoint!.makeScopedEndpoint(database, opts.role);
   };
+
+  /**
+   * Saves the project config, if present.
+   */
+  saveProjectConfig() {
+    this.projectConfig?.save(this.projectConfigFile()!);
+  }
+
+  projectConfigFile(): string | undefined {
+    return this.projectPath === undefined
+      ? undefined
+      : path.join(this.projectPath, ".fauna-project");
+  }
 }
 
 const readFileOpt = (fileName: string) => {
