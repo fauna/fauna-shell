@@ -298,7 +298,7 @@ export const getProjectConfigPath = (): string | undefined => {
     return undefined;
   }
 
-  for (let i = 0; i < 2048; i++) {
+  while (true) {
     const projPath = path.join(current, ".fauna-project");
     let stat;
     stat = fs.statSync(projPath, {
@@ -317,13 +317,7 @@ export const getProjectConfigPath = (): string | undefined => {
     current = currPath.dir;
   }
 
-  // if we got here, it means:
-  // - there was no `.fauna-project` file.
-  // - `path.dirname` never got us to the root.
-  // - the cwd has more than 2048 elements. linux caps the path length at 4096
-  //   bytes, and windows caps it at 260 characters. so that is unlikely to say
-  //   the least.
-  //
-  // in any case, we give up.
+  // if we got here, it means that there was no `.fauna-project` file, so we
+  // give up.
   return undefined;
 };
