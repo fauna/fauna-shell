@@ -279,7 +279,7 @@ const readFile = (fileName: string) => {
   return fs.readFileSync(fileName, "utf8");
 };
 
-const getRootConfigPath = () => {
+export const getRootConfigPath = () => {
   return path.join(os.homedir(), ".fauna-shell");
 };
 
