@@ -498,10 +498,27 @@
     chalk "^4.1.2"
     figures "^3.2.0"
 
+"@inquirer/testing@^2.1.7":
+  version "2.1.7"
+  resolved "https://registry.yarnpkg.com/@inquirer/testing/-/testing-2.1.7.tgz#33b9346df85e1eeb31bc3d93fa34eecda87662b9"
+  integrity sha512-H/cv2by4y9PIsG2tJSJiHZbloRJhYRuwvr0I9OugrOBUMMDGTevVuturgr1QagTxHQFduemLg4wnRCfbLne29A==
+  dependencies:
+    "@inquirer/type" "^1.1.5"
+    "@types/mute-stream" "^0.0.1"
+    "@types/node" "^20.6.5"
+    ansi-escapes "^4.3.2"
+    mute-stream "^1.0.0"
+    strip-ansi "^6.0.1"
+
 "@inquirer/type@^1.1.4":
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/@inquirer/type/-/type-1.1.4.tgz#8ef3d3d638a59253fbbe4b0297035cddc227eaed"
   integrity sha512-a6+RCiXBQEbiA73RT1pBfwiH2I+MPcoZoGKuuUYFkws+6ud7nb5kUQGHFGUSBim25IyVMT/mqbWIrkxetcIb/w==
+
+"@inquirer/type@^1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@inquirer/type/-/type-1.1.5.tgz#b8c171f755859c8159b10e41e1e3a88f0ca99d7f"
+  integrity sha512-wmwHvHozpPo4IZkkNtbYenem/0wnfI6hvOcGKmPEa0DwuaH5XUQzFqy6OpEpjEegZMhYIk8HDYITI16BPLtrRA==
 
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
@@ -1484,6 +1501,11 @@
   version "20.6.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-20.6.0.tgz#9d7daa855d33d4efec8aea88cd66db1c2f0ebe16"
   integrity sha512-najjVq5KN2vsH2U/xyh2opaSEz6cZMR2SetLIlxlj08nOcmPOemJmUK2o4kUzfLqfrWE0PIrNeE16XhYDd3nqg==
+
+"@types/node@^20.6.5":
+  version "20.7.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.7.0.tgz#c03de4572f114a940bc2ca909a33ddb2b925e470"
+  integrity sha512-zI22/pJW2wUZOVyguFaUL1HABdmSVxpXrzIqkjsHmyUjNhPoWM1CKfvVuXfetHhIok4RY573cqS0mZ1SJEnoTg==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"
