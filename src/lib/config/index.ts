@@ -102,6 +102,7 @@ export class Config {
 export type ShellOpts = {
   flags?: { [key: string]: any };
   rootConfig?: { [key: string]: any };
+  projectPath?: string;
   projectConfig?: { [key: string]: any };
 };
 
@@ -124,6 +125,8 @@ export class ShellConfig {
   //
   // If this is unset, `validate` will fail.
   endpoint: Endpoint | undefined;
+  // The path to the project config.
+  projectPath: string | undefined;
 
   static read(flags: any) {
     const rootConfig = ini.parse(readFileOpt(getRootConfigPath()));
@@ -135,6 +138,10 @@ export class ShellConfig {
     return new ShellConfig({
       flags,
       rootConfig,
+      projectPath:
+        projectConfigPath !== undefined
+          ? path.dirname(projectConfigPath)
+          : undefined,
       projectConfig,
     });
   }
@@ -145,6 +152,7 @@ export class ShellConfig {
     this.rootConfig = new RootConfig(
       new Config("config key", opts.rootConfig ?? {})
     );
+    this.projectPath = opts.projectPath;
     this.projectConfig = opts.projectConfig
       ? new ProjectConfig(new Config("config key", opts.projectConfig))
       : undefined;

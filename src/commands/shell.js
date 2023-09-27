@@ -67,7 +67,9 @@ class ShellCommand extends EvalCommand {
     // we don't want to allow people to call some of the default commands
     // from the node repl
     const entries = Object.entries(this.repl.commands);
-    this.repl.commands = Object.fromEntries(entries.filter(([k, _]) => !["load", "save"].includes(k)));
+    this.repl.commands = Object.fromEntries(
+      entries.filter(([k, _]) => !["load", "save"].includes(k))
+    );
 
     this.commands.forEach(({ cmd, ...cmdOptions }) =>
       this.repl.defineCommand(cmd, cmdOptions)

@@ -1,5 +1,6 @@
 const expect = require("expect");
-const getFaunaImportWriter = require("../../src/lib/fauna-import-writer").default;
+const getFaunaImportWriter =
+  require("../../src/lib/fauna-import-writer").default;
 const jestMock = require("jest-mock");
 const sizeof = require("object-sizeof");
 const { UnavailableError, FaunaHTTPError } = require("faunadb").errors;

@@ -54,7 +54,10 @@ class FaunaCommand extends Command {
   async withClient(f, dbScope, role) {
     let connectionOptions;
     try {
-      connectionOptions = this.shellConfig.lookupEndpoint({ scope: dbScope, role });
+      connectionOptions = this.shellConfig.lookupEndpoint({
+        scope: dbScope,
+        role,
+      });
 
       const { hostname, port, protocol } = new URL(connectionOptions.url);
 
@@ -95,7 +98,10 @@ class FaunaCommand extends Command {
       // construct v4 client
       let connectionOptions;
       try {
-        connectionOptions = this.shellConfig.lookupEndpoint({ scope: dbScope, role });
+        connectionOptions = this.shellConfig.lookupEndpoint({
+          scope: dbScope,
+          role,
+        });
 
         const { hostname, port, protocol } = new URL(connectionOptions.url);
 
@@ -130,7 +136,10 @@ class FaunaCommand extends Command {
       // construct v10 client
       let connectionOptions;
       try {
-        connectionOptions = this.shellConfig.lookupEndpoint({ scope: dbScope, role });
+        connectionOptions = this.shellConfig.lookupEndpoint({
+          scope: dbScope,
+          role,
+        });
         const client = new FaunaClient(
           connectionOptions.url,
           connectionOptions.secret,
