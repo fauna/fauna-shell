@@ -53,7 +53,11 @@ export const searchSelect = createPrompt(
     // TODO: Fuzzy filter?
     const items = choices.filter((item, _) => item.value.startsWith(typed));
 
+    // This is the item with a cursor next to it. The arrow keys will
+    // increment/decrement this value.
     const [activeState, setActive] = useState(0);
+    // This is the distance the amount that has been scrolled down. It is the
+    // index of the first visible item.
     const [scrollState, setScroll] = useState(0);
     // `typed` can get updated, changing the length of `items`, without `active`
     // or `scroll` being updated. Its simplest just to truncate these values
