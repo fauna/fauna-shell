@@ -99,30 +99,6 @@ export class Config {
   }
 }
 
-/**
- * Builds the options provided to the faunajs client.
- * Tries to load the ~/.fauna-shell file and read the default endpoint from there.
- *
- * Assumes that if the file exists, it would have been created by fauna-shell,
- * therefore it would have a defined endpoint.
- *
- * Flags like --host, --port, etc., provided by the CLI take precedence over what's
- * stored in ~/.fauna-shell.
- *
- * The --endpoint flag overries the default endpoint from fauna-shell.
- *
- * If ~/.fauna-shell doesn't exist, tries to build the connection options from the
- * flags passed to the script.
- *
- * It always expect a secret key to be set in ~/.fauna-shell or provided via CLI
- * arguments.
- *
- * TODO: Remove and store a ShellConfig in `fauna-command`
- */
-export const lookupEndpoint = (flags: any, scope: string, role: string) => {
-  return ShellConfig.read(flags).lookupEndpoint({ scope, role });
-};
-
 export type ShellOpts = {
   flags?: { [key: string]: any };
   rootConfig?: { [key: string]: any };
@@ -145,7 +121,9 @@ export class ShellConfig {
   // The selected stack from the project config. If there is a project config, this will also be set.
   stack: Stack | undefined;
   // The fully configured endpoint, including command line flags that override things like the URL.
-  endpoint: Endpoint;
+  //
+  // If this is unset, `validate` will fail.
+  endpoint: Endpoint | undefined;
 
   static read(flags: any) {
     const rootConfig = ini.parse(readFileOpt(getRootConfigPath()));
@@ -216,19 +194,15 @@ export class ShellConfig {
     const secretFlag = this.flags.strOpt("secret");
 
     if (endpointName === undefined) {
-      // No `~/.fauna-shell` was found, so `--secret` is required, and then fill in some defaults.
-      if (secretFlag === undefined) {
-        throw new Error(
-          "No endpoint or secret set. Set an endpoint in ~/.fauna-shell, .fauna-project, or pass --endpoint"
-        );
+      // No `~/.fauna-shell` was found, so `--secret` is required to make an endpoint. If `--secret` wasn't passed, `validate` should fail.
+      if (secretFlag !== undefined) {
+        this.endpoint = new Endpoint({
+          secret: secretFlag,
+          url: urlFlag,
+          graphqlHost: this.flags.strOpt("graphqlHost"),
+          graphqlPort: this.flags.numberOpt("graphqlPort"),
+        });
       }
-
-      this.endpoint = new Endpoint({
-        secret: secretFlag,
-        url: urlFlag,
-        graphqlHost: this.flags.strOpt("graphqlHost"),
-        graphqlPort: this.flags.numberOpt("graphqlPort"),
-      });
     } else {
       this.endpoint = this.rootConfig.endpoints[endpointName];
       if (this.endpoint === undefined) {
@@ -245,10 +219,21 @@ export class ShellConfig {
     }
   }
 
+  validate = () => {
+    if (this.endpoint === undefined) {
+      // No `~/.fauna-shell` was found, and no `--secret` was passed.
+      throw new Error(
+        "No endpoint or secret set. Set an endpoint in ~/.fauna-shell, .fauna-project, or pass --endpoint"
+      );
+    }
+  };
+
   lookupEndpoint = (opts: {
     scope?: string;
     role?: string;
   }): EndpointConfig => {
+    this.validate();
+
     let database = this.stack?.database ?? "";
     if (opts.scope !== undefined) {
       if (this.stack !== undefined) {
@@ -257,7 +242,7 @@ export class ShellConfig {
       database += opts.scope;
     }
 
-    return this.endpoint.makeScopedEndpoint(database, opts.role);
+    return this.endpoint!.makeScopedEndpoint(database, opts.role);
   };
 }
 
