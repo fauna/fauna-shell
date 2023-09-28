@@ -2,6 +2,7 @@ import { expect, test } from "@oclif/test";
 import { ShellConfig } from "../../src/lib/config";
 import sinon, { SinonStub } from "sinon";
 import AddStackCommand from "../../src/commands/stack/add";
+import ListStackCommand from "../../src/commands/stack/list";
 import { Config } from "@oclif/core";
 
 const rootConfig = {
@@ -204,6 +205,39 @@ describe("stack:add", () => {
           },
         },
       });
+      expect(ctx.config.saveProjectConfig.called).to.be.false;
+    });
+});
+
+describe("stack:list", () => {
+  test
+    .add("config", () =>
+      stubbedProjectConfig({
+        default: "my-app",
+        stack: {
+          foobar: {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+          "my-app": {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+          baz: {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+        },
+      })
+    )
+    .stdout()
+    .do((ctx) =>
+      new ListStackCommand([], new Config({} as any)).execute(ctx.config)
+    )
+    .it("lists stack", (ctx) => {
+      expect(ctx.stdout).to.equal(
+        "Available stacks:\n  foobar\n* my-app\n  baz\n"
+      );
       expect(ctx.config.saveProjectConfig.called).to.be.false;
     });
 });
