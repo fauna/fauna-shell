@@ -184,7 +184,7 @@ export class ShellConfig {
 
     this.projectConfig?.validate(this.rootConfig);
 
-    const urlFlag = Endpoint.getURLFromConfig(this.flags);
+    const urlFlag = Endpoint.getURLFromFlags(this.flags);
     if (urlFlag !== undefined) {
       try {
         // eslint-disable-next-line no-new

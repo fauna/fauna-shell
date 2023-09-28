@@ -1,5 +1,5 @@
 const { expect, test } = require("@oclif/test");
-const { withOpts, getEndpoint, matchFqlReq } = require("../helpers/utils.js");
+const { withOpts, getEndpoint, matchFqlReq, withLegacyOpts } = require("../helpers/utils.js");
 const { query: q } = require("faunadb");
 
 describe("eval", () => {
@@ -17,6 +17,23 @@ describe("eval", () => {
       ])
     )
     .it("runs eval on root db", (ctx) => {
+      expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal("root");
+    });
+
+  test
+    .nock(getEndpoint(), { allowUnmocked: true }, mockQuery)
+    .stdout()
+    .command(
+      withLegacyOpts([
+        "eval",
+        "--version",
+        "4",
+        "--format",
+        "json",
+        "Paginate(Collections())",
+      ])
+    )
+    .it("works with legacy --domain, --schema, and --port opts", (ctx) => {
       expect(JSON.parse(ctx.stdout).data[0].targetDb).to.equal("root");
     });
 

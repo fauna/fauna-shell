@@ -208,22 +208,33 @@ FaunaCommand.flags = {
   ...Command.flags,
   domain: Flags.string({
     description: "Fauna server domain",
+    // Emits a warning if this flag is used.
+    deprecated: { to: "endpointURL" },
+    // Hides the flag in `--help`
+    hidden: true,
   }),
   scheme: Flags.string({
     description: "Connection scheme",
     options: ["https", "http"],
+    deprecated: { to: "endpointURL" },
+    hidden: true,
   }),
   port: Flags.string({
     description: "Connection port",
+    deprecated: { to: "endpointURL" },
+    hidden: true,
+  }),
+  endpointURL: Flags.string({
+    description: "Database URL. Overrides the `url` in ~/.fauna-shell",
   }),
   timeout: Flags.string({
     description: "Connection timeout in milliseconds",
   }),
   secret: Flags.string({
-    description: "Fauna secret key",
+    description: "Secret key. Overrides the `secret` in ~/.fauna-shell",
   }),
   endpoint: Flags.string({
-    description: "Fauna server endpoint",
+    description: "Connection endpoint, from ~/.fauna-shell",
   }),
 };
 
