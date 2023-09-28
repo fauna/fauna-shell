@@ -2,7 +2,10 @@ const url = require("url");
 const { query: q } = require("faunadb");
 const env = process.env;
 
-module.exports.withOpts = (cmd) => {
+/**
+ * Sets --domain, --secret, --scheme, and --port.
+ */
+module.exports.withLegacyOpts = (cmd) => {
   const opts = [
     "--secret",
     env.FAUNA_SECRET,
@@ -12,6 +15,19 @@ module.exports.withOpts = (cmd) => {
     env.FAUNA_SCHEME,
     "--port",
     env.FAUNA_PORT,
+  ];
+  return cmd.concat(opts);
+};
+
+/**
+ * Sets --secret and --endpointURL
+ */
+module.exports.withOpts = (cmd) => {
+  const opts = [
+    "--secret",
+    env.FAUNA_SECRET,
+    "--endpointURL",
+    `${env.FAUNA_SCHEME}://${env.FAUNA_DOMAIN}:${env.FAUNA_PORT}`,
   ];
   return cmd.concat(opts);
 };
