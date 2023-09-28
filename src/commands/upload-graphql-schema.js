@@ -7,6 +7,35 @@ const path = require("path");
 class UploadGraphQLSchemaCommand extends FaunaCommand {
   allowedExt = [".graphql", ".gql"];
 
+  static description = "Upload GraphQL schema";
+
+  static examples = [
+    "$ fauna upload-graphql-schema ./schema.gql",
+    "$ fauna upload-graphql-schema ./schema.gql --mode override",
+  ];
+
+  static args = {
+    graphqlFilePath: Args.string({
+      required: true,
+      description: "Path to GraphQL schema",
+    }),
+  };
+
+  static flags = {
+    ...FaunaCommand.flags,
+    graphqlHost: Flags.string({
+      description: "The Fauna GraphQL API host",
+    }),
+    graphqlPort: Flags.string({
+      description: "GraphQL port",
+    }),
+    mode: Flags.string({
+      description: "Upload mode",
+      default: "merge",
+      options: ["merge", "override", "replace"],
+    }),
+  };
+
   async run() {
     try {
       const { graphqlFilePath } = this.args;
@@ -40,26 +69,4 @@ class UploadGraphQLSchemaCommand extends FaunaCommand {
   }
 }
 
-UploadGraphQLSchemaCommand.description = "Upload GraphQL schema";
-
-UploadGraphQLSchemaCommand.examples = [
-  "$ fauna upload-graphql-schema ./schema.gql",
-  "$ fauna upload-graphql-schema ./schema.gql --mode override",
-];
-
-UploadGraphQLSchemaCommand.args = {
-  graphqlFilePath: Args.string({
-    required: true,
-    description: "Path to GraphQL schema",
-  }),
-};
-
-UploadGraphQLSchemaCommand.flags = {
-  ...FaunaCommand.flags,
-  mode: Flags.string({
-    description: "Upload mode",
-    default: "merge",
-    options: ["merge", "override", "replace"],
-  }),
-};
 module.exports = UploadGraphQLSchemaCommand;
