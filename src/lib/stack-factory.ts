@@ -97,7 +97,7 @@ export class StackFactory {
 
     const res = await client.query("0");
     if (res.status !== 200) {
-      this.cmd.error(`Error: ${res.body.error.code}`);
+      this.cmd.error(`${res.body.error.code}`);
     }
 
     const databasePaths = await this.getDatabasePaths(client);
