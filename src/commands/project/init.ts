@@ -47,7 +47,9 @@ export class ProjectInitCommand extends Command {
       projectConfig: ProjectConfig.emptyConfig(),
     });
     const stackFactory = new StackFactory(this, shellConfig);
-    await stackFactory.addStack();
+    await stackFactory.addStack({
+      default: true,
+    });
   }
 
   private getProjectPath(projectDir?: string): string {
@@ -55,7 +57,7 @@ export class ProjectInitCommand extends Command {
       if (path.isAbsolute(projectDir)) {
         return projectDir;
       } else {
-        return `${path.join(process.cwd(), projectDir)}`;
+        return path.join(process.cwd(), projectDir);
       }
     } else {
       return process.cwd();

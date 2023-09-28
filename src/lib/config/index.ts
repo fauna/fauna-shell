@@ -71,7 +71,7 @@ export class Config {
 
   objectExists(key: string): boolean {
     const v = this.config[key];
-    return v !== null && typeof v === "object";
+    return v !== undefined && typeof v === "object";
   }
 
   str(key: string): string {
