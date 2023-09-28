@@ -10,6 +10,8 @@ import { RootConfig, Endpoint } from "./root-config";
 
 export { RootConfig, ProjectConfig, Endpoint, Stack };
 
+export const PROJECT_FILE_NAME = ".fauna-project";
+
 export class InvalidConfigError extends Error {}
 
 // Wraps an `ini` file with helpers to get typed values out
@@ -39,7 +41,7 @@ export class Config {
       return v;
     } else if (typeof v === "string") {
       try {
-        return parseInt(v);
+        return parseInt(v, 10);
       } catch (_) {
         throw new InvalidConfigError(
           `Invalid number for ${this.keyName} ${key}`
@@ -67,6 +69,11 @@ export class Config {
     }
   }
 
+  objectExists(key: string): boolean {
+    const v = this.config[key];
+    return v !== undefined && typeof v === "object";
+  }
+
   str(key: string): string {
     return this.require(key, this.strOpt(key));
   }
@@ -86,8 +93,8 @@ export class Config {
   }
 
   // Returns a list of all keys that match `pred`.
-  allObjectsWhere(pred: (key: string) => boolean): [string, Config][] {
-    return Object.keys(this.config).flatMap((k) =>
+  allObjectsWhere(pred: (_: string) => boolean): [string, Config][] {
+    return Object.keys(this.config).flatMap((k: string) =>
       pred(k) ? [[k, this.object(k)]] : []
     );
   }
@@ -146,6 +153,24 @@ export class ShellConfig {
     });
   }
 
+  static readWithOverrides(opts?: ShellOpts): ShellConfig {
+    const rootConfig =
+      opts?.rootConfig ?? ini.parse(readFileOpt(getRootConfigPath()));
+    const projectConfigPath = opts?.projectPath ?? getProjectConfigPath();
+    const projectConfig =
+      opts?.projectConfig ??
+      (projectConfigPath ? ini.parse(readFile(projectConfigPath)) : undefined);
+
+    return new ShellConfig({
+      rootConfig,
+      projectPath:
+        projectConfigPath !== undefined
+          ? path.dirname(projectConfigPath)
+          : undefined,
+      projectConfig,
+    });
+  }
+
   constructor(opts: ShellOpts) {
     this.flags = new Config("flag", opts.flags ?? {});
 
@@ -154,7 +179,7 @@ export class ShellConfig {
     );
     this.projectPath = opts.projectPath;
     this.projectConfig = opts.projectConfig
-      ? new ProjectConfig(new Config("config key", opts.projectConfig))
+      ? ProjectConfig.fromConfig(new Config("config key", opts.projectConfig))
       : undefined;
 
     this.projectConfig?.validate(this.rootConfig);
@@ -162,6 +187,7 @@ export class ShellConfig {
     const urlFlag = Endpoint.getURLFromConfig(this.flags);
     if (urlFlag !== undefined) {
       try {
+        // eslint-disable-next-line no-new
         new URL(urlFlag);
       } catch (e) {
         throw new Error(`Invalid database URL: ${urlFlag}`);
@@ -172,22 +198,18 @@ export class ShellConfig {
       const stackName = this.flags.strOpt("stack");
       if (stackName !== undefined) {
         throw new Error(
-          `No .fauna-project was found, so stack '${stackName}' cannot be used`
+          `No ${PROJECT_FILE_NAME} was found, so stack '${stackName}' cannot be used`
         );
       }
     } else {
       const stackName =
         this.flags.strOpt("stack") ?? this.projectConfig.defaultStack;
 
-      if (stackName === undefined) {
-        throw new Error(
-          `A stack must be chosen. Use \`fauna stack default\` or pass --stack to select one`
-        );
-      }
-
-      this.stack = this.projectConfig.stacks[stackName];
-      if (this.stack === undefined) {
-        throw new Error(`No such stack '${stackName}'`);
+      if (stackName !== undefined) {
+        this.stack = this.projectConfig.stacks[stackName];
+        if (this.stack === undefined) {
+          throw new Error(`No such stack '${stackName}'`);
+        }
       }
     }
 
@@ -231,7 +253,7 @@ export class ShellConfig {
     if (this.endpoint === undefined) {
       // No `~/.fauna-shell` was found, and no `--secret` was passed.
       throw new Error(
-        "No endpoint or secret set. Set an endpoint in ~/.fauna-shell, .fauna-project, or pass --endpoint"
+        `No endpoint or secret set. Set an endpoint in ~/.fauna-shell, ${PROJECT_FILE_NAME}, or pass --endpoint`
       );
     }
   };
@@ -263,7 +285,7 @@ export class ShellConfig {
   projectConfigFile(): string | undefined {
     return this.projectPath === undefined
       ? undefined
-      : path.join(this.projectPath, ".fauna-project");
+      : path.join(this.projectPath, PROJECT_FILE_NAME);
   }
 }
 
@@ -294,14 +316,10 @@ export const getProjectConfigPath = (): string | undefined => {
     return undefined;
   }
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
-    const projPath = path.join(current, ".fauna-project");
-    let stat;
-    stat = fs.statSync(projPath, {
-      // returns undefined instead of throwing if the file doesn't exist
-      throwIfNoEntry: false,
-    });
-    if (stat !== undefined && stat.isFile()) {
+    const projPath = path.join(current, PROJECT_FILE_NAME);
+    if (fileExists(projPath)) {
       return projPath;
     }
 
@@ -316,4 +334,12 @@ export const getProjectConfigPath = (): string | undefined => {
   // if we got here, it means that there was no `.fauna-project` file, so we
   // give up.
   return undefined;
+};
+
+export const fileExists = (filePath: string): boolean => {
+  const stat = fs.statSync(filePath, {
+    // returns undefined instead of throwing if the file doesn't exist
+    throwIfNoEntry: false,
+  });
+  return stat !== undefined && stat.isFile();
 };

@@ -29,10 +29,18 @@
   "ignorePatterns": ["dist/**/*"],
   "overrides": [
     {
-      "files": ["*.test.js", "*.spec.js"],
+      "files": ["*.test.js", "*.spec.js", "*.test.ts"],
       "rules": {
         "no-unused-expressions": "off",
         "camelcase": "off"
+      }
+    },
+    {
+      "files": ["*.ts"],
+      "parser": "@typescript-eslint/parser",
+      "rules": {
+        "lines-between-class-members": "off",
+        "no-use-before-define": "off"
       }
     }
   ],

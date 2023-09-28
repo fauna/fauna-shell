@@ -8,17 +8,33 @@ export class ProjectConfig {
   defaultStack?: string;
   stacks: { [key: string]: Stack };
 
-  constructor(config: Config) {
-    this.defaultStack = config.strOpt("default");
-    this.stacks = Object.fromEntries(
-      config.objectsIn("stack").map(([k, v]) => [k, new Stack(v)])
-    );
+  /**
+   * This method is used to obtain an empty project config when fauna project init is used.
+   */
+  static emptyConfig(): ProjectConfig {
+    return new ProjectConfig({});
+  }
 
-    if (this.defaultStack && this.stacks[this.defaultStack] === undefined) {
+  private constructor(stacks: { [key: string]: Stack }, defaultStack?: string) {
+    this.stacks = stacks;
+    this.defaultStack = defaultStack;
+  }
+
+  static fromConfig(config: Config): ProjectConfig {
+    const defaultStack = config.strOpt("default");
+    const stacks: { [key: string]: Stack } = config.objectExists("stack")
+      ? Object.fromEntries<Stack>(
+          config.objectsIn("stack").map(([k, v]) => [k, new Stack(v)])
+        )
+      : {};
+
+    if (defaultStack && stacks[defaultStack] === undefined) {
       throw new InvalidConfigError(
-        `Default stack '${this.defaultStack}' was not found`
+        `Default stack '${defaultStack}' was not found`
       );
     }
+
+    return new ProjectConfig(stacks, defaultStack);
   }
 
   validate(rootConfig: RootConfig) {

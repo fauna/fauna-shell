@@ -40,8 +40,8 @@ const isDownKey = (key: KeypressEvent): boolean =>
   key.name === "down" || // The down key
   (key.ctrl && key.name === "n"); // Emacs keybinding
 
-export const searchSelect = createPrompt(
-  (config: SelectConfig, done: (value: string) => void) => {
+export const searchSelect = createPrompt<string, SelectConfig>(
+  (config: SelectConfig, done: (_: string) => void) => {
     const { choices } = config;
     const pageSize = config.pageSize ?? 7;
 
