@@ -97,7 +97,7 @@ export class StackFactory {
 
     const res = await client.query("0");
     if (res.status !== 200) {
-      this.cmd.error(`Error: ${res.body.error.code}`);
+      this.cmd.error(`${res.body.error.code}`);
     }
 
     const databasePaths = await this.getDatabasePaths(client);
@@ -115,6 +115,8 @@ export class StackFactory {
       });
       await client.close();
       return res;
+    } else if (databasePaths.length === 0) {
+      this.cmd.error("No databases found in the given endpoint");
     } else {
       await client.close();
       return searchSelect({
