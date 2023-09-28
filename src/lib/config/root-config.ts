@@ -201,12 +201,12 @@ export class Endpoint {
   toIni() {
     return {
       secret: this.secret,
-      ...(this.url != "https://db.fauna.com" ? { url: this.url } : {}),
+      ...(this.url !== "https://db.fauna.com" ? { url: this.url } : {}),
 
-      ...(this.graphqlHost != "graphql.fauna.com"
+      ...(this.graphqlHost !== "graphql.fauna.com"
         ? { graphqlHost: this.graphqlHost }
         : {}),
-      ...(this.graphqlPort != 443 ? { graphqlPort: this.graphqlPort } : {}),
+      ...(this.graphqlPort !== 443 ? { graphqlPort: this.graphqlPort } : {}),
     };
   }
 }

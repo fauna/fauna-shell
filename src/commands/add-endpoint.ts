@@ -73,6 +73,8 @@ Adds an endpoint to ~/.fauna-shell.
         default: "http://localhost:8443",
         validate: async (url) => {
           try {
+            // disable no-new lint eslint
+            // eslint-disable-next-line no-new
             new URL(url);
             const client = new FaunaClient({
               secret: "secret",
