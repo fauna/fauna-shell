@@ -88,21 +88,41 @@ export class Endpoint {
   }
 
   static getURLFromConfig = (config: Config): string | undefined => {
-    const url = config.strOpt("url");
-    const scheme = config.strOpt("scheme");
-    const domain = config.strOpt("domain");
-    const port = config.numberOpt("port");
+    return this.getURLInner({
+      url: config.strOpt("url"),
+      scheme: config.strOpt("scheme"),
+      domain: config.strOpt("domain"),
+      port: config.numberOpt("port"),
+    });
+  };
 
+  static getURLFromFlags = (flags: Config): string | undefined => {
+    return this.getURLInner({
+      url: flags.strOpt("endpointURL"),
+      scheme: flags.strOpt("scheme"),
+      domain: flags.strOpt("domain"),
+      port: flags.numberOpt("port"),
+    });
+  };
+
+  static getURLInner = (opts: {
+    url?: string;
+    scheme?: string;
+    domain?: string;
+    port?: number;
+  }): string | undefined => {
     if (
-      url === undefined &&
-      (domain !== undefined || port !== undefined || scheme !== undefined)
+      opts.url === undefined &&
+      (opts.domain !== undefined ||
+        opts.port !== undefined ||
+        opts.scheme !== undefined)
     ) {
-      const scheme0 = scheme ?? "https";
-      const domain0 = domain ?? "db.fauna.com";
-      const port0 = port ? `:${port}` : "";
-      return `${scheme0}://${domain0}${port0}`;
+      const scheme = opts.scheme ?? "https";
+      const domain = opts.domain ?? "db.fauna.com";
+      const port = opts.port ? `:${opts.port}` : "";
+      return `${scheme}://${domain}${port}`;
     } else {
-      return url;
+      return opts.url;
     }
   };
 }
