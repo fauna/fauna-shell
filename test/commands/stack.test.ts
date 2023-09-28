@@ -3,6 +3,7 @@ import { ShellConfig } from "../../src/lib/config";
 import sinon, { SinonStub } from "sinon";
 import AddStackCommand from "../../src/commands/stack/add";
 import ListStackCommand from "../../src/commands/stack/list";
+import SelectStackCommand from "../../src/commands/stack/select";
 import { Config } from "@oclif/core";
 
 const rootConfig = {
@@ -238,6 +239,92 @@ describe("stack:list", () => {
       expect(ctx.stdout).to.equal(
         "Available stacks:\n  foobar\n* my-app\n  baz\n"
       );
+      expect(ctx.config.saveProjectConfig.called).to.be.false;
+    });
+});
+
+describe("stack:select", () => {
+  test
+    .add("config", () =>
+      stubbedProjectConfig({
+        default: "my-app",
+        stack: {
+          "my-app": {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+          "foo-app": {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+        },
+      })
+    )
+    .stdout()
+    .do((ctx) =>
+      new SelectStackCommand(["foo-app"], new Config({} as any)).execute(
+        ctx.config
+      )
+    )
+    .it("selects a stack", (ctx) => {
+      expect(ctx.stdout).to.equal("Selected stack foo-app\n");
+      expect(ctx.config.projectConfig).to.deep.equal({
+        defaultStack: "foo-app",
+        stacks: {
+          "my-app": {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+          "foo-app": {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+        },
+      });
+      expect(ctx.config.saveProjectConfig.calledOnce).to.be.true;
+    });
+
+  test
+    .add("config", () =>
+      stubbedProjectConfig({
+        default: "my-app",
+        stack: {
+          "my-app": {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+          "foo-app": {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+        },
+      })
+    )
+    .stdout()
+    .do((ctx) =>
+      new SelectStackCommand(["baz-app"], new Config({} as any)).execute(
+        ctx.config
+      )
+    )
+    .catch((e) => {
+      expect(e.message).to.equal(
+        "Stack baz-app not found in project config. Run `fauna stack list` to see available stacks"
+      );
+    })
+    .it("disallows stacks that don't exist", (ctx) => {
+      expect(ctx.config.projectConfig).to.deep.equal({
+        defaultStack: "my-app",
+        stacks: {
+          "my-app": {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+          "foo-app": {
+            endpoint: "my-endpoint",
+            database: "my-db",
+          },
+        },
+      });
       expect(ctx.config.saveProjectConfig.called).to.be.false;
     });
 });
