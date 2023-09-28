@@ -29,7 +29,7 @@
   "ignorePatterns": ["dist/**/*"],
   "overrides": [
     {
-      "files": ["*.test.js", "*.spec.js"],
+      "files": ["*.test.js", "*.spec.js", "*.test.ts"],
       "rules": {
         "no-unused-expressions": "off",
         "camelcase": "off"
