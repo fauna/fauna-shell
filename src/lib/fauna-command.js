@@ -225,12 +225,6 @@ FaunaCommand.flags = {
   endpoint: Flags.string({
     description: "Fauna server endpoint",
   }),
-  graphqlHost: Flags.string({
-    description: "The Fauna GraphQL API host",
-  }),
-  graphqlPort: Flags.string({
-    description: "GraphQL port",
-  }),
 };
 
 export default FaunaCommand;
