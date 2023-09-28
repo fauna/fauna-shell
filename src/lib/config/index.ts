@@ -286,6 +286,13 @@ export class ShellConfig {
     this.projectConfig?.save(this.projectConfigFile()!);
   }
 
+  /**
+   * Saves the root config.
+   */
+  saveRootConfig() {
+    this.rootConfig.save(getRootConfigPath());
+  }
+
   projectConfigFile(): string | undefined {
     return this.projectPath === undefined
       ? undefined

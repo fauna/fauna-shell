@@ -125,7 +125,7 @@ Adds an endpoint to ~/.fauna-shell.
       secret,
       url,
     });
-    // config.saveRootConfig();
+    config.saveRootConfig();
 
     this.log(`Saved endpoint ${endpointName} to ${getRootConfigPath()}`);
   }
