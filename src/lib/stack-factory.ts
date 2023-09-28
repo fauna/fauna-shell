@@ -102,21 +102,47 @@ export class StackFactory {
 
     const databasePaths = await this.getDatabasePaths(client);
 
-    await client.close();
-
-    return searchSelect({
-      message: "Select a database",
-      choices: databasePaths.map((database) => ({
-        value: database,
-      })),
-    });
+    if (databasePaths === undefined) {
+      const res = await input({
+        message: "Enter a database path",
+        validate: async (path) => {
+          if (await this.validateDatabasePath(client, path)) {
+            return true;
+          } else {
+            return `No such database ${path}`;
+          }
+        },
+      });
+      await client.close();
+      return res;
+    } else {
+      await client.close();
+      return searchSelect({
+        message: "Select a database",
+        choices: databasePaths.map((database) => ({
+          value: database,
+        })),
+      });
+    }
   };
 
-  getDatabasePaths = async (client: FaunaClient): Promise<string[]> => {
-    // Limits: choose a limit of 100 databases at each depth, and a depth of 10.
+  validateDatabasePath = async (
+    client: FaunaClient,
+    path: string
+  ): Promise<boolean> => {
+    const res = await client.query<string[]>(`0`, {
+      secret: `${client.secret}:${path}:admin`,
+    });
+    return res.status === 200;
+  };
+
+  getDatabasePaths = async (
+    client: FaunaClient
+  ): Promise<string[] | undefined> => {
+    // Limits: choose a limit of 10 databases at each depth, and a depth of 3.
     // We will also add a limit if any databases are skiped.
-    const databaseLimit = 100;
-    const depthLimit = 10;
+    const databaseLimit = 10;
+    const depthLimit = 3;
 
     const allDatabases: string[] = [];
     const paths: string[][] = [[]];
@@ -159,10 +185,17 @@ export class StackFactory {
       allDatabases.push(...nestedPaths.map((path: any) => path.join("/")));
     }
 
-    allDatabases.sort();
-
     ux.action.stop();
 
-    return allDatabases;
+    if (overflowedDepth || overflowedLimit) {
+      this.cmd.log(
+        "Note: there are too many databases to display in this endpoint"
+      );
+      return undefined;
+    } else {
+      allDatabases.sort();
+
+      return allDatabases;
+    }
   };
 }
