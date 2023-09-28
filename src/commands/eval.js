@@ -174,7 +174,10 @@ class EvalCommand extends FaunaCommand {
         format = "simple";
       }
 
-      const res = await client.query(fqlQuery, format, flags.typecheck);
+      const res = await client.query(fqlQuery, {
+        format,
+        typecheck: flags.typecheck,
+      });
 
       return await this.writeFormattedOutputV10(outputFile, res, flags.format);
     } catch (error) {

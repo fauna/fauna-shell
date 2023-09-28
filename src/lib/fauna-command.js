@@ -3,7 +3,7 @@ import { ShellConfig } from "./config";
 import { stringifyEndpoint } from "./misc";
 import { query as q, errors, Client } from "faunadb";
 import { green } from "chalk";
-import FaunaClient from "./fauna-client.js";
+import FaunaClient from "./fauna-client";
 import fetch from "node-fetch";
 
 /**
@@ -140,11 +140,11 @@ class FaunaCommand extends Command {
           scope: dbScope,
           role,
         });
-        const client = new FaunaClient(
-          connectionOptions.url,
-          connectionOptions.secret,
-          this.flags.timeout ? parseInt(this.flags.timeout, 10) : undefined
-        );
+        const client = new FaunaClient({
+          endpoint: connectionOptions.url,
+          secret: connectionOptions.secret,
+          time: this.flags.timeout ? parseInt(this.flags.timeout, 10) : undefined
+        });
 
         // validate the client settings
         await client.query("0");
