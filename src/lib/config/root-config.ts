@@ -87,8 +87,11 @@ export class Endpoint {
     };
   }
 
+  /**
+   * Gets a database URL from config.
+   */
   static getURLFromConfig = (config: Config): string | undefined => {
-    return this.getURLInner({
+    return this.getURL({
       url: config.strOpt("url"),
       scheme: config.strOpt("scheme"),
       domain: config.strOpt("domain"),
@@ -96,8 +99,14 @@ export class Endpoint {
     });
   };
 
+  /**
+   * Gets a database URL from command line flags.
+   *
+   * Note: this is similar to `getURLFromConfig`, but looks up `endpointURL`
+   * instead of `url` for the url value.
+   */
   static getURLFromFlags = (flags: Config): string | undefined => {
-    return this.getURLInner({
+    return this.getURL({
       url: flags.strOpt("endpointURL"),
       scheme: flags.strOpt("scheme"),
       domain: flags.strOpt("domain"),
@@ -105,7 +114,7 @@ export class Endpoint {
     });
   };
 
-  static getURLInner = (opts: {
+  static getURL = (opts: {
     url?: string;
     scheme?: string;
     domain?: string;
