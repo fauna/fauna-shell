@@ -68,6 +68,43 @@ describe("root config", () => {
       url: "http://localhost:8443",
     });
   });
+
+  it("supports config with endpoint nested", () => {
+    expect(
+      lookupEndpoint({
+        rootConfig: {
+          default: "other-endpoint",
+          endpoint: {
+            "my-endpoint": {
+              secret: "fn1234",
+            },
+            "other-endpoint": {
+              secret: "fn5678",
+            },
+          },
+        },
+      })
+    ).to.deep.contain({
+      secret: "fn5678",
+      url: "https://db.fauna.com",
+    });
+  });
+
+  it("supports legacy top level endpoint", () => {
+    expect(
+      lookupEndpoint({
+        rootConfig: {
+          default: "endpoint",
+          endpoint: {
+            secret: "fn1234",
+          },
+        },
+      })
+    ).to.deep.contain({
+      secret: "fn1234",
+      url: "https://db.fauna.com",
+    });
+  });
 });
 
 describe("root config with flags", () => {

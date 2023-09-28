@@ -35,6 +35,10 @@ export class Config {
     }
   }
 
+  keys(): Array<string> {
+    return Object.keys(this.config);
+  }
+
   numberOpt(key: string): number | undefined {
     const v = this.config[key];
     if (v === undefined || typeof v === "number") {
