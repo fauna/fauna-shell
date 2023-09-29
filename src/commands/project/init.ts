@@ -39,7 +39,6 @@ export class ProjectInitCommand extends Command {
       this.error(`Project already exists at ${projectPath}`);
     }
     this.log(`Creating project at ${projectPath}`);
-    // todo: show a warning if there is a .fauna-project in an ancestor anywhere up the line
 
     const existingProject = getProjectConfigPath(projectPath);
     if (existingProject !== undefined) {
