@@ -7,11 +7,29 @@ export class RootConfig {
 
   constructor(config: Config) {
     this.defaultEndpoint = config.strOpt("default");
-    this.endpoints = Object.fromEntries(
-      config
-        .allObjectsWhere((k) => k !== "default")
-        .map(([k, v]) => [k, Endpoint.fromConfig(v)])
-    );
+
+    /**
+     * Our updated config uses endpoint.<name> to reserve the endpoint namespace.
+     * It is possible prior users still have legacy config that has the endpoints at the top level.
+     * When config is updated, we will write the entire file, so it will either
+     * all be nested under endpoint or all legacy. The only time this wouldn't be
+     * the case is if a user manually modifies their file to have a top level
+     * endpoint after we have nested them all under endpoint.  In that scenario,
+     * the added endpoint will not be recognized.
+     */
+    if (RootConfig.configContainsNestedEndpointStructure(config)) {
+      this.endpoints = Object.fromEntries<Endpoint>(
+        config
+          .objectsIn("endpoint")
+          .map(([k, v]) => [k, Endpoint.fromConfig(v)])
+      );
+    } else {
+      this.endpoints = Object.fromEntries<Endpoint>(
+        config
+          .allObjectsWhere((k) => k !== "default")
+          .map(([k, v]) => [k, Endpoint.fromConfig(v)])
+      );
+    }
 
     if (this.defaultEndpoint === "default") {
       throw new InvalidConfigError(
@@ -24,6 +42,31 @@ export class RootConfig {
       throw new InvalidConfigError(
         `Default endpoint '${this.defaultEndpoint}' was not found`
       );
+    }
+  }
+
+  /**
+   * If there is an endpoint object in the config, and it has a
+   * object underneath it, we are saying that it uses the
+   *
+   * [endpoint.myacct]
+   * secret=***
+   *
+   * structure. This allows us to support a legacy config that has
+   * a top level endpoint named endpoint.  Once we rewrite the config
+   * to be endpoint object based adding one manually like that
+   * will not be recognized.
+   */
+  private static configContainsNestedEndpointStructure(
+    config: Config
+  ): boolean {
+    if (config.objectExists("endpoint")) {
+      const endpointObj = config.object("endpoint");
+      return endpointObj.keys().some((key) => {
+        return endpointObj.objectExists(key);
+      });
+    } else {
+      return false;
     }
   }
 }
