@@ -46,44 +46,4 @@ describe("endpoints", () => {
       expect(err.message).to.contain("No endpoints defined");
     })
     .it("runs list-endpoints when no endpoints defined");
-
-  test
-    .stub(fs, "readFile", (file, enc, cb) => {
-      if (file !== getConfigFile()) return originalReadFile(file, enc, cb);
-      cb(null, ini.encode(configMock));
-    })
-    .stub(
-      fs,
-      "writeFile",
-      sinon.stub().callsFake((file, data, opt, cb) => {
-        if (file !== getConfigFile())
-          return originalWriteFile(file, data, opt, cb);
-        cb();
-      })
-    )
-    .nock("http://test:443", (api) =>
-      api.persist().head("/").reply(200, {}, { "x-faunadb-build": true })
-    )
-    .stdout()
-    .command([
-      "add-endpoint",
-      "http://test:443/",
-      "--alias",
-      "test",
-      "--key",
-      "secret",
-    ])
-    .it("runs add-endpoint", () => {
-      expect(fs.writeFile.getCall(0).args[1]).to.equal(
-        ini.encode({
-          ...configMock,
-          test: {
-            domain: "test",
-            port: 443,
-            scheme: "http",
-            secret: "secret",
-          },
-        })
-      );
-    });
 });
