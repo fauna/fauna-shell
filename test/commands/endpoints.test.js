@@ -1,5 +1,4 @@
 const { expect, test } = require("@oclif/test");
-const sinon = require("sinon");
 const fs = require("fs");
 const ini = require("ini");
 const { getConfigFile } = require("../../src/lib/misc");
@@ -22,7 +21,6 @@ const configMock = {
 
 describe("endpoints", () => {
   const originalReadFile = fs.readFile;
-  const originalWriteFile = fs.writeFile;
 
   test
     .stub(fs, "readFile", (file, enc, cb) => {
