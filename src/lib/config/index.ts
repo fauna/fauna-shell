@@ -309,15 +309,17 @@ export const getRootConfigPath = () => {
   return path.join(os.homedir(), ".fauna-shell");
 };
 
-export const getProjectConfigPath = (): string | undefined => {
-  let current;
-  try {
-    current = process.cwd();
-  } catch (err) {
-    // If the cwd is not accessible, just give up. If this happens, one of our
-    // dependencies actually explodes elsewhere, but we might as well handle
-    // errors where possible.
-    return undefined;
+export const getProjectConfigPath = (start?: string): string | undefined => {
+  let current = start;
+  if (current === undefined) {
+    try {
+      current = process.cwd();
+    } catch (err) {
+      // If the cwd is not accessible, just give up. If this happens, one of our
+      // dependencies actually explodes elsewhere, but we might as well handle
+      // errors where possible.
+      return undefined;
+    }
   }
 
   // eslint-disable-next-line no-constant-condition

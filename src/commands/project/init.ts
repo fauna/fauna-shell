@@ -1,6 +1,7 @@
 import { Args, Command } from "@oclif/core";
 import {
   fileExists,
+  getProjectConfigPath,
   PROJECT_FILE_NAME,
   ProjectConfig,
   ShellConfig,
@@ -29,18 +30,22 @@ export class ProjectInitCommand extends Command {
   async run() {
     const { args } = await this.parse();
     const projectDir = this.getProjectPath(args.projectDir);
-    this.log(projectDir);
     await this.execute(projectDir);
   }
 
   async execute(projectDir: string): Promise<void> {
     const projectPath = path.join(projectDir, PROJECT_FILE_NAME);
     if (fileExists(projectPath)) {
-      this.error(
-        "Attempted to run init for a directory that already has a .fauna-project."
+      this.error(`Project already exists at ${projectPath}`);
+    }
+    this.log(`Creating project at ${projectPath}`);
+
+    const existingProject = getProjectConfigPath(projectPath);
+    if (existingProject !== undefined) {
+      this.log(
+        `Warning: the new project will override the existing project at ${existingProject}`
       );
     }
-    // todo: show a warning if there is a .fauna-project in an ancestor anywhere up the line
 
     const shellConfig = ShellConfig.readWithOverrides({
       projectPath: projectPath,
