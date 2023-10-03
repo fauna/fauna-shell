@@ -1,4 +1,4 @@
-# fauna-shell
+# Fauna CLI
 
 <!-- [![Version](https://img.shields.io/npm/v/fauna.svg)](https://npmjs.org/package/fauna)
 [![CircleCI](https://circleci.com/gh/fauna/fauna/tree/master.svg?style=shield)](https://circleci.com/gh/fauna/fauna/tree/master)
@@ -9,11 +9,12 @@
 
 This tools gives you access to [Fauna](http://fauna.com/) directly from your CLI.
 
-It also includes a [Shell](#shell) so you can issue queries to Fauna without needing to install additional libraries.
+It also includes a [Shell](#shell) so you can issue queries to Fauna without
+needing to install additional libraries.
 
 You can install it via npm like this:
 
-```sh-session
+```sh
 $ npm install -g fauna-shell
 ```
 
@@ -21,36 +22,41 @@ $ npm install -g fauna-shell
 
 - [Usage](#usage)
 - [Technical Requirements](#technical-requirements)
-- [Configuration](#configuration)
 - [Shell](#shell)
-- [Command Details](#command-details)
 - [Connecting to different endpoints](#connecting-to-different-endpoints)
 - [Overriding Connection Parameters](#overriding-connection-parameters)
 - [Executing queries from a file](#executing-queries-from-a-file)
 - [List of Commands](#list-of-commands)
-  <!-- tocstop -->
+
+<!-- tocstop -->
 
 # Usage
 
-The **fauna-shell** allows you to do things like _creating_, _deleting_ and _listings_ databases.
+The **Fauna CLI** allows you to do issue queries, modify database schema, and
+create keys and databases.
 
-First lets configure our connection to a Fauna account. (If you don't have an account, you can create a free one [here](https://dashboard.fauna.com)).
+First lets configure our connection to a Fauna account. If you don't have an
+account, you can create a free one [here](https://dashboard.fauna.com).
 
-Let's run the following command:
+To log in, run the following command:
 
-```sh-session
+```sh
 $ fauna cloud-login
 ```
 
-You will be prompted for your `email` and `password` from your [Fauna](https://dashboard.fauna.com) account.
+You will be prompted for your `email` and `password` from your
+[Fauna](https://dashboard.fauna.com) account.
 
-If you would like to use 3rd party identity providers like Github or Netlify, please refer to [this guide](https://docs.fauna.com/fauna/current/start/cloud-github.html).
+If you would like to use 3rd party identity providers like Github or Netlify,
+please refer to
+[this guide](https://docs.fauna.com/fauna/current/start/cloud-github.html).
 
-Now that we have an endpoint to connect to we can try to create a database to start interacting with Fauna. See [connecting to different endpoints](#connecting-to-different-endpoints).
+Now that we have an endpoint to connect to we can try to create a database to
+start interacting with Fauna.
 
 This is how you can create a database called `my_app`:
 
-```sh-session
+```sh
 $ fauna create-database my_app
 creating database my_app
 
@@ -65,7 +71,22 @@ Or, to create an application key for your database, run:
 	fauna create-key my_app
 ```
 
-And then listing your databases:
+Now, you can start a shell within that database.
+
+```sh
+$ fauna shell my_app
+my_app> Collection.create({ name: "Users" })
+{
+  name: "Users",
+  coll: Collection,
+  ts: Time("2023-10-03T02:40:37.060Z"),
+  indexes: {},
+  constraints: []
+}
+my_app>
+```
+
+You can also list your databases:
 
 ```sh-session
 $ fauna list-databases
@@ -75,7 +96,7 @@ my_second_app
 my_other_app
 ```
 
-You can also delete a particular database:
+You can delete a particular database:
 
 ```sh-session
 $ fauna delete-database my_other_app
@@ -83,25 +104,25 @@ deleting database 'my_other_app'
 database 'my_other_app' deleted
 ```
 
-You can also `create`, `list`, and `delete` _keys_.
+And you can create, list, and delete keys.
 
 This is how you create a key for the database `my_app`:
 
-```sh-session
+```sh
 $ fauna create-key my_app
 creating key for database 'my_app' with role 'admin'
 
 created key for database 'my_app' with role 'admin'.
-secret: ****************************************
+secret: fnAFPULk2WAAQY9t4x0tduzuz85gC-suDbTnl7um # this will be different
 
 To access 'my_app' with this key, create a client using
 the driver library for your language of choice using
 the above secret.
 ```
 
-This is how to list keys (the results may differ from what you see in your database)
+This is how to list keys:
 
-```sh-session
+```sh
 $ fauna list-keys
 listing keys
 Key ID               Database             Role
@@ -113,7 +134,7 @@ Key ID               Database             Role
 
 And then delete the key with id: `200219702370238976`:
 
-```sh-session
+```sh
 $ fauna delete-key 200219702370238976
 deleting key 200219702370238976
 key 200219702370238976 deleted
@@ -130,29 +151,21 @@ In order to use Fauna Shell, you will need to meet these system requirements:
 - `>= v10.0.0`
 - `< v12.17.0`
 
-# Configuration
-
-By default, requests made when using the `cloud-login` command will hit `https://auth-console.fauna-preview.com/login`. You can change this behavior by defining the `FAUNA_SHELL_LOGIN_URL` environment variable in your `.env`
-
-For example:
-
-```bash
-FAUNA_SHELL_LOGIN_URL=https://www.mycustomdomain.com/login
-```
-
 # Shell
 
-The Fauna Shell lets you issue queries directly to your Fauna database without the need for installing additional libraries.
+The Fauna Shell lets you issue queries directly to your Fauna database without
+the need for installing additional libraries.
 
-Let's create a database and then we'll jump straight into the Shell to start playing with Fauna's data model.
+Let's create a database and then we'll jump straight into the Shell to start
+playing with Fauna's data model.
 
-```sh-session
+```sh
 $ fauna create-database my_app
 ```
 
 Our next step is to start the shell for a specific database, in this case `my_app`:
 
-```sh-session
+```sh
 $ fauna shell my_app
 Starting shell for database my_app
 Connected to http://127.0.0.1:8443
@@ -160,9 +173,11 @@ Type Ctrl+D or .exit to exit the shell
 my_app>
 ```
 
-Once you have the prompt ready, you can start issues queries against your Fauna database. (Note that the results shown here might vary from the ones you see while running the examples).
+Once you have the prompt ready, you can start issues queries against your Fauna
+database. Note that the results shown here might vary from the ones you see
+while running the examples.
 
-```javascript
+```ts
 my_app> Collection.create({ name: "Post" })
 {
   name: "Post",
@@ -175,8 +190,7 @@ my_app> Collection.create({ name: "Post" })
 
 Let's create an index for our collection `Post`.
 
-```javascript
-
+```ts
 my_app> Post.definition.update({ indexes: { byTitle: { terms: [{ field: ".title" }] } } })
 {
   name: "Post",
@@ -199,7 +213,7 @@ my_app> Post.definition.update({ indexes: { byTitle: { terms: [{ field: ".title"
 
 Let's insert a new `Post` document:
 
-```javascript
+```ts
 my_app> Post.create({ title: "What I had for breakfast .." })
 {
   id: "373143369066480128",
@@ -211,7 +225,7 @@ my_app> Post.create({ title: "What I had for breakfast .." })
 
 We can also insert items in bulk by using iterator functions on arrays.
 
-```javascript
+```ts
 my_app> ["My cat and other marvels", "Pondering during a commute", "Deep meanings in a latte"].map(title => Post.create({ title: title }))
 [
   {
@@ -237,7 +251,7 @@ my_app> ["My cat and other marvels", "Pondering during a commute", "Deep meaning
 
 Now let's try to fetch our post about _latte_. We need to access it by _id_ like this:
 
-```javascript
+```ts
 my_app> Post.byId("373143473420763648")
 {
   id: "373143473420763648",
@@ -249,7 +263,7 @@ my_app> Post.byId("373143473420763648")
 
 Now let's update our post about our cat, by adding some tags:
 
-```javascript
+```ts
 my_app> Post.byId("373143473420763648")!.update({ tags: ["cute", "pet"] })
 {
   id: "373143473420763648",
@@ -265,7 +279,7 @@ my_app> Post.byId("373143473420763648")!.update({ tags: ["cute", "pet"] })
 
 And now let's try to change the content of that post:
 
-```javascript
+```ts
 my_app> Post.byId("373143473418666496")!.replace({ title: "My dog and other marvels" })
 {
   id: "373143473418666496",
@@ -277,155 +291,137 @@ my_app> Post.byId("373143473418666496")!.replace({ title: "My dog and other marv
 
 Now let's try to delete our post about _latte_:
 
-```javascript
+```ts
 my_app> Post.byId("373143473420763648")!.delete()
 Post.byId("373143473420763648") /* not found */
 ```
 
 If we try to fetch it, we will receive a null document:
 
-```javascript
+```ts
 my_app> Post.byId("373143473420763648")
 Post.byId("373143473420763648") /* not found */
 ```
 
 Finally you can exit the _shell_ by pressing `ctrl+d`.
 
-# Command Details
-
-<!-- details -->
-
-```sh-session
-$ fauna COMMAND
-running command...
-$ fauna (-v|--version|version)
-fauna/0.0.1 darwin-x64 node-v8.11.1
-$ fauna --help [COMMAND]
-USAGE
-  $ fauna COMMAND
-...
-```
-
 # Connecting to different endpoints
 
-We can add endpoints by calling the following command `add-endpoint`. We will be prompted to enter the authentication key and an alias for the endpoint.
+We can add endpoints by calling the following command `endpoint add`. This is
+meant to be used when connecting to a docker container.
 
-```sh-session
-$ fauna add-endpoint "https://example.com"
-Endpoint Key: ****************************************
-Endpoint Alias [example.com]: example_alias
+```sh
+$ fauna endpoint add
+? Endpoint name localhost
+? Database URL http://localhost:8443
+? Database Secret secret
+Checking secret... done
+? Make this endpoint default [no]
+Saved endpoint localhost to ~/.fauna-shell
 ```
 
-The _Endpoint Alias_ should be a name that helps you remember the purpose of this endpoint.
+The endpoint name is an arbitrary name that can be used in the `--endpoint` flag
+of other commands. The database URL should typically be `http://localhost:8443`
+or `https://db.fauna.com`, although it can be set to any URL to a fauna
+instance. The database secret is the secret used to authenticate with that
+database.
 
-If we have defined many endpoints, we could set one of them as the default one with the `default-endpoint` command:
+An endpoint can be set as the default, in which case `fauna shell` and
+`fauna eval` will choose that endpoint by default.
 
-```sh-session
-$ fauna default-endpoint cloud
+Endpoints can be listed with the `endpoint list` command like this:
+
+```sh
+$ fauna endpoint list
+  localhost
+* cloud
 ```
 
-The _default endpoint_ will be used by the shell to connect to Fauna if the `--endpoint` flag is not set.
-
-Endpoints can be listed with the `list-endpoints` command like this:
-
-```sh-session
-$ fauna list-endpoints
-localhost
-cloud *
-cluster-us-east
-```
-
-There we see that the `cloud` endpoint has a `*` next to its name, meaning that it's the current default one.
+There we see that the `cloud` endpoint has a `*` next to its name, meaning that
+it's the current default one.
 
 Finally, endpoints will be saved to a `~/.fauna-shell` file like this:
 
 ```ini
 default=cloud
 
-[localhost]
-domain=127.0.0.1
-port=8443
-scheme=http
+[endpoint.localhost]
+url=http://localhost:8443
 secret=secret
-graphqlHost=127.0.0.1
-graphqlPort=8084
 
-
-[cloud]
-domain=db.fauna.com
-scheme=https
+[endpoint.cloud]
 secret=FAUNA_SECRET_KEY
-graphqlHost=graphql.fauna.com
-graphqlPort=443
-
-[cluster-us-east]
-domain=cluster-us-east.example.com
-port=443
-scheme=https
-secret=OTHER_FAUNA_SECRET
-graphqlHost=cluster-us-east.example.com
-graphqlPort=443
 ```
 
 # Connecting to local endpoints
 
-If you are running Fauna locally using our Docker images, you may need to configure the Shell to work with local endpoints so you can interact with the databases running in the Docker containers.
+If you are running Fauna locally using our Docker image, you will need to
+configure the CLI to work with local endpoints so you can interact with the
+database running in the Docker container.
 
-Once you've installed the Shell and logged in, you can configure this by doing the following:
+Once you've installed the Shell and logged in, you can configure it by doing the
+following:
 
-1. Run `fauna list-endpoints` to see all your endpoints. If you haven't added any yet, you should just see the `cloud` endpoint that was added when you went through the login flow.
+By default, the Fauna Docker image serves data via port 8443. To add a
+connection to this port, run `fauna endpoint add`. The Database URL should be
+`http://localhost:8443` (the default), and the database secret should be
+`secret` by default.
 
-2. By default, the Fauna Docker image serves data via port 8443 (check your Docker logs to confirm the port number). To add this, run the following:
-
-```bash
-fauna add-endpoint http://localhost:8443 # Doesn't work with HTTPS
+```sh
+$ fauna endpoint add
+? Endpoint name localhost
+? Database URL http://localhost:8443
+? Database Secret secret
+Checking secret... done
+? Make this endpoint default [no]
+Saved endpoint localhost to ~/.fauna-shell
 ```
 
-3. When prompted, provide the endpoint key and then give it a name (ex. `localhost`)
+Now, you can interact with your local database through the Fauna Shell by
+running the command below:
 
-4. Now, you can interact with your local database through the Fauna Shell by running the command below:
-
-```bash
+```sh
 fauna shell --endpoint localhost
 ```
 
 # Overriding Connection Parameters
 
-Most commands support the following options. You can specify them if you want to connect to a local instance of Fauna.
+Most commands support the following options. You can specify them if you want to
+connect to a local instance of Fauna.
 
-```
+```sh
 OPTIONS
-  --domain=domain      [default: db.fauna.com] Fauna server domain
-  --port=port          [default: 443] Connection port
-  --scheme=https|http  [default: https] Connection scheme
-  --secret=secret      Fauna secret key
-  --timeout=timeout    [default: 80] Connection timeout in milliseconds
-  --endpoint=alias     Overrides the default endpoint set in ~/.fauna-shell
-  --graphqlHost=domain [default: graphql.fauna.com] The Fauna GraphQL API host
-  --graphqlPort=port   [default: 443] The Fauna GraphQL API port to connect to
+  --endpoint=name      Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain Overrides the `url` setting in the selected endpoint.
+  --secret=secret      Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout    [default: 5000] Connection timeout in milliseconds
 ```
+
+`--endpoint` doesn't need to be set if `--endpointURL` and `--secret` are provided.
 
 They can be used like this:
 
-```sh-session
-$ fauna create-database testdb --domain=127.0.0.1 port=8443 --scheme=http --secret=YOUR_FAUNA_SECRET_KEY --timeout=42 --graphqlHost=127.0.0.1 --graphqlPort=443
+```sh
+$ fauna create-database testdb --endpointURL=http://127.0.0.1:8443 --secret=YOUR_FAUNA_SECRET_KEY --timeout=42
 ```
 
-Options provided via the CLI will override the values set in the `.fauna-shell` config file.
-
-For example you can start a shell to a different endpoint from the one set in `.fauna-shell`:
+You could select another endpoint from `~/.fauna-shell` using `--endpoint`:
 
 ```sh-session
-$ fauna shell my_app --endpoint=endpoint_alias
+$ fauna shell --endpoint=localhost
 ```
 
-Any options that are not specified either via the `.fauna-shell` config file or the CLI will be set to the defaults offered by the [faunadb-js client](https://github.com/fauna/faunadb-js).
+Any options that are not specified either via the `.fauna-shell` config file or
+the CLI will be set to the defaults offered by the
+[JS driver](https://github.com/fauna/fauna-js).
 
 # Executing queries from a file
 
-You can also tell the shell to execute a list of queries that you have stored in a file. For example, you can have a file that creates a collection called `setup.fql`:
+You can also tell the shell to execute a list of queries that you have stored in
+a file. For example, you can have a file that creates a collection called
+`setup.fql`:
 
-```javascript
+```ts
 Collection.create({
   name: "Post",
   indexes: {
@@ -436,9 +432,10 @@ Collection.create({
 })
 ```
 
-Once the collection is created, you can execute queries against it in another `.fql` file:
+Once the collection is created, you can execute queries against it in another
+`.fql` file:
 
-```
+```ts
 Post.create({
   title: "What I had for breakfast .."
 })
@@ -454,14 +451,17 @@ Post.create({
 })
 ```
 
-You can tell Fauna Shell to execute all those queries for you by running the following command:
+You can tell Fauna Shell to execute all those queries for you by running the
+following command:
 
 ```bash
 $ fauna eval my_app --file=./setup.fql
 $ fauna eval my_app --file=./queries.fql
 ```
 
-Where `my_app` is the name of your database, and `./queries.fql` is the path to the file where you saved the queries. If `my_app` is left out it will execute the queries file on the default fauna shell endpoint.
+Where `my_app` is the name of your database, and `./queries.fql` is the path to
+the file where you saved the queries. If `my_app` is left out it will execute
+the queries file on the default fauna shell endpoint.
 
 <!-- detailsstop -->
 
@@ -469,62 +469,28 @@ Where `my_app` is the name of your database, and `./queries.fql` is the path to 
 
 <!-- commands -->
 
-- [fauna-shell](#fauna-shell)
-- [Usage](#usage)
-- [Technical Requirements](#technical-requirements)
-- [Configuration](#configuration)
-- [Shell](#shell)
-- [Command Details](#command-details)
-- [Connecting to different endpoints](#connecting-to-different-endpoints)
-- [Connecting to local endpoints](#connecting-to-local-endpoints)
-- [Overriding Connection Parameters](#overriding-connection-parameters)
-- [Executing queries from a file](#executing-queries-from-a-file)
-- [List of Commands](#list-of-commands)
-  - [`fauna add-endpoint ENDPOINT`](#fauna-add-endpoint-endpoint)
-  - [`fauna autocomplete [SHELL]`](#fauna-autocomplete-shell)
-  - [`fauna cloud-login`](#fauna-cloud-login)
-  - [`fauna create-database DBNAME`](#fauna-create-database-dbname)
-  - [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
-  - [`fauna default-endpoint ENDPOINT_ALIAS`](#fauna-default-endpoint-endpoint_alias)
-  - [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
-  - [`fauna delete-endpoint ENDPOINT_ALIAS`](#fauna-delete-endpoint-endpoint_alias)
-  - [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
-  - [`fauna help [COMMAND]`](#fauna-help-command)
-  - [`fauna list-databases`](#fauna-list-databases)
-  - [`fauna list-endpoints`](#fauna-list-endpoints)
-  - [`fauna list-keys`](#fauna-list-keys)
-  - [`fauna run-queries DBNAME`](#fauna-run-queries-dbname)
-  - [`fauna shell [DBNAME]`](#fauna-shell-dbname)
-  - [`fauna import`](#fauna-import)
-  - [`fauna eval [DBNAME] [QUERY]`](#fauna-eval-dbname-query)
-  - [`fauna upload-graphql-schema graphqlFilePath`](#fauna-upload-graphql-schema-graphqlfilepath)
-  - [`fauna import --path FILE_PATH`](#fauna-import---path-file_path)
-- [Development](#development)
-
-## `fauna add-endpoint ENDPOINT`
-
-Adds a connection endpoint for Fauna.
-
-```
-USAGE
-  $ fauna add-endpoint ENDPOINT
-
-ARGUMENTS
-  ENDPOINT  Fauna server endpoint
-
-DESCRIPTION
-  Adds a connection endpoint for Fauna.
-
-EXAMPLE
-  $ fauna add-endpoint https://db.fauna.com:443
-  $ fauna add-endpoint http://localhost:8443/ --alias localhost --key secret
-```
-
-_See code: [src/commands/add-endpoint.js](src/commands/add-endpoint.js)_
+- [`fauna autocomplete`](#fauna-autocomplete)
+- [`fauna cloud-login`](#fauna-cloud-login)
+- [`fauna create-database`](#fauna-create-database)
+- [`fauna create-key`](#fauna-create-key)
+- [`fauna default-endpoint`](#fauna-default-endpoint)
+- [`fauna delete-database`](#fauna-delete-database)
+- [`fauna delete-key`](#fauna-delete-key)
+- [`fauna endpoint`](#fauna-endpoint)
+- [`fauna eval`](#fauna-eval)
+- [`fauna help`](#fauna-help)
+- [`fauna import`](#fauna-import)
+- [`fauna project`](#fauna-project)
+- [`fauna list-databases`](#fauna-list-databases)
+- [`fauna list-keys`](#fauna-list-keys)
+- [`fauna schema`](#fauna-schema)
+- [`fauna shell`](#fauna-shell)
+- [`fauna stack`](#fauna-stack)
+- [`fauna upload-graphql-schema graphqlFilePath`](#fauna-upload-graphql-schema-graphqlfilepath)
 
 ## `fauna autocomplete [SHELL]`
 
-display autocomplete installation instructions
+Display autocomplete instructions for the given shell.
 
 ```
 USAGE
@@ -543,28 +509,30 @@ EXAMPLES
   $ fauna autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v0.1.0/src/commands/autocomplete/index.ts)_
-
 ## `fauna cloud-login`
 
-Adds a Fauna endpoint.
+Prompts the user to log into a Fauna account, and saves the secret to a new
+endpoint.
 
 ```
 USAGE
   $ fauna cloud-login
 
 DESCRIPTION
-  Adds a Fauna endpoint.
+  Add an endpoint to ~/.fauna-shell from a Fauna account.
 
 EXAMPLE
   $ fauna cloud-login
 ```
 
-_See code: [src/commands/cloud-login.js](commands/cloud-login.js)_
-
 ## `fauna create-database DBNAME`
 
-Creates a database
+Creates a database with the given name.
+
+This is the same as the following query:
+```ts
+Database.create({ name: DBNAME })
+```
 
 ```
 USAGE
@@ -574,25 +542,29 @@ ARGUMENTS
   DBNAME  database name
 
 OPTIONS
-  --domain=domain      Fauna server domain
-  --endpoint=endpoint  Fauna server endpoint
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      Fauna secret key
-  --timeout=timeout    Connection timeout in milliseconds
+  --endpoint=name      Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain Overrides the `url` setting in the selected endpoint.
+  --secret=secret      Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout    [default: 5000] Connection timeout in milliseconds
 
 DESCRIPTION
   Creates a database
 
 EXAMPLE
-  $ fauna create-database dbname
+  $ fauna create-database my_new_db
 ```
-
-_See code: [src/commands/create-database.js](commands/create-database.js)_
 
 ## `fauna create-key DBNAME [ROLE]`
 
-Creates a key for the specified database
+Creates a key for the specified database.
+
+This is the same as the following query:
+```ts
+Key.create({
+  database: DBNAME,
+  role: ROLE
+})
+```
 
 ```
 USAGE
@@ -603,25 +575,21 @@ ARGUMENTS
   ROLE    (admin|server|server-readonly|client) key user role
 
 OPTIONS
-  --domain=domain      Fauna server domain
-  --endpoint=endpoint  Fauna server endpoint
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      Fauna secret key
-  --timeout=timeout    Connection timeout in milliseconds
+  --endpoint=name      Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain Overrides the `url` setting in the selected endpoint.
+  --secret=secret      Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout    [default: 5000] Connection timeout in milliseconds
 
 DESCRIPTION
   Creates a key for the specified database
 
 EXAMPLE
-  $ fauna create-key dbname admin
+  $ fauna create-key my_db admin
 ```
-
-_See code: [src/commands/create-key.js](src/commands/create-key.js)_
 
 ## `fauna default-endpoint ENDPOINT_ALIAS`
 
-Sets an endpoint as the default one
+Set an endpoint as the default one.
 
 ```
 USAGE
@@ -637,11 +605,14 @@ EXAMPLE
   $ fauna default-endpoint endpoint
 ```
 
-_See code: [src/commands/default-endpoint.js](src/commands/default-endpoint.js)_
-
 ## `fauna delete-database DBNAME`
 
-Deletes a database
+Deletes the given database. Warning: this action cannot be undone.
+
+This is the same as the following query:
+```ts
+Database.byName(DBNAME)!.delete()
+```
 
 ```
 USAGE
@@ -651,60 +622,39 @@ ARGUMENTS
   DBNAME  database name
 
 OPTIONS
-  --domain=domain      Fauna server domain
-  --endpoint=endpoint  Fauna server endpoint
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      Fauna secret key
-  --timeout=timeout    Connection timeout in milliseconds
+  --endpoint=name      Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain Overrides the `url` setting in the selected endpoint.
+  --secret=secret      Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout    [default: 5000] Connection timeout in milliseconds
 
 DESCRIPTION
   Deletes a database
 
 EXAMPLE
-  $ fauna delete-database dbname
+  $ fauna delete-database my_db
 ```
 
-_See code: [src/commands/delete-database.js](src/commands/delete-database.js)_
+## `fauna delete-key ID`
 
-## `fauna delete-endpoint ENDPOINT_ALIAS`
+Deletes a key with the given ID.
 
-Deletes a connection endpoint.
-
+This is the same as the following query:
+```ts
+Key.byId(ID)!.delete()
 ```
-USAGE
-  $ fauna delete-endpoint ENDPOINT_ALIAS
-
-ARGUMENTS
-  ENDPOINT_ALIAS  Fauna server endpoint alias
-
-DESCRIPTION
-  Deletes a connection endpoint.
-
-EXAMPLE
-  $ fauna delete-endpoint endpoint_alias
-```
-
-_See code: [src/commands/delete-endpoint.js](src/commands/delete-endpoint.js)_
-
-## `fauna delete-key KEYNAME`
-
-Deletes a key
 
 ```
 USAGE
-  $ fauna delete-key KEYNAME
+  $ fauna delete-key ID
 
 ARGUMENTS
-  KEYNAME  key name
+  ID  The ID of the key to delete.
 
 OPTIONS
-  --domain=domain      Fauna server domain
-  --endpoint=endpoint  Fauna server endpoint
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      Fauna secret key
-  --timeout=timeout    Connection timeout in milliseconds
+  --endpoint=name      Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain Overrides the `url` setting in the selected endpoint.
+  --secret=secret      Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout    [default: 5000] Connection timeout in milliseconds
 
 DESCRIPTION
   Deletes a key
@@ -713,11 +663,9 @@ EXAMPLE
   $ fauna delete-key 123456789012345678
 ```
 
-_See code: [src/commands/delete-key.js](src/commands/delete-key.js)_
-
 ## `fauna help [COMMAND]`
 
-display help for fauna
+Shows help for the Fauna CLI.
 
 ```
 USAGE
@@ -730,23 +678,24 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v1.2.11/src/commands/help.ts)_
-
 ## `fauna list-databases`
 
-Lists child databases in the current database
+Lists child databases in the current database.
+
+This is the same as the following query:
+```ts
+Database.all().take(1000).toArray()
+```
 
 ```
 USAGE
   $ fauna list-databases
 
 OPTIONS
-  --domain=domain      Fauna server domain
-  --endpoint=endpoint  Fauna server endpoint
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      Fauna secret key
-  --timeout=timeout    Connection timeout in milliseconds
+  --endpoint=name      Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain Overrides the `url` setting in the selected endpoint.
+  --secret=secret      Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout    [default: 5000] Connection timeout in milliseconds
 
 DESCRIPTION
   Lists child databases in the current database
@@ -755,78 +704,31 @@ EXAMPLE
   $ fauna list-databases
 ```
 
-_See code: [src/commands/list-databases.js](src/commands/list-databases.js)_
-
-## `fauna list-endpoints`
-
-Lists connection endpoints.
-
-```
-USAGE
-  $ fauna list-endpoints
-
-DESCRIPTION
-  Lists connection endpoints.
-
-EXAMPLE
-  $ fauna list-endpoints
-```
-
-_See code: [src/commands/list-endpoints.js](src/commands/list-endpoints.js)_
-
 ## `fauna list-keys`
 
-List keys in the current database or in its child databases
+List keys in the current database.
+
+This is the same as the following query:
+```ts
+Key.all().take(100).toArray()
+```
 
 ```
 USAGE
   $ fauna list-keys
 
 OPTIONS
-  --domain=domain      Fauna server domain
-  --endpoint=endpoint  Fauna server endpoint
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      Fauna secret key
-  --timeout=timeout    Connection timeout in milliseconds
+  --endpoint=name      Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain Overrides the `url` setting in the selected endpoint.
+  --secret=secret      Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout    [default: 5000] Connection timeout in milliseconds
 
 DESCRIPTION
-  List keys in the current database or in its child databases
+  List keys in the current database.
 
 EXAMPLE
   $ fauna list-keys
 ```
-
-_See code: [src/commands/list-keys.js](src/commands/list-keys.js)_
-
-## `fauna run-queries DBNAME`
-
-Runs the queries found on the file passed to the command.
-
-```
-USAGE
-  $ fauna run-queries DBNAME
-
-ARGUMENTS
-  DBNAME  database name
-
-OPTIONS
-  --domain=domain      Fauna server domain
-  --endpoint=endpoint  Fauna server endpoint
-  --file=file          File where to read queries from
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      Fauna secret key
-  --timeout=timeout    Connection timeout in milliseconds
-
-DESCRIPTION
-  Runs the queries found on the file passed to the command.
-
-EXAMPLE
-  $ fauna run-queries dbname --file=/path/to/queries.fql
-```
-
-_See code: [src/commands/run-queries.js](src/commands/run-queries.js)_
 
 ## `fauna shell [DBNAME]`
 
@@ -840,63 +742,135 @@ ARGUMENTS
   DBNAME  database name
 
 OPTIONS
-  --domain=domain      Fauna server domain
-  --endpoint=endpoint  Fauna server endpoint
-  --port=port          Connection port
-  --scheme=https|http  Connection scheme
-  --secret=secret      Fauna secret key
-  --timeout=timeout    Connection timeout in milliseconds
+  --endpoint=name      Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain Overrides the `url` setting in the selected endpoint.
+  --secret=secret      Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout    [default: 5000] Connection timeout in milliseconds
   --version=4|10       [default: 10] FQL version to use
+  --typecheck          Enables typechecking. Only applies to v10.
 
 DESCRIPTION
   Starts an interactive shell.
 
 EXAMPLE
-  $ fauna shell dbname
+  $ fauna shell
+  $ fauna shell my_db --endpoint foo
 ```
 
-_See code: [src/commands/shell.js](src/commands/shell.js)_
+## `fauna endpoint`
+
+Commands to manage endpoints in ~/.fauna-shell.
+
+### `fauna endpoint add`
+
+Adds a new endpoint to ~/.fauna-shell. All flags are optional, and the user will
+be prompted to fill in any missing values that are needed.
+
+This command is intended for custom Fauna endpoints. If you are connecting to
+a database in the dashboard, prefer `fauna cloud-login` instead.
+
+If `--non-interactive` is set, no prompts will be shown, and the `--url` and
+`--secret` flags will be required.
+
+```
+USAGE
+  $ fauna endpoint add NAME
+
+ARGUMENTS
+  NAME  Endpoint name
+
+OPTIONS
+  --url=url          Database URL
+  --secret=secret    Database secret
+  --non-interactive  Disables user input
+  --set-default      Sets the new endpoint as the default
+
+DESCRIPTION
+  Add an endpoint to ~/.fauna-shell.
+
+EXAMPLE
+  $ fauna endpoint add
+  $ fauna endpoint add localhost --url http://localhost:8443/ --key secret
+  $ fauna endpoint add localhost --set-default
+```
+
+### `fauna endpoint list`
+
+Lists endpoints from ~/.fauna-shell.
+
+```
+USAGE
+  $ fauna endpoint list
+
+DESCRIPTION
+  Lists connection endpoints.
+
+EXAMPLE
+  $ fauna endpoint list
+```
+
+### `fauna endpoint remove ENDPOINT`
+
+Removes an endpoint from ~/.fauna-shell.
+
+```
+USAGE
+  $ fauna endpoint remove ENDPOINT
+
+ARGUMENTS
+  ENDPOINT  The endpoint from ~/.fauna-shell to remove
+
+DESCRIPTION
+  Remove an endpoint.
+
+EXAMPLE
+  $ fauna endpoint remove localhost
+```
 
 ## `fauna eval [DBNAME] [QUERY]`
 
-Evaluates a fauna query
+Evaluates the given query.
+
+The `--file` option can be used to read a file instead of using the command
+argument as the query.
+
+The `--output` option can be used to write the query output to a file instead
+of stdout.
+
+The `--stdin` option can be used to read a query from stdin instead of command
+line arguments.
 
 ```
 USAGE
   $ fauna eval [DBNAME] [QUERY]
 
 ARGUMENTS
-  QUERY  FQL query to execute
   DBNAME Database name
+  QUERY  FQL query to execute
 
 OPTIONS
-  --domain=domain                  Fauna server domain
-  --endpoint=endpoint              Fauna server endpoint
-  --file=file                      File where to read queries from
-  --format=json|shell|json-tagged  [default: shell if tty, json if no tty] Output format
-  --output=output                  File to write output to
-  --port=port                      Connection port
-  --scheme=https|http              Connection scheme
-  --secret=secret                  Fauna secret key
-  --stdin                          Read file input from stdin. Writes to stdout by default
-  --timeout=timeout                Connection timeout in milliseconds
+  --endpoint=name                  Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain             Overrides the `url` setting in the selected endpoint.
+  --secret=secret                  Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout                [default: 5000] Connection timeout in milliseconds
   --version=4|10                   [default: 10] FQL version to use
+  --typecheck                      Enables typechecking. Only applies to v10.
+  --format=json|shell|json-tagged  [default: shell if tty, json if no tty] Output format
+  --file=file                      File where to read queries from
+  --output=output                  File to write output to
+  --stdin                          Read file input from stdin
 
 DESCRIPTION
-  Runs the specified query. Can read from stdin, file or command line.
-  Outputs to either stdout or file.
-  Output format can be specified.
+  Runs the specified query.
 
 EXAMPLES
   $ fauna eval "Collection.all()"
   $ fauna eval nestedDbName "Collection.all()"
-  $ fauna eval --file=/path/to/queries.fql
-  $ echo "1 + 1" | fauna eval
+  $ fauna eval --file=/path/to/query.fql
+  $ echo "1 + 1" | fauna eval --stdin
   $ fauna eval "2 + 3" --output=/tmp/result"
   $ fauna eval "2 + 3" --format=json --output=/tmp/result"
 ```
-
-_See code: [src/commands/eval.js](src/commands/eval.js)_
 
 ## `fauna import`
 
@@ -911,13 +885,12 @@ OPTIONS
   --append                 Allows appending documents to a non-empty collection
   --collection=collection  Collection name. When not specified, the collection name is the filename when --path is file
   --db=db                  Child database name; imported documents are stored in this database
-  --domain=domain          Fauna server domain
-  --endpoint=endpoint      Fauna server endpoint
+  --endpoint=name          Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain     Overrides the `url` setting in the selected endpoint.
+  --secret=secret          Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout        [default: 5000] Connection timeout in milliseconds
   --path=path              (required) Path to .csv/.json file, or path to folder containing .csv/.json files
-  --port=port              Connection port
-  --scheme=https|http      Connection scheme
   --secret=secret          Fauna secret key
-  --timeout=timeout        Connection timeout in milliseconds
 
   --type=type              Column type casting, converts the column value to a Fauna type.
                            Format: <column>::<type>
@@ -932,7 +905,101 @@ EXAMPLES
   $ fauna import --type=header_name::date --type=hdr2::number --type=hdrX::bool --path ./collection.csv
 ```
 
-_See code: [src/commands/import.js](src/commands/import.js)_
+## `fauna project`
+
+Commands to manage endpoints in ~/.fauna-shell.
+
+### `fauna project init`
+
+Creates a new `.fauna-project` file in the current directory. All flags are
+optional, and the user will be prompted to fill in any missing values that are
+needed.
+
+Projects represent a selected database, and store the schema files for that
+database. The project config, `.fauna-project`, will be read by commands such as
+`fauna schema pull`, and schema will be pulled into the project directory.
+
+```
+USAGE
+  $ fauna project init DIR
+
+ARGUMENTS
+  DIR  Directory to put the new `.fauna-project` file.
+
+DESCRIPTION
+  Creates a new `.fauna-project` file.
+
+EXAMPLE
+  $ fauna project init
+  $ fauna project init path/to/some/other/dir
+```
+
+## `fauna stack`
+
+Commands to manage stacks in .fauna-project.
+
+### `fauna stack add`
+
+Adds a new stack to .fauna-project. All flags are optional, and the user will
+be prompted to fill in any missing values that are needed.
+
+If `--non-interactive` is set, no prompts will be shown, and the `--url` and
+`--secret` flags will be required.
+
+```
+USAGE
+  $ fauna stack add NAME
+
+ARGUMENTS
+  NAME  Endpoint name
+
+OPTIONS
+  --url=url          Database URL
+  --secret=secret    Database secret
+  --non-interactive  Disables user input
+  --set-default      Sets the new endpoint as the default
+
+DESCRIPTION
+  Adds a connection endpoint for Fauna.
+
+EXAMPLE
+  $ fauna stack add
+  $ fauna stack add my_app --database localhsot --database foo
+  $ fauna stack add my_app --set-default
+```
+
+### `fauna stack list`
+
+Lists stacks in .fauna-project.
+
+```
+USAGE
+  $ fauna stack list
+
+DESCRIPTION
+  List stacks available in `.fauna-project`.
+
+EXAMPLE
+  $ fauna stack list
+```
+
+### `fauna select STACK`
+
+Selects the default stack from .fauna-project.
+
+```
+USAGE
+  $ fauna stack select STACK
+
+ARGUMENTS
+  STACK  The new default stack to use
+
+DESCRIPTION
+  Updates the default stack in `.fauna-project`.
+
+EXAMPLE
+  $ fauna stack select my-stack
+```
 
 ## `fauna upload-graphql-schema graphqlFilePath`
 
@@ -946,65 +1013,30 @@ ARGUMENTS
   GRAPHQLFILEPATH  Path to GraphQL schema
 
 OPTIONS
-  --domain=domain            Fauna server domain
-  --endpoint=endpoint        Fauna server endpoint
+  --endpoint=name            Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain       Overrides the `url` setting in the selected endpoint.
+  --secret=secret            Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout          [default: 5000] Connection timeout in milliseconds
   --graphqlHost=graphqlHost  The Fauna GraphQL API host
   --graphqlPort=port         GraphQL port
   --mode=merge|override      [default: merge] Upload mode
-  --port=port                Connection port
-  --scheme=https|http        Connection scheme
-  --secret=secret            Fauna secret key
-  --timeout=timeout          Connection timeout in milliseconds
 
 EXAMPLES
   $ fauna upload-graphql-schema ./schema.gql
   $ fauna upload-graphql-schema ./schema.gql --mode override
 ```
 
-_See code: [src/commands/upload-graphql-schema.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/upload-graphql-schema.js)_
+## `fauna schema`
 
-## `fauna import --path FILE_PATH`
-
-Import data to dana
-
-```
-USAGE
-  $ fauna import --path FILE_PATH
-
-
-OPTIONS
-  --allow-short-rows       Allows rows which are shorter than the number of headers
-  --append                 Allows appending documents to a non-empty collection
-  --collection=collection  Collection name. When not specified, the collection name is the filename when --path is file
-  --db=db                  Child database name; imported documents are stored in this database
-  --domain=domain          Fauna server domain
-  --endpoint=endpoint      Fauna server endpoint
-  --path=path              (required) Path to .csv/.json file, or path to folder containing .csv/.json files
-  --port=port              Connection port
-  --scheme=https|http      Connection scheme
-  --secret=secret          Fauna secret key
-  --timeout=timeout        Connection timeout in milliseconds
-
-  --type=type              Column type casting, converts the column value to a Fauna type.
-                           Format: <column>::<type>
-                           <column>: the name of the column to cast values
-                           <type>: one of 'number', 'bool', or 'date'.
-
-EXAMPLES
-  $ fauna import --path ./samplefile.csv
-  $ fauna import --append --path ./samplefile.csv
-  $ fauna import --db=sampleDB --collection=Samplecollection --path ./samplefile.csv
-  $ fauna import --db=sampleDB --path ./dump
-  $ fauna import --type=header_name::date --type=hdr2::number --type=hdrX::bool --path ./samplefile.csv
-```
-
-_See code: [src/commands/upload-graphql-schema.js](https://github.com/fauna/fauna-shell/blob/v0.9.9/src/commands/upload-graphql-schema.js)_
-
-## `fauna schema` Subcommands
+Commands for interacting with schema (.fsl) files in a database.
 
 ### `fauna schema diff --dir DIR`
 
 Print a diff between local schema files and Fauna schema.
+
+This will search the given `DIR` recursively, and consider any files with the
+`.fsl` extension a schema file. It will then fetch all schema files in the
+database, and display a complete diff between all the files.
 
 ```
 USAGE
@@ -1026,22 +1058,31 @@ EXAMPLES
 
 ### `fauna schema push --dir DIR`
 
-Push local schema files to Fauna. Without `--force` set, the user must confirm a diff.
+Push local schema files to Fauna. Without `--force` set, the user must confirm a
+diff.
+
+Uploads a directory of schema files to a database. This will search the given
+`DIR` recursively, and consider any files with the `.fsl` extension a schema
+file. It will consider any files in the database that are not present locally to
+be deleted. So, pushing an empty directory will delete all schema from the given
+database.
+
+After the set of schema files are found, it will then compare them to the
+database's schema, and display a diff. It will then ask the user for
+confirmation to apply the given update. `--force` can be passed to skip this
+confirmation step.
 
 ```
 USAGE
   $ fauna schema push --dir DIR
 
-
 OPTIONS
-  --dir=directory          (required) The root directory for the database's schema files
-  --domain=domain          Fauna server domain
-  --endpoint=endpoint      Fauna server endpoint
-  --force                  Push local files without confirming the diff
-  --port=port              Connection port
-  --scheme=https|http      Connection scheme
-  --secret=secret          Fauna secret key
-  --timeout=timeout        Connection timeout in milliseconds
+  --endpoint=name       Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain  Overrides the `url` setting in the selected endpoint.
+  --secret=secret       Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout     [default: 5000] Connection timeout in milliseconds
+  --dir=directory       (required) The root directory for the database's schema files
+  --force               Push local files without confirming the diff
 
 EXAMPLES
   $ fauna schema push --dir ./schemas/mydb
@@ -1052,20 +1093,26 @@ EXAMPLES
 
 Pull schema from Fauna and save as local schema files.
 
+This will download all schema files in the selected database. It will then place
+them in the given `DIR`. It will confirm before overwriting any existing files
+in `DIR`. It will also create directories for any schema files that have a `/`
+in their name.
+
+Any schema files not present in the database will be ignored. If the `--delete`
+flag is passed, then all files present locally but not in the database will be
+removed.
+
 ```
 USAGE
   $ fauna schema pull --dir DIR
 
-
 OPTIONS
-  --delete                 Delete local schema files not present in Fauna
-  --dir=directory          (required) A root directory for the database's schema files
-  --domain=domain          Fauna server domain
-  --endpoint=endpoint      Fauna server endpoint
-  --port=port              Connection port
-  --scheme=https|http      Connection scheme
-  --secret=secret          Fauna secret key
-  --timeout=timeout        Connection timeout in milliseconds
+  --endpoint=name       Selects an endpoint from ~/.fauna-shell
+  --endpointURL=domain  Overrides the `url` setting in the selected endpoint.
+  --secret=secret       Overrides the `secret` setting in the selected endpoint.
+  --timeout=timeout     [default: 5000] Connection timeout in milliseconds
+  --dir=directory       (required) A root directory for the database's schema files
+  --delete              Delete local schema files not present in Fauna
 
 EXAMPLES
   $ fauna schema pull --dir ./schemas/mydb
@@ -1076,15 +1123,14 @@ EXAMPLES
 
 # Development
 
-All above commands starts with `fauna`, but you are able to run them this way after installation of the fauna-shell package.  
-During development, you might want to test your changes without installing the package every single time.  
-To do so, you can run commands like this:
+All above commands starts with `fauna`, but you are able to run them this way
+after installation of the fauna-shell package. During development, you might
+want to test your changes without installing the package every single time. To
+do so, you can run commands like this:
 
 ```
-# don't forget to install dependencies for your fauna-shell project
-npm install
+yarn install
 
-# run a command you need
-./bin/run cloud-login
-./bin/run import
+./bin/dev cloud-login
+./bin/dev eval
 ```
