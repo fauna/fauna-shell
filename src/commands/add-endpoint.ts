@@ -1,4 +1,4 @@
-import { Flags, Args, Command } from "@oclif/core";
+import { Flags, Args, Command, ux } from "@oclif/core";
 import { input, confirm } from "@inquirer/prompts";
 import { Endpoint, ShellConfig, getRootConfigPath } from "../lib/config";
 import FaunaClient from "../lib/fauna-client";
@@ -73,22 +73,8 @@ Adds an endpoint to ~/.fauna-shell.
         default: "http://localhost:8443",
         validate: async (url) => {
           try {
-            // disable no-new lint eslint
             // eslint-disable-next-line no-new
             new URL(url);
-            const client = new FaunaClient({
-              secret: "secret",
-              endpoint: url,
-            });
-            try {
-              // This should fail with unauthorized. If it fails with another
-              // error, the URL is probably invalid.
-              await client.query(`0`);
-            } catch (e) {
-              return "Error: could not connect to URL";
-            } finally {
-              client.close();
-            }
             return true;
           } catch (e) {
             return "Error: invalid URL";
@@ -101,15 +87,25 @@ Adds an endpoint to ~/.fauna-shell.
       (await input({
         message: "Database Secret",
         validate: async (secret) => {
-          const client = new FaunaClient({ secret, endpoint: url });
-          const res = await client.query(`0`);
-          await client.close();
-          if (res.status !== 200) {
-            return `Error: ${res.body.error.code}`;
-          }
           return true;
         },
       }));
+
+    ux.action.start("Checking secret");
+
+    const client = new FaunaClient({ secret, endpoint: url });
+    try {
+      const res = await client.query(`0`);
+      if (res.status !== 200) {
+        ux.action.stop();
+        console.log("Warning: invalid secret");
+      }
+    } catch (e) {
+      ux.action.stop();
+      console.log("Warning: could not connect to fauna");
+    } finally {
+      await client.close();
+    }
 
     const setDefault =
       flags?.["set-default"] ??
