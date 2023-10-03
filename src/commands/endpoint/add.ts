@@ -103,7 +103,7 @@ export default class AddEndpointCommand extends Command {
       }
     } catch (e) {
       ux.action.stop();
-      console.log("Warning: could not connect to fauna");
+      console.log("Warning: could not connect to Fauna");
     } finally {
       await client.close();
     }

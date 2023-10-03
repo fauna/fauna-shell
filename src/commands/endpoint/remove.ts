@@ -40,6 +40,6 @@ export default class DeleteEndpointCommand extends Command {
 
     config.saveRootConfig();
 
-    this.log(`Removed endpoint ${name}`);
+    this.log(`Removed endpoint ${name}.`);
   }
 }
