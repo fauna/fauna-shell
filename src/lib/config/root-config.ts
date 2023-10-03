@@ -1,4 +1,6 @@
 import { Config, InvalidConfigError } from ".";
+import fs from "fs";
+const ini = require("ini");
 
 // Represents `~/.fauna-shell`
 export class RootConfig {
@@ -68,6 +70,24 @@ export class RootConfig {
     } else {
       return false;
     }
+  }
+
+  save(path: string) {
+    const config = this.toIni();
+
+    const encoded = ini.encode(config);
+    fs.writeFileSync(path, encoded);
+  }
+
+  toIni() {
+    return {
+      ...(this.defaultEndpoint !== undefined
+        ? { default: this.defaultEndpoint }
+        : {}),
+      endpoint: Object.fromEntries(
+        Object.entries(this.endpoints).map(([k, v]) => [k, v.toIni()])
+      ),
+    };
   }
 }
 
@@ -177,4 +197,16 @@ export class Endpoint {
       return opts.url;
     }
   };
+
+  toIni() {
+    return {
+      secret: this.secret,
+      ...(this.url !== "https://db.fauna.com" ? { url: this.url } : {}),
+
+      ...(this.graphqlHost !== "graphql.fauna.com"
+        ? { graphqlHost: this.graphqlHost }
+        : {}),
+      ...(this.graphqlPort !== 443 ? { graphqlPort: this.graphqlPort } : {}),
+    };
+  }
 }
