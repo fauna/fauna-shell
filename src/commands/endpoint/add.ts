@@ -84,13 +84,7 @@ export default class AddEndpointCommand extends Command {
       }));
 
     const secret =
-      flags?.secret ??
-      (await input({
-        message: "Database Secret",
-        validate: async (secret) => {
-          return true;
-        },
-      }));
+      flags?.secret ?? (await input({ message: "Database Secret" }));
 
     ux.action.start("Checking secret");
 
