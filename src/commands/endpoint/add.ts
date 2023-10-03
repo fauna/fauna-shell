@@ -10,7 +10,7 @@ export default class AddEndpointCommand extends Command {
     }),
   };
 
-  static description = "Adds an endpoint to ~/.fauna-shell.";
+  static description = "Add an endpoint to ~/.fauna-shell.";
 
   static examples = [
     "$ fauna endpoint add",

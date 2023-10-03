@@ -5,7 +5,7 @@ import chalk from "chalk";
 export default class ListEndpointCommand extends Command {
   static flags = {};
 
-  static description = "Lists endpoints in ~/.fauna-shell.";
+  static description = "List endpoints in ~/.fauna-shell.";
 
   static examples = ["$ fauna endpoint list"];
 

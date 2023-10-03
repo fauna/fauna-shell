@@ -1,8 +1,8 @@
 import { Args, Command } from "@oclif/core";
 import { ShellConfig } from "../../lib/config";
 
-export default class DeleteEndpointCommand extends Command {
-  static description = "Deletes an endpoint from ~/.fauna-shell.";
+export default class RemoveEndpointCommand extends Command {
+  static description = "Remove an endpoint from ~/.fauna-shell.";
 
   static examples = ["$ fauna endpoint remove my_endpoint"];
 
