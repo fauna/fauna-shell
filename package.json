@@ -90,7 +90,18 @@
       "@oclif/plugin-help",
       "@oclif/plugin-plugins"
     ],
-    "topicSeparator": " "
+    "topicSeparator": " ",
+    "topics": {
+      "endpoint": {
+        "description": "Manage endpoints in ~/.fauna-shell."
+      },
+      "project": {
+        "description": "Manage project settings in .fauna-project."
+      },
+      "stack": {
+        "description": "Manage stacks in the current project."
+      }
+    }
   },
   "repository": "fauna/fauna-shell",
   "scripts": {
