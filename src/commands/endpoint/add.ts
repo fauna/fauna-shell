@@ -1,7 +1,7 @@
 import { Flags, Args, Command, ux } from "@oclif/core";
 import { input, confirm } from "@inquirer/prompts";
-import { Endpoint, ShellConfig, getRootConfigPath } from "../lib/config";
-import FaunaClient from "../lib/fauna-client";
+import { Endpoint, ShellConfig, getRootConfigPath } from "../../lib/config";
+import FaunaClient from "../../lib/fauna-client";
 
 export default class AddEndpointCommand extends Command {
   static args = {
@@ -10,14 +10,12 @@ export default class AddEndpointCommand extends Command {
     }),
   };
 
-  static description = `
-Adds an endpoint to ~/.fauna-shell.
-`;
+  static description = "Add an endpoint to ~/.fauna-shell.";
 
   static examples = [
-    "$ fauna add-endpoint",
-    "$ fauna add-endpoint localhost --url http://localhost:8443/ --key secret",
-    "$ fauna add-endpoint localhost --set-default",
+    "$ fauna endpoint add",
+    "$ fauna endpoint add localhost --url http://localhost:8443/ --key secret",
+    "$ fauna endpoint add localhost --set-default",
   ];
 
   static flags = {
@@ -37,6 +35,9 @@ Adds an endpoint to ~/.fauna-shell.
       description: "Sets this stack as the default",
     }),
   };
+
+  static aliases = ["add-endpoint"];
+  static deprecateAliases = true;
 
   async run() {
     const config = ShellConfig.read({});
@@ -83,13 +84,7 @@ Adds an endpoint to ~/.fauna-shell.
       }));
 
     const secret =
-      flags?.secret ??
-      (await input({
-        message: "Database Secret",
-        validate: async (secret) => {
-          return true;
-        },
-      }));
+      flags?.secret ?? (await input({ message: "Database Secret" }));
 
     ux.action.start("Checking secret");
 
@@ -102,7 +97,7 @@ Adds an endpoint to ~/.fauna-shell.
       }
     } catch (e) {
       ux.action.stop();
-      console.log("Warning: could not connect to fauna");
+      console.log("Warning: could not connect to Fauna");
     } finally {
       await client.close();
     }
