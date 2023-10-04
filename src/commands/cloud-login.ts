@@ -5,8 +5,8 @@ import { Command } from "@oclif/core";
 import { underline, blue } from "chalk";
 
 const DEFAULT_NAME = "cloud";
-const DB = "https://db.fauna.com";
-const AUTH = "https://auth.console.fauna.com";
+const DB = process.env["FAUNA_URL"] ?? "https://db.fauna.com";
+const AUTH = process.env["FAUNA_AUTH"] ?? "https://auth.console.fauna.com";
 
 type Regions = {
   [key: string]: Region;
