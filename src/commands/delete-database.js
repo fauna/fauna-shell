@@ -23,9 +23,7 @@ class DeleteDatabaseCommand extends FaunaCommand {
   }
 }
 
-DeleteDatabaseCommand.description = `
-Deletes a database
-`;
+DeleteDatabaseCommand.description = "Delete a database.";
 
 DeleteDatabaseCommand.examples = ["$ fauna delete-database dbname"];
 

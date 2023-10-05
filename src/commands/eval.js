@@ -53,6 +53,8 @@ async function writeFormattedOutput(file, data, format) {
 }
 
 class EvalCommand extends FaunaCommand {
+  static description = "Evaluate the given query.";
+
   async run() {
     const queryFromStdin = this.flags.stdin;
     let queriesFile = this.flags.file;

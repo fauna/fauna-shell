@@ -153,9 +153,7 @@ class ListKeysCommand extends FaunaCommand {
   }
 }
 
-ListKeysCommand.description = `
-List keys in the current database or in its child databases
-`;
+ListKeysCommand.description = "List keys in the current database.";
 
 ListKeysCommand.examples = ["$ fauna list-keys"];
 

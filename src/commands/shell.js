@@ -150,9 +150,7 @@ class ShellCommand extends EvalCommand {
   }
 }
 
-ShellCommand.description = `
-Starts an interactive shell.
-`;
+ShellCommand.description = `Start an interactive shell.`;
 
 ShellCommand.examples = ["$ fauna shell dbname"];
 

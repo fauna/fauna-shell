@@ -94,6 +94,8 @@ export default class AddEndpointCommand extends Command {
       if (res.status !== 200) {
         ux.action.stop();
         console.log("Warning: invalid secret");
+      } else {
+        ux.action.stop();
       }
     } catch (e) {
       ux.action.stop();

@@ -367,7 +367,7 @@ class CloudLoginCommand extends FaunaCommand {
   }
 }
 
-CloudLoginCommand.description = "Adds a Fauna endpoint.";
+CloudLoginCommand.description = "Add a Fauna endpoint by logging into a Fauna account.";
 CloudLoginCommand.examples = ["$ fauna cloud-login"];
 CloudLoginCommand.flags = [];
 

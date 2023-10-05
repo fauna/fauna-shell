@@ -112,7 +112,7 @@ class PullSchemaCommand extends SchemaCommand {
 }
 
 PullSchemaCommand.description =
-  "Pull a database schema's .fsl files into a directory";
+  "Pull a database schema's .fsl files into the current project.";
 
 PullSchemaCommand.examples = ["$ fauna schema pull"];
 

@@ -28,7 +28,7 @@ class DiffSchemaCommand extends SchemaCommand {
 }
 
 DiffSchemaCommand.description =
-  "Print the diff between local and remote schema";
+  "Print the diff between local and remote schema.";
 
 DiffSchemaCommand.examples = ["$ fauna schema diff --dir schemas/myschema"];
 

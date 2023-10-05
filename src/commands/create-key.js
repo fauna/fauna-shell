@@ -35,9 +35,7 @@ class CreateKeyCommand extends FaunaCommand {
   }
 }
 
-CreateKeyCommand.description = `
-Creates a key for the specified database
-`;
+CreateKeyCommand.description = "Create a key for the specified database.";
 
 CreateKeyCommand.examples = ["$ fauna create-key dbname admin"];
 

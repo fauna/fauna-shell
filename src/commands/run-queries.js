@@ -3,7 +3,7 @@ const FaunaCommand = require("../lib/fauna-command.js").default;
 const EvalCommand = require("./eval");
 
 const DEPRECATED_MSG =
-  "Deprecated: fauna run-queries is deprecated. Use eval instead";
+  "Deprecated: fauna run-queries is deprecated. Use eval instead.";
 
 class RunQueriesCommand extends EvalCommand {
   async run() {
@@ -13,10 +13,7 @@ class RunQueriesCommand extends EvalCommand {
   }
 }
 
-EvalCommand.description = `
-${DEPRECATED_MSG}
-Runs the queries found on the file passed to the command.
-`;
+RunQueriesCommand.description = "Run the queries found on the file passed to the command.";
 
 RunQueriesCommand.examples = [
   "$ fauna run-queries dbname --file=/path/to/queries.fql",

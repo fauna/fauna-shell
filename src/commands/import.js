@@ -285,7 +285,7 @@ class ImportCommand extends FaunaCommand {
   }
 }
 
-ImportCommand.description = "Import data to Fauna";
+ImportCommand.description = "Import data to Fauna.";
 
 ImportCommand.examples = [
   "You can combine the options in any manner of you're choosing (although type translations cannot be applied to JSON or JSONL files). Below are examples.",
