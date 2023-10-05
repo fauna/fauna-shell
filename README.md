@@ -496,20 +496,13 @@ Prompts the user to log into a Fauna account, and saves the secret to a new
 endpoint.
 
 ```sh
-Add a Fauna endpoint by logging into a Fauna account.
+Log in to a Fauna account.
 
 USAGE
-  $ fauna cloud-login [--endpointURL <value>] [--timeout <value>]
-    [--secret <value>] [--endpoint <value>]
-
-FLAGS
-  --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
-  --endpointURL=<value>  Database URL. Overrides the `url` in ~/.fauna-shell
-  --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
-  --timeout=<value>      Connection timeout in milliseconds
+  $ fauna cloud-login
 
 DESCRIPTION
-  Add a Fauna endpoint by logging into a Fauna account.
+  Log in to a Fauna account.
 
 EXAMPLES
   $ fauna cloud-login
@@ -841,7 +834,7 @@ TOPICS
 
 COMMANDS
   add-endpoint           Add an endpoint to ~/.fauna-shell.
-  cloud-login            Add a Fauna endpoint by logging into a Fauna account.
+  cloud-login            Log in to a Fauna account.
   create-database        Create a database.
   create-key             Create a key for the specified database.
   default-endpoint       Set an endpoint as the default one.
