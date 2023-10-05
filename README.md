@@ -47,10 +47,6 @@ $ fauna cloud-login
 You will be prompted for your `email` and `password` from your
 [Fauna](https://dashboard.fauna.com) account.
 
-If you would like to use 3rd party identity providers like Github or Netlify,
-please refer to
-[this guide](https://docs.fauna.com/fauna/current/start/cloud-github.html).
-
 Now that we have an endpoint to connect to we can try to create a database to
 start interacting with Fauna.
 
@@ -358,6 +354,9 @@ secret=FAUNA_SECRET_KEY
 If you are running Fauna locally using our Docker image, you will need to
 configure the CLI to work with local endpoints so you can interact with the
 database running in the Docker container.
+
+The docker container is explained in depth here:
+https://docs.fauna.com/fauna/current/tools/dev.
 
 Once you've installed the Shell and logged in, you can configure it by doing the
 following:
