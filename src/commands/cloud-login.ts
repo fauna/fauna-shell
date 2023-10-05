@@ -5,8 +5,8 @@ import { Command } from "@oclif/core";
 import { underline, blue } from "chalk";
 
 const DEFAULT_NAME = "cloud";
-const DB = process.env["FAUNA_URL"] ?? "https://db.fauna.com";
-const AUTH = process.env["FAUNA_AUTH"] ?? "https://auth.console.fauna.com";
+const DB = process.env.FAUNA_URL ?? "https://db.fauna.com";
+const AUTH = process.env.FAUNA_AUTH ?? "https://auth.console.fauna.com";
 
 type Regions = {
   [key: string]: Region;
@@ -22,7 +22,7 @@ class Region {
   }
 
   endpointName(base: string) {
-    if (this.name == "global") {
+    if (this.name === "global") {
       return base;
     } else {
       return `${base}-${this.name}`;
@@ -87,7 +87,7 @@ export default class CloudLoginCommand extends Command {
     base: string,
     regions: Regions
   ): Promise<string> {
-    return await select({
+    return select({
       message:
         "Endpoints created. Which endpoint would you like to set as default?",
       choices: [
@@ -153,12 +153,12 @@ export default class CloudLoginCommand extends Command {
       if (error.code === "otp_invalid") {
         this.log(error.message);
       }
-      return await this.otp({ email, password });
+      return this.otp({ email, password });
     }
 
     if (error.code === "invalid_credentials") {
       this.log(error.message);
-      return await this.passwordStrategy();
+      return this.passwordStrategy();
     }
 
     throw error;
