@@ -31,7 +31,7 @@ class Region {
 }
 
 export default class CloudLoginCommand extends Command {
-  static description = "Prompt the user to log into a Fauna account.";
+  static description = "Log in to a Fauna account.";
   static examples = ["$ fauna cloud-login"];
   static flags = {};
 
