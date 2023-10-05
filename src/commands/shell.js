@@ -23,19 +23,19 @@ class ShellCommand extends EvalCommand {
   ];
 
   async run() {
-    const { scope } = this.args;
+    const { db_path } = this.args;
 
-    this.connection = scope
-      ? await this.ensureDbScopeClient({ scope, version: this.flags.version })
+    this.connection = db_path
+      ? await this.ensureDbScopeClient({ scope: db_path, version: this.flags.version })
       : await this.getClient({ version: this.flags.version });
     this.startShell();
   }
 
   startShell() {
-    const { scope } = this.args;
+    const { db_path } = this.args;
 
-    if (scope) {
-      this.log(`Starting shell for database ${scope}`);
+    if (db_path) {
+      this.log(`Starting shell for database ${db_path}`);
     }
 
     this.log(
@@ -44,7 +44,7 @@ class ShellCommand extends EvalCommand {
     this.log("Type Ctrl+D or .exit to exit the shell");
 
     this.repl = repl.start({
-      prompt: `${scope || ""}> `,
+      prompt: `${db_path || ""}> `,
       ignoreUndefined: true,
       preview: this.flags.version !== "10",
       // TODO: Integrate with fql-analyzer for completions
@@ -173,7 +173,7 @@ ShellCommand.flags = {
 };
 
 ShellCommand.args = {
-  scope: Args.string({
+  db_path: Args.string({
     required: false,
     description: "Database path",
   }),

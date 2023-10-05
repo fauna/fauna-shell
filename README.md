@@ -1180,13 +1180,13 @@ Start an interactive shell.
 Start an interactive shell.
 
 USAGE
-  $ fauna shell [DBNAME] [--endpointURL <value>] [--timeout
+  $ fauna shell [DB_PATH] [--endpointURL <value>] [--timeout
     <value>] [--secret <value>] [--endpoint <value>] [--file <value>] [--stdin]
     [--output <value>] [--format json|json-tagged|shell] [--version 4|10]
     [--typecheck]
 
 ARGUMENTS
-  DBNAME  database name
+  DB_PATH  Database path
 
 FLAGS
   --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
@@ -1206,7 +1206,9 @@ DESCRIPTION
   Start an interactive shell.
 
 EXAMPLES
-  $ fauna shell dbname
+  $ fauna shell
+
+  $ fauna shell my_db/nested_db
 ```
 
 ## `fauna stack`
