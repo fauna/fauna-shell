@@ -32,10 +32,10 @@ class ShellCommand extends EvalCommand {
   }
 
   startShell() {
-    const { dbname } = this.args;
+    const { scope } = this.args;
 
-    if (dbname) {
-      this.log(`Starting shell for database ${dbname}`);
+    if (scope) {
+      this.log(`Starting shell for database ${scope}`);
     }
 
     this.log(
@@ -44,7 +44,7 @@ class ShellCommand extends EvalCommand {
     this.log("Type Ctrl+D or .exit to exit the shell");
 
     this.repl = repl.start({
-      prompt: `${dbname || ""}> `,
+      prompt: `${scope || ""}> `,
       ignoreUndefined: true,
       preview: this.flags.version !== "10",
       // TODO: Integrate with fql-analyzer for completions
@@ -152,7 +152,10 @@ class ShellCommand extends EvalCommand {
 
 ShellCommand.description = `Start an interactive shell.`;
 
-ShellCommand.examples = ["$ fauna shell dbname"];
+ShellCommand.examples = [
+  "$ fauna shell",
+  "$ fauna shell my_db/nested_db"
+];
 
 ShellCommand.flags = {
   ...FaunaCommand.flags,
