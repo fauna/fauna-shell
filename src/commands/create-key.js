@@ -20,7 +20,7 @@ class CreateKeyCommand extends FaunaCommand {
     const role = this.args.role || "admin";
 
     const { client } = await (dbname
-      ? this.ensureDbScopeClient(dbname)
+      ? this.ensureDbScopeClient({ scope: dbname })
       : this.getClient());
 
     this.log(`creating key for database '${dbname}' with role '${role}'`);

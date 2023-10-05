@@ -71,7 +71,7 @@ class EvalCommand extends FaunaCommand {
 
     try {
       const { client } = await (dbname
-        ? this.ensureDbScopeClient(dbname)
+        ? this.ensureDbScopeClient({ scope: dbname, version: this.flags.version })
         : this.getClient({ version: this.flags.version }));
 
       const readQuery = queryFromStdin || queriesFile !== undefined;

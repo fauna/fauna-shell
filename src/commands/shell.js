@@ -23,10 +23,10 @@ class ShellCommand extends EvalCommand {
   ];
 
   async run() {
-    const { dbname } = this.args;
+    const { scope } = this.args;
 
-    this.connection = dbname
-      ? await this.ensureDbScopeClient(dbname)
+    this.connection = scope
+      ? await this.ensureDbScopeClient({ scope, version: this.flags.version })
       : await this.getClient({ version: this.flags.version });
     this.startShell();
   }
@@ -170,9 +170,9 @@ ShellCommand.flags = {
 };
 
 ShellCommand.args = {
-  dbname: Args.string({
+  scope: Args.string({
     required: false,
-    description: "database name",
+    description: "Database path",
   }),
 };
 

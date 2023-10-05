@@ -163,16 +163,17 @@ class FaunaCommand extends Command {
     }
   }
 
-  async ensureDbScopeClient(dbname) {
+  async ensureDbScopeClient({ scope, version }) {
     const { client } = await this.getClient();
-    const exists = await client.query(q.Exists(q.Database(dbname)));
+    const exists = await client.query(q.Exists(q.Database(scope)));
     if (!exists) {
       this.error(`Database '${dbname}' doesn't exist`);
     }
 
     return this.getClient({
-      dbScope: dbname,
+      dbScope: scope,
       role: "admin",
+      version,
     });
   }
 
