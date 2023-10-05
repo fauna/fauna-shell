@@ -179,6 +179,7 @@ export default class CloudLoginCommand extends Command {
       body: JSON.stringify({
         email,
         password,
+        type: "shell",
         session: "Fauna Shell - " + hostname(),
         ...(otp && { otp }),
       }),
