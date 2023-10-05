@@ -222,7 +222,11 @@ my_app> Post.create({ title: "What I had for breakfast .." })
 We can also insert items in bulk by using iterator functions on arrays.
 
 ```ts
-my_app> ["My cat and other marvels", "Pondering during a commute", "Deep meanings in a latte"].map(title => Post.create({ title: title }))
+my_app> [
+  "My cat and other marvels",
+  "Pondering during a commute",
+  "Deep meanings in a latte"
+].map(title => Post.create({ title: title }))
 [
   {
     id: "373143473418666496",
