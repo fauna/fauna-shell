@@ -9,7 +9,7 @@ export default class SelectStackCommand extends Command {
     }),
   };
 
-  static description = "Updates the default stack in `.fauna-project`.";
+  static description = "Update the default stack in `.fauna-project`.";
 
   static examples = ["$ fauna stack select my-stack"];
 

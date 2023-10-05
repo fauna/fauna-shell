@@ -5,7 +5,7 @@ import chalk from "chalk";
 export default class ListStackCommand extends Command {
   static flags = {};
 
-  static description = "Lists stacks availible in `.fauna-project`.";
+  static description = "List stacks available in `.fauna-project`.";
 
   static examples = ["$ fauna stack list"];
 

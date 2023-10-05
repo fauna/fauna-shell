@@ -14,15 +14,15 @@ export default class AddStackCommand extends Command {
       description: "Database path to use in this stack",
     }),
     "non-interactive": Flags.boolean({
-      description: "Disables interaction",
+      description: "Disable interaction",
       dependsOn: ["name", "endpoint", "database"],
     }),
     "set-default": Flags.boolean({
-      description: "Sets this stack as the default",
+      description: "Set this stack as the default",
     }),
   };
 
-  static description = "Adds a new stack to the `.fauna-project`.";
+  static description = "Add a new stack to `.fauna-project`.";
 
   static examples = [
     "$ fauna stack add",

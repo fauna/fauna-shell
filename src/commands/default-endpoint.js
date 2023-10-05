@@ -12,9 +12,7 @@ class DefaultEndpointCommand extends FaunaCommand {
   }
 }
 
-DefaultEndpointCommand.description = `
-Sets an endpoint as the default one
-`;
+DefaultEndpointCommand.description = "Set an endpoint as the default one.";
 
 DefaultEndpointCommand.examples = ["$ fauna default-endpoint endpoint"];
 

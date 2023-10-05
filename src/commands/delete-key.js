@@ -23,9 +23,7 @@ class DeleteKeyCommand extends FaunaCommand {
   }
 }
 
-DeleteKeyCommand.description = `
-Deletes a key
-`;
+DeleteKeyCommand.description = "Delete a key.";
 
 DeleteKeyCommand.examples = ["$ fauna delete-key 123456789012345678"];
 

@@ -81,7 +81,7 @@ class PushSchemaCommand extends SchemaCommand {
   }
 }
 
-PushSchemaCommand.description = "Push a directory of .fsl files to Fauna";
+PushSchemaCommand.description = "Push the current project's .fsl files to Fauna.";
 
 PushSchemaCommand.examples = ["$ fauna schema push --dir schemas/myschema"];
 

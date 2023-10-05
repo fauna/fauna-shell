@@ -37,9 +37,7 @@ class CreateDatabaseCommand extends FaunaCommand {
   }
 }
 
-CreateDatabaseCommand.description = `
-Creates a database
-`;
+CreateDatabaseCommand.description = "Create a database.";
 
 CreateDatabaseCommand.examples = ["$ fauna create-database dbname"];
 

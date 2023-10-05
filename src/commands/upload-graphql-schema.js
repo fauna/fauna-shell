@@ -7,7 +7,7 @@ const path = require("path");
 class UploadGraphQLSchemaCommand extends FaunaCommand {
   allowedExt = [".graphql", ".gql"];
 
-  static description = "Upload GraphQL schema";
+  static description = "Upload GraphQL schema.";
 
   static examples = [
     "$ fauna upload-graphql-schema ./schema.gql",

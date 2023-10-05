@@ -38,9 +38,8 @@ class ListDatabasesCommand extends FaunaCommand {
   }
 }
 
-ListDatabasesCommand.description = `
-Lists child databases in the current database
-`;
+ListDatabasesCommand.description =
+  "List child databases in the current database.";
 
 ListDatabasesCommand.examples = ["$ fauna list-databases"];
 
