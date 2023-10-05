@@ -469,7 +469,6 @@ the queries file on the default fauna shell endpoint.
 
 <!-- commands -->
 
-- [`fauna autocomplete`](#fauna-autocomplete)
 - [`fauna cloud-login`](#fauna-cloud-login)
 - [`fauna create-database`](#fauna-create-database)
 - [`fauna create-key`](#fauna-create-key)
@@ -480,13 +479,13 @@ the queries file on the default fauna shell endpoint.
 - [`fauna eval`](#fauna-eval)
 - [`fauna help`](#fauna-help)
 - [`fauna import`](#fauna-import)
-- [`fauna project`](#fauna-project)
 - [`fauna list-databases`](#fauna-list-databases)
 - [`fauna list-keys`](#fauna-list-keys)
+- [`fauna project`](#fauna-project)
 - [`fauna schema`](#fauna-schema)
 - [`fauna shell`](#fauna-shell)
 - [`fauna stack`](#fauna-stack)
-- [`fauna upload-graphql-schema graphqlFilePath`](#fauna-upload-graphql-schema-graphqlfilepath)
+- [`fauna upload-graphql-schema`](#fauna-upload-graphql-schema)
 
 ## `fauna cloud-login`
 
@@ -672,143 +671,6 @@ EXAMPLES
   $ fauna delete-key 123456789012345678
 ```
 
-## `fauna help`
-
-Shows help for the Fauna CLI.
-
-```sh
-faunadb shell
-
-VERSION
-  fauna-shell/1.1.0 darwin-x64 node-v20.6.0
-
-USAGE
-  $ fauna [COMMAND]
-
-TOPICS
-  endpoint  Manage endpoints in ~/.fauna-shell.
-  plugins   List installed plugins.
-  project   Manage project settings in .fauna-project.
-  schema    Print the diff between local and remote schema.
-  stack     Manage stacks in the current project.
-
-COMMANDS
-  add-endpoint           Add an endpoint to ~/.fauna-shell.
-  cloud-login            Add a Fauna endpoint by logging into a Fauna account.
-  create-database        Create a database.
-  create-key             Create a key for the specified database.
-  default-endpoint       Set an endpoint as the default one.
-  delete-database        Delete a database.
-  delete-endpoint        Remove an endpoint from ~/.fauna-shell.
-  delete-key             Delete a key.
-  eval                   Evaluate the given query.
-  help                   Display help for fauna.
-  import                 Import data to Fauna.
-  list-databases         List child databases in the current database.
-  list-endpoints         List endpoints in ~/.fauna-shell.
-  list-keys              List keys in the current database.
-  plugins                List installed plugins.
-  run-queries            Run the queries found on the file passed to the
-                         command.
-  shell                  Start an interactive shell.
-  upload-graphql-schema  Upload GraphQL schema.
-```
-
-## `fauna list-databases`
-
-Lists child databases in the current database.
-
-This is the same as the following query:
-```ts
-Database.all().take(1000).toArray()
-```
-
-```sh
-List child databases in the current database.
-
-USAGE
-  $ fauna list-databases [--endpointURL <value>] [--timeout <value>]
-    [--secret <value>] [--endpoint <value>]
-
-FLAGS
-  --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
-  --endpointURL=<value>  Database URL. Overrides the `url` in ~/.fauna-shell
-  --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
-  --timeout=<value>      Connection timeout in milliseconds
-
-DESCRIPTION
-  List child databases in the current database.
-
-EXAMPLES
-  $ fauna list-databases
-```
-
-## `fauna list-keys`
-
-List keys in the current database.
-
-This is the same as the following query:
-```ts
-Key.all().take(100).toArray()
-```
-
-```sh
-List keys in the current database.
-
-USAGE
-  $ fauna list-keys [--endpointURL <value>] [--timeout <value>]
-    [--secret <value>] [--endpoint <value>]
-
-FLAGS
-  --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
-  --endpointURL=<value>  Database URL. Overrides the `url` in ~/.fauna-shell
-  --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
-  --timeout=<value>      Connection timeout in milliseconds
-
-DESCRIPTION
-  List keys in the current database.
-
-EXAMPLES
-  $ fauna list-keys
-```
-
-## `fauna shell`
-
-Start an interactive shell.
-
-```sh
-Start an interactive shell.
-
-USAGE
-  $ fauna shell [DBNAME] [--endpointURL <value>] [--timeout
-    <value>] [--secret <value>] [--endpoint <value>] [--file <value>] [--stdin]
-    [--output <value>] [--format json|json-tagged|shell] [--version 4|10]
-    [--typecheck]
-
-ARGUMENTS
-  DBNAME  database name
-
-FLAGS
-  --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
-  --endpointURL=<value>  Database URL. Overrides the `url` in ~/.fauna-shell
-  --file=<value>         File where to read queries from
-  --format=<option>      Output format
-                         <options: json|json-tagged|shell>
-  --output=<value>       File to write output to
-  --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stdin                Read file input from stdin. Writes to stdout by default
-  --timeout=<value>      Connection timeout in milliseconds
-  --typecheck            Enable typechecking
-  --version=<option>     [default: 10] FQL Version
-                         <options: 4|10>
-
-DESCRIPTION
-  Start an interactive shell.
-
-EXAMPLES
-  $ fauna shell dbname
-```
-
 ## `fauna endpoint`
 
 Commands to manage endpoints in ~/.fauna-shell.
@@ -954,6 +816,48 @@ EXAMPLES
   $ fauna eval "2 + 3" --format=json --output=/tmp/result"
 ```
 
+## `fauna help`
+
+Shows help for the Fauna CLI.
+
+```sh
+faunadb shell
+
+VERSION
+  fauna-shell/1.1.0 darwin-x64 node-v20.6.0
+
+USAGE
+  $ fauna [COMMAND]
+
+TOPICS
+  endpoint  Manage endpoints in ~/.fauna-shell.
+  plugins   List installed plugins.
+  project   Manage project settings in .fauna-project.
+  schema    Print the diff between local and remote schema.
+  stack     Manage stacks in the current project.
+
+COMMANDS
+  add-endpoint           Add an endpoint to ~/.fauna-shell.
+  cloud-login            Add a Fauna endpoint by logging into a Fauna account.
+  create-database        Create a database.
+  create-key             Create a key for the specified database.
+  default-endpoint       Set an endpoint as the default one.
+  delete-database        Delete a database.
+  delete-endpoint        Remove an endpoint from ~/.fauna-shell.
+  delete-key             Delete a key.
+  eval                   Evaluate the given query.
+  help                   Display help for fauna.
+  import                 Import data to Fauna.
+  list-databases         List child databases in the current database.
+  list-endpoints         List endpoints in ~/.fauna-shell.
+  list-keys              List keys in the current database.
+  plugins                List installed plugins.
+  run-queries            Run the queries found on the file passed to the
+                         command.
+  shell                  Start an interactive shell.
+  upload-graphql-schema  Upload GraphQL schema.
+```
+
 ## `fauna import`
 
 Import data to Fauna.
@@ -1071,6 +975,64 @@ EXAMPLES
   $ fauna import --path ./my_directory --append
 ```
 
+## `fauna list-databases`
+
+Lists child databases in the current database.
+
+This is the same as the following query:
+```ts
+Database.all().take(1000).toArray()
+```
+
+```sh
+List child databases in the current database.
+
+USAGE
+  $ fauna list-databases [--endpointURL <value>] [--timeout <value>]
+    [--secret <value>] [--endpoint <value>]
+
+FLAGS
+  --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
+  --endpointURL=<value>  Database URL. Overrides the `url` in ~/.fauna-shell
+  --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
+  --timeout=<value>      Connection timeout in milliseconds
+
+DESCRIPTION
+  List child databases in the current database.
+
+EXAMPLES
+  $ fauna list-databases
+```
+
+## `fauna list-keys`
+
+List keys in the current database.
+
+This is the same as the following query:
+```ts
+Key.all().take(100).toArray()
+```
+
+```sh
+List keys in the current database.
+
+USAGE
+  $ fauna list-keys [--endpointURL <value>] [--timeout <value>]
+    [--secret <value>] [--endpoint <value>]
+
+FLAGS
+  --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
+  --endpointURL=<value>  Database URL. Overrides the `url` in ~/.fauna-shell
+  --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
+  --timeout=<value>      Connection timeout in milliseconds
+
+DESCRIPTION
+  List keys in the current database.
+
+EXAMPLES
+  $ fauna list-keys
+```
+
 ## `fauna project`
 
 Commands to manage endpoints in ~/.fauna-shell.
@@ -1102,114 +1064,6 @@ EXAMPLES
   $ fauna project init
 
   $ fauna project init path/to/some/other/dir
-```
-
-## `fauna stack`
-
-Commands to manage stacks in .fauna-project.
-
-### `fauna stack add`
-
-Add a new stack to .fauna-project. All flags are optional, and the user will
-be prompted to fill in any missing values that are needed.
-
-If `--non-interactive` is set, no prompts will be shown, and the `--url` and
-`--secret` flags will be required.
-
-```sh
-Add a new stack to `.fauna-project`.
-
-USAGE
-  $ fauna stack add [--non-interactive --name <value> --endpoint
-    <value> --database <value>] [--set-default]
-
-FLAGS
-  --database=<value>  Database path to use in this stack
-  --endpoint=<value>  Endpoint to use in this stack
-  --name=<value>      New stack name
-  --non-interactive   Disable interaction
-  --set-default       Set this stack as the default
-
-DESCRIPTION
-  Add a new stack to `.fauna-project`.
-
-EXAMPLES
-  $ fauna stack add
-
-  $ fauna stack add --name my-app --endpoint dev --database my-database
-
-  $ fauna stack add --name my-app --endpoint dev --database my-database --set-default
-```
-
-### `fauna stack list`
-
-List stacks in .fauna-project.
-
-```sh
-List stacks available in `.fauna-project`.
-
-USAGE
-  $ fauna stack list
-
-DESCRIPTION
-  List stacks available in `.fauna-project`.
-
-EXAMPLES
-  $ fauna stack list
-```
-
-### `fauna stack select`
-
-Update the default stack in .fauna-project.
-
-```sh
-Update the default stack in `.fauna-project`.
-
-USAGE
-  $ fauna stack select STACK
-
-ARGUMENTS
-  STACK  The new default stack to use
-
-DESCRIPTION
-  Update the default stack in `.fauna-project`.
-
-EXAMPLES
-  $ fauna stack select my-stack
-```
-
-## `fauna upload-graphql-schema`
-
-Upload a GraphQL schema.
-
-```sh
-Upload GraphQL schema.
-
-USAGE
-  $ fauna upload-graphql-schema GRAPHQLFILEPATH [--endpointURL <value>] [--timeout
-    <value>] [--secret <value>] [--endpoint <value>] [--graphqlHost <value>]
-    [--graphqlPort <value>] [--mode merge|override|replace]
-
-ARGUMENTS
-  GRAPHQLFILEPATH  Path to GraphQL schema
-
-FLAGS
-  --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
-  --endpointURL=<value>  Database URL. Overrides the `url` in ~/.fauna-shell
-  --graphqlHost=<value>  The Fauna GraphQL API host
-  --graphqlPort=<value>  GraphQL port
-  --mode=<option>        [default: merge] Upload mode
-                         <options: merge|override|replace>
-  --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
-  --timeout=<value>      Connection timeout in milliseconds
-
-DESCRIPTION
-  Upload GraphQL schema.
-
-EXAMPLES
-  $ fauna upload-graphql-schema ./schema.gql
-
-  $ fauna upload-graphql-schema ./schema.gql --mode override
 ```
 
 ## `fauna schema`
@@ -1320,6 +1174,151 @@ DESCRIPTION
 
 EXAMPLES
   $ fauna schema pull
+```
+
+## `fauna shell`
+
+Start an interactive shell.
+
+```sh
+Start an interactive shell.
+
+USAGE
+  $ fauna shell [DBNAME] [--endpointURL <value>] [--timeout
+    <value>] [--secret <value>] [--endpoint <value>] [--file <value>] [--stdin]
+    [--output <value>] [--format json|json-tagged|shell] [--version 4|10]
+    [--typecheck]
+
+ARGUMENTS
+  DBNAME  database name
+
+FLAGS
+  --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
+  --endpointURL=<value>  Database URL. Overrides the `url` in ~/.fauna-shell
+  --file=<value>         File where to read queries from
+  --format=<option>      Output format
+                         <options: json|json-tagged|shell>
+  --output=<value>       File to write output to
+  --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
+  --stdin                Read file input from stdin. Writes to stdout by default
+  --timeout=<value>      Connection timeout in milliseconds
+  --typecheck            Enable typechecking
+  --version=<option>     [default: 10] FQL Version
+                         <options: 4|10>
+
+DESCRIPTION
+  Start an interactive shell.
+
+EXAMPLES
+  $ fauna shell dbname
+```
+
+## `fauna stack`
+
+Commands to manage stacks in .fauna-project.
+
+### `fauna stack add`
+
+Add a new stack to .fauna-project. All flags are optional, and the user will
+be prompted to fill in any missing values that are needed.
+
+If `--non-interactive` is set, no prompts will be shown, and the `--url` and
+`--secret` flags will be required.
+
+```sh
+Add a new stack to `.fauna-project`.
+
+USAGE
+  $ fauna stack add [--non-interactive --name <value> --endpoint
+    <value> --database <value>] [--set-default]
+
+FLAGS
+  --database=<value>  Database path to use in this stack
+  --endpoint=<value>  Endpoint to use in this stack
+  --name=<value>      New stack name
+  --non-interactive   Disable interaction
+  --set-default       Set this stack as the default
+
+DESCRIPTION
+  Add a new stack to `.fauna-project`.
+
+EXAMPLES
+  $ fauna stack add
+
+  $ fauna stack add --name my-app --endpoint dev --database my-database
+
+  $ fauna stack add --name my-app --endpoint dev --database my-database --set-default
+```
+
+### `fauna stack list`
+
+List stacks in .fauna-project.
+
+```sh
+List stacks available in `.fauna-project`.
+
+USAGE
+  $ fauna stack list
+
+DESCRIPTION
+  List stacks available in `.fauna-project`.
+
+EXAMPLES
+  $ fauna stack list
+```
+
+### `fauna stack select`
+
+Update the default stack in .fauna-project.
+
+```sh
+Update the default stack in `.fauna-project`.
+
+USAGE
+  $ fauna stack select STACK
+
+ARGUMENTS
+  STACK  The new default stack to use
+
+DESCRIPTION
+  Update the default stack in `.fauna-project`.
+
+EXAMPLES
+  $ fauna stack select my-stack
+```
+
+## `fauna upload-graphql-schema`
+
+Upload a GraphQL schema.
+
+```sh
+Upload GraphQL schema.
+
+USAGE
+  $ fauna upload-graphql-schema GRAPHQLFILEPATH [--endpointURL <value>] [--timeout
+    <value>] [--secret <value>] [--endpoint <value>] [--graphqlHost <value>]
+    [--graphqlPort <value>] [--mode merge|override|replace]
+
+ARGUMENTS
+  GRAPHQLFILEPATH  Path to GraphQL schema
+
+FLAGS
+  --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
+  --endpointURL=<value>  Database URL. Overrides the `url` in ~/.fauna-shell
+  --graphqlHost=<value>  The Fauna GraphQL API host
+  --graphqlPort=<value>  GraphQL port
+  --mode=<option>        [default: merge] Upload mode
+                         <options: merge|override|replace>
+  --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
+  --timeout=<value>      Connection timeout in milliseconds
+
+DESCRIPTION
+  Upload GraphQL schema.
+
+EXAMPLES
+  $ fauna upload-graphql-schema ./schema.gql
+
+  $ fauna upload-graphql-schema ./schema.gql --mode override
 ```
 
 <!-- commandsstop -->
