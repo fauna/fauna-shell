@@ -166,25 +166,21 @@ class EvalCommand extends FaunaCommand {
   }
 
   async performV10Query(client, fqlQuery, outputFile, flags) {
-    try {
-      let format;
-      if (flags.format === "shell") {
-        format = "decorated";
-      } else if (flags.format === "json-tagged") {
-        format = "tagged";
-      } else {
-        format = "simple";
-      }
-
-      const res = await client.query(fqlQuery, {
-        format,
-        typecheck: flags.typecheck,
-      });
-
-      return await this.writeFormattedOutputV10(outputFile, res, flags.format);
-    } catch (error) {
-      this.error(`${error.code}\n\n${error.queryInfo.summary}`);
+    let format;
+    if (flags.format === "shell") {
+      format = "decorated";
+    } else if (flags.format === "json-tagged") {
+      format = "tagged";
+    } else {
+      format = "simple";
     }
+
+    const res = await client.query(fqlQuery, {
+      format,
+      typecheck: flags.typecheck,
+    });
+
+    return await this.writeFormattedOutputV10(outputFile, res, flags.format);
   }
 
   async performV4Query(client, fqlQuery, outputFile, flags) {
