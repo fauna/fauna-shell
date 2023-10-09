@@ -26,7 +26,10 @@ class ShellCommand extends EvalCommand {
     const { db_path } = this.args;
 
     this.connection = db_path
-      ? await this.ensureDbScopeClient({ scope: db_path, version: this.flags.version })
+      ? await this.ensureDbScopeClient({
+          scope: db_path,
+          version: this.flags.version,
+        })
       : await this.getClient({ version: this.flags.version });
     this.startShell();
   }
@@ -152,10 +155,7 @@ class ShellCommand extends EvalCommand {
 
 ShellCommand.description = `Start an interactive shell.`;
 
-ShellCommand.examples = [
-  "$ fauna shell",
-  "$ fauna shell my_db/nested_db"
-];
+ShellCommand.examples = ["$ fauna shell", "$ fauna shell my_db/nested_db"];
 
 ShellCommand.flags = {
   ...FaunaCommand.flags,
