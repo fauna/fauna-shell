@@ -69,7 +69,8 @@
   "files": [
     "/bin",
     "/oclif.manifest.json",
-    "/src"
+    "/src",
+    "/dist"
   ],
   "homepage": "https://github.com/fauna/fauna-shell",
   "keywords": [
