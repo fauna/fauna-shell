@@ -21,7 +21,7 @@ class ImportCommand extends FaunaCommand {
   async run() {
     const { db, path } = this.flags;
     const { client } = await (db
-      ? this.ensureDbScopeClient(db)
+      ? this.ensureDbScopeClient({ scope: db })
       : this.getClient());
     this.client = client;
 

@@ -163,16 +163,43 @@ class FaunaCommand extends Command {
     }
   }
 
-  async ensureDbScopeClient(dbname) {
-    const { client } = await this.getClient();
-    const exists = await client.query(q.Exists(q.Database(dbname)));
-    if (!exists) {
-      this.error(`Database '${dbname}' doesn't exist`);
+  async ensureDbScopeClient({ scope, version }) {
+    const path = scope.split("/");
+
+    const { connectionOptions } = await this.getClient({ version: "4" });
+    const { hostname, port, protocol } = new URL(connectionOptions.url);
+
+    for (let i = 0; i < path.length; i++) {
+      const secret =
+        connectionOptions.secret + ":" + path.slice(0, i).join("/") + ":admin";
+
+      const client = new Client({
+        domain: hostname,
+        port,
+        scheme: protocol?.replace(/:$/, ""),
+        secret,
+
+        // See getClient.
+        fetch: fetch,
+
+        headers: {
+          "X-Fauna-Source": "Fauna Shell",
+        },
+      });
+      const exists = await client.query(q.Exists(q.Database(path[i])));
+      await client.close();
+
+      if (!exists) {
+        this.error(
+          `Database '${path.slice(0, i + 1).join("/")}' doesn't exist`
+        );
+      }
     }
 
     return this.getClient({
-      dbScope: dbname,
+      dbScope: scope,
       role: "admin",
+      version,
     });
   }
 

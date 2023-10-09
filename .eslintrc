@@ -24,15 +24,15 @@
       }
     ],
     // we use typescript so dynamic imports are fine
-    "node/no-unsupported-features": "off"
+    "node/no-unsupported-features": "off",
+    "camelcase": "off"
   },
   "ignorePatterns": ["dist/**/*"],
   "overrides": [
     {
       "files": ["*.test.js", "*.spec.js", "*.test.ts"],
       "rules": {
-        "no-unused-expressions": "off",
-        "camelcase": "off"
+        "no-unused-expressions": "off"
       }
     },
     {

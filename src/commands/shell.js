@@ -23,19 +23,19 @@ class ShellCommand extends EvalCommand {
   ];
 
   async run() {
-    const { dbname } = this.args;
+    const { db_path } = this.args;
 
-    this.connection = dbname
-      ? await this.ensureDbScopeClient(dbname)
+    this.connection = db_path
+      ? await this.ensureDbScopeClient({ scope: db_path, version: this.flags.version })
       : await this.getClient({ version: this.flags.version });
     this.startShell();
   }
 
   startShell() {
-    const { dbname } = this.args;
+    const { db_path } = this.args;
 
-    if (dbname) {
-      this.log(`Starting shell for database ${dbname}`);
+    if (db_path) {
+      this.log(`Starting shell for database ${db_path}`);
     }
 
     this.log(
@@ -44,7 +44,7 @@ class ShellCommand extends EvalCommand {
     this.log("Type Ctrl+D or .exit to exit the shell");
 
     this.repl = repl.start({
-      prompt: `${dbname || ""}> `,
+      prompt: `${db_path || ""}> `,
       ignoreUndefined: true,
       preview: this.flags.version !== "10",
       // TODO: Integrate with fql-analyzer for completions
@@ -152,7 +152,10 @@ class ShellCommand extends EvalCommand {
 
 ShellCommand.description = `Start an interactive shell.`;
 
-ShellCommand.examples = ["$ fauna shell dbname"];
+ShellCommand.examples = [
+  "$ fauna shell",
+  "$ fauna shell my_db/nested_db"
+];
 
 ShellCommand.flags = {
   ...FaunaCommand.flags,
@@ -170,9 +173,9 @@ ShellCommand.flags = {
 };
 
 ShellCommand.args = {
-  dbname: Args.string({
+  db_path: Args.string({
     required: false,
-    description: "database name",
+    description: "Database path",
   }),
 };
 
