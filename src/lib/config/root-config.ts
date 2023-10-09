@@ -139,8 +139,14 @@ export class Endpoint {
     graphqlHost: string;
     graphqlPort: number;
   } {
-    const secret =
-      this.secret + (scope ? `:${scope}` : "") + (role ? `:${role}` : "");
+    let appendedRoleStr = "";
+    if (role) {
+      appendedRoleStr = `:${role}`;
+    } else if (scope) {
+      appendedRoleStr = ":admin";
+    }
+
+    const secret = this.secret + (scope ? `:${scope}` : "") + appendedRoleStr;
 
     return {
       secret,

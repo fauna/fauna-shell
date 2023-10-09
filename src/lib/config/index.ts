@@ -274,8 +274,6 @@ export class ShellConfig {
         database += "/";
       }
       database += opts.scope;
-    } else if (database) {
-      database += ":admin";
     }
 
     return this.endpoint!.makeScopedEndpoint(database, opts.role);
