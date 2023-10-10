@@ -1,6 +1,7 @@
+import { confirm } from "@inquirer/prompts";
 import SchemaCommand from "../../lib/schema-command";
 import fetch from "node-fetch";
-import { Flags, ux } from "@oclif/core";
+import { Flags } from "@oclif/core";
 
 export default class PushSchemaCommand extends SchemaCommand {
   static flags = {
@@ -14,20 +15,6 @@ export default class PushSchemaCommand extends SchemaCommand {
   static description = "Push the current project's .fsl files to Fauna.";
 
   static examples = ["$ fauna schema push --dir schemas/myschema"];
-
-  async confirm(msg: string): Promise<boolean> {
-    const resp = await ux.prompt(msg, {
-      default: "no",
-    });
-    if (["yes", "y"].includes(resp.toLowerCase())) {
-      return true;
-    }
-    if (["no", "n"].includes(resp.toLowerCase())) {
-      return false;
-    }
-    console.log("Please type 'yes' or 'no'");
-    return this.confirm(msg);
-  }
 
   async run() {
     const fps = this.gather();
@@ -56,15 +43,21 @@ export default class PushSchemaCommand extends SchemaCommand {
         if (json.error) {
           this.error(json.error.message);
         }
-        let msg = "Accept and push changes?";
+        let message = "Accept and push changes?";
         if (json.diff) {
           this.log(`Proposed diff:\n`);
           this.log(json.diff);
         } else {
           this.log("No logical changes.");
-          msg = "Push file contents anyway?";
+          message = "Push file contents anyway?";
         }
-        if (await this.confirm(msg)) {
+        this.log(`Proposed diff:\n`);
+        this.log(json.diff);
+        const confirmed = await confirm({
+          message,
+          default: false,
+        });
+        if (confirmed) {
           const res = await fetch(
             new URL(`/schema/1/update?version=${json.version}`, url),
             {

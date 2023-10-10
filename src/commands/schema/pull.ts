@@ -1,8 +1,9 @@
+import { confirm } from "@inquirer/prompts";
 import SchemaCommand from "../../lib/schema-command";
 import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
-import { Flags, ux } from "@oclif/core";
+import { Flags } from "@oclif/core";
 
 export default class PullSchemaCommand extends SchemaCommand {
   static flags = {
@@ -18,20 +19,6 @@ export default class PullSchemaCommand extends SchemaCommand {
     "Pull a database schema's .fsl files into the current project.";
 
   static examples = ["$ fauna schema pull"];
-
-  async confirm(): Promise<boolean> {
-    const resp = await ux.prompt("Accept the changes?", {
-      default: "no",
-    });
-    if (["yes", "y"].includes(resp.toLowerCase())) {
-      return true;
-    }
-    if (["no", "n"].includes(resp.toLowerCase())) {
-      return false;
-    }
-    console.log("Please type 'yes' or 'no'");
-    return this.confirm();
-  }
 
   async run() {
     const { url, secret } = await this.fetchsetup();
@@ -93,7 +80,11 @@ export default class PullSchemaCommand extends SchemaCommand {
         }
       }
 
-      if (await this.confirm()) {
+      const confirmed = await confirm({
+        message: "Accept the changes?",
+        default: false,
+      });
+      if (confirmed) {
         for (const filename of filenames) {
           const fileres = await fetch(
             new URL(`/schema/1/files/${filename}`, url),
