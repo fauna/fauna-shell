@@ -12,6 +12,13 @@ class FaunaCommand extends Command {
   clients = {};
 
   /**
+   * This is used to determine if the command should log the connection info.
+   * We currently want to avoid doing this for eval since it can lead to the
+   * response not being JSON parseable.
+   */
+  outputConnectionInfo = true;
+
+  /**
    * During init we parse the flags and arguments and assign them
    * to the `flags` and `args` member variables.
    *
@@ -92,23 +99,25 @@ class FaunaCommand extends Command {
 
   async getClient({ dbScope, role, version } = {}) {
     const logConnectionMessage = (connectionOptions) => {
-      let connectedMessage;
-      if (connectionOptions.name !== undefined) {
-        connectedMessage = `Connected to endpoint: ${connectionOptions.name}`;
-        if (
+      if (this.outputConnectionInfo) {
+        let connectedMessage;
+        if (connectionOptions.name !== undefined) {
+          connectedMessage = `Connected to endpoint: ${connectionOptions.name}`;
+          if (
+            connectionOptions.database !== undefined &&
+            connectionOptions.database !== ""
+          ) {
+            connectedMessage += ` database: ${connectionOptions.database}`;
+          }
+        } else if (
           connectionOptions.database !== undefined &&
           connectionOptions.database !== ""
         ) {
-          connectedMessage += ` database: ${connectionOptions.database}`;
+          connectedMessage = `Connected to database: ${connectionOptions.database}`;
         }
-      } else if (
-        connectionOptions.database !== undefined &&
-        connectionOptions.database !== ""
-      ) {
-        connectedMessage = `Connected to database: ${connectionOptions.database}`;
-      }
-      if (connectedMessage !== undefined) {
-        this.log(connectedMessage);
+        if (connectedMessage !== undefined) {
+          this.log(connectedMessage);
+        }
       }
     };
 

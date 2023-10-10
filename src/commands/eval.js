@@ -55,6 +55,8 @@ async function writeFormattedOutput(file, data, format) {
 class EvalCommand extends FaunaCommand {
   static description = "Evaluate the given query.";
 
+  outputConnectionInfo = false;
+
   async run() {
     const queryFromStdin = this.flags.stdin;
     let queriesFile = this.flags.file;
@@ -71,7 +73,10 @@ class EvalCommand extends FaunaCommand {
 
     try {
       const { client } = await (dbname
-        ? this.ensureDbScopeClient({ scope: dbname, version: this.flags.version })
+        ? this.ensureDbScopeClient({
+            scope: dbname,
+            version: this.flags.version,
+          })
         : this.getClient({ version: this.flags.version }));
 
       const readQuery = queryFromStdin || queriesFile !== undefined;
