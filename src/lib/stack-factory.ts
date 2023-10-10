@@ -149,9 +149,9 @@ export class StackFactory {
   getDatabasePaths = async (
     client: FaunaClient
   ): Promise<string[] | undefined> => {
-    // Limits: choose a limit of 10 databases at each depth, and a depth of 3.
+    // Limits: choose a limit of 100 databases at each depth, and a depth of 3.
     // We will also add a limit if any databases are skiped.
-    const databaseLimit = 10;
+    const databaseLimit = 100;
     const depthLimit = 3;
 
     const allDatabases: string[] = [];
