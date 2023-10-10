@@ -13,8 +13,8 @@ export default class DiffSchemaCommand extends SchemaCommand {
     const fps = this.gather();
     const files = this.read(fps);
     try {
-      const { urlbase, secret } = await this.fetchsetup();
-      const res = await fetch(`${urlbase}/schema/1/validate?force=true`, {
+      const { url, secret } = await this.fetchsetup();
+      const res = await fetch(new URL("/schema/1/validate?force=true", url), {
         method: "POST",
         headers: { AUTHORIZATION: `Bearer ${secret}` },
         body: this.body(files),

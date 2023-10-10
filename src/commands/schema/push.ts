@@ -33,10 +33,10 @@ export default class PushSchemaCommand extends SchemaCommand {
     const fps = this.gather();
     const files = this.read(fps);
     try {
-      const { urlbase, secret } = await this.fetchsetup();
+      const { url, secret } = await this.fetchsetup();
       if (this.flags?.force) {
         // Just push.
-        const res = await fetch(`${urlbase}/schema/1/update?force=true`, {
+        const res = await fetch(new URL("/schema/1/update?force=true", url), {
           method: "POST",
           headers: { AUTHORIZATION: `Bearer ${secret}` },
           body: this.body(files),
@@ -47,7 +47,7 @@ export default class PushSchemaCommand extends SchemaCommand {
         }
       } else {
         // Confirm diff, then push it.
-        const res = await fetch(`${urlbase}/schema/1/validate?force=true`, {
+        const res = await fetch(new URL("/schema/1/validate?force=true", url), {
           method: "POST",
           headers: { AUTHORIZATION: `Bearer ${secret}` },
           body: this.body(files),
@@ -66,7 +66,7 @@ export default class PushSchemaCommand extends SchemaCommand {
         }
         if (await this.confirm(msg)) {
           const res = await fetch(
-            `${urlbase}/schema/1/update?version=${json.version}`,
+            new URL(`/schema/1/update?version=${json.version}`, url),
             {
               method: "POST",
               headers: { AUTHORIZATION: `Bearer ${secret}` },

@@ -34,11 +34,11 @@ export default class PullSchemaCommand extends SchemaCommand {
   }
 
   async run() {
-    const { urlbase, secret } = await this.fetchsetup();
+    const { url, secret } = await this.fetchsetup();
 
     try {
       // Gather remote schema files to download.
-      const filesres = await fetch(`${urlbase}/schema/1/files`, {
+      const filesres = await fetch(new URL("/schema/1/files", url), {
         method: "GET",
         headers: { AUTHORIZATION: `Bearer ${secret}` },
       });
@@ -95,10 +95,13 @@ export default class PullSchemaCommand extends SchemaCommand {
 
       if (await this.confirm()) {
         for (const filename of filenames) {
-          const fileres = await fetch(`${urlbase}/schema/1/files/${filename}`, {
-            method: "GET",
-            headers: { AUTHORIZATION: `Bearer ${secret}` },
-          });
+          const fileres = await fetch(
+            new URL(`/schema/1/files/${filename}`, url),
+            {
+              method: "GET",
+              headers: { AUTHORIZATION: `Bearer ${secret}` },
+            }
+          );
           const filejson = await fileres.json();
           if (filejson.error) {
             this.error(filejson.error.message);

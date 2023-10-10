@@ -25,7 +25,7 @@ export default abstract class SchemaCommand extends FaunaCommand {
     } = await this.getClient();
 
     return {
-      urlbase: url,
+      url,
       secret,
     };
   }
