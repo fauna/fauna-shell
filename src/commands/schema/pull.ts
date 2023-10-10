@@ -1,10 +1,10 @@
-const SchemaCommand = require("../../lib/schema-command.js").default;
-const fetch = require("node-fetch");
-const fs = require("fs");
-const path = require("path");
-const { Flags, ux } = require("@oclif/core");
+import SchemaCommand from "../../lib/schema-command";
+import fetch from "node-fetch";
+import fs from "fs";
+import path from "path";
+import { Flags, ux } from "@oclif/core";
 
-class PullSchemaCommand extends SchemaCommand {
+export default class PullSchemaCommand extends SchemaCommand {
   static flags = {
     ...SchemaCommand.flags,
     delete: Flags.boolean({
@@ -14,7 +14,12 @@ class PullSchemaCommand extends SchemaCommand {
     }),
   };
 
-  async confirm() {
+  static description =
+    "Pull a database schema's .fsl files into the current project.";
+
+  static examples = ["$ fauna schema pull"];
+
+  async confirm(): Promise<boolean> {
     const resp = await ux.prompt("Accept the changes?", {
       default: "no",
     });
@@ -43,8 +48,8 @@ class PullSchemaCommand extends SchemaCommand {
       }
       // Sort for consistent order. It's nice for tests.
       const filenames = filesjson.files
-        .map((file) => file.filename)
-        .filter((name) => name.endsWith(".fsl"))
+        .map((file: any) => file.filename)
+        .filter((name: string) => name.endsWith(".fsl"))
         .sort();
 
       // Gather local .fsl files to overwrite or delete.
@@ -69,7 +74,7 @@ class PullSchemaCommand extends SchemaCommand {
       deletes.sort();
 
       console.log("Pull makes the following changes:");
-      if (this.flags.delete) {
+      if (this.flags?.delete) {
         for (const deleteme of deletes) {
           console.log(`delete:    ${deleteme}`);
         }
@@ -81,7 +86,7 @@ class PullSchemaCommand extends SchemaCommand {
         console.log(`overwrite: ${overwrite}`);
       }
 
-      if (this.flags.delete) {
+      if (this.flags?.delete) {
         // Delete extra .fsl files.
         for (const deleteme of deletes) {
           fs.unlinkSync(path.join(this.dir, deleteme));
@@ -110,10 +115,3 @@ class PullSchemaCommand extends SchemaCommand {
     }
   }
 }
-
-PullSchemaCommand.description =
-  "Pull a database schema's .fsl files into the current project.";
-
-PullSchemaCommand.examples = ["$ fauna schema pull"];
-
-module.exports = PullSchemaCommand;

@@ -1,8 +1,8 @@
-const SchemaCommand = require("../../lib/schema-command.js").default;
-const fetch = require("node-fetch");
-const { Flags, ux } = require("@oclif/core");
+import SchemaCommand from "../../lib/schema-command";
+import fetch from "node-fetch";
+import { Flags, ux } from "@oclif/core";
 
-class PushSchemaCommand extends SchemaCommand {
+export default class PushSchemaCommand extends SchemaCommand {
   static flags = {
     ...SchemaCommand.flags,
     force: Flags.boolean({
@@ -11,7 +11,11 @@ class PushSchemaCommand extends SchemaCommand {
     }),
   };
 
-  async confirm(msg) {
+  static description = "Push the current project's .fsl files to Fauna.";
+
+  static examples = ["$ fauna schema push --dir schemas/myschema"];
+
+  async confirm(msg: string): Promise<boolean> {
     const resp = await ux.prompt(msg, {
       default: "no",
     });
@@ -30,7 +34,7 @@ class PushSchemaCommand extends SchemaCommand {
     const files = this.read(fps);
     try {
       const { urlbase, secret } = await this.fetchsetup();
-      if (this.flags.force) {
+      if (this.flags?.force) {
         // Just push.
         const res = await fetch(`${urlbase}/schema/1/update?force=true`, {
           method: "POST",
@@ -52,13 +56,13 @@ class PushSchemaCommand extends SchemaCommand {
         if (json.error) {
           this.error(json.error.message);
         }
-        let msg = "Accept and push changes?"
+        let msg = "Accept and push changes?";
         if (json.diff) {
           this.log(`Proposed diff:\n`);
           this.log(json.diff);
         } else {
           this.log("No logical changes.");
-          msg = "Push file contents anyway?"
+          msg = "Push file contents anyway?";
         }
         if (await this.confirm(msg)) {
           const res = await fetch(
@@ -82,9 +86,3 @@ class PushSchemaCommand extends SchemaCommand {
     }
   }
 }
-
-PushSchemaCommand.description = "Push the current project's .fsl files to Fauna.";
-
-PushSchemaCommand.examples = ["$ fauna schema push --dir schemas/myschema"];
-
-module.exports = PushSchemaCommand;

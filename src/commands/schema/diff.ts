@@ -1,10 +1,13 @@
-const SchemaCommand = require("../../lib/schema-command.js").default;
-const fetch = require("node-fetch");
+import SchemaCommand from "../../lib/schema-command";
+import fetch from "node-fetch";
 
-class DiffSchemaCommand extends SchemaCommand {
+export default class DiffSchemaCommand extends SchemaCommand {
   static flags = {
     ...SchemaCommand.flags,
   };
+
+  static description = "Print the diff between local and remote schema.";
+  static examples = ["$ fauna schema diff --dir schemas/myschema"];
 
   async run() {
     const fps = this.gather();
@@ -26,10 +29,3 @@ class DiffSchemaCommand extends SchemaCommand {
     }
   }
 }
-
-DiffSchemaCommand.description =
-  "Print the diff between local and remote schema.";
-
-DiffSchemaCommand.examples = ["$ fauna schema diff --dir schemas/myschema"];
-
-module.exports = DiffSchemaCommand;
