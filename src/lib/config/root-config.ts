@@ -172,12 +172,12 @@ export class Endpoint {
   /**
    * Gets a database URL from command line flags.
    *
-   * Note: this is similar to `getURLFromConfig`, but looks up `endpointURL`
-   * instead of `url` for the url value.
+   * Note: this is the same as `getURLFromConfig`. Its left different so that
+   * we can change flags later, without breaking config parsing.
    */
   static getURLFromFlags = (flags: Config): string | undefined => {
     return this.getURL({
-      url: flags.strOpt("endpointURL"),
+      url: flags.strOpt("url"),
       scheme: flags.strOpt("scheme"),
       domain: flags.strOpt("domain"),
       port: flags.numberOpt("port"),

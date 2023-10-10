@@ -18,7 +18,7 @@ const ERROR_SPECIFY_SECRET_KEY =
   "You must specify a secret key to connect to Fauna";
 
 /**
- * Takes a parsed endpointURL, an endpoint alias, and the endpoint secret,
+ * Takes a parsed url, an endpoint alias, and the endpoint secret,
  * and saves it to the .ini config file.
  *
  * - If the endpoint already exists, it will be overwritten, after asking confirmation
