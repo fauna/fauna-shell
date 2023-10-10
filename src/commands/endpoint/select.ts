@@ -28,7 +28,10 @@ export default class DefaultEndpointCommand extends Command {
 
   async execute(config: ShellConfig) {
     const { args } = await this.parse();
-    await this.parse();
+
+    if (Object.keys(config.rootConfig.endpoints).length === 0) {
+      this.error("No endpoints defined. Create one with `fauna cloud-login`");
+    }
 
     const name =
       args.name ??
