@@ -22,11 +22,7 @@ class Region {
   }
 
   endpointName(base: string) {
-    if (this.name === "global") {
-      return base;
-    } else {
-      return `${base}-${this.name}`;
-    }
+    return `${base}-${this.name}`;
   }
 }
 
