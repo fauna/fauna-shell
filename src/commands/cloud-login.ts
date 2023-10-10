@@ -1,4 +1,4 @@
-import { input, select, confirm } from "@inquirer/prompts";
+import { input, select, confirm, password } from "@inquirer/prompts";
 import { Endpoint, ShellConfig } from "../lib/config";
 import { hostname } from "os";
 import { Command } from "@oclif/core";
@@ -112,7 +112,7 @@ export default class CloudLoginCommand extends Command {
             : true;
         },
       }),
-      password: await input({
+      password: await password({
         message: "Password",
       }),
     });
