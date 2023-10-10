@@ -3,6 +3,7 @@ import { Endpoint, ShellConfig } from "../lib/config";
 import { hostname } from "os";
 import { Command } from "@oclif/core";
 import { underline, blue } from "chalk";
+import fetch from "node-fetch";
 
 const DEFAULT_NAME = "cloud";
 const DB = process.env.FAUNA_URL ?? "https://db.fauna.com";
