@@ -382,15 +382,3 @@ export function runQueries(expressions, client) {
     return promiseSerial(wrapQueries(expressions, client));
   }
 }
-
-export function stringifyEndpoint(endpoint) {
-  var res = "";
-  if (endpoint.scheme) {
-    res += endpoint.scheme + "://";
-  }
-  res += endpoint.domain;
-  if (endpoint.port) {
-    res += ":" + endpoint.port;
-  }
-  return res;
-}

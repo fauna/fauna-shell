@@ -1,5 +1,5 @@
 const FaunaCommand = require("../lib/fauna-command.js").default;
-const { runQueries, stringifyEndpoint } = require("../lib/misc.js");
+const { runQueries } = require("../lib/misc.js");
 const faunadb = require("faunadb");
 const { Flags, Args } = require("@oclif/core");
 const q = faunadb.query;
@@ -41,9 +41,7 @@ class ShellCommand extends EvalCommand {
       this.log(`Starting shell for database ${db_path}`);
     }
 
-    this.log(
-      `Connected to ${stringifyEndpoint(this.connection.connectionOptions)}`
-    );
+    this.log(`Connected to ${this.connection.connectionOptions.url}`);
     this.log("Type Ctrl+D or .exit to exit the shell");
 
     this.repl = repl.start({

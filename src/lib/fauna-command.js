@@ -1,6 +1,5 @@
 import { Command, Flags } from "@oclif/core";
 import { ShellConfig } from "./config";
-import { stringifyEndpoint } from "./misc";
 import { query as q, errors, Client } from "faunadb";
 import { green } from "chalk";
 import FaunaClient from "./fauna-client";
@@ -85,9 +84,7 @@ class FaunaCommand extends Command {
   mapConnectionError({ err, connectionOptions }) {
     if (err instanceof errors.Unauthorized) {
       return this.error(
-        `Could not Connect to ${stringifyEndpoint(
-          connectionOptions
-        )} Unauthorized Secret`
+        `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
       );
     }
     return this.error(err);
