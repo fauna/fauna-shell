@@ -1,9 +1,9 @@
+const inquirer = require("@inquirer/prompts");
 const fs = require("fs");
 const path = require("path");
 const { expect, test } = require("@oclif/test");
 const { query: q } = require("faunadb");
 const { withOpts, getEndpoint, matchFqlReq } = require("../helpers/utils.js");
-const { ux } = require("@oclif/core");
 
 const main = {
   version: 0,
@@ -55,7 +55,7 @@ describe("fauna schema diff test", () => {
 
 describe("fauna schema push test", () => {
   test
-    .stub(ux, "prompt", async () => "Y")
+    .stub(inquirer, "confirm", async () => true)
     .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
       api
         .persist()
@@ -99,7 +99,7 @@ for (const ddelete of [false, true]) {
     }
     setup();
     test
-      .stub(ux, "prompt", async () => "Y")
+      .stub(inquirer, "confirm", async () => true)
       .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
         api
           .persist()
