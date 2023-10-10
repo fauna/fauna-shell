@@ -14,7 +14,10 @@ export default class PushSchemaCommand extends SchemaCommand {
 
   static description = "Push the current project's .fsl files to Fauna.";
 
-  static examples = ["$ fauna schema push --dir schemas/myschema"];
+  static examples = [
+    "$ fauna schema push",
+    "$ fauna schema push --dir schemas/myschema",
+  ];
 
   async run() {
     const fps = this.gather();
@@ -51,8 +54,6 @@ export default class PushSchemaCommand extends SchemaCommand {
           this.log("No logical changes.");
           message = "Push file contents anyway?";
         }
-        this.log(`Proposed diff:\n`);
-        this.log(json.diff);
         const confirmed = await confirm({
           message,
           default: false,

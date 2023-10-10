@@ -7,7 +7,10 @@ export default class DiffSchemaCommand extends SchemaCommand {
   };
 
   static description = "Print the diff between local and remote schema.";
-  static examples = ["$ fauna schema diff --dir schemas/myschema"];
+  static examples = [
+    "$ fauna schema diff",
+    "$ fauna schema diff --dir schemas/myschema",
+  ];
 
   async run() {
     const fps = this.gather();
