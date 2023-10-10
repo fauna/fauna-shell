@@ -140,12 +140,7 @@ See [Commands](#commands) for a list of commands and help on their usage.
 
 # Technical Requirements
 
-In order to use Fauna Shell, you will need to meet these system requirements:
-
-**Node.js version**
-
-- `>= v10.0.0`
-- `< v12.17.0`
+In order to use Fauna Shell, you must have Node.js version >= 14 installed.
 
 # Shell
 
