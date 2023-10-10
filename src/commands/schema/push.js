@@ -11,8 +11,8 @@ class PushSchemaCommand extends SchemaCommand {
     }),
   };
 
-  async confirm() {
-    const resp = await ux.prompt("Accept and push the changes?", {
+  async confirm(msg) {
+    const resp = await ux.prompt(msg, {
       default: "no",
     });
     if (["yes", "y"].includes(resp.toLowerCase())) {
@@ -22,7 +22,7 @@ class PushSchemaCommand extends SchemaCommand {
       return false;
     }
     console.log("Please type 'yes' or 'no'");
-    return this.confirm();
+    return this.confirm(msg);
   }
 
   async run() {
@@ -52,13 +52,15 @@ class PushSchemaCommand extends SchemaCommand {
         if (json.error) {
           this.error(json.error.message);
         }
-        if (!json.diff) {
-          this.log("No changes to push");
-          this.exit(0);
+        let msg = "Accept and push changes?"
+        if (json.diff) {
+          this.log(`Proposed diff:\n`);
+          this.log(json.diff);
+        } else {
+          this.log("No logical changes.");
+          msg = "Push file contents anyway?"
         }
-        this.log(`Proposed diff:\n`);
-        this.log(json.diff);
-        if (await this.confirm()) {
+        if (await this.confirm(msg)) {
           const res = await fetch(
             `${urlbase}/schema/1/update?version=${json.version}`,
             {
@@ -72,7 +74,7 @@ class PushSchemaCommand extends SchemaCommand {
             this.error(json0.error.message);
           }
         } else {
-          this.log("Change cancelled");
+          this.log("Push cancelled");
         }
       }
     } catch (err) {
