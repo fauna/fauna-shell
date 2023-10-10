@@ -6,6 +6,7 @@ import {
   ProjectConfig,
   ShellConfig,
 } from "../../lib/config";
+import fs from "fs";
 import * as path from "path";
 import { StackFactory } from "../../lib/stack-factory";
 
@@ -34,6 +35,22 @@ export class ProjectInitCommand extends Command {
   }
 
   async execute(projectDir: string): Promise<void> {
+    const stat = fs.statSync(projectDir, {
+      // returns undefined instead of throwing if the file doesn't exist
+      throwIfNoEntry: false,
+    });
+    if (stat === undefined) {
+      this.error(`No such file or directory ${projectDir}`);
+    } else if (!stat.isDirectory()) {
+      this.error(`Expected a directory, found file at ${projectDir}`);
+    } else {
+      try {
+        fs.accessSync(projectDir, fs.constants.W_OK);
+      } catch (e) {
+        this.error(`Cannot write to directory ${projectDir}`);
+      }
+    }
+
     const projectPath = path.join(projectDir, PROJECT_FILE_NAME);
     if (fileExists(projectPath)) {
       this.error(`Project already exists at ${projectPath}`);
