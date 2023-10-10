@@ -114,6 +114,7 @@ export default class CloudLoginCommand extends Command {
       }),
       password: await password({
         message: "Password",
+        mask: true,
       }),
     });
   }
