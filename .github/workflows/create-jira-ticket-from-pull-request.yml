@@ -8,6 +8,7 @@ jobs:
   create_ticket_from_pr:
     name: Create JIRA ticket
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
       - name: Login
         uses: atlassian/gajira-login@master
