@@ -1,6 +1,5 @@
 import { Command, Flags } from "@oclif/core";
 import { ShellConfig } from "./config";
-import { stringifyEndpoint } from "./misc";
 import { query as q, errors, Client } from "faunadb";
 import { green } from "chalk";
 import FaunaClient from "./fauna-client";
@@ -11,6 +10,13 @@ import fetch from "node-fetch";
  */
 class FaunaCommand extends Command {
   clients = {};
+
+  /**
+   * This is used to determine if the command should log the connection info.
+   * We currently want to avoid doing this for eval since it can lead to the
+   * response not being JSON parseable.
+   */
+  outputConnectionInfo = true;
 
   /**
    * During init we parse the flags and arguments and assign them
@@ -84,16 +90,37 @@ class FaunaCommand extends Command {
 
   mapConnectionError({ err, connectionOptions }) {
     if (err instanceof errors.Unauthorized) {
-      return this.error(
-        `Could not Connect to ${stringifyEndpoint(
-          connectionOptions
-        )} Unauthorized Secret`
+      this.error(
+        `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
       );
     }
-    return this.error(err);
+    this.error(err);
   }
 
   async getClient({ dbScope, role, version } = {}) {
+    const logConnectionMessage = (connectionOptions) => {
+      if (this.outputConnectionInfo) {
+        let connectedMessage;
+        if (connectionOptions.name !== undefined) {
+          connectedMessage = `Connected to endpoint: ${connectionOptions.name}`;
+          if (
+            connectionOptions.database !== undefined &&
+            connectionOptions.database !== ""
+          ) {
+            connectedMessage += ` database: ${connectionOptions.database}`;
+          }
+        } else if (
+          connectionOptions.database !== undefined &&
+          connectionOptions.database !== ""
+        ) {
+          connectedMessage = `Connected to database: ${connectionOptions.database}`;
+        }
+        if (connectedMessage !== undefined) {
+          this.log(connectedMessage);
+        }
+      }
+    };
+
     if (version === "4" || version === undefined) {
       // construct v4 client
       let connectionOptions;
@@ -128,9 +155,10 @@ class FaunaCommand extends Command {
 
         const hashKey = [dbScope, role].join("_");
         this.clients[hashKey] = { client, connectionOptions };
+        logConnectionMessage(connectionOptions);
         return this.clients[hashKey];
       } catch (err) {
-        return this.mapConnectionError({ err, connectionOptions });
+        this.mapConnectionError({ err, connectionOptions });
       }
     } else {
       // construct v10 client
@@ -156,9 +184,10 @@ class FaunaCommand extends Command {
           client,
           connectionOptions,
         };
+        logConnectionMessage(connectionOptions);
         return this.clients[hashKey];
       } catch (err) {
-        return this.mapConnectionError({ err, connectionOptions });
+        this.mapConnectionError({ err, connectionOptions });
       }
     }
   }

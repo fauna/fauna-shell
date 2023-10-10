@@ -120,6 +120,11 @@ export type ShellOpts = {
 export type EndpointConfig = {
   secret: string;
   url: string;
+  /** this is currently just used for messaging purposes, the secret
+   * in this config will already contain the database path if needed.
+   */
+  database?: string;
+  name?: string;
   graphqlHost: string;
   graphqlPort: number;
 };

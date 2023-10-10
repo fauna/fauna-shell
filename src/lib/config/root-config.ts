@@ -1,4 +1,4 @@
-import { Config, InvalidConfigError } from ".";
+import { Config, EndpointConfig, InvalidConfigError } from ".";
 import fs from "fs";
 const ini = require("ini");
 
@@ -23,13 +23,13 @@ export class RootConfig {
       this.endpoints = Object.fromEntries<Endpoint>(
         config
           .objectsIn("endpoint")
-          .map(([k, v]) => [k, Endpoint.fromConfig(v)])
+          .map(([k, v]) => [k, Endpoint.fromConfig(k, v)])
       );
     } else {
       this.endpoints = Object.fromEntries<Endpoint>(
         config
           .allObjectsWhere((k) => k !== "default")
-          .map(([k, v]) => [k, Endpoint.fromConfig(v)])
+          .map(([k, v]) => [k, Endpoint.fromConfig(k, v)])
       );
     }
 
@@ -101,14 +101,16 @@ export class RootConfig {
  * - An optional GraphQL port. This is the port to use for GraphQL requests. It defaults to `443`.
  */
 export class Endpoint {
+  name?: string;
   secret: string;
   url: string;
 
   graphqlHost: string;
   graphqlPort: number;
 
-  static fromConfig(config: Config) {
+  static fromConfig(name: string, config: Config) {
     return new Endpoint({
+      name: name,
       secret: config.str("secret"),
       url: Endpoint.getURLFromConfig(config),
 
@@ -118,11 +120,13 @@ export class Endpoint {
   }
 
   constructor(opts: {
+    name?: string;
     secret: string;
     url?: string;
     graphqlHost?: string;
     graphqlPort?: number;
   }) {
+    this.name = opts.name;
     this.secret = opts.secret;
     this.url = opts.url ?? "https://db.fauna.com";
 
@@ -130,29 +134,26 @@ export class Endpoint {
     this.graphqlPort = opts.graphqlPort ?? 443;
   }
 
-  makeScopedEndpoint(
-    scope?: string,
-    role?: string
-  ): {
-    secret: string;
-    url: string;
-    graphqlHost: string;
-    graphqlPort: number;
-  } {
+  makeScopedEndpoint(databaseScope?: string, role?: string): EndpointConfig {
     let appendedRoleStr = "";
     if (role) {
       appendedRoleStr = `:${role}`;
-    } else if (scope) {
+    } else if (databaseScope) {
       appendedRoleStr = ":admin";
     }
 
-    const secret = this.secret + (scope ? `:${scope}` : "") + appendedRoleStr;
+    const secret =
+      this.secret +
+      (databaseScope ? `:${databaseScope}` : "") +
+      appendedRoleStr;
 
     return {
       secret,
+      name: this.name,
       url: this.url,
       graphqlHost: this.graphqlHost,
       graphqlPort: this.graphqlPort,
+      database: databaseScope,
     };
   }
 
