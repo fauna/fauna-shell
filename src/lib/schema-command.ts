@@ -4,19 +4,20 @@ import * as path from "path";
 import FormData from "form-data";
 import { Flags } from "@oclif/core";
 
-class SchemaCommand extends FaunaCommand {
-  static flags = (() => {
-    // Remove flags that don't make sense.
-    const { graphqlHost, graphqlPort, ...rest } = FaunaCommand.flags;
-    return {
-      dir: Flags.string({
-        description:
-          "The directory of .fsl files to push. Defaults to the directory of `.fauna-project`",
-        required: false,
-      }),
-      ...rest,
-    };
-  })();
+type File = {
+  name: string;
+  content: Buffer;
+};
+
+export default abstract class SchemaCommand extends FaunaCommand {
+  static flags = {
+    dir: Flags.string({
+      description:
+        "The directory of .fsl files to push. Defaults to the directory of `.fauna-project`",
+      required: false,
+    }),
+    ...FaunaCommand.flags,
+  };
 
   async fetchsetup() {
     const {
@@ -24,22 +25,19 @@ class SchemaCommand extends FaunaCommand {
     } = await this.getClient();
 
     return {
-      urlbase: url,
+      url,
       secret,
     };
   }
 
-  /**
-   * @type {string}
-   */
-  dir;
+  dir = "";
 
   async init() {
     await super.init();
 
-    if (this.flags.dir !== undefined) {
+    if (this.flags?.dir !== undefined) {
       this.dir = this.flags.dir;
-    } else if (this.shellConfig.projectPath !== undefined) {
+    } else if (this.shellConfig?.projectPath !== undefined) {
       this.dir = this.shellConfig.projectPath;
     } else {
       this.error(
@@ -50,7 +48,7 @@ class SchemaCommand extends FaunaCommand {
 
   // Helper to construct form data for a collection of files, as
   // returned by `gather`.
-  body(files) {
+  body(files: File[]) {
     const fd = new FormData();
     for (const file of files) {
       fd.append(file.name, Buffer.from(file.content));
@@ -61,7 +59,7 @@ class SchemaCommand extends FaunaCommand {
   // Reads the files using their relative-to-`basedir` paths and returns their
   // contents paired with the relative path.
   // Fails if the total size of the files is too large.
-  read(relpaths) {
+  read(relpaths: string[]) {
     const FILESIZE_LIMIT_BYTES = 32 * 1024 * 1024;
     const curr = [];
     var totalsize = 0;
@@ -84,7 +82,7 @@ class SchemaCommand extends FaunaCommand {
   // Fails if there are too many files.
   gather() {
     const FILE_LIMIT = 256;
-    const go = (rel, curr) => {
+    const go = (rel: string, curr: string[]) => {
       const names = fs.readdirSync(path.join(this.dir, rel));
       const subdirs = [];
       for (const n of names) {
@@ -110,5 +108,3 @@ class SchemaCommand extends FaunaCommand {
     return files;
   }
 }
-
-export default SchemaCommand;

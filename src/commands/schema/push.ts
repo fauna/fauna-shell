@@ -1,8 +1,9 @@
-const SchemaCommand = require("../../lib/schema-command.js").default;
-const fetch = require("node-fetch");
-const { Flags, ux } = require("@oclif/core");
+import { confirm } from "@inquirer/prompts";
+import SchemaCommand from "../../lib/schema-command";
+import fetch from "node-fetch";
+import { Flags } from "@oclif/core";
 
-class PushSchemaCommand extends SchemaCommand {
+export default class PushSchemaCommand extends SchemaCommand {
   static flags = {
     ...SchemaCommand.flags,
     force: Flags.boolean({
@@ -11,28 +12,21 @@ class PushSchemaCommand extends SchemaCommand {
     }),
   };
 
-  async confirm(msg) {
-    const resp = await ux.prompt(msg, {
-      default: "no",
-    });
-    if (["yes", "y"].includes(resp.toLowerCase())) {
-      return true;
-    }
-    if (["no", "n"].includes(resp.toLowerCase())) {
-      return false;
-    }
-    console.log("Please type 'yes' or 'no'");
-    return this.confirm(msg);
-  }
+  static description = "Push the current project's .fsl files to Fauna.";
+
+  static examples = [
+    "$ fauna schema push",
+    "$ fauna schema push --dir schemas/myschema",
+  ];
 
   async run() {
     const fps = this.gather();
     const files = this.read(fps);
     try {
-      const { urlbase, secret } = await this.fetchsetup();
-      if (this.flags.force) {
+      const { url, secret } = await this.fetchsetup();
+      if (this.flags?.force) {
         // Just push.
-        const res = await fetch(`${urlbase}/schema/1/update?force=true`, {
+        const res = await fetch(new URL("/schema/1/update?force=true", url), {
           method: "POST",
           headers: { AUTHORIZATION: `Bearer ${secret}` },
           body: this.body(files),
@@ -43,7 +37,7 @@ class PushSchemaCommand extends SchemaCommand {
         }
       } else {
         // Confirm diff, then push it.
-        const res = await fetch(`${urlbase}/schema/1/validate?force=true`, {
+        const res = await fetch(new URL("/schema/1/validate?force=true", url), {
           method: "POST",
           headers: { AUTHORIZATION: `Bearer ${secret}` },
           body: this.body(files),
@@ -52,17 +46,21 @@ class PushSchemaCommand extends SchemaCommand {
         if (json.error) {
           this.error(json.error.message);
         }
-        let msg = "Accept and push changes?"
+        let message = "Accept and push changes?";
         if (json.diff) {
           this.log(`Proposed diff:\n`);
           this.log(json.diff);
         } else {
           this.log("No logical changes.");
-          msg = "Push file contents anyway?"
+          message = "Push file contents anyway?";
         }
-        if (await this.confirm(msg)) {
+        const confirmed = await confirm({
+          message,
+          default: false,
+        });
+        if (confirmed) {
           const res = await fetch(
-            `${urlbase}/schema/1/update?version=${json.version}`,
+            new URL(`/schema/1/update?version=${json.version}`, url),
             {
               method: "POST",
               headers: { AUTHORIZATION: `Bearer ${secret}` },
@@ -82,9 +80,3 @@ class PushSchemaCommand extends SchemaCommand {
     }
   }
 }
-
-PushSchemaCommand.description = "Push the current project's .fsl files to Fauna.";
-
-PushSchemaCommand.examples = ["$ fauna schema push --dir schemas/myschema"];
-
-module.exports = PushSchemaCommand;

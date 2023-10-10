@@ -1,10 +1,11 @@
-const SchemaCommand = require("../../lib/schema-command.js").default;
-const fetch = require("node-fetch");
-const fs = require("fs");
-const path = require("path");
-const { Flags, ux } = require("@oclif/core");
+import { confirm } from "@inquirer/prompts";
+import SchemaCommand from "../../lib/schema-command";
+import fetch from "node-fetch";
+import fs from "fs";
+import path from "path";
+import { Flags } from "@oclif/core";
 
-class PullSchemaCommand extends SchemaCommand {
+export default class PullSchemaCommand extends SchemaCommand {
   static flags = {
     ...SchemaCommand.flags,
     delete: Flags.boolean({
@@ -14,26 +15,17 @@ class PullSchemaCommand extends SchemaCommand {
     }),
   };
 
-  async confirm() {
-    const resp = await ux.prompt("Accept the changes?", {
-      default: "no",
-    });
-    if (["yes", "y"].includes(resp.toLowerCase())) {
-      return true;
-    }
-    if (["no", "n"].includes(resp.toLowerCase())) {
-      return false;
-    }
-    console.log("Please type 'yes' or 'no'");
-    return this.confirm();
-  }
+  static description =
+    "Pull a database schema's .fsl files into the current project.";
+
+  static examples = ["$ fauna schema pull"];
 
   async run() {
-    const { urlbase, secret } = await this.fetchsetup();
+    const { url, secret } = await this.fetchsetup();
 
     try {
       // Gather remote schema files to download.
-      const filesres = await fetch(`${urlbase}/schema/1/files`, {
+      const filesres = await fetch(new URL("/schema/1/files", url), {
         method: "GET",
         headers: { AUTHORIZATION: `Bearer ${secret}` },
       });
@@ -43,8 +35,8 @@ class PullSchemaCommand extends SchemaCommand {
       }
       // Sort for consistent order. It's nice for tests.
       const filenames = filesjson.files
-        .map((file) => file.filename)
-        .filter((name) => name.endsWith(".fsl"))
+        .map((file: any) => file.filename)
+        .filter((name: string) => name.endsWith(".fsl"))
         .sort();
 
       // Gather local .fsl files to overwrite or delete.
@@ -69,7 +61,7 @@ class PullSchemaCommand extends SchemaCommand {
       deletes.sort();
 
       console.log("Pull makes the following changes:");
-      if (this.flags.delete) {
+      if (this.flags?.delete) {
         for (const deleteme of deletes) {
           console.log(`delete:    ${deleteme}`);
         }
@@ -81,19 +73,26 @@ class PullSchemaCommand extends SchemaCommand {
         console.log(`overwrite: ${overwrite}`);
       }
 
-      if (this.flags.delete) {
+      if (this.flags?.delete) {
         // Delete extra .fsl files.
         for (const deleteme of deletes) {
           fs.unlinkSync(path.join(this.dir, deleteme));
         }
       }
 
-      if (await this.confirm()) {
+      const confirmed = await confirm({
+        message: "Accept the changes?",
+        default: false,
+      });
+      if (confirmed) {
         for (const filename of filenames) {
-          const fileres = await fetch(`${urlbase}/schema/1/files/${filename}`, {
-            method: "GET",
-            headers: { AUTHORIZATION: `Bearer ${secret}` },
-          });
+          const fileres = await fetch(
+            new URL(`/schema/1/files/${filename}`, url),
+            {
+              method: "GET",
+              headers: { AUTHORIZATION: `Bearer ${secret}` },
+            }
+          );
           const filejson = await fileres.json();
           if (filejson.error) {
             this.error(filejson.error.message);
@@ -110,10 +109,3 @@ class PullSchemaCommand extends SchemaCommand {
     }
   }
 }
-
-PullSchemaCommand.description =
-  "Pull a database schema's .fsl files into the current project.";
-
-PullSchemaCommand.examples = ["$ fauna schema pull"];
-
-module.exports = PullSchemaCommand;
