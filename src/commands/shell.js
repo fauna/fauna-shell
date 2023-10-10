@@ -9,6 +9,8 @@ const esprima = require("esprima");
 const EvalCommand = require("./eval.js");
 
 class ShellCommand extends EvalCommand {
+  outputConnectionInfo = true;
+
   commands = [
     {
       cmd: "clear",
