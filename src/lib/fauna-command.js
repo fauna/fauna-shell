@@ -83,14 +83,35 @@ class FaunaCommand extends Command {
 
   mapConnectionError({ err, connectionOptions }) {
     if (err instanceof errors.Unauthorized) {
-      return this.error(
+      this.error(
         `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
       );
     }
-    return this.error(err);
+    this.error(err);
   }
 
   async getClient({ dbScope, role, version } = {}) {
+    const logConnectionMessage = (connectionOptions) => {
+      let connectedMessage;
+      if (connectionOptions.name !== undefined) {
+        connectedMessage = `Connected to endpoint: ${connectionOptions.name}`;
+        if (
+          connectionOptions.database !== undefined &&
+          connectionOptions.database !== ""
+        ) {
+          connectedMessage += ` database: ${connectionOptions.database}`;
+        }
+      } else if (
+        connectionOptions.database !== undefined &&
+        connectionOptions.database !== ""
+      ) {
+        connectedMessage = `Connected to database: ${connectionOptions.database}`;
+      }
+      if (connectedMessage !== undefined) {
+        this.log(connectedMessage);
+      }
+    };
+
     if (version === "4" || version === undefined) {
       // construct v4 client
       let connectionOptions;
@@ -125,9 +146,10 @@ class FaunaCommand extends Command {
 
         const hashKey = [dbScope, role].join("_");
         this.clients[hashKey] = { client, connectionOptions };
+        logConnectionMessage(connectionOptions);
         return this.clients[hashKey];
       } catch (err) {
-        return this.mapConnectionError({ err, connectionOptions });
+        this.mapConnectionError({ err, connectionOptions });
       }
     } else {
       // construct v10 client
@@ -153,9 +175,10 @@ class FaunaCommand extends Command {
           client,
           connectionOptions,
         };
+        logConnectionMessage(connectionOptions);
         return this.clients[hashKey];
       } catch (err) {
-        return this.mapConnectionError({ err, connectionOptions });
+        this.mapConnectionError({ err, connectionOptions });
       }
     }
   }
