@@ -27,6 +27,14 @@ export class StackFactory {
    * @param config
    */
   async addStack(params?: AddStackParams) {
+    if (
+      params?.endpoint === undefined &&
+      Object.keys(this.config.rootConfig.endpoints).length === 0
+    ) {
+      this.cmd.error(
+        "No endpoints were found, please use `fauna cloud-login` to configure an endpoint."
+      );
+    }
     const endpointName =
       params?.endpoint ??
       (await searchSelect({
