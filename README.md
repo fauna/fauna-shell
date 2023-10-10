@@ -475,7 +475,6 @@ the queries file on the default fauna shell endpoint.
 - [`fauna cloud-login`](#fauna-cloud-login)
 - [`fauna create-database`](#fauna-create-database)
 - [`fauna create-key`](#fauna-create-key)
-- [`fauna default-endpoint`](#fauna-default-endpoint)
 - [`fauna delete-database`](#fauna-delete-database)
 - [`fauna delete-key`](#fauna-delete-key)
 - [`fauna endpoint`](#fauna-endpoint)
@@ -574,33 +573,6 @@ DESCRIPTION
 
 EXAMPLES
   $ fauna create-key dbname admin
-```
-
-## `fauna default-endpoint`
-
-Set an endpoint as the default one.
-
-```sh
-Set an endpoint as the default one.
-
-USAGE
-  $ fauna default-endpoint ENDPOINT_ALIAS [--endpointURL <value>] [--timeout
-    <value>] [--secret <value>] [--endpoint <value>]
-
-ARGUMENTS
-  ENDPOINT_ALIAS  Fauna server endpoint alias
-
-FLAGS
-  --endpoint=<value>     Connection endpoint, from ~/.fauna-shell
-  --endpointURL=<value>  Database URL. Overrides the `url` in ~/.fauna-shell
-  --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
-  --timeout=<value>      Connection timeout in milliseconds
-
-DESCRIPTION
-  Set an endpoint as the default one.
-
-EXAMPLES
-  $ fauna default-endpoint endpoint
 ```
 
 ## `fauna delete-database`
@@ -753,6 +725,31 @@ ALIASES
 
 EXAMPLES
   $ fauna endpoint remove my_endpoint
+```
+
+### `fauna endpoint select`
+
+Set an endpoint as the default one.
+
+```sh
+Set an endpoint as the default one.
+
+USAGE
+  $ fauna endpoint select [NAME]
+
+ARGUMENTS
+  NAME  New default endpoint
+
+DESCRIPTION
+  Set an endpoint as the default one.
+
+ALIASES
+  $ fauna default-endpoint
+
+EXAMPLES
+  $ fauna endpoint select
+
+  $ fauna endpoint select endpoint
 ```
 
 ## `fauna eval`
