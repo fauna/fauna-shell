@@ -32,8 +32,6 @@
     "object-sizeof": "^1.6.1",
     "prettier": "^2.3.0",
     "rate-limiter-flexible": "^2.3.6",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.5",
     "stream-json": "^1.7.3"
   },
   "devDependencies": {
