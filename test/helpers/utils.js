@@ -20,13 +20,13 @@ module.exports.withLegacyOpts = (cmd) => {
 };
 
 /**
- * Sets --secret and --endpointURL
+ * Sets --secret and --url
  */
 module.exports.withOpts = (cmd) => {
   const opts = [
     "--secret",
     env.FAUNA_SECRET,
-    "--endpointURL",
+    "--url",
     `${env.FAUNA_SCHEME}://${env.FAUNA_DOMAIN}:${env.FAUNA_PORT}`,
   ];
   return cmd.concat(opts);
