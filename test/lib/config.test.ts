@@ -4,6 +4,7 @@ import {
   ShellConfig,
   ShellOpts,
   getProjectConfigPath,
+  getRootConfigPath,
 } from "../../src/lib/config";
 import sinon from "sinon";
 
@@ -104,6 +105,23 @@ describe("root config", () => {
       secret: "fn1234",
       url: "https://db.fauna.com",
     });
+  });
+
+  it("fails to save if the root config has invalid endpoints", () => {
+    const invalidConfig = new ShellConfig({
+      rootConfig: {
+        default: "my-endpoint",
+        "my-endpoint": {
+          secret: "fn1234",
+          url: "http://localhost:8443",
+        },
+        invalidEndpoints: ["invalid-endpoint"],
+      },
+    });
+    const expectedMsg = `The following endpoint definitions in ${getRootConfigPath()} are invalid:\n ${invalidConfig.rootConfig.invalidEndpoints.join(
+      "\n"
+    )}\n Resolve them by ensuring they have a secret defined or remove them if they are not needed.`;
+    expect(() => invalidConfig.saveRootConfig()).to.throw(expectedMsg);
   });
 });
 
