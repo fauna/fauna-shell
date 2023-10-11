@@ -37,7 +37,7 @@ class FaunaCommand extends Command {
     const { flags: f, args: a } = await this.parse(this.constructor);
     this.flags = f;
     this.args = a;
-    this.shellConfig = ShellConfig.read(this.flags);
+    this.shellConfig = ShellConfig.read(this.flags, this);
   }
 
   success(msg) {

@@ -10,7 +10,7 @@ export default class ListStackCommand extends Command {
   static examples = ["$ fauna stack list"];
 
   async run() {
-    const config = ShellConfig.read({});
+    const config = ShellConfig.read({}, this);
 
     await this.execute(config);
   }
