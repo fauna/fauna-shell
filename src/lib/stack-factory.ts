@@ -32,29 +32,9 @@ export class StackFactory {
       Object.keys(this.config.rootConfig.endpoints).length === 0
     ) {
       this.cmd.error(
-        "No endpoints were found, please use `fauna cloud-login` to configure an endpoint."
+        "No endpoints found. Use `fauna cloud-login` to configure an endpoint."
       );
     }
-    const endpointName =
-      params?.endpoint ??
-      (await searchSelect({
-        message: "Select an endpoint",
-        choices: Object.keys(this.config.rootConfig.endpoints).map(
-          (endpoint) => ({
-            value: endpoint,
-          })
-        ),
-      }));
-
-    if (!Object.keys(this.config.rootConfig.endpoints).includes(endpointName)) {
-      this.cmd.error(`No such endpoint '${endpointName}'`);
-    }
-
-    let databaseName: string =
-      params?.database ??
-      (await this.promptDatabasePath(
-        this.config.rootConfig.endpoints[endpointName]
-      ));
 
     const validateStackName = (input: string) => {
       if (input.length === 0) {
@@ -78,6 +58,27 @@ export class StackFactory {
     if (res !== true) {
       this.cmd.error(res as string);
     }
+
+    const endpointName =
+      params?.endpoint ??
+      (await searchSelect({
+        message: "Select an endpoint",
+        choices: Object.keys(this.config.rootConfig.endpoints).map(
+          (endpoint) => ({
+            value: endpoint,
+          })
+        ),
+      }));
+
+    if (!Object.keys(this.config.rootConfig.endpoints).includes(endpointName)) {
+      this.cmd.error(`No such endpoint '${endpointName}'`);
+    }
+
+    let databaseName: string =
+      params?.database ??
+      (await this.promptDatabasePath(
+        this.config.rootConfig.endpoints[endpointName]
+      ));
 
     const setDefault =
       params?.default ??
