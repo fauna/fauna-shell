@@ -129,6 +129,11 @@ export type EndpointConfig = {
   graphqlPort: number;
 };
 
+export interface LogChannel {
+  warn(_: string): void;
+  log(_: string): void;
+}
+
 export class ShellConfig {
   // fields from CLI and files
   flags: Config;
@@ -144,14 +149,14 @@ export class ShellConfig {
   // The path to the project config.
   projectPath: string | undefined;
 
-  static read(flags: any) {
+  static read(flags: any, log?: LogChannel) {
     const rootConfig = ini.parse(readFileOpt(getRootConfigPath()));
     const projectConfigPath = getProjectConfigPath();
     const projectConfig = projectConfigPath
       ? ini.parse(readFile(projectConfigPath))
       : undefined;
 
-    return new ShellConfig({
+    const shellConfig = new ShellConfig({
       flags,
       rootConfig,
       projectPath:
@@ -160,6 +165,12 @@ export class ShellConfig {
           : undefined,
       projectConfig,
     });
+
+    if (log !== undefined) {
+      shellConfig.configErrors().forEach((err) => log.warn(err));
+    }
+
+    return shellConfig;
   }
 
   static readWithOverrides(opts?: ShellOpts): ShellConfig {
@@ -284,6 +295,18 @@ export class ShellConfig {
     return this.endpoint!.makeScopedEndpoint(database, opts.role);
   };
 
+  configErrors(): string[] {
+    if (this.rootConfig.invalidEndpoints.length > 0) {
+      return [
+        `The following endpoint definitions in ${getRootConfigPath()} are invalid:\n ${this.rootConfig.invalidEndpoints.join(
+          "\n"
+        )}\n Resolve them by ensuring they have a secret defined or remove them if they are not needed.`,
+      ];
+    } else {
+      return [];
+    }
+  }
+
   /**
    * Saves the project config, if present.
    */
@@ -295,6 +318,13 @@ export class ShellConfig {
    * Saves the root config.
    */
   saveRootConfig() {
+    if (this.rootConfig.invalidEndpoints.length > 0) {
+      throw new Error(
+        `The following endpoint definitions in ${getRootConfigPath()} are invalid:\n ${this.rootConfig.invalidEndpoints.join(
+          "\n"
+        )}\n Resolve them by ensuring they have a secret defined or remove them if they are not needed.`
+      );
+    }
     this.rootConfig.save(getRootConfigPath());
   }
 

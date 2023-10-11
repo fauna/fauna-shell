@@ -6,6 +6,7 @@ const ini = require("ini");
 export class RootConfig {
   defaultEndpoint?: string;
   endpoints: { [key: string]: Endpoint };
+  invalidEndpoints: string[];
 
   constructor(config: Config) {
     this.defaultEndpoint = config.strOpt("default");
@@ -23,14 +24,24 @@ export class RootConfig {
       this.endpoints = Object.fromEntries<Endpoint>(
         config
           .objectsIn("endpoint")
-          .map(([k, v]) => [k, Endpoint.fromConfig(k, v)])
+          .filter(([k, v]) => Endpoint.fromConfig(k, v) !== undefined)
+          .map(([k, v]) => [k, Endpoint.fromConfig(k, v)!])
       );
+      this.invalidEndpoints = config
+        .objectsIn("endpoint")
+        .filter(([k, v]) => Endpoint.fromConfig(k, v) === undefined)
+        .map(([k, _]) => k);
     } else {
       this.endpoints = Object.fromEntries<Endpoint>(
         config
           .allObjectsWhere((k) => k !== "default")
-          .map(([k, v]) => [k, Endpoint.fromConfig(k, v)])
+          .filter(([k, v]) => Endpoint.fromConfig(k, v) !== undefined)
+          .map(([k, v]) => [k, Endpoint.fromConfig(k, v)!])
       );
+      this.invalidEndpoints = config
+        .allObjectsWhere((k) => k !== "default")
+        .filter(([k, v]) => Endpoint.fromConfig(k, v) === undefined)
+        .map(([k, _]) => k);
     }
 
     if (this.defaultEndpoint === "default") {
@@ -108,15 +119,20 @@ export class Endpoint {
   graphqlHost: string;
   graphqlPort: number;
 
-  static fromConfig(name: string, config: Config) {
-    return new Endpoint({
-      name: name,
-      secret: config.str("secret"),
-      url: Endpoint.getURLFromConfig(config),
+  static fromConfig(name: string, config: Config): Endpoint | undefined {
+    const secOpt = config.strOpt("secret");
+    if (secOpt === undefined) {
+      return undefined;
+    } else {
+      return new Endpoint({
+        name: name,
+        secret: secOpt,
+        url: Endpoint.getURLFromConfig(config),
 
-      graphqlHost: config.strOpt("graphqlHost"),
-      graphqlPort: config.numberOpt("graphqlPort"),
-    });
+        graphqlHost: config.strOpt("graphqlHost"),
+        graphqlPort: config.numberOpt("graphqlPort"),
+      });
+    }
   }
 
   constructor(opts: {

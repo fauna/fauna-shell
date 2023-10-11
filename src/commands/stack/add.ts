@@ -31,7 +31,7 @@ export default class AddStackCommand extends Command {
   ];
 
   async run() {
-    const config = ShellConfig.read({});
+    const config = ShellConfig.read({}, this);
 
     await this.execute(config);
   }

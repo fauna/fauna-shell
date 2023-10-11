@@ -69,6 +69,7 @@ describe("endpoint:add", () => {
             graphqlPort: 443,
           },
         },
+        invalidEndpoints: [],
       });
       expect(ctx.config.saveRootConfig.calledOnce).to.be.true;
     });
@@ -122,6 +123,7 @@ describe("endpoint:add", () => {
             graphqlPort: 443,
           },
         },
+        invalidEndpoints: [],
       });
       expect(ctx.config.saveRootConfig.calledOnce).to.be.true;
     });
@@ -191,6 +193,7 @@ describe("endpoint:remove", () => {
             graphqlPort: 443,
           },
         },
+        invalidEndpoints: [],
       });
       expect(ctx.config.saveRootConfig.calledOnce).to.be.true;
     });
@@ -230,6 +233,7 @@ describe("endpoint:remove", () => {
             graphqlPort: 443,
           },
         },
+        invalidEndpoints: [],
       });
       expect(ctx.config.saveRootConfig.calledOnce).to.be.true;
     });
