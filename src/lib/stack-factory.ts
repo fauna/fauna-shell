@@ -20,6 +20,28 @@ export class StackFactory {
     this.cmd = cmd;
     this.config = config;
   }
+
+  async askEndpoint(): Promise<string> {
+    const useDefault =
+      this.config.rootConfig.defaultEndpoint !== undefined &&
+      (await confirm({
+        message: `Use the default endpoint [${this.config.rootConfig.defaultEndpoint}]`,
+      }));
+
+    if (useDefault) {
+      return this.config.rootConfig.defaultEndpoint!;
+    }
+
+    return searchSelect({
+      message: "Select an endpoint",
+      choices: Object.keys(this.config.rootConfig.endpoints).map(
+        (endpoint) => ({
+          value: endpoint,
+        })
+      ),
+    });
+  }
+
   /**
    *
    * @param cmd - used to send info/errors to the user.
@@ -59,16 +81,7 @@ export class StackFactory {
       this.cmd.error(res as string);
     }
 
-    const endpointName =
-      params?.endpoint ??
-      (await searchSelect({
-        message: "Select an endpoint",
-        choices: Object.keys(this.config.rootConfig.endpoints).map(
-          (endpoint) => ({
-            value: endpoint,
-          })
-        ),
-      }));
+    const endpointName = params?.endpoint ?? (await this.askEndpoint());
 
     if (!Object.keys(this.config.rootConfig.endpoints).includes(endpointName)) {
       this.cmd.error(`No such endpoint '${endpointName}'`);
