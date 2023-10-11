@@ -6,22 +6,29 @@ import { RootConfig, Config, InvalidConfigError } from ".";
 // Represents `.fauna-project`
 export class ProjectConfig {
   defaultStack?: string;
+  fslDir?: string;
   stacks: { [key: string]: Stack };
 
   /**
    * This method is used to obtain an empty project config when fauna project init is used.
    */
-  static emptyConfig(): ProjectConfig {
-    return new ProjectConfig({});
+  static initialConfig(fslDir?: string): ProjectConfig {
+    return new ProjectConfig({}, undefined, fslDir);
   }
 
-  private constructor(stacks: { [key: string]: Stack }, defaultStack?: string) {
+  private constructor(
+    stacks: { [key: string]: Stack },
+    defaultStack?: string,
+    fslDir?: string
+  ) {
     this.stacks = stacks;
     this.defaultStack = defaultStack;
+    this.fslDir = fslDir;
   }
 
   static fromConfig(config: Config): ProjectConfig {
     const defaultStack = config.strOpt("default");
+    const fslDir = config.strOpt("fsl_directory");
     const stacks: { [key: string]: Stack } = config.objectExists("stack")
       ? Object.fromEntries<Stack>(
           config.objectsIn("stack").map(([k, v]) => [k, new Stack(v)])
@@ -34,7 +41,7 @@ export class ProjectConfig {
       );
     }
 
-    return new ProjectConfig(stacks, defaultStack);
+    return new ProjectConfig(stacks, defaultStack, fslDir);
   }
 
   validate(rootConfig: RootConfig) {
@@ -49,7 +56,8 @@ export class ProjectConfig {
 
   save(path: string) {
     const config = {
-      default: this.defaultStack,
+      ...(this.fslDir ? { fsl_directory: this.fslDir } : {}),
+      ...(this.defaultStack ? { default: this.defaultStack } : {}),
       stack: this.stacks,
     };
 

@@ -13,7 +13,7 @@ export default class DiffSchemaCommand extends SchemaCommand {
   ];
 
   async run() {
-    const fps = this.gather();
+    const fps = this.gatherRelativeFSLFilePaths();
     const files = this.read(fps);
     try {
       const { url, secret } = await this.fetchsetup();
