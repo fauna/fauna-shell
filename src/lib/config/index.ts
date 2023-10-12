@@ -7,6 +7,7 @@ const ini = require("ini");
 
 import { ProjectConfig, Stack } from "./project-config";
 import { RootConfig, Endpoint } from "./root-config";
+import { Secret } from "../secret";
 
 export { RootConfig, ProjectConfig, Endpoint, Stack };
 
@@ -118,12 +119,8 @@ export type ShellOpts = {
 };
 
 export type EndpointConfig = {
-  secret: string;
+  secret: Secret;
   url: string;
-  /** this is currently just used for messaging purposes, the secret
-   * in this config will already contain the database path if needed.
-   */
-  database?: string;
   name?: string;
   graphqlHost: string;
   graphqlPort: number;
@@ -247,7 +244,7 @@ export class ShellConfig {
       // No `~/.fauna-shell` was found, so `--secret` is required to make an endpoint. If `--secret` wasn't passed, `validate` should fail.
       if (secretFlag !== undefined) {
         this.endpoint = new Endpoint({
-          secret: secretFlag,
+          secret: Secret.parse(secretFlag),
           url: urlFlag,
           graphqlHost: this.flags.strOpt("graphqlHost"),
           graphqlPort: this.flags.numberOpt("graphqlPort"),
@@ -260,7 +257,9 @@ export class ShellConfig {
       }
 
       // override endpoint with values from flags.
-      this.endpoint.secret = secretFlag ?? this.endpoint.secret;
+      if (secretFlag !== undefined) {
+        this.endpoint.secret = Secret.parse(secretFlag);
+      }
       this.endpoint.url = urlFlag ?? this.endpoint.url;
       this.endpoint.graphqlHost =
         this.flags.strOpt("graphqlHost") ?? this.endpoint.graphqlHost;
@@ -278,21 +277,15 @@ export class ShellConfig {
     }
   };
 
-  lookupEndpoint = (opts: {
-    scope?: string;
-    role?: string;
-  }): EndpointConfig => {
+  lookupEndpoint = (opts: { scope?: string }): EndpointConfig => {
     this.validate();
 
-    let database = this.stack?.database ?? "";
+    let database = this.stack?.database.split("/") ?? [];
     if (opts.scope !== undefined) {
-      if (this.stack !== undefined) {
-        database += "/";
-      }
-      database += opts.scope;
+      database.push(...opts.scope.split("/"));
     }
 
-    return this.endpoint!.makeScopedEndpoint(database, opts.role);
+    return this.endpoint!.makeScopedEndpoint(database);
   };
 
   configErrors(): string[] {

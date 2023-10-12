@@ -115,7 +115,10 @@ export class StackFactory {
 
   promptDatabasePath = async (endpoint: Endpoint): Promise<string> => {
     const { url, secret } = endpoint;
-    const client = new FaunaClient({ endpoint: url, secret });
+    const client = new FaunaClient({
+      endpoint: url,
+      secret: secret.buildSecret(),
+    });
 
     const res = await client.query("0");
     if (res.status !== 200) {

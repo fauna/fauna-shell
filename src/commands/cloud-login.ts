@@ -4,6 +4,7 @@ import { hostname } from "os";
 import { Command } from "@oclif/core";
 import { underline, blue } from "chalk";
 import fetch from "node-fetch";
+import { Secret } from "../lib/secret";
 
 const DEFAULT_NAME = "cloud";
 const DB = process.env.FAUNA_URL ?? "https://db.fauna.com";
@@ -48,7 +49,7 @@ export default class CloudLoginCommand extends Command {
     for (const region of Object.values(regions)) {
       config.rootConfig.endpoints[region.endpointName(base)] = new Endpoint({
         url: DB,
-        secret: region.secret,
+        secret: Secret.parse(region.secret),
       });
     }
 

@@ -1,5 +1,5 @@
 const { expect, test } = require("@oclif/test");
-const { withOpts, getEndpoint, matchFqlReq, withLegacyOpts } = require("../helpers/utils.js");
+const { withOpts, getEndpoint, evalV10, matchFqlReq, withLegacyOpts } = require("../helpers/utils.js");
 const { query: q } = require("faunadb");
 
 describe("eval", () => {
@@ -115,6 +115,40 @@ describe("eval in v10", () => {
     .it("runs eval in json tagged format", (ctx) => {
       expect(JSON.parse(ctx.stdout)).to.deep.equal({ two: { "@int": "2" } });
     });
+
+  test
+    .do(async () => {
+      // This can fail if `MyDB` already exists, but thats fine.
+      await evalV10("Database.create({ name: 'MyDB' })");
+    })
+    .stdout()
+    // --secret is passed by withOpts, and passing a scope with that is allowed.
+    .command(withOpts(["eval", "MyDB", "{ three: 3 }", "--format", "json-tagged"]))
+    .it("allows setting --secret and scope", (ctx) => {
+      expect(JSON.parse(ctx.stdout)).to.deep.equal({ three: { "@int": "3" } });
+    });
+
+  test
+    .do(async () => {
+      // This can fail if `MyDB` already exists, but thats fine.
+      await evalV10("Database.create({ name: 'MyDB' })");
+    })
+    .stdout()
+    // a scoped secret is never valid.
+    .command([
+      "eval",
+      "{ two: 3 }",
+      "--format",
+      "json-tagged",
+      "--secret",
+      `foo:MyDB`,
+      "--url",
+      getEndpoint()
+    ])
+    .catch((e) => {
+      expect(e.message).to.equal("Secret cannot be scoped");
+    })
+    .it("disallows scoped secrets");
 });
 
 function mockQuery(api) {
@@ -123,7 +157,7 @@ function mockQuery(api) {
     .post("/", matchFqlReq(q.Now()))
     .reply(200, { resource: new Date() })
     .post("/", matchFqlReq(q.Paginate(q.Collections())))
-    .reply(200, function () {
+    .reply(200, function() {
       const auth = this.req.headers.authorization[0].split(":");
       return {
         resource: {

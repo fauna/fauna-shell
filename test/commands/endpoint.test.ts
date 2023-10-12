@@ -5,6 +5,7 @@ import AddEndpointCommand from "../../src/commands/endpoint/add";
 import ListEndpointCommand from "../../src/commands/endpoint/list";
 import RemoveEndpointCommand from "../../src/commands/endpoint/remove";
 import { Config } from "@oclif/core";
+import { Secret } from "../../src/lib/secret";
 
 const rootConfigPath = getRootConfigPath();
 
@@ -54,7 +55,7 @@ describe("endpoint:add", () => {
         endpoints: {
           "my-endpoint": {
             url: "http://bar.baz",
-            secret: "fn3333",
+            secret: Secret.parse("fn3333"),
             name: "my-endpoint",
             // These graphql bits are only saved if they differ from the
             // default.
@@ -64,7 +65,7 @@ describe("endpoint:add", () => {
           foobar: {
             url: "http://foo.baz",
             name: undefined,
-            secret: "fn1234",
+            secret: Secret.parse("fn1234"),
             graphqlHost: "graphql.fauna.com",
             graphqlPort: 443,
           },
@@ -108,7 +109,7 @@ describe("endpoint:add", () => {
         endpoints: {
           "my-endpoint": {
             url: "http://bar.baz",
-            secret: "fn3333",
+            secret: Secret.parse("fn3333"),
             name: "my-endpoint",
             // These graphql bits are only saved if they differ from the
             // default.
@@ -117,7 +118,7 @@ describe("endpoint:add", () => {
           },
           foobar: {
             url: "http://foo.baz",
-            secret: "fn1234",
+            secret: Secret.parse("fn1234"),
             name: undefined,
             graphqlHost: "graphql.fauna.com",
             graphqlPort: 443,
@@ -185,7 +186,7 @@ describe("endpoint:remove", () => {
         endpoints: {
           "my-endpoint": {
             url: "http://bar.baz",
-            secret: "fn3333",
+            secret: Secret.parse("fn3333"),
             name: "my-endpoint",
             // These graphql bits are only saved if they differ from the
             // default.
@@ -225,7 +226,7 @@ describe("endpoint:remove", () => {
         endpoints: {
           "other-endpoint": {
             url: "http://bar.baz",
-            secret: "fn3333",
+            secret: Secret.parse("fn3333"),
             name: "other-endpoint",
             // These graphql bits are only saved if they differ from the
             // default.

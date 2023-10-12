@@ -1,5 +1,6 @@
 import { Config, EndpointConfig, InvalidConfigError } from ".";
 import fs from "fs";
+import { Secret } from "../secret";
 const ini = require("ini");
 
 // Represents `~/.fauna-shell`
@@ -113,7 +114,7 @@ export class RootConfig {
  */
 export class Endpoint {
   name?: string;
-  secret: string;
+  secret: Secret;
   url: string;
 
   graphqlHost: string;
@@ -126,7 +127,7 @@ export class Endpoint {
     } else {
       return new Endpoint({
         name: name,
-        secret: secOpt,
+        secret: Secret.parse(secOpt),
         url: Endpoint.getURLFromConfig(config),
 
         graphqlHost: config.strOpt("graphqlHost"),
@@ -137,7 +138,7 @@ export class Endpoint {
 
   constructor(opts: {
     name?: string;
-    secret: string;
+    secret: Secret;
     url?: string;
     graphqlHost?: string;
     graphqlPort?: number;
@@ -150,18 +151,11 @@ export class Endpoint {
     this.graphqlPort = opts.graphqlPort ?? 443;
   }
 
-  makeScopedEndpoint(databaseScope?: string, role?: string): EndpointConfig {
-    let appendedRoleStr = "";
-    if (role) {
-      appendedRoleStr = `:${role}`;
-    } else if (databaseScope) {
-      appendedRoleStr = ":admin";
+  makeScopedEndpoint(databaseScope?: string[]): EndpointConfig {
+    const secret = this.secret.clone();
+    if (databaseScope !== undefined) {
+      secret.databaseScope.push(...databaseScope);
     }
-
-    const secret =
-      this.secret +
-      (databaseScope ? `:${databaseScope}` : "") +
-      appendedRoleStr;
 
     return {
       secret,
@@ -169,7 +163,6 @@ export class Endpoint {
       url: this.url,
       graphqlHost: this.graphqlHost,
       graphqlPort: this.graphqlPort,
-      database: databaseScope,
     };
   }
 

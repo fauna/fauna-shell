@@ -1,3 +1,4 @@
+import fetch from "node-fetch";
 const url = require("url");
 const { query: q } = require("faunadb");
 const env = process.env;
@@ -32,12 +33,28 @@ module.exports.withOpts = (cmd) => {
   return cmd.concat(opts);
 };
 
-module.exports.getEndpoint = () =>
+const getEndpoint = () =>
   url.format({
     protocol: env.FAUNA_SCHEME,
     hostname: env.FAUNA_DOMAIN,
     port: env.FAUNA_PORT,
   });
+
+module.exports.getEndpoint = getEndpoint;
+
+module.exports.evalV10 = (query) => {
+  const endpoint = getEndpoint();
+  const secret = env.FAUNA_SECRET;
+  return fetch(new URL("/query/1", endpoint), {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${secret}`,
+    },
+    body: JSON.stringify({
+      query,
+    }),
+  });
+}
 
 const fqlToJsonString = (fql) => JSON.stringify(q.wrap(fql));
 module.exports.fqlToJsonString = fqlToJsonString;
