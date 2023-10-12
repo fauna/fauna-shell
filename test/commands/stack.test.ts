@@ -61,6 +61,7 @@ describe("stack:add", () => {
       );
       expect(ctx.config.projectConfig).to.deep.equal({
         defaultStack: "my-app",
+        schemaDir: undefined,
         stacks: {
           "my-app": {
             endpoint: "my-endpoint",
@@ -109,6 +110,7 @@ describe("stack:add", () => {
       );
       expect(ctx.config.projectConfig).to.deep.equal({
         defaultStack: "foobar",
+        schemaDir: undefined,
         stacks: {
           "my-app": {
             endpoint: "my-endpoint",
@@ -156,6 +158,7 @@ describe("stack:add", () => {
     .it("disallows stacks with the same name", (ctx) => {
       expect(ctx.config.projectConfig).to.deep.equal({
         defaultStack: "my-app",
+        schemaDir: undefined,
         stacks: {
           "my-app": {
             endpoint: "my-endpoint",
@@ -199,6 +202,7 @@ describe("stack:add", () => {
     .it("disallows endpoints that don't exist", (ctx) => {
       expect(ctx.config.projectConfig).to.deep.equal({
         defaultStack: "my-app",
+        schemaDir: undefined,
         stacks: {
           "my-app": {
             endpoint: "my-endpoint",
@@ -270,6 +274,7 @@ describe("stack:select", () => {
       expect(ctx.stdout).to.equal("Selected stack foo-app\n");
       expect(ctx.config.projectConfig).to.deep.equal({
         defaultStack: "foo-app",
+        schemaDir: undefined,
         stacks: {
           "my-app": {
             endpoint: "my-endpoint",
@@ -314,6 +319,7 @@ describe("stack:select", () => {
     .it("disallows stacks that don't exist", (ctx) => {
       expect(ctx.config.projectConfig).to.deep.equal({
         defaultStack: "my-app",
+        schemaDir: undefined,
         stacks: {
           "my-app": {
             endpoint: "my-endpoint",
