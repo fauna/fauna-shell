@@ -63,14 +63,14 @@ export class ProjectInitCommand extends Command {
       fslDir = undefined;
     } else if (!dirExists(path.join(projectDir, fslDir))) {
       this.error(
-        `The project fsl directory: ${path.join(
+        `The project's schema directory: ${path.join(
           projectDir,
           fslDir
         )} does not exist.`
       );
     } else if (!dirIsWriteable(path.join(projectDir, fslDir))) {
       this.error(
-        `The project fsl directory: ${path.join(
+        `The project's schema directory: ${path.join(
           projectDir,
           fslDir
         )} is not writeable.`
