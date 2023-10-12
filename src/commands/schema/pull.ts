@@ -40,7 +40,7 @@ export default class PullSchemaCommand extends SchemaCommand {
         .sort();
 
       // Gather local .fsl files to overwrite or delete.
-      const existing = this.gather();
+      const existing = this.gatherRelativeFSLFilePaths();
 
       // Summarize file changes.
       const adds = [];

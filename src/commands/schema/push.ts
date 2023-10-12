@@ -20,7 +20,7 @@ export default class PushSchemaCommand extends SchemaCommand {
   ];
 
   async run() {
-    const fps = this.gather();
+    const fps = this.gatherRelativeFSLFilePaths();
     const files = this.read(fps);
     try {
       const { url, secret } = await this.fetchsetup();

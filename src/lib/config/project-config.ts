@@ -6,23 +6,35 @@ import { RootConfig, Config, InvalidConfigError } from ".";
 // Represents `.fauna-project`
 export class ProjectConfig {
   defaultStack?: string;
+  schemaDir?: string;
   stacks: { [key: string]: Stack };
 
+  static DEFAULT_FIELD_NAME = "default";
+  static SCHEMA_DIRECTORY_FIELD_NAME = "schema_directory";
+  static STACK_FIELD_NAME = "stack";
   /**
    * This method is used to obtain an empty project config when fauna project init is used.
    */
-  static emptyConfig(): ProjectConfig {
-    return new ProjectConfig({});
+  static initialConfig(fslDir?: string): ProjectConfig {
+    return new ProjectConfig({}, undefined, fslDir);
   }
 
-  private constructor(stacks: { [key: string]: Stack }, defaultStack?: string) {
+  private constructor(
+    stacks: { [key: string]: Stack },
+    defaultStack?: string,
+    schemaDir?: string
+  ) {
     this.stacks = stacks;
     this.defaultStack = defaultStack;
+    this.schemaDir = schemaDir;
   }
 
   static fromConfig(config: Config): ProjectConfig {
-    const defaultStack = config.strOpt("default");
-    const stacks: { [key: string]: Stack } = config.objectExists("stack")
+    const defaultStack = config.strOpt(ProjectConfig.DEFAULT_FIELD_NAME);
+    const fslDir = config.strOpt(ProjectConfig.SCHEMA_DIRECTORY_FIELD_NAME);
+    const stacks: { [key: string]: Stack } = config.objectExists(
+      ProjectConfig.STACK_FIELD_NAME
+    )
       ? Object.fromEntries<Stack>(
           config.objectsIn("stack").map(([k, v]) => [k, new Stack(v)])
         )
@@ -34,7 +46,7 @@ export class ProjectConfig {
       );
     }
 
-    return new ProjectConfig(stacks, defaultStack);
+    return new ProjectConfig(stacks, defaultStack, fslDir);
   }
 
   validate(rootConfig: RootConfig) {
@@ -49,8 +61,13 @@ export class ProjectConfig {
 
   save(path: string) {
     const config = {
-      default: this.defaultStack,
-      stack: this.stacks,
+      ...(this.schemaDir
+        ? { [ProjectConfig.SCHEMA_DIRECTORY_FIELD_NAME]: this.schemaDir }
+        : {}),
+      ...(this.defaultStack
+        ? { [ProjectConfig.DEFAULT_FIELD_NAME]: this.defaultStack }
+        : {}),
+      [ProjectConfig.STACK_FIELD_NAME]: this.stacks,
     };
 
     const encoded = ini.encode(config);

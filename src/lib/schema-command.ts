@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import FormData from "form-data";
 import { Flags } from "@oclif/core";
+import { dirExists, dirIsWriteable } from "./file-util";
 
 type File = {
   name: string;
@@ -38,7 +39,19 @@ export default abstract class SchemaCommand extends FaunaCommand {
     if (this.flags?.dir !== undefined) {
       this.dir = this.flags.dir;
     } else if (this.shellConfig?.projectPath !== undefined) {
-      this.dir = this.shellConfig.projectPath;
+      if (this.shellConfig.projectConfig?.schemaDir !== undefined) {
+        this.dir = path.join(
+          this.shellConfig.projectPath,
+          this.shellConfig.projectConfig.schemaDir
+        );
+      } else {
+        this.dir = this.shellConfig.projectPath;
+      }
+      if (!dirExists(this.dir)) {
+        this.error(`The project fsl directory: ${this.dir} does not exist.`);
+      } else if (!dirIsWriteable(this.dir)) {
+        this.error(`The project fsl directory: ${this.dir} is not writeable.`);
+      }
     } else {
       this.error(
         "No project found. Create a project with `fauna project init`."
@@ -80,7 +93,7 @@ export default abstract class SchemaCommand extends FaunaCommand {
   // Gathers all FSL files in the directory rooted at `basedir` and returns a
   // list of relative paths.
   // Fails if there are too many files.
-  gather() {
+  gatherRelativeFSLFilePaths(): string[] {
     const FILE_LIMIT = 256;
     const go = (rel: string, curr: string[]) => {
       const names = fs.readdirSync(path.join(this.dir, rel));
