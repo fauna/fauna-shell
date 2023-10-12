@@ -21,13 +21,11 @@ export default abstract class SchemaCommand extends FaunaCommand {
   };
 
   async fetchsetup() {
-    const {
-      connectionOptions: { url, secret },
-    } = await this.getClient();
+    const { connectionOptions } = await this.getClient();
 
     return {
-      url,
-      secret,
+      url: connectionOptions.url,
+      secret: connectionOptions.secret.buildSecret(),
     };
   }
 
