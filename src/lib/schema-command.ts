@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import FormData from "form-data";
 import { Flags } from "@oclif/core";
-import { isWritableDirectory } from "./file-util";
+import { dirExists, dirIsWriteable } from "./file-util";
 
 type File = {
   name: string;
@@ -47,10 +47,10 @@ export default abstract class SchemaCommand extends FaunaCommand {
       } else {
         this.dir = this.shellConfig.projectPath;
       }
-      if (!isWritableDirectory(this.dir)) {
-        this.error(
-          `The project fsl directory: ${this.dir} must be a writeable directory.`
-        );
+      if (!dirExists(this.dir)) {
+        this.error(`The project fsl directory: ${this.dir} does not exist.`);
+      } else if (!dirIsWriteable(this.dir)) {
+        this.error(`The project fsl directory: ${this.dir} is not writeable.`);
       }
     } else {
       this.error(

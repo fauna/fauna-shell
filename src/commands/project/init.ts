@@ -8,7 +8,7 @@ import {
 } from "../../lib/config";
 import * as path from "path";
 import { StackFactory } from "../../lib/stack-factory";
-import { isWritableDirectory } from "../../lib/file-util";
+import { dirExists, dirIsWriteable } from "../../lib/file-util";
 import { input } from "@inquirer/prompts";
 
 export class ProjectInitCommand extends Command {
@@ -36,8 +36,10 @@ export class ProjectInitCommand extends Command {
   }
 
   async execute(projectDir: string): Promise<void> {
-    if (!isWritableDirectory(projectDir)) {
-      this.error(`${projectDir} must be a writeable directory`);
+    if (!dirExists(projectDir)) {
+      this.error(`${projectDir} does not exist.`);
+    } else if (!dirIsWriteable(projectDir)) {
+      this.error(`${projectDir} is not writeable.`);
     }
 
     const projectPath = path.join(projectDir, PROJECT_FILE_NAME);
@@ -59,12 +61,19 @@ export class ProjectInitCommand extends Command {
     });
     if (fslDir === "") {
       fslDir = undefined;
-    } else if (!isWritableDirectory(path.join(projectDir, fslDir))) {
+    } else if (!dirExists(path.join(projectDir, fslDir))) {
       this.error(
         `The project fsl directory: ${path.join(
           projectDir,
           fslDir
-        )} must be a writeable directory.`
+        )} does not exist.`
+      );
+    } else if (!dirIsWriteable(path.join(projectDir, fslDir))) {
+      this.error(
+        `The project fsl directory: ${path.join(
+          projectDir,
+          fslDir
+        )} is not writeable.`
       );
     }
 
