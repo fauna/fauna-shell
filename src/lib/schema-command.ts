@@ -39,10 +39,10 @@ export default abstract class SchemaCommand extends FaunaCommand {
     if (this.flags?.dir !== undefined) {
       this.dir = this.flags.dir;
     } else if (this.shellConfig?.projectPath !== undefined) {
-      if (this.shellConfig.projectConfig?.fslDir !== undefined) {
+      if (this.shellConfig.projectConfig?.schemaDir !== undefined) {
         this.dir = path.join(
           this.shellConfig.projectPath,
-          this.shellConfig.projectConfig.fslDir
+          this.shellConfig.projectConfig.schemaDir
         );
       } else {
         this.dir = this.shellConfig.projectPath;
