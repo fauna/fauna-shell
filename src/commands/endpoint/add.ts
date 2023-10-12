@@ -2,6 +2,7 @@ import { Flags, Args, Command, ux } from "@oclif/core";
 import { input, confirm } from "@inquirer/prompts";
 import { Endpoint, ShellConfig, getRootConfigPath } from "../../lib/config";
 import FaunaClient from "../../lib/fauna-client";
+import { Secret } from "../../lib/secret";
 
 export default class AddEndpointCommand extends Command {
   static args = {
@@ -83,12 +84,30 @@ export default class AddEndpointCommand extends Command {
         },
       }));
 
-    const secret =
-      flags?.secret ?? (await input({ message: "Database Secret" }));
+    let secret: Secret;
+    if (flags?.secret === undefined) {
+      const v = await input({
+        message: "Database Secret",
+        validate: (secret) => {
+          try {
+            Secret.parse(secret);
+            return true;
+          } catch (e: any) {
+            return e.message;
+          }
+        },
+      });
+      secret = Secret.parse(v);
+    } else {
+      secret = Secret.parse(flags.secret);
+    }
 
     ux.action.start("Checking secret");
 
-    const client = new FaunaClient({ secret, endpoint: url });
+    const client = new FaunaClient({
+      secret: secret.buildSecret(),
+      endpoint: url,
+    });
     try {
       const res = await client.query(`0`);
       if (res.status !== 200) {

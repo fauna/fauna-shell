@@ -62,7 +62,6 @@ class FaunaCommand extends Command {
     try {
       connectionOptions = this.shellConfig.lookupEndpoint({
         scope: dbScope,
-        role,
       });
 
       const { hostname, port, protocol } = new URL(connectionOptions.url);
@@ -71,7 +70,7 @@ class FaunaCommand extends Command {
         domain: hostname,
         port,
         scheme: protocol?.replace(/:$/, ""),
-        secret: connectionOptions.secret,
+        secret: connectionOptions.secret.buildSecret({ role }),
 
         // Force http1. See getClient.
         fetch: fetch,
@@ -103,17 +102,15 @@ class FaunaCommand extends Command {
         let connectedMessage;
         if (connectionOptions.name !== undefined) {
           connectedMessage = `Connected to endpoint: ${connectionOptions.name}`;
-          if (
-            connectionOptions.database !== undefined &&
-            connectionOptions.database !== ""
-          ) {
-            connectedMessage += ` database: ${connectionOptions.database}`;
+          if (connectionOptions.secret.databaseScope.length > 0) {
+            connectedMessage += ` database: ${connectionOptions.secret.databaseScope.join(
+              "/"
+            )}`;
           }
-        } else if (
-          connectionOptions.database !== undefined &&
-          connectionOptions.database !== ""
-        ) {
-          connectedMessage = `Connected to database: ${connectionOptions.database}`;
+        } else if (connectionOptions.secret.databaseScope.length > 0) {
+          connectedMessage = `Connected to database: ${connectionOptions.secret.databaseScope.join(
+            "/"
+          )}`;
         }
         if (connectedMessage !== undefined) {
           this.log(connectedMessage);
@@ -125,10 +122,7 @@ class FaunaCommand extends Command {
       // construct v4 client
       let connectionOptions;
       try {
-        connectionOptions = this.shellConfig.lookupEndpoint({
-          scope: dbScope,
-          role,
-        });
+        connectionOptions = this.shellConfig.lookupEndpoint({ scope: dbScope });
 
         const { hostname, port, protocol } = new URL(connectionOptions.url);
 
@@ -136,7 +130,7 @@ class FaunaCommand extends Command {
           domain: hostname,
           port,
           scheme: protocol?.replace(/:$/, ""),
-          secret: connectionOptions.secret,
+          secret: connectionOptions.secret.buildSecret({ role }),
 
           // Force http1. Fixes tests I guess? I spent a solid 30 minutes
           // debugging the whole `nock` thing in our tests, only to realize this
@@ -164,13 +158,10 @@ class FaunaCommand extends Command {
       // construct v10 client
       let connectionOptions;
       try {
-        connectionOptions = this.shellConfig.lookupEndpoint({
-          scope: dbScope,
-          role,
-        });
+        connectionOptions = this.shellConfig.lookupEndpoint({ scope: dbScope });
         const client = new FaunaClient({
           endpoint: connectionOptions.url,
-          secret: connectionOptions.secret,
+          secret: connectionOptions.secret.buildSecret({ role }),
           time: this.flags.timeout
             ? parseInt(this.flags.timeout, 10)
             : undefined,
@@ -199,14 +190,11 @@ class FaunaCommand extends Command {
     const { hostname, port, protocol } = new URL(connectionOptions.url);
 
     for (let i = 0; i < path.length; i++) {
-      const secret =
-        connectionOptions.secret + ":" + path.slice(0, i).join("/") + ":admin";
-
       const client = new Client({
         domain: hostname,
         port,
         scheme: protocol?.replace(/:$/, ""),
-        secret,
+        secret: connectionOptions.secret.buildSecret(),
 
         // See getClient.
         fetch: fetch,
@@ -219,15 +207,17 @@ class FaunaCommand extends Command {
       await client.close();
 
       if (!exists) {
+        const fullPath = [...connectionOptions.secret.databaseScope, ...path.slice(0, i + 1)];
         this.error(
-          `Database '${path.slice(0, i + 1).join("/")}' doesn't exist`
+          `Database '${fullPath.join("/")}' doesn't exist`
         );
       }
+
+      connectionOptions.secret.appendScope(path[i]);
     }
 
     return this.getClient({
       dbScope: scope,
-      role: "admin",
       version,
     });
   }
