@@ -244,7 +244,7 @@ export class ShellConfig {
       // No `~/.fauna-shell` was found, so `--secret` is required to make an endpoint. If `--secret` wasn't passed, `validate` should fail.
       if (secretFlag !== undefined) {
         this.endpoint = new Endpoint({
-          secret: Secret.parse(secretFlag),
+          secret: Secret.parseFlag(secretFlag),
           url: urlFlag,
           graphqlHost: this.flags.strOpt("graphqlHost"),
           graphqlPort: this.flags.numberOpt("graphqlPort"),
@@ -258,7 +258,7 @@ export class ShellConfig {
 
       // override endpoint with values from flags.
       if (secretFlag !== undefined) {
-        this.endpoint.secret = Secret.parse(secretFlag);
+        this.endpoint.secret = Secret.parseFlag(secretFlag);
       }
       this.endpoint.url = urlFlag ?? this.endpoint.url;
       this.endpoint.graphqlHost =
