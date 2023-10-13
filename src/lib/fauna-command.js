@@ -282,6 +282,9 @@ FaunaCommand.flags = {
   endpoint: Flags.string({
     description: "Connection endpoint, from ~/.fauna-shell",
   }),
+  stack: Flags.string({
+    description: "Stack to use, from a Fauna project",
+  }),
 };
 
 export default FaunaCommand;
