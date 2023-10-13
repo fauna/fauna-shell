@@ -11,6 +11,8 @@ import { generate } from "escodegen";
 export function readFile(fileName) {
   return new Promise((resolve, reject) => {
     _readFile(fileName, "utf8", (err, data) => {
+      // this lint is dumb
+      // eslint-disable-next-line no-unused-expressions
       err ? reject(err) : resolve(data);
     });
   });
@@ -22,6 +24,8 @@ export function readFile(fileName) {
 export function writeFile(fileName, data, mode) {
   return new Promise((resolve, reject) => {
     _writeFile(fileName, data, { mode: mode }, (err) => {
+      // this lint is dumb
+      // eslint-disable-next-line no-unused-expressions
       err ? reject(err) : resolve(data);
     });
   });
