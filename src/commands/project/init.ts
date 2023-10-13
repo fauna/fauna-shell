@@ -1,4 +1,5 @@
 import { Args, Command } from "@oclif/core";
+import fs from "fs";
 import {
   fileExists,
   getProjectConfigPath,
@@ -37,7 +38,8 @@ export class ProjectInitCommand extends Command {
 
   async execute(projectDir: string): Promise<void> {
     if (!dirExists(projectDir)) {
-      this.error(`${projectDir} does not exist.`);
+      this.log(`${projectDir} does not exist, creating it.`);
+      fs.mkdirSync(projectDir, { recursive: true });
     } else if (!dirIsWriteable(projectDir)) {
       this.error(`${projectDir} is not writeable.`);
     }
@@ -55,29 +57,25 @@ export class ProjectInitCommand extends Command {
       );
     }
 
-    let fslDir: string | undefined = await input({
+    let schemaDir: string | undefined = await input({
       message:
-        "What directory would you like to store your fsl files in? (defaults to current directory)",
+        "What directory would you like to store your schema files in? (defaults to current directory)",
     });
-    if (fslDir === "") {
-      fslDir = undefined;
-    } else if (!dirExists(path.join(projectDir, fslDir))) {
-      this.error(
-        `The project's schema directory: ${path.join(
-          projectDir,
-          fslDir
-        )} does not exist.`
+    const fullSchemaPath = path.join(projectDir, schemaDir);
+    if (schemaDir === "") {
+      schemaDir = undefined;
+    } else if (!dirExists(fullSchemaPath)) {
+      this.log(
+        `The project's schema directory: ${fullSchemaPath} does not exist, creating it.`
       );
-    } else if (!dirIsWriteable(path.join(projectDir, fslDir))) {
+      fs.mkdirSync(fullSchemaPath, { recursive: true });
+    } else if (!dirIsWriteable(fullSchemaPath)) {
       this.error(
-        `The project's schema directory: ${path.join(
-          projectDir,
-          fslDir
-        )} is not writeable.`
+        `The project's schema directory: ${fullSchemaPath} is not writeable.`
       );
     }
 
-    ProjectConfig.initialConfig(fslDir).save(projectPath);
+    ProjectConfig.initialConfig(schemaDir).save(projectPath);
 
     const shellConfig = ShellConfig.readWithOverrides({
       projectPath: projectPath,
