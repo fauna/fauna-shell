@@ -39,6 +39,9 @@ commands:
           name: Run Tests
           command: yarn test
 
+      - store_artifacts:
+          path: coverage
+
 jobs:
   fauna-shell-tests:
     executor:
