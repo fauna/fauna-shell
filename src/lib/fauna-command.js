@@ -189,6 +189,12 @@ class FaunaCommand extends Command {
     const { connectionOptions } = await this.getClient({ version: "4" });
     const { hostname, port, protocol } = new URL(connectionOptions.url);
 
+    if (!connectionOptions.secret.allowDatabase) {
+      throw new Error(
+        "Cannot specify database with a secret that contains a database"
+      );
+    }
+
     for (let i = 0; i < path.length; i++) {
       const client = new Client({
         domain: hostname,
