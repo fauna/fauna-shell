@@ -95,10 +95,10 @@
         "description": "Manage endpoints in ~/.fauna-shell."
       },
       "project": {
-        "description": "Manage project settings in .fauna-project."
+        "description": "Manage project settings in .fauna-project.\nNOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject to change."
       },
       "stack": {
-        "description": "Manage stacks in the current project."
+        "description": "Manage stacks in the current project.\nNOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject to change."
       }
     }
   },
