@@ -1058,6 +1058,9 @@ ARGUMENTS
 DESCRIPTION
   Initialize a project directory by generating a .fauna-project file.
 
+  NOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject
+  to change.
+
 EXAMPLES
   $ fauna project init
 
@@ -1250,6 +1253,9 @@ FLAGS
 DESCRIPTION
   Add a new stack to `.fauna-project`.
 
+  NOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject
+  to change.
+
 EXAMPLES
   $ fauna stack add
 
@@ -1271,6 +1277,9 @@ USAGE
 DESCRIPTION
   List stacks available in `.fauna-project`.
 
+  NOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject
+  to change.
+
 EXAMPLES
   $ fauna stack list
 ```
@@ -1290,6 +1299,9 @@ ARGUMENTS
 
 DESCRIPTION
   Update the default stack in `.fauna-project`.
+
+  NOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject
+  to change.
 
 EXAMPLES
   $ fauna stack select my-stack
