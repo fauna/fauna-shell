@@ -22,7 +22,9 @@ export default class AddStackCommand extends Command {
     }),
   };
 
-  static description = "Add a new stack to `.fauna-project`.";
+  static description = `Add a new stack to \`.fauna-project\`.
+
+NOTE: \`fauna project\` and \`fauna stack\` are still in beta. Behavior is subject to change.`;
 
   static examples = [
     "$ fauna stack add",
