@@ -816,9 +816,6 @@ Shows help for the Fauna CLI.
 ```sh
 faunadb shell
 
-VERSION
-  fauna-shell/1.1.0 darwin-x64 node-v20.6.0
-
 USAGE
   $ fauna [COMMAND]
 

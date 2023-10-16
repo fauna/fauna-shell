@@ -42,7 +42,14 @@ while i < len(lines):
 
     if end != None:
       print(f"updated command {command}")
-      result = run(["./bin/run", *command[1:], "--help"]).strip().split("\n")
+      result = run(["./bin/run", *command[1:], "--help"]).strip()
+
+      # remove the VERSION section
+      if command == ["fauna", "help"]:
+        m = re.search("VERSION.*\n.*\n\n", result)
+        result = result[:m.start()] + result[m.end():]
+
+      result = result.split("\n")
       lines[start:end] = result
       i += len(result) - (end - start)
 
