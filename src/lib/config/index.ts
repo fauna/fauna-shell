@@ -137,6 +137,8 @@ export class ShellConfig {
   rootConfig: RootConfig;
   projectConfig: ProjectConfig | undefined;
 
+  // If `--secret` is passed, this will be set.
+  secretFlag?: Secret;
   // The selected stack from the project config. If there is a project config, this will also be set.
   stack: Stack | undefined;
   // The fully configured endpoint, including command line flags that override things like the URL.
@@ -211,16 +213,16 @@ export class ShellConfig {
       }
     }
 
+    const stackFlag = this.flags.strOpt("stack");
+
     if (this.projectConfig === undefined) {
-      const stackName = this.flags.strOpt("stack");
-      if (stackName !== undefined) {
+      if (stackFlag !== undefined) {
         throw new Error(
-          `No ${PROJECT_FILE_NAME} was found, so stack '${stackName}' cannot be used`
+          `No ${PROJECT_FILE_NAME} was found, so stack '${stackFlag}' cannot be used`
         );
       }
     } else {
-      const stackName =
-        this.flags.strOpt("stack") ?? this.projectConfig.defaultStack;
+      const stackName = stackFlag ?? this.projectConfig.defaultStack;
 
       if (stackName !== undefined) {
         this.stack = this.projectConfig.stacks[stackName];
@@ -239,27 +241,30 @@ export class ShellConfig {
       this.rootConfig.defaultEndpoint;
 
     const secretFlag = this.flags.strOpt("secret");
+    this.secretFlag =
+      secretFlag !== undefined ? Secret.parseFlag(secretFlag) : undefined;
+
+    if (secretFlag !== undefined && stackFlag !== undefined) {
+      throw new Error(
+        "Cannot specify both --secret and --stack, as --secret will override the settings from a stack."
+      );
+    }
 
     if (endpointName === undefined) {
-      // No `~/.fauna-shell` was found, so `--secret` is required to make an endpoint. If `--secret` wasn't passed, `validate` should fail.
-      if (secretFlag !== undefined) {
-        this.endpoint = new Endpoint({
-          secret: Secret.parse(secretFlag),
-          url: urlFlag,
-          graphqlHost: this.flags.strOpt("graphqlHost"),
-          graphqlPort: this.flags.numberOpt("graphqlPort"),
-        });
-      }
+      // This is a dummy secret. `--secret` must be set in this case, which
+      // `validate` enforces.
+      this.endpoint = new Endpoint({
+        secret: new Secret({ key: "", allowDatabase: true }),
+        url: urlFlag,
+        graphqlHost: this.flags.strOpt("graphqlHost"),
+        graphqlPort: this.flags.numberOpt("graphqlPort"),
+      });
     } else {
       this.endpoint = this.rootConfig.endpoints[endpointName];
       if (this.endpoint === undefined) {
         throw new Error(`No such endpoint '${endpointName}'`);
       }
 
-      // override endpoint with values from flags.
-      if (secretFlag !== undefined) {
-        this.endpoint.secret = Secret.parse(secretFlag);
-      }
       this.endpoint.url = urlFlag ?? this.endpoint.url;
       this.endpoint.graphqlHost =
         this.flags.strOpt("graphqlHost") ?? this.endpoint.graphqlHost;
@@ -269,7 +274,7 @@ export class ShellConfig {
   }
 
   validate = () => {
-    if (this.endpoint === undefined) {
+    if (this.endpoint === undefined && this.secretFlag === undefined) {
       // No `~/.fauna-shell` was found, and no `--secret` was passed.
       throw new Error(
         `No endpoint or secret set. Set an endpoint in ~/.fauna-shell, ${PROJECT_FILE_NAME}, or pass --endpoint`
@@ -280,12 +285,18 @@ export class ShellConfig {
   lookupEndpoint = (opts: { scope?: string }): EndpointConfig => {
     this.validate();
 
-    let database = this.stack?.database.split("/") ?? [];
-    if (opts.scope !== undefined) {
-      database.push(...opts.scope.split("/"));
-    }
+    if (this.secretFlag !== undefined) {
+      const endpoint = this.endpoint!.makeScopedEndpoint();
+      endpoint.secret = this.secretFlag;
+      return endpoint;
+    } else {
+      let database = this.stack?.database.split("/") ?? [];
+      if (opts.scope !== undefined) {
+        database.push(...opts.scope.split("/"));
+      }
 
-    return this.endpoint!.makeScopedEndpoint(database);
+      return this.endpoint!.makeScopedEndpoint(database);
+    }
   };
 
   configErrors(): string[] {

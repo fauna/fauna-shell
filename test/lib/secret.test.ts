@@ -1,7 +1,37 @@
 import { expect } from "chai";
 import { Secret } from "../../src/lib/secret";
 
-describe("secret", () => {
+describe("Secret.parse", () => {
+  it("disallows empty secrets", () => {
+    expect(() => Secret.parse("")).to.throw("Secret cannot be empty");
+  });
+
+  it("disallows scoped secrets", () => {
+    expect(() => Secret.parse("fn1234:foo")).to.throw(
+      "Secret cannot be scoped"
+    );
+  });
+});
+
+describe("Secret.parseFlag", () => {
+  it("disallows empty secrets", () => {
+    expect(() => Secret.parseFlag("")).to.throw("Secret cannot be empty");
+  });
+
+  it("allows scoped secrets", () => {
+    Secret.parseFlag("fn1234:foo");
+  });
+
+  it("disallows appending scopes to scoped secrets", () => {
+    const secret = Secret.parseFlag("fn1234:foo");
+
+    expect(() => secret.appendScope("bar")).to.throw(
+      "Cannot specify database with a secret that contains a database"
+    );
+  });
+});
+
+describe("Secret", () => {
   it("appends paths scoped secrets", () => {
     const secret = Secret.parse("fn1234");
     expect(secret.databaseScope).to.eql([]);
@@ -19,16 +49,6 @@ describe("secret", () => {
 
     secret.appendScope("foo/bar");
     expect(secret.databaseScope).to.eql(["foo", "bar"]);
-  });
-
-  it("disallows empty secrets", () => {
-    expect(() => Secret.parse("")).to.throw("Secret cannot be empty");
-  });
-
-  it("disallows scoped secrets", () => {
-    expect(() => Secret.parse("fn1234:foo")).to.throw(
-      "Secret cannot be scoped"
-    );
   });
 
   it("builds a secret with a role", () => {

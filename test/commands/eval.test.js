@@ -141,14 +141,37 @@ describe("eval in v10", () => {
       "--format",
       "json-tagged",
       "--secret",
-      `foo:MyDB`,
+      `${process.env.FAUNA_SECRET}:MyDB:admin`,
+      "--url",
+      getEndpoint()
+    ])
+    .it("allows scoped secrets", (ctx) => {
+      expect(JSON.parse(ctx.stdout)).to.deep.equal({ two: { "@int": "3" } });
+    });
+
+
+  test
+    .do(async () => {
+      // This can fail if `MyDB` already exists, but thats fine.
+      await evalV10("Database.create({ name: 'MyDB' })");
+    })
+    .stdout()
+    // a scoped secret is never valid.
+    .command([
+      "eval",
+      "MyDB2",
+      "{ two: 3 }",
+      "--format",
+      "json-tagged",
+      "--secret",
+      `${process.env.FAUNA_SECRET}:MyDB:admin`,
       "--url",
       getEndpoint()
     ])
     .catch((e) => {
-      expect(e.message).to.equal("Secret cannot be scoped");
+      expect(e.message).to.equal("Cannot specify database with a secret that contains a database");
     })
-    .it("disallows scoped secrets");
+    .it("disallows scoped secrets and a scope argument");
 });
 
 function mockQuery(api) {

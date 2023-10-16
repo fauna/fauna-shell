@@ -162,6 +162,7 @@ describe("root config with flags", () => {
     ).to.deep.contain({
       secret: {
         key: "fn555",
+        allowDatabase: true,
         databaseScope: [],
       },
       url: "https://db.fauna.com",
@@ -169,7 +170,7 @@ describe("root config with flags", () => {
   });
 
   it("disallows scoped secrets", () => {
-    expect(() =>
+    expect(
       lookupEndpoint({
         flags: {
           secret: "fn555:db:@role/bar",
@@ -181,7 +182,14 @@ describe("root config with flags", () => {
           },
         },
       })
-    ).to.throw("Secret cannot be scoped");
+    ).to.deep.contain({
+      secret: {
+        key: "fn555:db:@role/bar",
+        allowDatabase: false,
+        databaseScope: [],
+      },
+      url: "https://db.fauna.com",
+    });
   });
 });
 
