@@ -111,7 +111,7 @@ for (const ddelete of [false, true]) {
           .reply(200, functions)
           .get("/schema/1/files/main.fsl")
           .reply(200, main)
-          .get("/schema/1/files/roles/myrole.fsl")
+          .get("/schema/1/files/roles%2Fmyrole.fsl")
           .reply(200, myrole)
       )
       .stdout()
