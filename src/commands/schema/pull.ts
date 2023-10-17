@@ -87,7 +87,7 @@ export default class PullSchemaCommand extends SchemaCommand {
       if (confirmed) {
         for (const filename of filenames) {
           const fileres = await fetch(
-            new URL(`/schema/1/files/${filename}`, url),
+            new URL(`/schema/1/files/${encodeURIComponent(filename)}`, url),
             {
               method: "GET",
               headers: { AUTHORIZATION: `Bearer ${secret}` },
