@@ -201,8 +201,6 @@ export class ShellConfig {
       ? ProjectConfig.fromConfig(new Config("config key", opts.projectConfig))
       : undefined;
 
-    this.projectConfig?.validate(this.rootConfig);
-
     const urlFlag = Endpoint.getURLFromFlags(this.flags);
     if (urlFlag !== undefined) {
       try {
@@ -250,7 +248,7 @@ export class ShellConfig {
       );
     }
 
-    if (endpointName === undefined) {
+    if (endpointName === undefined || secretFlag !== undefined) {
       // This is a dummy secret. `--secret` must be set in this case, which
       // `validate` enforces.
       this.endpoint = new Endpoint({
@@ -260,6 +258,7 @@ export class ShellConfig {
         graphqlPort: this.flags.numberOpt("graphqlPort"),
       });
     } else {
+      this.projectConfig?.validate(this.rootConfig);
       this.endpoint = this.rootConfig.endpoints[endpointName];
       if (this.endpoint === undefined) {
         throw new Error(`No such endpoint '${endpointName}'`);
