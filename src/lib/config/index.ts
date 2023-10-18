@@ -248,7 +248,15 @@ export class ShellConfig {
       );
     }
 
-    if (endpointName === undefined || secretFlag !== undefined) {
+    // There are 2 scenarios where we want to execute the first if block:
+    // 1. no endpoint name is set
+    // 2. In a CI/CD environment where a secret is set but there is no
+    // root config.  In this scenario endpoints may be set by the project
+    // configuration but won't exist in their pipeline workspace.
+    if (
+      endpointName === undefined ||
+      (secretFlag !== undefined && this.rootConfig.isEmpty())
+    ) {
       // This is a dummy secret. `--secret` must be set in this case, which
       // `validate` enforces.
       this.endpoint = new Endpoint({
