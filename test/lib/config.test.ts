@@ -121,6 +121,26 @@ describe("root config", () => {
     )}\n Resolve them by ensuring they have a secret defined or remove them if they are not needed.`;
     expect(() => invalidConfig.saveRootConfig()).to.throw(expectedMsg);
   });
+  it("writes correct ini config", () => {
+    const config = new ShellConfig({
+      rootConfig: {
+        default: "my-endpoint",
+        "my-endpoint": {
+          secret: "fn1234",
+          url: "http://localhost:8443",
+        },
+      },
+    });
+    expect(config.rootConfig.toIni()).to.deep.equal({
+      default: "my-endpoint",
+      endpoint: {
+        "my-endpoint": {
+          secret: "fn1234",
+          url: "http://localhost:8443",
+        },
+      },
+    });
+  });
 });
 
 describe("root config with flags", () => {

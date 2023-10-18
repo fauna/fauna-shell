@@ -216,7 +216,7 @@ export class Endpoint {
 
   toIni() {
     return {
-      secret: this.secret,
+      secret: this.secret.key,
       ...(this.url !== "https://db.fauna.com" ? { url: this.url } : {}),
 
       ...(this.graphqlHost !== "graphql.fauna.com"
