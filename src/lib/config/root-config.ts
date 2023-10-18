@@ -59,6 +59,10 @@ export class RootConfig {
     }
   }
 
+  isEmpty(): boolean {
+    return Object.keys(this.endpoints).length === 0;
+  }
+
   /**
    * If there is an endpoint object in the config, and it has a
    * object underneath it, we are saying that it uses the
