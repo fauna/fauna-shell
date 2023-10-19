@@ -10,20 +10,9 @@ resources:
 jobs:
   - name: test
     serial: true
-    trigger: true
     plan:
       - get: fauna-shell-repository
-      - task: schema-tests
-        file: fauna-shell-repository/concourse/tasks/schema-tests.yml
-        params:
-          FAUNA_SECRET: ((cli_test_secret))
-
-  - name: release
-    serial: true
-    public: false
-    plan:
-      - get: fauna-shell-repository
-
+        trigger: true
       - task: integration-tests
         file: fauna-shell-repository/concourse/tasks/integration-tests.yml
         privileged: true
@@ -32,7 +21,17 @@ jobs:
           FAUNA_DOMAIN: ((fauna.domain))
           FAUNA_SCHEME: ((fauna.scheme))
           FAUNA_PORT: ((fauna.port))
+      - task: schema-tests
+        file: fauna-shell-repository/concourse/tasks/schema-tests.yml
+        params:
+          FAUNA_SECRET: ((cli-test-secret))
 
+  - name: release
+    serial: true
+    public: false
+    plan:
+      - get: fauna-shell-repository
+        passed: [test]
       - task: publish
         file: fauna-shell-repository/concourse/tasks/publish.yml
         params:
