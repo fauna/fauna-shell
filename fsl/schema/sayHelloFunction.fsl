@@ -1,0 +1,3 @@
+function sayHello(name: String): String {
+  "Hello " + name
+}

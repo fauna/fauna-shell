@@ -1,0 +1,26 @@
+---
+platform: linux
+image_resource:
+  type: registry-image
+  source:
+    repository: node
+    tag: 18
+
+params:
+  FAUNA_SECRET:
+
+inputs:
+  - name: fauna-shell-repository
+
+run:
+  path: sh
+  args:
+    - -ec
+    - |
+      npm install -g zx
+      cd fauna-shell-repository
+      yarn install
+      yarn build
+      faunaCmd="$(pwd)/bin/dev"
+      cd fsl
+      ./test-script.mjs "$faunaCmd"

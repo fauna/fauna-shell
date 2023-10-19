@@ -8,6 +8,16 @@ resources:
       branch: main
 
 jobs:
+  - name: test
+    serial: true
+    trigger: true
+    plan:
+      - get: fauna-shell-repository
+      - task: schema-tests
+        file: fauna-shell-repository/concourse/tasks/schema-tests.yml
+        params:
+          FAUNA_SECRET: ((cli_test_secret))
+
   - name: release
     serial: true
     public: false
