@@ -26,12 +26,12 @@ await ensureClean()
   * Test Push
   */
 await execFaunaCmd(["schema", "push", "--force"])
-const collNames = await execPaginated("Collection.all().map(.name)")
-if (collNames.length != expectedCollNames.length && !collNames.every((elem, idx) => elem === expectedCollNames[idx])) {
+const collNames = await execPaginated("Collection.all().map(.name).order()")
+if (collNames.length != expectedCollNames.length || !collNames.every((elem, idx) => elem === expectedCollNames[idx])) {
   throw new Error(`Schema collections do not match actual: ${collNames} expected: ${expectedCollNames}`)
 }
 const funcNames = await execPaginated("Function.all().map(.name)")
-if (funcNames.length != expectedFuncNames.length && !funcNames.every((elem, idx) => elem === expectedFuncNames[idx])) {
+if (funcNames.length != expectedFuncNames.length || !funcNames.every((elem, idx) => elem === expectedFuncNames[idx])) {
   throw new Error(`Schema functions do not match actual: ${collNames} expected: ${expectedCollNames}`)
 }
 
