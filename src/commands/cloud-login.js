@@ -153,6 +153,7 @@ class CloudLoginCommand extends FaunaCommand {
   }
 
   async askIsDefault(endpoints) {
+
     if (!this.config.default && endpoints.length === 1) {
       await setDefaultEndpoint(endpoints[0]);
       return this.log(`Endpoint '${endpoints[0]}' added as default`);
@@ -191,13 +192,13 @@ class CloudLoginCommand extends FaunaCommand {
     ]);
 
     if (setDefault) {
-      return setDefaultEndpoint(endpoints[0]).then(this.log).catch(this.error);
+      return setDefaultEndpoint(endpoints[0]).then(msg => this.log(msg)).catch(err => this.error(err));
     }
 
     if (defaultEndpoint) {
       return setDefaultEndpoint(defaultEndpoint)
-        .then(this.log)
-        .catch(this.error);
+        .then(msg => this.log(msg))
+        .catch(e => this.error(e));
     }
   }
 
@@ -361,8 +362,8 @@ class CloudLoginCommand extends FaunaCommand {
   maybeDomainWithRegion(domain, region) {
     return region && region !== "global"
       ? domain
-          .replace("db.", `db.${region}.`)
-          .replace("graphql.", `graphql.${region}.`)
+        .replace("db.", `db.${region}.`)
+        .replace("graphql.", `graphql.${region}.`)
       : domain;
   }
 }
