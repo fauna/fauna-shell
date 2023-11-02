@@ -123,8 +123,7 @@ class FaunaCommand extends Command {
           role
         );
         const endpoint = new URL(
-          `${connectionOptions.scheme ?? "https"}://${
-            connectionOptions.domain
+          `${connectionOptions.scheme ?? "https"}://${connectionOptions.domain
           }:${connectionOptions.port ?? 443}`
         );
         const client = new FaunaClient(

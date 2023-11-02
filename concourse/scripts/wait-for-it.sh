@@ -9,7 +9,7 @@ until $(curl -m 1 --output /dev/null --silent --head --fail $1); do
     exit 1
   fi
 
-  printf '.'
+  echo "."
   attempt_counter=$(($attempt_counter+1))
   sleep 5
 done

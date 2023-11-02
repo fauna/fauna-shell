@@ -25,7 +25,8 @@ services:
     working_dir: "/tmp/app"
     command: 
       - sh 
-      - -c 
-      - apk add curl
-      - concourse/scripts/wait-for-it.sh http://core:8443/ping
-      - yarn install && yarn run test
+      - -cx 
+      - |
+        apk add curl
+        concourse/scripts/wait-for-it.sh http://core:8443/ping
+        yarn install && yarn run test
