@@ -23,4 +23,8 @@ services:
     volumes:
       - "../../:/tmp/app"
     working_dir: "/tmp/app"
-    command: [sh, -c, "yarn install && yarn run test"]
+    command: 
+      - sh 
+      - -c 
+      - concourse/scripts/wait-for-it.sh http://core:8443/ping
+      - yarn install && yarn run test
