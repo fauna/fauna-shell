@@ -5,7 +5,7 @@ resources:
     icon: github
     source:
       uri: https://github.com/fauna/fauna-shell.git
-      branch: 1.1.1
+      branch: 1.1.2
 
 jobs:
   - name: release

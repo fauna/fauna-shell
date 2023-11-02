@@ -93,7 +93,6 @@ class ShellCommand extends EvalCommand {
   eval(originalEval) {
     return async (cmd, ctx, filename, cb) => {
       if (cmd.trim() === "") return cb();
-
       if (this.flags.version === "10") {
         const res = await this.performV10Query(
           this.connection.client,

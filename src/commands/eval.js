@@ -178,7 +178,7 @@ class EvalCommand extends FaunaCommand {
 
       return await this.writeFormattedOutputV10(outputFile, res, flags.format);
     } catch (error) {
-      this.error(`${error.code}\n\n${error.queryInfo.summary}`);
+      this.error(`${error.code}\n\n${error?.queryInfo?.summary}`);
     }
   }
 

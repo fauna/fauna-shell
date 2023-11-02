@@ -155,6 +155,7 @@ class FaunaCommand extends Command {
     return this.getClient({
       dbScope: dbname,
       role: "admin",
+      version: this.flags.version,
     });
   }
 
