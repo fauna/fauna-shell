@@ -5,11 +5,11 @@ import os from "os";
 import path from "path";
 const ini = require("ini");
 
-import { ProjectConfig, Stack } from "./project-config";
-import { RootConfig, Endpoint } from "./root-config";
 import { Secret } from "../secret";
+import { Environment, ProjectConfig } from "./project-config";
+import { Endpoint, RootConfig } from "./root-config";
 
-export { RootConfig, ProjectConfig, Endpoint, Stack };
+export { Endpoint, Environment, ProjectConfig, RootConfig };
 
 export const PROJECT_FILE_NAME = ".fauna-project";
 
@@ -139,14 +139,17 @@ export class ShellConfig {
 
   // If `--secret` is passed, this will be set.
   secretFlag?: Secret;
-  // The selected stack from the project config. If there is a project config, this will also be set.
-  stack: Stack | undefined;
+  // The selected environment from the project config. If there is a project config, this will also be set.
+  environment: Environment | undefined;
   // The fully configured endpoint, including command line flags that override things like the URL.
   //
   // If this is unset, `validate` will fail.
   endpoint: Endpoint | undefined;
   // The path to the project config.
   projectPath: string | undefined;
+
+  // Errors that came up in the config to be displayed.
+  errors: string[] = [];
 
   static read(flags: any, log?: LogChannel) {
     const rootConfig = ini.parse(readFileOpt(getRootConfigPath()));
@@ -211,21 +214,25 @@ export class ShellConfig {
       }
     }
 
-    const stackFlag = this.flags.strOpt("stack");
+    const environmentFlag = this.flags.strOpt("environment");
 
     if (this.projectConfig === undefined) {
-      if (stackFlag !== undefined) {
+      if (environmentFlag !== undefined) {
         throw new Error(
-          `No ${PROJECT_FILE_NAME} was found, so stack '${stackFlag}' cannot be used`
+          `No ${PROJECT_FILE_NAME} was found, so environment '${environmentFlag}' cannot be used`
         );
       }
     } else {
-      const stackName = stackFlag ?? this.projectConfig.defaultStack;
+      const environmentName =
+        environmentFlag ?? this.projectConfig.defaultEnvironment;
 
-      if (stackName !== undefined) {
-        this.stack = this.projectConfig.stacks[stackName];
-        if (this.stack === undefined) {
-          throw new Error(`No such stack '${stackName}'`);
+      if (environmentName !== undefined) {
+        this.environment = this.projectConfig.environments[environmentName];
+        // we don't need to blow up here because commands that aren't using project config
+        // can hit this.  cloud-login could be trying to add the needed endpoint.
+        // the project config will also be validated for any commands attempting to use it.
+        if (this.environment === undefined) {
+          this.errors.push(`No such environment '${environmentName}'`);
         }
       }
     }
@@ -235,16 +242,16 @@ export class ShellConfig {
     // `default` key in the root config.
     const endpointName =
       this.flags.strOpt("endpoint") ??
-      this.stack?.endpoint ??
+      this.environment?.endpoint ??
       this.rootConfig.defaultEndpoint;
 
     const secretFlag = this.flags.strOpt("secret");
     this.secretFlag =
       secretFlag !== undefined ? Secret.parseFlag(secretFlag) : undefined;
 
-    if (secretFlag !== undefined && stackFlag !== undefined) {
+    if (secretFlag !== undefined && environmentFlag !== undefined) {
       throw new Error(
-        "Cannot specify both --secret and --stack, as --secret will override the settings from a stack."
+        "Cannot specify both --secret and --environment, as --secret will override the settings from a environment."
       );
     }
 
@@ -266,17 +273,14 @@ export class ShellConfig {
         graphqlPort: this.flags.numberOpt("graphqlPort"),
       });
     } else {
-      this.projectConfig?.validate(this.rootConfig);
       this.endpoint = this.rootConfig.endpoints[endpointName];
-      if (this.endpoint === undefined) {
-        throw new Error(`No such endpoint '${endpointName}'`);
+      if (this.endpoint !== undefined) {
+        this.endpoint.url = urlFlag ?? this.endpoint.url;
+        this.endpoint.graphqlHost =
+          this.flags.strOpt("graphqlHost") ?? this.endpoint.graphqlHost;
+        this.endpoint.graphqlPort =
+          this.flags.numberOpt("graphqlHost") ?? this.endpoint.graphqlPort;
       }
-
-      this.endpoint.url = urlFlag ?? this.endpoint.url;
-      this.endpoint.graphqlHost =
-        this.flags.strOpt("graphqlHost") ?? this.endpoint.graphqlHost;
-      this.endpoint.graphqlPort =
-        this.flags.numberOpt("graphqlHost") ?? this.endpoint.graphqlPort;
     }
   }
 
@@ -287,6 +291,7 @@ export class ShellConfig {
         `No endpoint or secret set. Set an endpoint in ~/.fauna-shell, ${PROJECT_FILE_NAME}, or pass --endpoint`
       );
     }
+    this.projectConfig?.validate(this.rootConfig);
   };
 
   lookupEndpoint = (opts: { scope?: string }): EndpointConfig => {
@@ -297,7 +302,7 @@ export class ShellConfig {
       endpoint.secret = this.secretFlag;
       return endpoint;
     } else {
-      let database = this.stack?.database.split("/") ?? [];
+      let database = this.environment?.database.split("/") ?? [];
       if (opts.scope !== undefined) {
         database.push(...opts.scope.split("/"));
       }
@@ -312,6 +317,7 @@ export class ShellConfig {
         `The following endpoint definitions in ${getRootConfigPath()} are invalid:\n ${this.rootConfig.invalidEndpoints.join(
           "\n"
         )}\n Resolve them by ensuring they have a secret defined or remove them if they are not needed.`,
+        ...this.errors,
       ];
     } else {
       return [];

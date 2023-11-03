@@ -2,14 +2,14 @@ import { Command } from "@oclif/core";
 import { ShellConfig } from "../../lib/config";
 import chalk from "chalk";
 
-export default class ListStackCommand extends Command {
+export default class ListEnvironmentCommand extends Command {
   static flags = {};
 
-  static description = `List stacks available in \`.fauna-project\`.
+  static description = `List environments available in \`.fauna-project\`.
 
-NOTE: \`fauna project\` and \`fauna stack\` are still in beta. Behavior is subject to change.`;
+NOTE: \`fauna project\` and \`fauna environment\` are still in beta. Behavior is subject to change.`;
 
-  static examples = ["$ fauna stack list"];
+  static examples = ["$ fauna environment list"];
 
   async run() {
     const config = ShellConfig.read({}, this);
@@ -24,9 +24,9 @@ NOTE: \`fauna project\` and \`fauna stack\` are still in beta. Behavior is subje
       this.error("No project config found");
     }
 
-    this.log("Available stacks:");
-    for (const key of Object.keys(config.projectConfig.stacks)) {
-      if (config.projectConfig.defaultStack === key) {
+    this.log("Available environments:");
+    for (const key of Object.keys(config.projectConfig.environments)) {
+      if (config.projectConfig?.defaultEnvironment === key) {
         this.log(chalk.green("* ") + key);
       } else {
         this.log("  " + key);

@@ -1,9 +1,9 @@
 import { Command, Flags } from "@oclif/core";
-import { ShellConfig } from "./config";
-import { query as q, errors, Client } from "faunadb";
 import { green } from "chalk";
-import FaunaClient from "./fauna-client";
+import { Client, errors, query as q } from "faunadb";
 import fetch from "node-fetch";
+import { ShellConfig } from "./config";
+import FaunaClient from "./fauna-client";
 
 /**
  * This is the base class for all fauna-shell commands.
@@ -288,8 +288,8 @@ FaunaCommand.flags = {
   endpoint: Flags.string({
     description: "Connection endpoint, from ~/.fauna-shell",
   }),
-  stack: Flags.string({
-    description: "Stack to use, from a Fauna project",
+  environment: Flags.string({
+    description: "Environment to use, from a Fauna project",
   }),
 };
 

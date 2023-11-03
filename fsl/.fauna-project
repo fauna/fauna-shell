@@ -1,6 +1,6 @@
 schema_directory=schema
 default=dev
 
-[stack.dev]
+[environment.dev]
 endpoint=cli_test-us
 database=FaunaCLITest

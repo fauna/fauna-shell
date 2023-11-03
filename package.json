@@ -82,23 +82,23 @@
   "license": "MPL-2.0",
   "main": "dist/index.js",
   "oclif": {
+    "helpClass": "dist/custom-help",
     "bin": "fauna",
     "dirname": "fauna",
     "commands": "./dist/commands",
-    "plugins": [
-      "@oclif/plugin-help",
-      "@oclif/plugin-plugins"
-    ],
     "topicSeparator": " ",
     "topics": {
       "endpoint": {
         "description": "Manage endpoints in ~/.fauna-shell."
       },
-      "project": {
-        "description": "Manage project settings in .fauna-project.\nNOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject to change."
+      "schema": {
+        "description": "Manage database schema"
       },
-      "stack": {
-        "description": "Manage stacks in the current project.\nNOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject to change."
+      "project": {
+        "description": "[BETA] Manage project settings in .fauna-project.\nNOTE: `fauna project` and `fauna environment` are still in beta. Behavior is subject to change."
+      },
+      "environment": {
+        "description": "[BETA] Manage environments in the current project.\nNOTE: `fauna project` and `fauna environment` are still in beta. Behavior is subject to change."
       }
     }
   },

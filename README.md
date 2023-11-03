@@ -481,7 +481,7 @@ the queries file on the default fauna shell endpoint.
 - [`fauna project`](#fauna-project)
 - [`fauna schema`](#fauna-schema)
 - [`fauna shell`](#fauna-shell)
-- [`fauna stack`](#fauna-stack)
+- [`fauna environment`](#fauna-environment)
 - [`fauna upload-graphql-schema`](#fauna-upload-graphql-schema)
 
 ## `fauna cloud-login`
@@ -516,7 +516,7 @@ Create a database.
 
 USAGE
   $ fauna create-database DBNAME [--url <value>] [--timeout <value>]
-    [--secret <value>] [--endpoint <value>] [--stack <value>]
+    [--secret <value>] [--endpoint <value>] [--environment <value>]
 
 ARGUMENTS
   DBNAME  database name
@@ -524,7 +524,7 @@ ARGUMENTS
 FLAGS
   --endpoint=<value>  Connection endpoint, from ~/.fauna-shell
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --timeout=<value>   Connection timeout in milliseconds
   --url=<value>       Database URL. Overrides the `url` in ~/.fauna-shell
 
@@ -552,7 +552,7 @@ Create a key for the specified database.
 
 USAGE
   $ fauna create-key DBNAME [ROLE] [--url <value>] [--timeout <value>]
-    [--secret <value>] [--endpoint <value>] [--stack <value>]
+    [--secret <value>] [--endpoint <value>] [--environment <value>]
 
 ARGUMENTS
   DBNAME  database name
@@ -561,7 +561,7 @@ ARGUMENTS
 FLAGS
   --endpoint=<value>  Connection endpoint, from ~/.fauna-shell
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --timeout=<value>   Connection timeout in milliseconds
   --url=<value>       Database URL. Overrides the `url` in ~/.fauna-shell
 
@@ -586,7 +586,7 @@ Delete a database.
 
 USAGE
   $ fauna delete-database DBNAME [--url <value>] [--timeout <value>]
-    [--secret <value>] [--endpoint <value>] [--stack <value>]
+    [--secret <value>] [--endpoint <value>] [--environment <value>]
 
 ARGUMENTS
   DBNAME  database name
@@ -594,7 +594,7 @@ ARGUMENTS
 FLAGS
   --endpoint=<value>  Connection endpoint, from ~/.fauna-shell
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --timeout=<value>   Connection timeout in milliseconds
   --url=<value>       Database URL. Overrides the `url` in ~/.fauna-shell
 
@@ -619,7 +619,7 @@ Delete a key.
 
 USAGE
   $ fauna delete-key KEYNAME [--url <value>] [--timeout <value>]
-    [--secret <value>] [--endpoint <value>] [--stack <value>]
+    [--secret <value>] [--endpoint <value>] [--environment <value>]
 
 ARGUMENTS
   KEYNAME  key name
@@ -627,7 +627,7 @@ ARGUMENTS
 FLAGS
   --endpoint=<value>  Connection endpoint, from ~/.fauna-shell
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --timeout=<value>   Connection timeout in milliseconds
   --url=<value>       Database URL. Overrides the `url` in ~/.fauna-shell
 
@@ -666,7 +666,7 @@ ARGUMENTS
 FLAGS
   --non-interactive  Disables interaction
   --secret=<value>   Database secret
-  --set-default      Sets this stack as the default
+  --set-default      Sets this environment as the default
   --url=<value>      Database URL
 
 DESCRIPTION
@@ -769,7 +769,7 @@ Evaluate the given query.
 
 USAGE
   $ fauna eval [DBNAME] [QUERY] [--url <value>] [--timeout
-    <value>] [--secret <value>] [--endpoint <value>] [--stack <value>] [--file
+    <value>] [--secret <value>] [--endpoint <value>] [--environment <value>] [--file
     <value>] [--stdin] [--output <value>] [--format json|json-tagged|shell]
     [--version 4|10] [--typecheck]
 
@@ -784,7 +784,7 @@ FLAGS
                       <options: json|json-tagged|shell>
   --output=<value>    File to write output to
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --stdin             Read file input from stdin. Writes to stdout by default
   --timeout=<value>   Connection timeout in milliseconds
   --typecheck         Enable typechecking
@@ -824,7 +824,7 @@ TOPICS
   plugins   List installed plugins.
   project   Manage project settings in .fauna-project.
   schema    Print the diff between local and remote schema.
-  stack     Manage stacks in the current project.
+  environment     Manage environments in the current project.
 
 COMMANDS
   add-endpoint           Add an endpoint to ~/.fauna-shell.
@@ -857,7 +857,7 @@ Import data to Fauna.
 
 USAGE
   $ fauna import --path <value> [--url <value>] [--timeout <value>]
-    [--secret <value>] [--endpoint <value>] [--stack <value>] [--db <value>]
+    [--secret <value>] [--endpoint <value>] [--environment <value>] [--db <value>]
     [--collection <value>] [--type <value>] [--append] [--allow-short-rows]
     [--dry-run] [--treat-empty-csv-cells-as empty|null]
 
@@ -890,8 +890,8 @@ FLAGS
   --secret=<value>
       Secret key. Overrides the `secret` in ~/.fauna-shell
 
-  --stack=<value>
-      Stack to use, from a Fauna project
+  --environment=<value>
+      environment to use, from a Fauna project
 
   --timeout=<value>
       Connection timeout in milliseconds
@@ -982,12 +982,12 @@ List child databases in the current database.
 
 USAGE
   $ fauna list-databases [--url <value>] [--timeout <value>] [--secret
-    <value>] [--endpoint <value>] [--stack <value>]
+    <value>] [--endpoint <value>] [--environment <value>]
 
 FLAGS
   --endpoint=<value>  Connection endpoint, from ~/.fauna-shell
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --timeout=<value>   Connection timeout in milliseconds
   --url=<value>       Database URL. Overrides the `url` in ~/.fauna-shell
 
@@ -1012,12 +1012,12 @@ List keys in the current database.
 
 USAGE
   $ fauna list-keys [--url <value>] [--timeout <value>] [--secret
-    <value>] [--endpoint <value>] [--stack <value>]
+    <value>] [--endpoint <value>] [--environment <value>]
 
 FLAGS
   --endpoint=<value>  Connection endpoint, from ~/.fauna-shell
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --timeout=<value>   Connection timeout in milliseconds
   --url=<value>       Database URL. Overrides the `url` in ~/.fauna-shell
 
@@ -1055,7 +1055,7 @@ ARGUMENTS
 DESCRIPTION
   Initialize a project directory by generating a .fauna-project file.
 
-  NOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject
+  NOTE: `fauna project` and `fauna environment` are still in beta. Behavior is subject
   to change.
 
 EXAMPLES
@@ -1081,14 +1081,14 @@ Print the diff between local and remote schema.
 
 USAGE
   $ fauna schema diff [--url <value>] [--timeout <value>] [--secret
-    <value>] [--endpoint <value>] [--stack <value>] [--dir <value>]
+    <value>] [--endpoint <value>] [--environment <value>] [--dir <value>]
 
 FLAGS
   --dir=<value>       The directory of .fsl files to push. Defaults to the
                       directory of `.fauna-project`
   --endpoint=<value>  Connection endpoint, from ~/.fauna-shell
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --timeout=<value>   Connection timeout in milliseconds
   --url=<value>       Database URL. Overrides the `url` in ~/.fauna-shell
 
@@ -1122,7 +1122,7 @@ Push the current project's .fsl files to Fauna.
 
 USAGE
   $ fauna schema push [--url <value>] [--timeout <value>] [--secret
-    <value>] [--endpoint <value>] [--stack <value>] [--dir <value>] [--force]
+    <value>] [--endpoint <value>] [--environment <value>] [--dir <value>] [--force]
 
 FLAGS
   --dir=<value>       The directory of .fsl files to push. Defaults to the
@@ -1130,7 +1130,7 @@ FLAGS
   --endpoint=<value>  Connection endpoint, from ~/.fauna-shell
   --force             Push the change without a diff or schema version check
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --timeout=<value>   Connection timeout in milliseconds
   --url=<value>       Database URL. Overrides the `url` in ~/.fauna-shell
 
@@ -1161,7 +1161,7 @@ Pull a database schema's .fsl files into the current project.
 
 USAGE
   $ fauna schema pull [--url <value>] [--timeout <value>] [--secret
-    <value>] [--endpoint <value>] [--stack <value>] [--dir <value>] [--delete]
+    <value>] [--endpoint <value>] [--environment <value>] [--dir <value>] [--delete]
 
 FLAGS
   --delete            Delete .fsl files in the target directory that are not
@@ -1170,7 +1170,7 @@ FLAGS
                       directory of `.fauna-project`
   --endpoint=<value>  Connection endpoint, from ~/.fauna-shell
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --timeout=<value>   Connection timeout in milliseconds
   --url=<value>       Database URL. Overrides the `url` in ~/.fauna-shell
 
@@ -1190,7 +1190,7 @@ Start an interactive shell.
 
 USAGE
   $ fauna shell [DB_PATH] [--url <value>] [--timeout <value>]
-    [--secret <value>] [--endpoint <value>] [--stack <value>] [--file <value>]
+    [--secret <value>] [--endpoint <value>] [--environment <value>] [--file <value>]
     [--stdin] [--output <value>] [--format json|json-tagged|shell] [--version
     4|10] [--typecheck]
 
@@ -1204,7 +1204,7 @@ FLAGS
                       <options: json|json-tagged|shell>
   --output=<value>    File to write output to
   --secret=<value>    Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>     Stack to use, from a Fauna project
+  --environment=<value>     environment to use, from a Fauna project
   --stdin             Read file input from stdin. Writes to stdout by default
   --timeout=<value>   Connection timeout in milliseconds
   --typecheck         Enable typechecking
@@ -1221,87 +1221,87 @@ EXAMPLES
   $ fauna shell my_db/nested_db
 ```
 
-## `fauna stack`
+## `fauna environment`
 
-Commands to manage stacks in .fauna-project.
+Commands to manage environments in .fauna-project.
 
-### `fauna stack add`
+### `fauna environment add`
 
-Add a new stack to .fauna-project. All flags are optional, and the user will
+Add a new environment to .fauna-project. All flags are optional, and the user will
 be prompted to fill in any missing values that are needed.
 
 If `--non-interactive` is set, no prompts will be shown, and the `--url` and
 `--secret` flags will be required.
 
 ```sh
-Add a new stack to `.fauna-project`.
+Add a new environment to `.fauna-project`.
 
 USAGE
-  $ fauna stack add [--non-interactive --name <value> --endpoint
+  $ fauna environment add [--non-interactive --name <value> --endpoint
     <value> --database <value>] [--set-default]
 
 FLAGS
-  --database=<value>  Database path to use in this stack
-  --endpoint=<value>  Endpoint to use in this stack
-  --name=<value>      New stack name
+  --database=<value>  Database path to use in this environment
+  --endpoint=<value>  Endpoint to use in this environment
+  --name=<value>      New environment name
   --non-interactive   Disable interaction
-  --set-default       Set this stack as the default
+  --set-default       Set this environment as the default
 
 DESCRIPTION
-  Add a new stack to `.fauna-project`.
+  Add a new environment to `.fauna-project`.
 
-  NOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject
+  NOTE: `fauna project` and `fauna environment` are still in beta. Behavior is subject
   to change.
 
 EXAMPLES
-  $ fauna stack add
+  $ fauna environment add
 
-  $ fauna stack add --name my-app --endpoint dev --database my-database
+  $ fauna environment add --name my-app --endpoint dev --database my-database
 
-  $ fauna stack add --name my-app --endpoint dev --database my-database --set-default
+  $ fauna environment add --name my-app --endpoint dev --database my-database --set-default
 ```
 
-### `fauna stack list`
+### `fauna environment list`
 
-List stacks in .fauna-project.
+List environments in .fauna-project.
 
 ```sh
-List stacks available in `.fauna-project`.
+List environments available in `.fauna-project`.
 
 USAGE
-  $ fauna stack list
+  $ fauna environment list
 
 DESCRIPTION
-  List stacks available in `.fauna-project`.
+  List environments available in `.fauna-project`.
 
-  NOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject
+  NOTE: `fauna project` and `fauna environment` are still in beta. Behavior is subject
   to change.
 
 EXAMPLES
-  $ fauna stack list
+  $ fauna environment list
 ```
 
-### `fauna stack select`
+### `fauna environment select`
 
-Update the default stack in .fauna-project.
+Update the default environment in .fauna-project.
 
 ```sh
-Update the default stack in `.fauna-project`.
+Update the default environment in `.fauna-project`.
 
 USAGE
-  $ fauna stack select STACK
+  $ fauna environment select environment
 
 ARGUMENTS
-  STACK  The new default stack to use
+  environment  The new default environment to use
 
 DESCRIPTION
-  Update the default stack in `.fauna-project`.
+  Update the default environment in `.fauna-project`.
 
-  NOTE: `fauna project` and `fauna stack` are still in beta. Behavior is subject
+  NOTE: `fauna project` and `fauna environment` are still in beta. Behavior is subject
   to change.
 
 EXAMPLES
-  $ fauna stack select my-stack
+  $ fauna environment select my-environment
 ```
 
 ## `fauna upload-graphql-schema`
@@ -1313,7 +1313,7 @@ Upload GraphQL schema.
 
 USAGE
   $ fauna upload-graphql-schema GRAPHQLFILEPATH [--url <value>] [--timeout <value>]
-    [--secret <value>] [--endpoint <value>] [--stack <value>] [--graphqlHost
+    [--secret <value>] [--endpoint <value>] [--environment <value>] [--graphqlHost
     <value>] [--graphqlPort <value>] [--mode merge|override|replace]
 
 ARGUMENTS
@@ -1326,7 +1326,7 @@ FLAGS
   --mode=<option>        [default: merge] Upload mode
                          <options: merge|override|replace>
   --secret=<value>       Secret key. Overrides the `secret` in ~/.fauna-shell
-  --stack=<value>        Stack to use, from a Fauna project
+  --environment=<value>        environment to use, from a Fauna project
   --timeout=<value>      Connection timeout in milliseconds
   --url=<value>          Database URL. Overrides the `url` in ~/.fauna-shell
 
