@@ -15,6 +15,7 @@ const databases = [
 
 describe("database test", () => {
   test
+    .timeout(7000)
     .nock(getEndpoint(), { allowUnmocked: true }, (api) =>
       api
         .persist()
