@@ -1,12 +1,12 @@
-import fs from "fs";
 import { expect } from "chai";
+import fs from "fs";
+import sinon from "sinon";
 import {
   ShellConfig,
   ShellOpts,
   getProjectConfigPath,
   getRootConfigPath,
 } from "../../src/lib/config";
-import sinon from "sinon";
 import { Secret } from "../../src/lib/secret";
 
 const lookupEndpoint = (opts: ShellOpts & { scope?: string }) => {
@@ -229,7 +229,7 @@ describe("local config", () => {
         },
         projectConfig: {
           default: "my-app",
-          stack: {
+          environment: {
             "my-app": {
               endpoint: "my-endpoint-2",
               database: "foo",
@@ -258,7 +258,7 @@ describe("local config", () => {
         },
         projectConfig: {
           default: "my-app",
-          stack: {
+          environment: {
             "my-app": {
               endpoint: "my-endpoint-2",
               database: "my-db",
@@ -296,7 +296,7 @@ describe("local config with flags", () => {
         },
         projectConfig: {
           default: "my-app",
-          stack: {
+          environment: {
             "my-app": {
               endpoint: "my-endpoint-2",
               database: "foo",
@@ -310,11 +310,11 @@ describe("local config with flags", () => {
     });
   });
 
-  it("allows overriding stack through --stack", () => {
+  it("allows overriding environment through --environment", () => {
     expect(
       lookupEndpoint({
         flags: {
-          stack: "my-app-3",
+          environment: "my-app-3",
         },
         rootConfig: {
           default: "my-endpoint",
@@ -332,7 +332,7 @@ describe("local config with flags", () => {
         },
         projectConfig: {
           default: "my-app",
-          stack: {
+          environment: {
             "my-app": {
               endpoint: "my-endpoint-2",
               database: "foo",
@@ -354,7 +354,7 @@ describe("local config with flags", () => {
     expect(
       lookupEndpoint({
         flags: {
-          stack: "my-app-3",
+          environment: "my-app-3",
           endpoint: "my-endpoint-4",
         },
         rootConfig: {
@@ -377,7 +377,7 @@ describe("local config with flags", () => {
         },
         projectConfig: {
           default: "my-app",
-          stack: {
+          environment: {
             "my-app": {
               endpoint: "my-endpoint-2",
               database: "somethin",
@@ -414,7 +414,7 @@ describe("local config with flags", () => {
     });
   });
 
-  it("concats scope from args and stack", () => {
+  it("concats scope from args and environment", () => {
     expect(
       lookupEndpoint({
         flags: {},
@@ -427,7 +427,7 @@ describe("local config with flags", () => {
         },
         projectConfig: {
           default: "my-app",
-          stack: {
+          environment: {
             "my-app": {
               endpoint: "my-endpoint",
               database: "my-db",

@@ -1,10 +1,10 @@
-import { expect, test } from "@oclif/test";
-import { ShellConfig } from "../../src/lib/config";
-import sinon, { SinonStub } from "sinon";
-import AddStackCommand from "../../src/commands/stack/add";
-import ListStackCommand from "../../src/commands/stack/list";
-import SelectStackCommand from "../../src/commands/stack/select";
 import { Config } from "@oclif/core";
+import { expect, test } from "@oclif/test";
+import sinon, { SinonStub } from "sinon";
+import AddEnvironmentComand from "../../src/commands/environment/add";
+import ListEnvironmentCommand from "../../src/commands/environment/list";
+import SelectEnvironmentCommand from "../../src/commands/environment/select";
+import { ShellConfig } from "../../src/lib/config";
 
 const rootConfig = {
   "my-endpoint": {
@@ -27,12 +27,12 @@ const stubbedProjectConfig = (
   return config as any;
 };
 
-describe("stack:add", () => {
+describe("environment:add", () => {
   test
     .add("config", () =>
       stubbedProjectConfig({
         default: "my-app",
-        stack: {
+        environment: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -42,7 +42,7 @@ describe("stack:add", () => {
     )
     .stdout()
     .do((ctx) =>
-      new AddStackCommand(
+      new AddEnvironmentComand(
         [
           "--non-interactive",
           "--name",
@@ -55,14 +55,14 @@ describe("stack:add", () => {
         new Config({} as any)
       ).execute(ctx.config)
     )
-    .it("adds a stack", (ctx) => {
+    .it("adds a environment", (ctx) => {
       expect(ctx.stdout).to.equal(
-        "Saved stack foobar to /foo/bar/.fauna-project\n"
+        "Saved environment foobar to /foo/bar/.fauna-project\n"
       );
       expect(ctx.config.projectConfig).to.deep.equal({
-        defaultStack: "my-app",
+        defaultEnvironment: "my-app",
         schemaDir: undefined,
-        stacks: {
+        environments: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -80,7 +80,7 @@ describe("stack:add", () => {
     .add("config", () =>
       stubbedProjectConfig({
         default: "my-app",
-        stack: {
+        environment: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -90,7 +90,7 @@ describe("stack:add", () => {
     )
     .stdout()
     .do((ctx) =>
-      new AddStackCommand(
+      new AddEnvironmentComand(
         [
           "--non-interactive",
           "--name",
@@ -104,14 +104,14 @@ describe("stack:add", () => {
         new Config({} as any)
       ).execute(ctx.config)
     )
-    .it("adds a stack as default", (ctx) => {
+    .it("adds a environment as default", (ctx) => {
       expect(ctx.stdout).to.equal(
-        "Saved stack foobar to /foo/bar/.fauna-project\n"
+        "Saved environment foobar to /foo/bar/.fauna-project\n"
       );
       expect(ctx.config.projectConfig).to.deep.equal({
-        defaultStack: "foobar",
+        defaultEnvironment: "foobar",
         schemaDir: undefined,
-        stacks: {
+        environments: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -129,7 +129,7 @@ describe("stack:add", () => {
     .add("config", () =>
       stubbedProjectConfig({
         default: "my-app",
-        stack: {
+        environment: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -139,7 +139,7 @@ describe("stack:add", () => {
     )
     .stdout()
     .do((ctx) =>
-      new AddStackCommand(
+      new AddEnvironmentComand(
         [
           "--non-interactive",
           "--name",
@@ -153,13 +153,13 @@ describe("stack:add", () => {
       ).execute(ctx.config)
     )
     .catch((e) => {
-      expect(e.message).to.equal("Stack my-app already exists");
+      expect(e.message).to.equal("Environment my-app already exists");
     })
-    .it("disallows stacks with the same name", (ctx) => {
+    .it("disallows environments with the same name", (ctx) => {
       expect(ctx.config.projectConfig).to.deep.equal({
-        defaultStack: "my-app",
+        defaultEnvironment: "my-app",
         schemaDir: undefined,
-        stacks: {
+        environments: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -173,7 +173,7 @@ describe("stack:add", () => {
     .add("config", () =>
       stubbedProjectConfig({
         default: "my-app",
-        stack: {
+        environment: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -183,7 +183,7 @@ describe("stack:add", () => {
     )
     .stdout()
     .do((ctx) =>
-      new AddStackCommand(
+      new AddEnvironmentComand(
         [
           "--non-interactive",
           "--name",
@@ -201,9 +201,9 @@ describe("stack:add", () => {
     })
     .it("disallows endpoints that don't exist", (ctx) => {
       expect(ctx.config.projectConfig).to.deep.equal({
-        defaultStack: "my-app",
+        defaultEnvironment: "my-app",
         schemaDir: undefined,
-        stacks: {
+        environments: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -214,12 +214,12 @@ describe("stack:add", () => {
     });
 });
 
-describe("stack:list", () => {
+describe("environment:list", () => {
   test
     .add("config", () =>
       stubbedProjectConfig({
         default: "my-app",
-        stack: {
+        environment: {
           foobar: {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -237,22 +237,22 @@ describe("stack:list", () => {
     )
     .stdout()
     .do((ctx) =>
-      new ListStackCommand([], new Config({} as any)).execute(ctx.config)
+      new ListEnvironmentCommand([], new Config({} as any)).execute(ctx.config)
     )
-    .it("lists stack", (ctx) => {
+    .it("lists environment", (ctx) => {
       expect(ctx.stdout).to.equal(
-        "Available stacks:\n  foobar\n* my-app\n  baz\n"
+        "Available environments:\n  foobar\n* my-app\n  baz\n"
       );
       expect(ctx.config.saveProjectConfig.called).to.be.false;
     });
 });
 
-describe("stack:select", () => {
+describe("environment:select", () => {
   test
     .add("config", () =>
       stubbedProjectConfig({
         default: "my-app",
-        stack: {
+        environment: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -266,16 +266,16 @@ describe("stack:select", () => {
     )
     .stdout()
     .do((ctx) =>
-      new SelectStackCommand(["foo-app"], new Config({} as any)).execute(
+      new SelectEnvironmentCommand(["foo-app"], new Config({} as any)).execute(
         ctx.config
       )
     )
-    .it("selects a stack", (ctx) => {
-      expect(ctx.stdout).to.equal("Selected stack foo-app\n");
+    .it("selects a environment", (ctx) => {
+      expect(ctx.stdout).to.equal("Selected environment foo-app\n");
       expect(ctx.config.projectConfig).to.deep.equal({
-        defaultStack: "foo-app",
+        defaultEnvironment: "foo-app",
         schemaDir: undefined,
-        stacks: {
+        environments: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -293,7 +293,7 @@ describe("stack:select", () => {
     .add("config", () =>
       stubbedProjectConfig({
         default: "my-app",
-        stack: {
+        environment: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",
@@ -307,20 +307,20 @@ describe("stack:select", () => {
     )
     .stdout()
     .do((ctx) =>
-      new SelectStackCommand(["baz-app"], new Config({} as any)).execute(
+      new SelectEnvironmentCommand(["baz-app"], new Config({} as any)).execute(
         ctx.config
       )
     )
     .catch((e) => {
       expect(e.message).to.equal(
-        "Stack baz-app not found in project config. Run `fauna stack list` to see available stacks"
+        "Environment baz-app not found in project config. Run `fauna environment list` to see available environments"
       );
     })
-    .it("disallows stacks that don't exist", (ctx) => {
+    .it("disallows environments that don't exist", (ctx) => {
       expect(ctx.config.projectConfig).to.deep.equal({
-        defaultStack: "my-app",
+        defaultEnvironment: "my-app",
         schemaDir: undefined,
-        stacks: {
+        environments: {
           "my-app": {
             endpoint: "my-endpoint",
             database: "my-db",

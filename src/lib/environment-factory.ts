@@ -1,10 +1,10 @@
+import { confirm, input } from "@inquirer/prompts";
 import { Command, ux } from "@oclif/core";
-import { input, confirm } from "@inquirer/prompts";
 import { Endpoint, ShellConfig } from "./config";
-import { searchSelect } from "./search-select";
 import FaunaClient, { QuerySuccess } from "./fauna-client";
+import { searchSelect } from "./search-select";
 
-export interface AddStackParams {
+export interface AddEnvironmentParams {
   endpoint?: string;
   database?: string;
   name?: string;
@@ -12,7 +12,7 @@ export interface AddStackParams {
   nonInteractive?: boolean;
 }
 
-export class StackFactory {
+export class EnvironmentFactory {
   cmd: Command;
   config: ShellConfig;
 
@@ -45,10 +45,10 @@ export class StackFactory {
   /**
    *
    * @param cmd - used to send info/errors to the user.
-   * This method will be executed from the project init as well as stack add method
+   * This method will be executed from the project init as well as environment add method
    * @param config
    */
-  async addStack(params?: AddStackParams) {
+  async addEnvironment(params?: AddEnvironmentParams) {
     if (
       params?.endpoint === undefined &&
       Object.keys(this.config.rootConfig.endpoints).length === 0
@@ -58,13 +58,15 @@ export class StackFactory {
       );
     }
 
-    const validateStackName = (input: string) => {
+    const validateEnvironmentName = (input: string) => {
       if (input.length === 0) {
-        return "Stack name cannot be empty";
+        return "Environment name cannot be empty";
       } else if (
-        Object.keys(this.config.projectConfig?.stacks ?? {}).includes(input)
+        Object.keys(this.config.projectConfig?.environments ?? {}).includes(
+          input
+        )
       ) {
-        return `Stack ${input} already exists`;
+        return `Environment ${input} already exists`;
       } else {
         return true;
       }
@@ -73,10 +75,10 @@ export class StackFactory {
     const name =
       params?.name ??
       (await input({
-        message: "Stack name",
-        validate: validateStackName,
+        message: "Environment name",
+        validate: validateEnvironmentName,
       }));
-    const res = validateStackName(name);
+    const res = validateEnvironmentName(name);
     if (res !== true) {
       this.cmd.error(res as string);
     }
@@ -98,19 +100,19 @@ export class StackFactory {
       (params?.nonInteractive
         ? false
         : await confirm({
-            message: "Make this stack default",
+            message: "Make this environment default",
           }));
 
     if (setDefault) {
-      this.config.projectConfig!.defaultStack = name;
+      this.config.projectConfig!.defaultEnvironment = name;
     }
 
-    this.config.projectConfig!.stacks[name] = {
+    this.config.projectConfig!.environments[name] = {
       endpoint: endpointName,
       database: databaseName,
     };
     this.config.saveProjectConfig();
-    console.log(`Saved stack ${name} to ${this.config.projectConfigFile()}`);
+    console.log(`Saved environment ${name} to ${this.config.projectConfigFile()}`);
   }
 
   promptDatabasePath = async (endpoint: Endpoint): Promise<string> => {

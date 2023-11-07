@@ -1,5 +1,5 @@
-import { Config, EndpointConfig, InvalidConfigError } from ".";
 import fs from "fs";
+import { Config, EndpointConfig, InvalidConfigError } from ".";
 import { Secret } from "../secret";
 const ini = require("ini");
 
@@ -48,13 +48,6 @@ export class RootConfig {
     if (this.defaultEndpoint === "default") {
       throw new InvalidConfigError(
         "Default endpoint cannot be named 'default'"
-      );
-    } else if (
-      this.defaultEndpoint &&
-      this.endpoints[this.defaultEndpoint] === undefined
-    ) {
-      throw new InvalidConfigError(
-        `Default endpoint '${this.defaultEndpoint}' was not found`
       );
     }
   }

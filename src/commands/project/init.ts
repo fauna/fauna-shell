@@ -1,16 +1,16 @@
+import { input } from "@inquirer/prompts";
 import { Args, Command } from "@oclif/core";
 import fs from "fs";
+import * as path from "path";
 import {
-  fileExists,
-  getProjectConfigPath,
   PROJECT_FILE_NAME,
   ProjectConfig,
   ShellConfig,
+  fileExists,
+  getProjectConfigPath,
 } from "../../lib/config";
-import * as path from "path";
-import { StackFactory } from "../../lib/stack-factory";
+import { EnvironmentFactory } from "../../lib/environment-factory";
 import { dirExists, dirIsWriteable } from "../../lib/file-util";
-import { input } from "@inquirer/prompts";
 
 export class ProjectInitCommand extends Command {
   static args = {
@@ -24,7 +24,7 @@ export class ProjectInitCommand extends Command {
 
   static description = `Initialize a project directory by generating a .fauna-project file.
 
-NOTE: \`fauna project\` and \`fauna stack\` are still in beta. Behavior is subject to change.`;
+NOTE: \`fauna project\` and \`fauna environment\` are still in beta. Behavior is subject to change.`;
 
   static examples = [
     "$ fauna project init",
@@ -81,8 +81,8 @@ NOTE: \`fauna project\` and \`fauna stack\` are still in beta. Behavior is subje
     const shellConfig = ShellConfig.readWithOverrides({
       projectPath: projectPath,
     });
-    const stackFactory = new StackFactory(this, shellConfig);
-    await stackFactory.addStack({
+    const environmentFactory = new EnvironmentFactory(this, shellConfig);
+    await environmentFactory.addEnvironment({
       default: true,
     });
   }

@@ -1,5 +1,5 @@
-import { Flags, Args, Command, ux } from "@oclif/core";
-import { input, confirm } from "@inquirer/prompts";
+import { confirm, input } from "@inquirer/prompts";
+import { Args, Command, Flags, ux } from "@oclif/core";
 import { Endpoint, ShellConfig, getRootConfigPath } from "../../lib/config";
 import FaunaClient from "../../lib/fauna-client";
 import { Secret } from "../../lib/secret";
@@ -33,7 +33,7 @@ export default class AddEndpointCommand extends Command {
       dependsOn: ["url", "secret"],
     }),
     "set-default": Flags.boolean({
-      description: "Sets this stack as the default",
+      description: "Sets this environment as the default",
     }),
   };
 

@@ -1,35 +1,35 @@
 import { Command, Flags } from "@oclif/core";
 import { ShellConfig } from "../../lib/config";
-import { StackFactory } from "../../lib/stack-factory";
+import { EnvironmentFactory } from "../../lib/environment-factory";
 
-export default class AddStackCommand extends Command {
+export default class AddEnvironmentCommand extends Command {
   static flags = {
     name: Flags.string({
-      description: "New stack name",
+      description: "New environment name",
     }),
     endpoint: Flags.string({
-      description: "Endpoint to use in this stack",
+      description: "Endpoint to use in this environment",
     }),
     database: Flags.string({
-      description: "Database path to use in this stack",
+      description: "Database path to use in this environment",
     }),
     "non-interactive": Flags.boolean({
       description: "Disable interaction",
       dependsOn: ["name", "endpoint", "database"],
     }),
     "set-default": Flags.boolean({
-      description: "Set this stack as the default",
+      description: "Set this environment as the default",
     }),
   };
 
-  static description = `Add a new stack to \`.fauna-project\`.
+  static description = `Add a new environment to \`.fauna-project\`.
 
-NOTE: \`fauna project\` and \`fauna stack\` are still in beta. Behavior is subject to change.`;
+NOTE: \`fauna project\` and \`fauna environment\` are still in beta. Behavior is subject to change.`;
 
   static examples = [
-    "$ fauna stack add",
-    "$ fauna stack add --name my-app --endpoint dev --database my-database",
-    "$ fauna stack add --name my-app --endpoint dev --database my-database --set-default",
+    "$ fauna environment add",
+    "$ fauna environment add --name my-app --endpoint dev --database my-database",
+    "$ fauna environment add --name my-app --endpoint dev --database my-database --set-default",
   ];
 
   async run() {
@@ -47,8 +47,8 @@ NOTE: \`fauna project\` and \`fauna stack\` are still in beta. Behavior is subje
       );
     }
 
-    const stackFactory = new StackFactory(this, config);
-    await stackFactory.addStack({
+    const environmentFactory = new EnvironmentFactory(this, config);
+    await environmentFactory.addEnvironment({
       endpoint: flags.endpoint,
       database: flags.database,
       name: flags.name,

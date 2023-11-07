@@ -1,17 +1,17 @@
 const ini = require("ini");
 
 import * as fs from "fs";
-import { RootConfig, Config, InvalidConfigError } from ".";
+import { Config, InvalidConfigError, RootConfig } from ".";
 
 // Represents `.fauna-project`
 export class ProjectConfig {
-  defaultStack?: string;
+  defaultEnvironment?: string;
   schemaDir?: string;
-  stacks: { [key: string]: Stack };
+  environments: { [key: string]: Environment };
 
   static DEFAULT_FIELD_NAME = "default";
   static SCHEMA_DIRECTORY_FIELD_NAME = "schema_directory";
-  static STACK_FIELD_NAME = "stack";
+  static ENVIRONMENT_FIELD_NAME = "environment";
   /**
    * This method is used to obtain an empty project config when fauna project init is used.
    */
@@ -20,40 +20,40 @@ export class ProjectConfig {
   }
 
   private constructor(
-    stacks: { [key: string]: Stack },
-    defaultStack?: string,
+    environments: { [key: string]: Environment },
+    defaultEnvironment?: string,
     schemaDir?: string
   ) {
-    this.stacks = stacks;
-    this.defaultStack = defaultStack;
+    this.environments = environments;
+    this.defaultEnvironment = defaultEnvironment;
     this.schemaDir = schemaDir;
   }
 
   static fromConfig(config: Config): ProjectConfig {
-    const defaultStack = config.strOpt(ProjectConfig.DEFAULT_FIELD_NAME);
+    const defaultEnvironment = config.strOpt(ProjectConfig.DEFAULT_FIELD_NAME);
     const fslDir = config.strOpt(ProjectConfig.SCHEMA_DIRECTORY_FIELD_NAME);
-    const stacks: { [key: string]: Stack } = config.objectExists(
-      ProjectConfig.STACK_FIELD_NAME
+    const environments: { [key: string]: Environment } = config.objectExists(
+      ProjectConfig.ENVIRONMENT_FIELD_NAME
     )
-      ? Object.fromEntries<Stack>(
-          config.objectsIn("stack").map(([k, v]) => [k, new Stack(v)])
+      ? Object.fromEntries<Environment>(
+          config.objectsIn("environment").map(([k, v]) => [k, new Environment(v)])
         )
       : {};
 
-    if (defaultStack && stacks[defaultStack] === undefined) {
+    if (defaultEnvironment && environments[defaultEnvironment] === undefined) {
       throw new InvalidConfigError(
-        `Default stack '${defaultStack}' was not found`
+        `Default environment '${defaultEnvironment}' was not found`
       );
     }
 
-    return new ProjectConfig(stacks, defaultStack, fslDir);
+    return new ProjectConfig(environments, defaultEnvironment, fslDir);
   }
 
   validate(rootConfig: RootConfig) {
-    for (const stack of Object.values(this.stacks)) {
-      if (rootConfig.endpoints[stack.endpoint] === undefined) {
+    for (const environment of Object.values(this.environments)) {
+      if (rootConfig.endpoints[environment.endpoint] === undefined) {
         throw new InvalidConfigError(
-          `Endpoint '${stack.endpoint}' not found in ~/.fauna-shell`
+          `Endpoint '${environment.endpoint}' not found in ~/.fauna-shell`
         );
       }
     }
@@ -64,10 +64,10 @@ export class ProjectConfig {
       ...(this.schemaDir
         ? { [ProjectConfig.SCHEMA_DIRECTORY_FIELD_NAME]: this.schemaDir }
         : {}),
-      ...(this.defaultStack
-        ? { [ProjectConfig.DEFAULT_FIELD_NAME]: this.defaultStack }
+      ...(this.defaultEnvironment
+        ? { [ProjectConfig.DEFAULT_FIELD_NAME]: this.defaultEnvironment }
         : {}),
-      [ProjectConfig.STACK_FIELD_NAME]: this.stacks,
+      [ProjectConfig.ENVIRONMENT_FIELD_NAME]: this.environments,
     };
 
     const encoded = ini.encode(config);
@@ -75,7 +75,7 @@ export class ProjectConfig {
   }
 }
 
-export class Stack {
+export class Environment {
   /**
    * The endpoint name to use as a base.
    */
