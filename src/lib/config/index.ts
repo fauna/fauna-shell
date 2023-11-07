@@ -290,8 +290,18 @@ export class ShellConfig {
       throw new Error(
         `No endpoint or secret set. Set an endpoint in ~/.fauna-shell, ${PROJECT_FILE_NAME}, or pass --endpoint`
       );
+      /**
+       * If there is no secret flag set we need to ensure we validate we can find a secret
+       * from the endpoint.  Additionally if there is a root config present, we 
+       * want to validate that things line up with the project.  Even if a secret 
+       * flag is set, there could be other properties of the endpoint that we need to 
+       * pull in, url being the current one.
+       * The inverse of this is the running from a pipeline scenario where there is a secret
+       * set and no root config.  In that case we don't want to validate the project configuration.
+       */
+    } else if (this.secretFlag === undefined || !this.rootConfig.isEmpty()) {
+      this.projectConfig?.validate(this.rootConfig);
     }
-    this.projectConfig?.validate(this.rootConfig);
   };
 
   lookupEndpoint = (opts: { scope?: string }): EndpointConfig => {
