@@ -1,7 +1,7 @@
 import { Args, Command } from "@oclif/core";
 import { ShellConfig } from "../../lib/config";
 
-export default class SelectenvironmentCommand extends Command {
+export default class SelectEnvironmentCommand extends Command {
   static args = {
     environment: Args.string({
       description: "The new default environment to use",
