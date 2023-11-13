@@ -15,7 +15,7 @@ export default class AddEndpointCommand extends Command {
 
   static examples = [
     "$ fauna endpoint add",
-    "$ fauna endpoint add localhost --url http://localhost:8443/ --key secret",
+    "$ fauna endpoint add localhost --url http://localhost:8443/ --secret secret",
     "$ fauna endpoint add localhost --set-default",
   ];
 
