@@ -142,12 +142,10 @@ export class EnvironmentFactory {
           }
         },
       });
-      await client.close();
       return res;
     } else if (databasePaths.length === 0) {
       this.cmd.error("No databases found in the given endpoint");
     } else {
-      await client.close();
       return searchSelect({
         message: "Select a database",
         choices: databasePaths.map((database) => ({

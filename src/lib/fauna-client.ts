@@ -5,6 +5,7 @@ export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
 export type QuerySuccess<T> = {
   status: 200;
   body: {
+    summary?: string;
     data: T;
   };
 };
@@ -53,6 +54,10 @@ export default class FaunaClient {
         "x-fauna-source": "Fauna Shell",
         ...(typecheck !== undefined && { "x-typecheck": typecheck.toString() }),
         ...(format !== undefined && { "x-format": format }),
+        ...((this.timeout && {
+          "x-query-timeout-ms": this.timeout.toString(10),
+        }) ??
+          {}),
       },
       body: JSON.stringify({ query }),
     });
@@ -62,9 +67,7 @@ export default class FaunaClient {
     if (res.status === 200 || res.status === 201) {
       return {
         status: 200,
-        body: {
-          data: json.data as T,
-        },
+        body: json,
       };
     } else {
       return {
@@ -78,5 +81,14 @@ export default class FaunaClient {
         },
       };
     }
+  }
+
+  /**
+   * We have two different clients, 1 for v10 and 1 for v4.  The v4 client requires closing
+   * In order to allow commands to just close their client without having to worry about which
+   * client they received, adding this noop method here.
+   */
+  close(): Promise<void> {
+    return Promise.resolve();
   }
 }
