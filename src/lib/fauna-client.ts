@@ -1,27 +1,18 @@
-import { connect, constants } from "http2";
-
-// Copied from the fauna-js driver:
-// https://github.com/fauna/fauna-js/blob/main/src/http-client/node-http2-client.ts
+import fetch from "node-fetch";
 
 export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
 
-export type QueryInfo = {
-  headers: any;
-  body: {
-    summary: string;
-  };
-};
-
-export type QuerySuccess<T> = QueryInfo & {
+export type QuerySuccess<T> = {
   status: 200;
   body: {
     data: T;
   };
 };
 
-export type QueryFailure = QueryInfo & {
-  status: 400;
+export type QueryFailure = {
+  status: number;
   body: {
+    summary?: string;
     error: {
       code: string;
       message?: string;
@@ -30,16 +21,12 @@ export type QueryFailure = QueryInfo & {
 };
 
 export default class FaunaClient {
-  session: any;
+  endpoint: string;
   secret: string;
   timeout?: number;
 
   constructor(opts: { endpoint: string; secret: string; timeout?: number }) {
-    this.session = connect(opts.endpoint, {
-      peerMaxConcurrentStreams: 50,
-    })
-      .once("error", () => this.close())
-      .once("goaway", () => this.close());
+    this.endpoint = opts.endpoint;
     this.secret = opts.secret;
     this.timeout = opts.timeout;
   }
@@ -57,57 +44,39 @@ export default class FaunaClient {
       typecheck: opts?.typecheck ?? undefined,
       secret: opts?.secret ?? this.secret,
     };
-    return new Promise((resolvePromise, rejectPromise) => {
-      let req: any;
-      const onResponse = (http2ResponseHeaders: any) => {
-        const status = http2ResponseHeaders[constants.HTTP2_HEADER_STATUS];
-        let responseData = "";
-
-        req.on("data", (chunk: any) => {
-          responseData += chunk;
-        });
-
-        req.on("end", () => {
-          resolvePromise({
-            status,
-            body: JSON.parse(responseData),
-            headers: http2ResponseHeaders,
-          });
-        });
-      };
-
-      try {
-        const httpRequestHeaders = {
-          Authorization: `Bearer ${secret}`,
-          "x-format": format,
-          "X-Fauna-Source": "Fauna Shell",
-          [constants.HTTP2_HEADER_PATH]: "/query/1",
-          [constants.HTTP2_HEADER_METHOD]: "POST",
-          ...((typecheck && { "x-typecheck": typecheck }) ?? {}),
-          ...((this.timeout && { "x-query-timeout-ms": this.timeout }) ?? {}),
-        };
-
-        req = this.session
-          .request(httpRequestHeaders)
-          .setEncoding("utf8")
-          .on("error", (error: any) => rejectPromise(error))
-          .on("response", onResponse);
-
-        req.write(JSON.stringify({ query }), "utf8");
-
-        // req.setTimeout must be called before req.end()
-        req.setTimeout((this.timeout ?? 0) + 5000, () => {
-          req.destroy(new Error(`Client timeout`));
-        });
-
-        req.end();
-      } catch (error) {
-        rejectPromise(error);
-      }
+    const url = new URL(this.endpoint);
+    url.pathname = "/query/1";
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${secret ?? this.secret}`,
+        "x-fauna-source": "Fauna Shell",
+        ...(typecheck !== undefined && { "x-typecheck": typecheck.toString() }),
+        ...(format !== undefined && { "x-format": format }),
+      },
+      body: JSON.stringify({ query }),
     });
-  }
 
-  async close() {
-    this.session.close();
+    const json = await res.json();
+
+    if (res.status === 200 || res.status === 201) {
+      return {
+        status: 200,
+        body: {
+          data: json.data as T,
+        },
+      };
+    } else {
+      return {
+        status: res.status,
+        body: {
+          summary: json.summary,
+          error: {
+            code: json.error?.code,
+            message: json.error?.message,
+          },
+        },
+      };
+    }
   }
 }
