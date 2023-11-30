@@ -131,6 +131,7 @@ class FaunaCommand extends Command {
           port,
           scheme: protocol?.replace(/:$/, ""),
           secret: connectionOptions.secret.buildSecret({ role }),
+          timeout: this.flags.timeout,
 
           // Force http1. Fixes tests I guess? I spent a solid 30 minutes
           // debugging the whole `nock` thing in our tests, only to realize this
@@ -162,7 +163,7 @@ class FaunaCommand extends Command {
         const client = new FaunaClient({
           endpoint: connectionOptions.url,
           secret: connectionOptions.secret.buildSecret({ role }),
-          time: this.flags.timeout
+          timeout: this.flags.timeout
             ? parseInt(this.flags.timeout, 10)
             : undefined,
         });
@@ -213,10 +214,11 @@ class FaunaCommand extends Command {
       await client.close();
 
       if (!exists) {
-        const fullPath = [...connectionOptions.secret.databaseScope, ...path.slice(0, i + 1)];
-        this.error(
-          `Database '${fullPath.join("/")}' doesn't exist`
-        );
+        const fullPath = [
+          ...connectionOptions.secret.databaseScope,
+          ...path.slice(0, i + 1),
+        ];
+        this.error(`Database '${fullPath.join("/")}' doesn't exist`);
       }
 
       connectionOptions.secret.appendScope(path[i]);

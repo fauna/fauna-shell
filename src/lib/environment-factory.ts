@@ -1,7 +1,7 @@
 import { confirm, input } from "@inquirer/prompts";
 import { Command, ux } from "@oclif/core";
 import { Endpoint, ShellConfig } from "./config";
-import FaunaClient, { QuerySuccess } from "./fauna-client";
+import FaunaClient, { QueryFailure, QuerySuccess } from "./fauna-client";
 import { searchSelect } from "./search-select";
 
 export interface AddEnvironmentParams {
@@ -112,7 +112,9 @@ export class EnvironmentFactory {
       database: databaseName,
     };
     this.config.saveProjectConfig();
-    console.log(`Saved environment ${name} to ${this.config.projectConfigFile()}`);
+    console.log(
+      `Saved environment ${name} to ${this.config.projectConfigFile()}`
+    );
   }
 
   promptDatabasePath = async (endpoint: Endpoint): Promise<string> => {
@@ -124,7 +126,7 @@ export class EnvironmentFactory {
 
     const res = await client.query("0");
     if (res.status !== 200) {
-      this.cmd.error(`${res.body.error.code}`);
+      this.cmd.error(`${(res as QueryFailure).body.error.code}`);
     }
 
     const databasePaths = await this.getDatabasePaths(client);
@@ -140,12 +142,10 @@ export class EnvironmentFactory {
           }
         },
       });
-      await client.close();
       return res;
     } else if (databasePaths.length === 0) {
       this.cmd.error("No databases found in the given endpoint");
     } else {
-      await client.close();
       return searchSelect({
         message: "Select a database",
         choices: databasePaths.map((database) => ({
@@ -199,7 +199,7 @@ export class EnvironmentFactory {
         }
       );
       if (databases.status !== 200) {
-        this.cmd.error(`Error: ${databases.body.error.code}`);
+        this.cmd.error(`Error: ${(databases as QueryFailure).body.error.code}`);
       }
 
       const dbs = (databases as QuerySuccess<any>).body.data;

@@ -83,17 +83,22 @@ class ShellCommand extends EvalCommand {
       if (cmd.trim() === "") return cb();
 
       if (this.flags.version === "10") {
-        const res = await this.performV10Query(
-          this.connection.client,
-          cmd,
-          null,
-          {
+        let res;
+        try {
+          res = await this.performV10Query(this.connection.client, cmd, null, {
             format: "shell",
             version: "10",
             typecheck: this.flags.typecheck,
+          });
+        } catch (err) {
+          let errString = "";
+          if (err.code) {
+            errString = errString.concat(`${err.code}\n`);
           }
-        );
-
+          errString = errString.concat(err.message);
+          console.error(errString);
+          return cb(null);
+        }
         console.log(res);
 
         return cb(null);
