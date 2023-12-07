@@ -330,15 +330,11 @@ export class ShellConfig {
         ...this.errors,
       ];
     }
-    if (!fileExistsWithPermission600(getRootConfigPath())) {
-      if (fileExists(getRootConfigPath())) {
-        return [
-          `${getRootConfigPath()} should have 600 permission. Update the permission of this file.`,
-          ...this.errors,
-        ];
-      } else {
-        return [`${getRootConfigPath()} does not exist.`, ...this.errors];
-      }
+    if (fileExistsWithNonPermission600(getRootConfigPath())) {
+      return [
+        `${getRootConfigPath()} should have 600 permission. Update the permission of this file.`,
+        ...this.errors,
+      ];
     }
 
     return [];
@@ -429,7 +425,7 @@ export const fileExists = (filePath: string): boolean => {
   return stat !== undefined && stat.isFile();
 };
 
-export const fileExistsWithPermission600 = (
+export const fileExistsWithNonPermission600 = (
   filePath: string | undefined
 ): boolean => {
   try {
@@ -439,7 +435,7 @@ export const fileExistsWithPermission600 = (
     const stat = fs.statSync(filePath);
 
     // Check if it's a file and has permission 600
-    return stat.isFile() && (stat.mode & 0o777) === 0o600;
+    return stat.isFile() && (stat.mode & 0o777) !== 0o600;
   } catch (error) {
     // Handle the case where the file doesn't exist or other errors
     return false;
