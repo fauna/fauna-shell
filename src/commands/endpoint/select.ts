@@ -1,4 +1,4 @@
-import { ShellConfig } from "../../lib/config/index";
+import { ShellConfig } from "../../lib/config";
 import { Args, Command } from "@oclif/core";
 import { searchSelect } from "../../lib/search-select";
 

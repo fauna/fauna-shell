@@ -13,7 +13,8 @@ class RunQueriesCommand extends EvalCommand {
   }
 }
 
-RunQueriesCommand.description = "Run the queries found on the file passed to the command.";
+RunQueriesCommand.description =
+  "Run the queries found on the file passed to the command.";
 
 RunQueriesCommand.examples = [
   "$ fauna run-queries dbname --file=/path/to/queries.fql",

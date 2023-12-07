@@ -292,9 +292,9 @@ export class ShellConfig {
       );
       /**
        * If there is no secret flag set we need to ensure we validate we can find a secret
-       * from the endpoint.  Additionally if there is a root config present, we 
-       * want to validate that things line up with the project.  Even if a secret 
-       * flag is set, there could be other properties of the endpoint that we need to 
+       * from the endpoint.  Additionally if there is a root config present, we
+       * want to validate that things line up with the project.  Even if a secret
+       * flag is set, there could be other properties of the endpoint that we need to
        * pull in, url being the current one.
        * The inverse of this is the running from a pipeline scenario where there is a secret
        * set and no root config.  In that case we don't want to validate the project configuration.
@@ -329,9 +329,29 @@ export class ShellConfig {
         )}\n Resolve them by ensuring they have a secret defined or remove them if they are not needed.`,
         ...this.errors,
       ];
-    } else {
-      return [];
     }
+    if (!fileExistsWithPermission600(getRootConfigPath())) {
+      if (fileExists(getRootConfigPath())) {
+        return [
+          `${getRootConfigPath()} should have 600 permission. Update the permission of this file.`,
+          ...this.errors,
+        ];
+      } else {
+        return [`${getRootConfigPath()} does not exist.`, ...this.errors];
+      }
+    }
+
+    if (
+      getProjectConfigPath() !== undefined &&
+      !fileExistsWithPermission600(getProjectConfigPath())
+    ) {
+      return [
+        `${getProjectConfigPath()} should have 600 permission. Update the permission of this file.`,
+        ...this.errors,
+      ];
+    }
+
+    return [];
   }
 
   /**
@@ -417,4 +437,21 @@ export const fileExists = (filePath: string): boolean => {
     throwIfNoEntry: false,
   });
   return stat !== undefined && stat.isFile();
+};
+
+export const fileExistsWithPermission600 = (
+  filePath: string | undefined
+): boolean => {
+  try {
+    if (filePath === undefined) {
+      return false;
+    }
+    const stat = fs.statSync(filePath);
+
+    // Check if it's a file and has permission 600
+    return stat.isFile() && (stat.mode & 0o777) === 0o600;
+  } catch (error) {
+    // Handle the case where the file doesn't exist or other errors
+    return false;
+  }
 };

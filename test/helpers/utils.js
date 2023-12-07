@@ -54,7 +54,7 @@ module.exports.evalV10 = (query) => {
       query,
     }),
   });
-}
+};
 
 const fqlToJsonString = (fql) => JSON.stringify(q.wrap(fql));
 module.exports.fqlToJsonString = fqlToJsonString;

@@ -85,9 +85,7 @@ export class RootConfig {
     const config = this.toIni();
 
     const encoded = ini.encode(config);
-    fs.writeFileSync(path, encoded, {
-      mode: 0o600,
-    });
+    fs.writeFileSync(path, encoded, { mode: "600" });
   }
 
   toIni() {

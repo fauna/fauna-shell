@@ -1,5 +1,11 @@
 const { expect, test } = require("@oclif/test");
-const { withOpts, getEndpoint, evalV10, matchFqlReq, withLegacyOpts } = require("../helpers/utils.js");
+const {
+  withOpts,
+  getEndpoint,
+  evalV10,
+  matchFqlReq,
+  withLegacyOpts,
+} = require("../helpers/utils.js");
 const { query: q } = require("faunadb");
 
 describe("eval", () => {
@@ -123,7 +129,9 @@ describe("eval in v10", () => {
     })
     .stdout()
     // --secret is passed by withOpts, and passing a scope with that is allowed.
-    .command(withOpts(["eval", "MyDB", "{ three: 3 }", "--format", "json-tagged"]))
+    .command(
+      withOpts(["eval", "MyDB", "{ three: 3 }", "--format", "json-tagged"])
+    )
     .it("allows setting --secret and scope", (ctx) => {
       expect(JSON.parse(ctx.stdout)).to.deep.equal({ three: { "@int": "3" } });
     });
@@ -143,12 +151,11 @@ describe("eval in v10", () => {
       "--secret",
       `${process.env.FAUNA_SECRET}:MyDB:admin`,
       "--url",
-      getEndpoint()
+      getEndpoint(),
     ])
     .it("allows scoped secrets", (ctx) => {
       expect(JSON.parse(ctx.stdout)).to.deep.equal({ two: { "@int": "3" } });
     });
-
 
   test
     .do(async () => {
@@ -166,10 +173,12 @@ describe("eval in v10", () => {
       "--secret",
       `${process.env.FAUNA_SECRET}:MyDB:admin`,
       "--url",
-      getEndpoint()
+      getEndpoint(),
     ])
     .catch((e) => {
-      expect(e.message).to.equal("Cannot specify database with a secret that contains a database");
+      expect(e.message).to.equal(
+        "Cannot specify database with a secret that contains a database"
+      );
     })
     .it("disallows scoped secrets and a scope argument");
 });
@@ -180,7 +189,7 @@ function mockQuery(api) {
     .post("/", matchFqlReq(q.Now()))
     .reply(200, { resource: new Date() })
     .post("/", matchFqlReq(q.Paginate(q.Collections())))
-    .reply(200, function() {
+    .reply(200, function () {
       const auth = this.req.headers.authorization[0].split(":");
       return {
         resource: {
