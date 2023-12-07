@@ -341,16 +341,6 @@ export class ShellConfig {
       }
     }
 
-    if (
-      getProjectConfigPath() !== undefined &&
-      !fileExistsWithPermission600(getProjectConfigPath())
-    ) {
-      return [
-        `${getProjectConfigPath()} should have 600 permission. Update the permission of this file.`,
-        ...this.errors,
-      ];
-    }
-
     return [];
   }
 

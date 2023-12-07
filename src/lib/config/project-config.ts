@@ -73,7 +73,7 @@ export class ProjectConfig {
     };
 
     const encoded = ini.encode(config);
-    fs.writeFileSync(path, encoded, { mode: "600" });
+    fs.writeFileSync(path, encoded);
   }
 }
 
