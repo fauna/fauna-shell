@@ -36,7 +36,9 @@ export class ProjectConfig {
       ProjectConfig.ENVIRONMENT_FIELD_NAME
     )
       ? Object.fromEntries<Environment>(
-          config.objectsIn("environment").map(([k, v]) => [k, new Environment(v)])
+          config
+            .objectsIn("environment")
+            .map(([k, v]) => [k, new Environment(v)])
         )
       : {};
 
