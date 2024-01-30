@@ -18,6 +18,12 @@ You can install it via npm like this:
 $ npm install -g fauna-shell
 ```
 
+You can upgrade like this:
+
+```
+$ npm update -g fauna-shell
+```
+
 <!-- toc -->
 
 - [Usage](#usage)
