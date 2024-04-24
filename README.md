@@ -473,22 +473,43 @@ the queries file on the default fauna shell endpoint.
 
 <!-- commands -->
 
-- [`fauna cloud-login`](#fauna-cloud-login)
-- [`fauna create-database`](#fauna-create-database)
-- [`fauna create-key`](#fauna-create-key)
-- [`fauna delete-database`](#fauna-delete-database)
-- [`fauna delete-key`](#fauna-delete-key)
-- [`fauna endpoint`](#fauna-endpoint)
-- [`fauna eval`](#fauna-eval)
-- [`fauna help`](#fauna-help)
-- [`fauna import`](#fauna-import)
-- [`fauna list-databases`](#fauna-list-databases)
-- [`fauna list-keys`](#fauna-list-keys)
-- [`fauna project`](#fauna-project)
-- [`fauna schema`](#fauna-schema)
-- [`fauna shell`](#fauna-shell)
-- [`fauna environment`](#fauna-environment)
-- [`fauna upload-graphql-schema`](#fauna-upload-graphql-schema)
+- [Fauna CLI](#fauna-cli)
+- [Usage](#usage)
+- [Technical Requirements](#technical-requirements)
+- [Shell](#shell)
+- [Connecting to different endpoints](#connecting-to-different-endpoints)
+- [Connecting to local endpoints](#connecting-to-local-endpoints)
+- [Overriding Connection Parameters](#overriding-connection-parameters)
+- [Executing queries from a file](#executing-queries-from-a-file)
+- [List of Commands](#list-of-commands)
+  - [`fauna cloud-login`](#fauna-cloud-login)
+  - [`fauna create-database`](#fauna-create-database)
+  - [`fauna create-key`](#fauna-create-key)
+  - [`fauna delete-database`](#fauna-delete-database)
+  - [`fauna delete-key`](#fauna-delete-key)
+  - [`fauna endpoint`](#fauna-endpoint)
+    - [`fauna endpoint add`](#fauna-endpoint-add)
+    - [`fauna endpoint list`](#fauna-endpoint-list)
+    - [`fauna endpoint remove`](#fauna-endpoint-remove)
+    - [`fauna endpoint select`](#fauna-endpoint-select)
+  - [`fauna eval`](#fauna-eval)
+  - [`fauna help`](#fauna-help)
+  - [`fauna import`](#fauna-import)
+  - [`fauna list-databases`](#fauna-list-databases)
+  - [`fauna list-keys`](#fauna-list-keys)
+  - [`fauna project`](#fauna-project)
+    - [`fauna project init`](#fauna-project-init)
+  - [`fauna schema`](#fauna-schema)
+    - [`fauna schema diff`](#fauna-schema-diff)
+    - [`fauna schema push`](#fauna-schema-push)
+    - [`fauna schema pull`](#fauna-schema-pull)
+  - [`fauna shell`](#fauna-shell)
+  - [`fauna environment`](#fauna-environment)
+    - [`fauna environment add`](#fauna-environment-add)
+    - [`fauna environment list`](#fauna-environment-list)
+    - [`fauna environment select`](#fauna-environment-select)
+  - [`fauna upload-graphql-schema`](#fauna-upload-graphql-schema)
+- [Development](#development)
 
 ## `fauna cloud-login`
 
@@ -827,9 +848,9 @@ USAGE
 
 TOPICS
   endpoint     Manage endpoints in ~/.fauna-shell.
-  schema       Manage database schema
-  project      [BETA] Manage project settings in .fauna-project.
-  environment  [BETA] Manage environments in the current project.
+  schema       Manage database schema.
+  project      Manage project settings in .fauna-project.
+  environment  Manage environments in the current project.
 
 COMMANDS
   add-endpoint           Add an endpoint to ~/.fauna-shell.
@@ -1059,9 +1080,6 @@ ARGUMENTS
 DESCRIPTION
   Initialize a project directory by generating a .fauna-project file.
 
-  NOTE: `fauna project` and `fauna environment` are still in beta. Behavior is
-  subject to change.
-
 EXAMPLES
   $ fauna project init
 
@@ -1256,9 +1274,6 @@ FLAGS
 DESCRIPTION
   Add a new environment to `.fauna-project`.
 
-  NOTE: `fauna project` and `fauna environment` are still in beta. Behavior is
-  subject to change.
-
 EXAMPLES
   $ fauna environment add
 
@@ -1280,9 +1295,6 @@ USAGE
 DESCRIPTION
   List environments available in `.fauna-project`.
 
-  NOTE: `fauna project` and `fauna environment` are still in beta. Behavior is
-  subject to change.
-
 EXAMPLES
   $ fauna environment list
 ```
@@ -1302,9 +1314,6 @@ ARGUMENTS
 
 DESCRIPTION
   Update the default environment in `.fauna-project`.
-
-  NOTE: `fauna project` and `fauna environment` are still in beta. Behavior is
-  subject to change.
 
 EXAMPLES
   $ fauna environment select my-environment

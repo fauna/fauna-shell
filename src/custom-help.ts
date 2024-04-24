@@ -23,22 +23,6 @@ export default class CustomHelp extends Help {
     );
     nonBetaTopics.sort((t1, t2) => t1.name.localeCompare(t2.name));
 
-    const betaTopicsSorted = [];
-    const projectTopic = betaTopics.find((t) => t.name === "project");
-    if (projectTopic !== undefined) {
-      betaTopicsSorted.push(projectTopic);
-    }
-
-    const environmentTopic = betaTopics.find((t) => t.name === "environment");
-    if (environmentTopic !== undefined) {
-      betaTopicsSorted.push(environmentTopic);
-    }
-    betaTopicsSorted.push(
-      ...betaTopics.filter(
-        (t) => t.name !== "project" && t.name !== "environment"
-      )
-    );
-
-    return [...nonBetaTopics, ...betaTopicsSorted];
+    return [...nonBetaTopics, ...betaTopics];
   }
 }

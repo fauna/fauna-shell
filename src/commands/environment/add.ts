@@ -22,9 +22,7 @@ export default class AddEnvironmentCommand extends Command {
     }),
   };
 
-  static description = `Add a new environment to \`.fauna-project\`.
-
-NOTE: \`fauna project\` and \`fauna environment\` are still in beta. Behavior is subject to change.`;
+  static description = `Add a new environment to \`.fauna-project\`.`;
 
   static examples = [
     "$ fauna environment add",

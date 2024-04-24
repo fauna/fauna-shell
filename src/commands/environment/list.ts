@@ -5,9 +5,7 @@ import chalk from "chalk";
 export default class ListEnvironmentCommand extends Command {
   static flags = {};
 
-  static description = `List environments available in \`.fauna-project\`.
-
-NOTE: \`fauna project\` and \`fauna environment\` are still in beta. Behavior is subject to change.`;
+  static description = `List environments available in \`.fauna-project\`.`;
 
   static examples = ["$ fauna environment list"];
 
