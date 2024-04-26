@@ -22,9 +22,7 @@ export class ProjectInitCommand extends Command {
     }),
   };
 
-  static description = `Initialize a project directory by generating a .fauna-project file.
-
-NOTE: \`fauna project\` and \`fauna environment\` are still in beta. Behavior is subject to change.`;
+  static description = `Initialize a project directory by generating a .fauna-project file.`;
 
   static examples = [
     "$ fauna project init",

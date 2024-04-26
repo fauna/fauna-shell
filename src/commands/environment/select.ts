@@ -9,9 +9,7 @@ export default class SelectEnvironmentCommand extends Command {
     }),
   };
 
-  static description = `Update the default environment in \`.fauna-project\`.
-
-NOTE: \`fauna project\` and \`fauna environment\` are still in beta. Behavior is subject to change.`;
+  static description = `Update the default environment in \`.fauna-project\`.`;
 
   static examples = ["$ fauna environment select my-environment"];
 

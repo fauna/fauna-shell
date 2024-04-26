@@ -92,13 +92,13 @@
         "description": "Manage endpoints in ~/.fauna-shell."
       },
       "schema": {
-        "description": "Manage database schema"
+        "description": "Manage database schema."
       },
       "project": {
-        "description": "[BETA] Manage project settings in .fauna-project.\nNOTE: `fauna project` and `fauna environment` are still in beta. Behavior is subject to change."
+        "description": "Manage project settings in .fauna-project."
       },
       "environment": {
-        "description": "[BETA] Manage environments in the current project.\nNOTE: `fauna project` and `fauna environment` are still in beta. Behavior is subject to change."
+        "description": "Manage environments in the current project."
       }
     }
   },
