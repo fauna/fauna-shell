@@ -145,9 +145,9 @@ key 200219702370238976 deleted
 
 See [Commands](#commands) for a list of commands and help on their usage.
 
-# Technical Requirements
+# Requirements
 
-In order to use Fauna Shell, you must have Node.js version >= 16 installed.
+To use Fauna Shell, you must have Node.js v20.x or later.
 
 # Shell
 
