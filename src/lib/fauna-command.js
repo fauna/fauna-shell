@@ -87,10 +87,15 @@ class FaunaCommand extends Command {
     }
   }
 
-  mapConnectionError({ err, connectionOptions }) {
+  mapConnectionError({ err, connectionOptions, version }) {
     if (err instanceof errors.Unauthorized) {
       this.error(
         `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
+      );
+    }
+    if (err instanceof errors.PermissionDenied && version === "v4") {
+      this.error(
+        `This account is not allowed to query Fauna v4. Please use the v10 endpoint.`
       );
     }
     this.error(err);
@@ -153,7 +158,7 @@ class FaunaCommand extends Command {
         logConnectionMessage(connectionOptions);
         return this.clients[hashKey];
       } catch (err) {
-        this.mapConnectionError({ err, connectionOptions });
+        this.mapConnectionError({ err, connectionOptions, version });
       }
     } else {
       // construct v10 client
