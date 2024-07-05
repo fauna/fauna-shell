@@ -79,6 +79,19 @@ describe("eval", () => {
       expect(e.message).to.contain("transaction aborted");
     })
     .it("It pretty-prints an error message the command fails");
+
+  test
+    .nock(getEndpoint(), { allowUnmocked: true }, (api) => {
+      api.post("/", matchFqlReq(q.Now())).reply(403, {
+        errors: [{ description: "Permission denied." }],
+      });
+    })
+    .stderr()
+    .command(withOpts(["eval", "--version", "4", "1"]))
+    .catch((e) => {
+      expect(e.message).to.contain("not allowed to query Fauna v4");
+    })
+    .it("displays proper message on v4 403");
 });
 
 describe("eval in v10", () => {

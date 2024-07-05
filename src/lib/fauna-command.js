@@ -92,13 +92,13 @@ class FaunaCommand extends Command {
       this.error(
         `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
       );
-    }
-    if (err instanceof errors.PermissionDenied && version === "v4") {
+    } else if (err instanceof errors.PermissionDenied && version === "4") {
       this.error(
         `This account is not allowed to query Fauna v4. Please use the v10 endpoint.`
       );
+    } else {
+      this.error(err);
     }
-    this.error(err);
   }
 
   async getClient({ dbScope, role, version } = {}) {
