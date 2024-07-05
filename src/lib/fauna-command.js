@@ -92,16 +92,10 @@ class FaunaCommand extends Command {
       this.error(
         `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
       );
-    } else if (
-      err.description === "UnknownError" &&
-      err?.requestResult?.statusCode === 410 &&
-      version === "4"
-    ) {
-      this.error(
-        `This account is not allowed to query Fauna v4. Please use the v10 endpoint.`
-      );
     } else {
-      this.error(err);
+      const code = err?.message ? `${err.message}: ` : '';
+      const details = err?.description ?? '';
+      this.error(`${code}${details}`);
     }
   }
 
