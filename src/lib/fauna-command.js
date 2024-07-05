@@ -88,6 +88,7 @@ class FaunaCommand extends Command {
   }
 
   mapConnectionError({ err, connectionOptions, version }) {
+    console.log("mapping conn error", err);
     if (err instanceof errors.Unauthorized) {
       this.error(
         `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
