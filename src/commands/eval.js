@@ -206,11 +206,16 @@ class EvalCommand extends FaunaCommand {
         // this happens when wrapQueries fails during the runInContext step
         // at that point, we have Errors that didn't get run as a query, so
         // they don't have a .faunaError property
-        this.error(error.message)
+        this.error(error.message);
       } else if (error.faunaError instanceof faunadb.errors.FaunaHTTPError) {
-        this.error(util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), { depth: null, compact: false }))
+        this.error(
+          util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
+            depth: null,
+            compact: false,
+          })
+        );
       } else {
-        this.error(error.faunaError.message)
+        this.error(error.faunaError.message);
       }
     }
   }

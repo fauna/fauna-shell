@@ -87,14 +87,14 @@ class FaunaCommand extends Command {
     }
   }
 
-  mapConnectionError({ err, connectionOptions, version }) {
+  mapConnectionError({ err, connectionOptions }) {
     if (err instanceof errors.Unauthorized) {
       this.error(
         `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
       );
     } else {
-      const code = err?.message ? `${err.message}: ` : '';
-      const details = err?.description ?? '';
+      const code = err?.message ? `${err.message}: ` : "";
+      const details = err?.description ?? "";
       this.error(`${code}${details}`);
     }
   }
