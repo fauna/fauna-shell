@@ -88,12 +88,15 @@ class FaunaCommand extends Command {
   }
 
   mapConnectionError({ err, connectionOptions, version }) {
-    console.log("mapping conn error", err);
     if (err instanceof errors.Unauthorized) {
       this.error(
         `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
       );
-    } else if (err instanceof errors.PermissionDenied && version === "4") {
+    } else if (
+      err.description === "UnknownError" &&
+      err?.requestResult?.statusCode === 410 &&
+      version === "4"
+    ) {
       this.error(
         `This account is not allowed to query Fauna v4. Please use the v10 endpoint.`
       );

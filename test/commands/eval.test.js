@@ -82,8 +82,8 @@ describe("eval", () => {
 
   test
     .nock(getEndpoint(), { allowUnmocked: true }, (api) => {
-      api.post("/", matchFqlReq(q.Now())).reply(403, {
-        errors: [{ description: "Permission denied." }],
+      api.post("/", matchFqlReq(q.Now())).reply(410, {
+        errors: [{ description: "UnknownError" }],
       });
     })
     .stderr()
@@ -91,7 +91,7 @@ describe("eval", () => {
     .catch((e) => {
       expect(e.message).to.contain("not allowed to query Fauna v4");
     })
-    .it("displays proper message on v4 403");
+    .it("displays proper message on v4 410");
 });
 
 describe("eval in v10", () => {
