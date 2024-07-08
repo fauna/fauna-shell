@@ -83,15 +83,15 @@ describe("eval", () => {
   test
     .nock(getEndpoint(), { allowUnmocked: true }, (api) => {
       api.post("/", matchFqlReq(q.Now())).reply(410, {
-        errors: [{ description: "UnknownError" }],
+        errors: [{ description: "v4 error message from core" }],
       });
     })
     .stderr()
     .command(withOpts(["eval", "--version", "4", "1"]))
     .catch((e) => {
-      expect(e.message).to.contain("not allowed to query Fauna v4");
+      expect(e.message).to.contain("v4 error message from core");
     })
-    .it("displays proper message on v4 410");
+    .it("410 from core displays core error message");
 });
 
 describe("eval in v10", () => {
