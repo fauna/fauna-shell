@@ -156,7 +156,7 @@ class FaunaCommand extends Command {
         logConnectionMessage(connectionOptions);
         return this.clients[hashKey];
       } catch (err) {
-        this.mapConnectionError({ err, connectionOptions, version });
+        this.mapConnectionError({ err, connectionOptions });
       }
     } else {
       // construct v10 client
