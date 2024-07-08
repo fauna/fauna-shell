@@ -202,17 +202,21 @@ class EvalCommand extends FaunaCommand {
       const response = await runQueries(res.body, client);
       return await writeFormattedOutput(outputFile, response, flags.format);
     } catch (error) {
-      this.error(
-        error.faunaError instanceof faunadb.errors.FaunaHTTPError
-          ? util.inspect(
-              JSON.parse(error.faunaError.requestResult.responseRaw),
-              {
-                depth: null,
-                compact: false,
-              }
-            )
-          : error.faunaError.message
-      );
+      if (error.faunaError === undefined) {
+        // this happens when wrapQueries fails during the runInContext step
+        // at that point, we have Errors that didn't get run as a query, so
+        // they don't have a .faunaError property
+        this.error(error.message);
+      } else if (error.faunaError instanceof faunadb.errors.FaunaHTTPError) {
+        this.error(
+          util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
+            depth: null,
+            compact: false,
+          })
+        );
+      } else {
+        this.error(error.faunaError.message);
+      }
     }
   }
 

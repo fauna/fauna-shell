@@ -92,8 +92,11 @@ class FaunaCommand extends Command {
       this.error(
         `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
       );
+    } else {
+      const code = err?.message ? `${err.message}: ` : "";
+      const details = err?.description ?? "";
+      this.error(`${code}${details}`);
     }
-    this.error(err);
   }
 
   async getClient({ dbScope, role, version } = {}) {

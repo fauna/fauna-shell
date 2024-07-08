@@ -79,6 +79,19 @@ describe("eval", () => {
       expect(e.message).to.contain("transaction aborted");
     })
     .it("It pretty-prints an error message the command fails");
+
+  test
+    .nock(getEndpoint(), { allowUnmocked: true }, (api) => {
+      api.post("/", matchFqlReq(q.Now())).reply(410, {
+        errors: [{ description: "v4 error message from core" }],
+      });
+    })
+    .stderr()
+    .command(withOpts(["eval", "--version", "4", "1"]))
+    .catch((e) => {
+      expect(e.message).to.contain("v4 error message from core");
+    })
+    .it("410 from core displays core error message");
 });
 
 describe("eval in v10", () => {

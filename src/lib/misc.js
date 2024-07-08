@@ -57,15 +57,21 @@ class QueryError extends Error {
 function wrapQueries(expressions, client) {
   const q = query;
   createContext(q);
-  return expressions.map(
-    (exp, queryNumber) => () =>
-      client.query(runInContext(generate(exp), q)).catch((err) => {
-        throw new QueryError(generate(exp), err, queryNumber + 1);
-      })
-  );
+  return expressions.map((exp, queryNumber) => () => {
+    let query;
+    try {
+      query = runInContext(generate(exp), q);
+    } catch (e) {
+      return Promise.reject(e);
+    }
+
+    return client.query(query).catch((err) => {
+      throw new QueryError(generate(exp), err, queryNumber + 1);
+    });
+  });
 }
 
-export function runQueries(expressions, client) {
+export async function runQueries(expressions, client) {
   if (expressions.length === 1) {
     var f = wrapQueries(expressions, client)[0];
     return f();
