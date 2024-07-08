@@ -7,9 +7,8 @@ import {
   isEnterKey,
   isBackspaceKey,
   KeypressEvent,
-  type PromptConfig,
+  type PromptConfig
 } from "@inquirer/core";
-import type {} from "@inquirer/type";
 import chalk from "chalk";
 import figures from "figures";
 
