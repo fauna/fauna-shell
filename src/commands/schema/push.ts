@@ -1,6 +1,5 @@
 import { confirm } from "@inquirer/prompts";
 import SchemaCommand from "../../lib/schema-command";
-import fetch from "node-fetch";
 import { Flags } from "@oclif/core";
 
 export default class PushSchemaCommand extends SchemaCommand {

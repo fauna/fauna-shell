@@ -1,7 +1,6 @@
 import { Command, Flags } from "@oclif/core";
 import { green } from "chalk";
 import { Client, errors, query as q } from "faunadb";
-import fetch from "node-fetch";
 import { ShellConfig } from "./config";
 import FaunaClient from "./fauna-client";
 

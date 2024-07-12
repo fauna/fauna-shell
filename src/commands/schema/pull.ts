@@ -1,6 +1,5 @@
 import { confirm } from "@inquirer/prompts";
 import SchemaCommand from "../../lib/schema-command";
-import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
 import { Flags } from "@oclif/core";

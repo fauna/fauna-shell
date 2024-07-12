@@ -1,5 +1,4 @@
 import SchemaCommand from "../../lib/schema-command";
-import fetch from "node-fetch";
 
 export default class DiffSchemaCommand extends SchemaCommand {
   static flags = {
