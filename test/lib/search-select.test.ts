@@ -1,6 +1,11 @@
-import { render } from "@inquirer/testing";
+import { render as _render } from "@inquirer/testing";
 import { searchSelect } from "../../src/lib/search-select";
 import { expect } from "chai";
+import { Prompt } from "@inquirer/type";
+
+const render = (arg1: any, arg2: any) => {
+  return _render<Prompt<any, any>>(arg1, arg2);
+};
 
 describe("input prompt", () => {
   it("handle simple use case", async () => {
