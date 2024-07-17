@@ -54,6 +54,8 @@ module.exports.evalV10 = (query) => {
       Authorization: `Bearer ${secret}`,
     },
     body: stream,
+    // https://github.com/nodejs/node/issues/46221
+    duplex: "half",
   });
 };
 

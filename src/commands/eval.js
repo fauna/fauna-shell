@@ -1,7 +1,7 @@
+import { Flags, Args } from "@oclif/core";
 const util = require("util");
 const fs = require("fs");
 const esprima = require("esprima");
-const { Flags, Args } = require("@oclif/core");
 const faunadb = require("faunadb");
 const FaunaCommand = require("../lib/fauna-command.js").default;
 const { readFile, runQueries, writeFile } = require("../lib/misc.js");

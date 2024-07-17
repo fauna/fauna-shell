@@ -1,4 +1,4 @@
-const { Flags } = require("@oclif/core");
+import { Flags } from "@oclif/core";
 const FaunaCommand = require("../lib/fauna-command.js").default;
 const EvalCommand = require("./eval");
 
