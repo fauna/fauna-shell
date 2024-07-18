@@ -20,6 +20,10 @@ export default class DiffSchemaCommand extends SchemaCommand {
         method: "POST",
         headers: { AUTHORIZATION: `Bearer ${secret}` },
         body: this.body(files),
+        // https://github.com/nodejs/node/issues/46221
+        // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1483
+        // @ts-expect-error-next-line
+        duplex: "half",
       });
       const json = await res.json();
       if (json.error) {

@@ -1,4 +1,3 @@
-// import { expect, test } from "@oclif/test";
 import { expect } from "chai";
 import { captureOutput } from "@oclif/test";
 import { ShellConfig, getRootConfigPath } from "../../src/lib/config";
