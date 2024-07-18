@@ -1,1 +1,2 @@
-module.exports = require("@oclif/core").run;
+import { run } from "@oclif/core";
+module.exports = run;
