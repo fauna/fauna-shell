@@ -1,7 +1,7 @@
 const {
   FaunaObjectTranslator,
 } = require("../../src/lib/fauna-object-translator");
-const expect = require("expect");
+const { expect } = require("expect");
 const faunadb = require("faunadb");
 const q = faunadb.query;
 

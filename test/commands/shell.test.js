@@ -13,7 +13,7 @@ const repl = {
   },
 };
 
-const { expect } = require("@oclif/test");
+const { expect } = require("chai");
 const {
   matchFqlReq,
   getEndpoint,
