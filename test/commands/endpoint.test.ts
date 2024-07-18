@@ -72,7 +72,7 @@ describe("endpoint:add", () => {
       invalidEndpoints: [],
     });
     expect(this.config.saveRootConfig.calledOnce).to.be.true;
-  }).timeout(10000);
+  });
 
   it("sets default endpoint", async function () {
     this.config = stubbedRootConfig({
@@ -120,7 +120,7 @@ describe("endpoint:add", () => {
       invalidEndpoints: [],
     });
     expect(this.config.saveRootConfig.calledOnce).to.be.true;
-  }).timeout(10000);
+  });
 });
 
 describe("endpoint:list", () => {
@@ -144,7 +144,7 @@ describe("endpoint:list", () => {
       `Available endpoints:\n* my-endpoint\n  other-endpoint\n`
     );
     expect(this.config.saveRootConfig.calledOnce).to.be.false;
-  }).timeout(10000);
+  });
 });
 
 describe("endpoint:remove", () => {
@@ -181,7 +181,7 @@ describe("endpoint:remove", () => {
       invalidEndpoints: [],
     });
     expect(this.config.saveRootConfig.calledOnce).to.be.true;
-  }).timeout(10000);
+  });
 
   it("clears the default if needed", async function () {
     this.config = stubbedRootConfig({
@@ -216,5 +216,5 @@ describe("endpoint:remove", () => {
       invalidEndpoints: [],
     });
     expect(this.config.saveRootConfig.calledOnce).to.be.true;
-  }).timeout(10000);
+  });
 });
