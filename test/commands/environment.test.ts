@@ -1,5 +1,5 @@
-import { Config } from "@oclif/core";
-import { expect, test } from "@oclif/test";
+import { expect } from "chai";
+import { captureOutput } from "@oclif/test";
 import sinon, { SinonStub } from "sinon";
 import AddEnvironmentComand from "../../src/commands/environment/add";
 import ListEnvironmentCommand from "../../src/commands/environment/list";
@@ -27,197 +27,173 @@ const stubbedProjectConfig = (
   return config as any;
 };
 
-describe("environment:add", () => {
-  test
-    .add("config", () =>
-      stubbedProjectConfig({
-        default: "my-app",
-        environment: {
-          "my-app": {
-            endpoint: "my-endpoint",
-            database: "my-db",
-          },
-        },
-      })
-    )
-    .stdout()
-    .do((ctx) =>
-      new AddEnvironmentComand(
-        [
-          "--non-interactive",
-          "--name",
-          "foobar",
-          "--endpoint",
-          "my-endpoint",
-          "--database",
-          "my-db",
-        ],
-        new Config({} as any)
-      ).execute(ctx.config)
-    )
-    .it("adds a environment", (ctx) => {
-      expect(ctx.stdout).to.equal(
-        "Saved environment foobar to /foo/bar/.fauna-project\n"
-      );
-      expect(ctx.config.projectConfig).to.deep.equal({
-        defaultEnvironment: "my-app",
-        schemaDir: undefined,
-        environments: {
-          "my-app": {
-            endpoint: "my-endpoint",
-            database: "my-db",
-          },
-          foobar: {
-            endpoint: "my-endpoint",
-            database: "my-db",
-          },
-        },
-      });
-      expect(ctx.config.saveProjectConfig.calledOnce).to.be.true;
-    });
-
-  test
-    .add("config", () =>
-      stubbedProjectConfig({
-        default: "my-app",
-        environment: {
-          "my-app": {
-            endpoint: "my-endpoint",
-            database: "my-db",
-          },
-        },
-      })
-    )
-    .stdout()
-    .do((ctx) =>
-      new AddEnvironmentComand(
-        [
-          "--non-interactive",
-          "--name",
-          "foobar",
-          "--endpoint",
-          "my-endpoint",
-          "--database",
-          "my-db",
-          "--set-default",
-        ],
-        new Config({} as any)
-      ).execute(ctx.config)
-    )
-    .it("adds a environment as default", (ctx) => {
-      expect(ctx.stdout).to.equal(
-        "Saved environment foobar to /foo/bar/.fauna-project\n"
-      );
-      expect(ctx.config.projectConfig).to.deep.equal({
-        defaultEnvironment: "foobar",
-        schemaDir: undefined,
-        environments: {
-          "my-app": {
-            endpoint: "my-endpoint",
-            database: "my-db",
-          },
-          foobar: {
-            endpoint: "my-endpoint",
-            database: "my-db",
-          },
-        },
-      });
-      expect(ctx.config.saveProjectConfig.calledOnce).to.be.true;
-    });
-
-  test
-    .add("config", () =>
-      stubbedProjectConfig({
-        default: "my-app",
-        environment: {
-          "my-app": {
-            endpoint: "my-endpoint",
-            database: "my-db",
-          },
-        },
-      })
-    )
-    .stdout()
-    .do((ctx) =>
-      new AddEnvironmentComand(
-        [
-          "--non-interactive",
-          "--name",
-          "my-app",
-          "--endpoint",
-          "my-endpoint",
-          "--database",
-          "my-db",
-        ],
-        new Config({} as any)
-      ).execute(ctx.config)
-    )
-    .catch((e) => {
-      expect(e.message).to.equal("Environment my-app already exists");
-    })
-    .it("disallows environments with the same name", (ctx) => {
-      expect(ctx.config.projectConfig).to.deep.equal({
-        defaultEnvironment: "my-app",
-        schemaDir: undefined,
-        environments: {
-          "my-app": {
-            endpoint: "my-endpoint",
-            database: "my-db",
-          },
-        },
-      });
-      expect(ctx.config.saveProjectConfig.called).to.be.false;
-    });
-
-  test
-    .add("config", () =>
-      stubbedProjectConfig({
-        default: "my-app",
-        environment: {
-          "my-app": {
-            endpoint: "my-endpoint",
-            database: "my-db",
-          },
-        },
-      })
-    )
-    .stdout()
-    .do((ctx) =>
-      new AddEnvironmentComand(
-        [
-          "--non-interactive",
-          "--name",
-          "foobar",
-          "--endpoint",
-          "doesnt-exist-endpoint",
-          "--database",
-          "my-db",
-        ],
-        new Config({} as any)
-      ).execute(ctx.config)
-    )
-    .catch((e) => {
-      expect(e.message).to.equal("No such endpoint 'doesnt-exist-endpoint'");
-    })
-    .it("disallows endpoints that don't exist", (ctx) => {
-      expect(ctx.config.projectConfig).to.deep.equal({
-        defaultEnvironment: "my-app",
-        schemaDir: undefined,
-        environments: {
-          "my-app": {
-            endpoint: "my-endpoint",
-            database: "my-db",
-          },
-        },
-      });
-      expect(ctx.config.saveProjectConfig.called).to.be.false;
-    });
+afterEach(() => {
+  sinon.restore();
 });
 
-describe("environment:list", () => {
-  test
-    .add("config", () =>
-      stubbedProjectConfig({
+describe("environment:add", () => {
+  it("adds an environment", async function () {
+    this.config = stubbedProjectConfig({
+      default: "my-app",
+      environment: {
+        "my-app": {
+          endpoint: "my-endpoint",
+          database: "my-db",
+        },
+      },
+    });
+    sinon.stub(ShellConfig, "read").returns(this.config);
+    const { stdout } = await captureOutput(async () =>
+      AddEnvironmentComand.run([
+        "--non-interactive",
+        "--name",
+        "foobar",
+        "--endpoint",
+        "my-endpoint",
+        "--database",
+        "my-db",
+      ])
+    );
+    expect(stdout).to.equal(
+      "Saved environment foobar to /foo/bar/.fauna-project\n"
+    );
+    expect(this.config.projectConfig).to.deep.equal({
+      defaultEnvironment: "my-app",
+      schemaDir: undefined,
+      environments: {
+        "my-app": {
+          endpoint: "my-endpoint",
+          database: "my-db",
+        },
+        foobar: {
+          endpoint: "my-endpoint",
+          database: "my-db",
+        },
+      },
+    });
+    expect(this.config.saveProjectConfig.calledOnce).to.be.true;
+  });
+
+  it("adds an environment as default", async function () {
+    this.config = stubbedProjectConfig({
+      default: "my-app",
+      environment: {
+        "my-app": {
+          endpoint: "my-endpoint",
+          database: "my-db",
+        },
+      },
+    });
+    sinon.stub(ShellConfig, "read").returns(this.config);
+    const { stdout } = await captureOutput(async () =>
+      AddEnvironmentComand.run([
+        "--non-interactive",
+        "--name",
+        "foobar",
+        "--endpoint",
+        "my-endpoint",
+        "--database",
+        "my-db",
+        "--set-default",
+      ])
+    );
+    expect(stdout).to.equal(
+      "Saved environment foobar to /foo/bar/.fauna-project\n"
+    );
+    expect(this.config.projectConfig).to.deep.equal({
+      defaultEnvironment: "foobar",
+      schemaDir: undefined,
+      environments: {
+        "my-app": {
+          endpoint: "my-endpoint",
+          database: "my-db",
+        },
+        foobar: {
+          endpoint: "my-endpoint",
+          database: "my-db",
+        },
+      },
+    });
+    expect(this.config.saveProjectConfig.calledOnce).to.be.true;
+  });
+
+  it("disallows environments with the same name", async function () {
+    this.config = stubbedProjectConfig({
+      default: "my-app",
+      environment: {
+        "my-app": {
+          endpoint: "my-endpoint",
+          database: "my-db",
+        },
+      },
+    });
+    sinon.stub(ShellConfig, "read").returns(this.config);
+    const { error } = await captureOutput(async () =>
+      AddEnvironmentComand.run([
+        "--non-interactive",
+        "--name",
+        "my-app",
+        "--endpoint",
+        "my-endpoint",
+        "--database",
+        "my-db",
+      ])
+    );
+    expect(error).not.to.be.undefined;
+    expect(error?.message).to.equal("Environment my-app already exists");
+    expect(this.config.projectConfig).to.deep.equal({
+      defaultEnvironment: "my-app",
+      schemaDir: undefined,
+      environments: {
+        "my-app": {
+          endpoint: "my-endpoint",
+          database: "my-db",
+        },
+      },
+    });
+    expect(this.config.saveProjectConfig.called).to.be.false;
+  });
+
+  it("disallows endpoints that don't exist", async function () {
+    this.config = stubbedProjectConfig({
+      default: "my-app",
+      environment: {
+        "my-app": {
+          endpoint: "my-endpoint",
+          database: "my-db",
+        },
+      },
+    });
+    sinon.stub(ShellConfig, "read").returns(this.config);
+    const { error } = await captureOutput(async () =>
+      AddEnvironmentComand.run([
+        "--non-interactive",
+        "--name",
+        "foobar",
+        "--endpoint",
+        "doesnt-exist-endpoint",
+        "--database",
+        "my-db",
+      ])
+    );
+    expect(error).not.to.be.undefined;
+    expect(error?.message).to.equal("No such endpoint 'doesnt-exist-endpoint'");
+    expect(this.config.projectConfig).to.deep.equal({
+      defaultEnvironment: "my-app",
+      schemaDir: undefined,
+      environments: {
+        "my-app": {
+          endpoint: "my-endpoint",
+          database: "my-db",
+        },
+      },
+    });
+    expect(this.config.saveProjectConfig.called).to.be.false;
+  });
+
+  describe("environment:list", () => {
+    it("lists environments", async function () {
+      this.config = stubbedProjectConfig({
         default: "my-app",
         environment: {
           foobar: {
@@ -233,24 +209,20 @@ describe("environment:list", () => {
             database: "my-db",
           },
         },
-      })
-    )
-    .stdout()
-    .do((ctx) =>
-      new ListEnvironmentCommand([], new Config({} as any)).execute(ctx.config)
-    )
-    .it("lists environment", (ctx) => {
-      expect(ctx.stdout).to.equal(
+      });
+      sinon.stub(ShellConfig, "read").returns(this.config);
+      const { stdout } = await captureOutput(async () =>
+        ListEnvironmentCommand.run([])
+      );
+      expect(stdout).to.equal(
         "Available environments:\n  foobar\n* my-app\n  baz\n"
       );
-      expect(ctx.config.saveProjectConfig.called).to.be.false;
+      expect(this.config.saveProjectConfig.called).to.be.false;
     });
-});
-
-describe("environment:select", () => {
-  test
-    .add("config", () =>
-      stubbedProjectConfig({
+  });
+  describe("environment:select", () => {
+    it("selects an environment", async function () {
+      this.config = stubbedProjectConfig({
         default: "my-app",
         environment: {
           "my-app": {
@@ -262,17 +234,13 @@ describe("environment:select", () => {
             database: "my-db",
           },
         },
-      })
-    )
-    .stdout()
-    .do((ctx) =>
-      new SelectEnvironmentCommand(["foo-app"], new Config({} as any)).execute(
-        ctx.config
-      )
-    )
-    .it("selects a environment", (ctx) => {
-      expect(ctx.stdout).to.equal("Selected environment foo-app\n");
-      expect(ctx.config.projectConfig).to.deep.equal({
+      });
+      sinon.stub(ShellConfig, "read").returns(this.config);
+      const { stdout } = await captureOutput(async () =>
+        SelectEnvironmentCommand.run(["foo-app"])
+      );
+      expect(stdout).to.equal("Selected environment foo-app\n");
+      expect(this.config.projectConfig).to.deep.equal({
         defaultEnvironment: "foo-app",
         schemaDir: undefined,
         environments: {
@@ -286,12 +254,11 @@ describe("environment:select", () => {
           },
         },
       });
-      expect(ctx.config.saveProjectConfig.calledOnce).to.be.true;
+      expect(this.config.saveProjectConfig.calledOnce).to.be.true;
     });
 
-  test
-    .add("config", () =>
-      stubbedProjectConfig({
+    it("disallows environments that don't exist", async function () {
+      this.config = stubbedProjectConfig({
         default: "my-app",
         environment: {
           "my-app": {
@@ -303,21 +270,15 @@ describe("environment:select", () => {
             database: "my-db",
           },
         },
-      })
-    )
-    .stdout()
-    .do((ctx) =>
-      new SelectEnvironmentCommand(["baz-app"], new Config({} as any)).execute(
-        ctx.config
-      )
-    )
-    .catch((e) => {
-      expect(e.message).to.equal(
+      });
+      sinon.stub(ShellConfig, "read").returns(this.config);
+      const { error } = await captureOutput(async () =>
+        SelectEnvironmentCommand.run(["baz-app"])
+      );
+      expect(error?.message).to.equal(
         "Environment baz-app not found in project config. Run `fauna environment list` to see available environments"
       );
-    })
-    .it("disallows environments that don't exist", (ctx) => {
-      expect(ctx.config.projectConfig).to.deep.equal({
+      expect(this.config.projectConfig).to.deep.equal({
         defaultEnvironment: "my-app",
         schemaDir: undefined,
         environments: {
@@ -331,6 +292,7 @@ describe("environment:select", () => {
           },
         },
       });
-      expect(ctx.config.saveProjectConfig.called).to.be.false;
+      expect(this.config.saveProjectConfig.called).to.be.false;
     });
+  });
 });
