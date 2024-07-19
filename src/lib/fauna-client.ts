@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
 
 export type QuerySuccess<T> = {

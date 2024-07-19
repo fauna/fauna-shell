@@ -1,4 +1,4 @@
-const expect = require("expect");
+const { expect } = require("expect");
 const { ImportPenalty } = require("../../src/lib/import-penalty");
 
 describe("ImportPenalty", () => {

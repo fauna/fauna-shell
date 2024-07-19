@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 const url = require("url");
 const { query: q } = require("faunadb");
 const env = process.env;
@@ -45,14 +44,18 @@ module.exports.getEndpoint = getEndpoint;
 module.exports.evalV10 = (query) => {
   const endpoint = getEndpoint();
   const secret = env.FAUNA_SECRET;
+  const Readable = require("stream").Readable;
+  const stream = new Readable();
+  stream.push(JSON.stringify({ query }));
+  stream.push(null);
   return fetch(new URL("/query/1", endpoint), {
     method: "POST",
     headers: {
       Authorization: `Bearer ${secret}`,
     },
-    body: JSON.stringify({
-      query,
-    }),
+    body: stream,
+    // https://github.com/nodejs/node/issues/46221
+    duplex: "half",
   });
 };
 

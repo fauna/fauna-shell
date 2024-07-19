@@ -1,5 +1,5 @@
 const { ImportLimits, RateEstimator } = require("../../src/lib/import-limits");
-const expect = require("expect");
+const { expect } = require("expect");
 
 describe("ImportLimits", () => {
   describe("maximumImportSize", () => {

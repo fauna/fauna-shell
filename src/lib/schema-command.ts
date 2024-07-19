@@ -1,7 +1,6 @@
 import FaunaCommand from "./fauna-command";
 import * as fs from "fs";
 import * as path from "path";
-import FormData from "form-data";
 import { Flags } from "@oclif/core";
 import { dirExists, dirIsWriteable } from "./file-util";
 
@@ -60,11 +59,15 @@ export default abstract class SchemaCommand extends FaunaCommand {
   // Helper to construct form data for a collection of files, as
   // returned by `gather`.
   body(files: File[]) {
-    const fd = new FormData();
+    const fd: Record<string, string> = {};
     for (const file of files) {
-      fd.append(file.name, Buffer.from(file.content));
+      fd[file.name] = file.content.toString();
     }
-    return fd;
+    const Readable = require("stream").Readable;
+    const s = new Readable();
+    s.push(JSON.stringify(fd));
+    s.push(null);
+    return s;
   }
 
   // Reads the files using their relative-to-`basedir` paths and returns their

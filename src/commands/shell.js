@@ -1,7 +1,7 @@
 const FaunaCommand = require("../lib/fauna-command.js").default;
 const { runQueries } = require("../lib/misc.js");
 const faunadb = require("faunadb");
-const { Flags, Args } = require("@oclif/core");
+import { Args, Flags } from "@oclif/core";
 const q = faunadb.query;
 const repl = require("repl");
 const util = require("util");

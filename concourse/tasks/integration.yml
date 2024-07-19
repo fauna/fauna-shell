@@ -16,16 +16,16 @@ services:
       - FAUNA_DOMAIN
       - FAUNA_SCHEME
       - FAUNA_PORT
-    image: node:16.14.2-alpine3.14
+    image: node:18-alpine
     container_name: mytests
     depends_on:
       - faunadb
     volumes:
       - "../../:/tmp/app"
     working_dir: "/tmp/app"
-    command: 
-      - sh 
-      - -cx 
+    command:
+      - sh
+      - -cx
       - |
         apk add curl
         concourse/scripts/wait-for-it.sh http://core:8443/ping

@@ -1,6 +1,5 @@
 import { confirm } from "@inquirer/prompts";
 import SchemaCommand from "../../lib/schema-command";
-import fetch from "node-fetch";
 import { Flags } from "@oclif/core";
 
 export default class PushSchemaCommand extends SchemaCommand {
@@ -30,6 +29,10 @@ export default class PushSchemaCommand extends SchemaCommand {
           method: "POST",
           headers: { AUTHORIZATION: `Bearer ${secret}` },
           body: this.body(files),
+          // https://github.com/nodejs/node/issues/46221
+          // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1483
+          // @ts-expect-error-next-line
+          duplex: "half",
         });
         const json = await res.json();
         if (json.error) {
@@ -41,6 +44,8 @@ export default class PushSchemaCommand extends SchemaCommand {
           method: "POST",
           headers: { AUTHORIZATION: `Bearer ${secret}` },
           body: this.body(files),
+          // @ts-expect-error-next-line
+          duplex: "half",
         });
         const json = await res.json();
         if (json.error) {
@@ -65,6 +70,8 @@ export default class PushSchemaCommand extends SchemaCommand {
               method: "POST",
               headers: { AUTHORIZATION: `Bearer ${secret}` },
               body: this.body(files),
+              // @ts-expect-error-next-line
+              duplex: "half",
             }
           );
           const json0 = await res.json();

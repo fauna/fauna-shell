@@ -3,7 +3,6 @@ import { Endpoint, ShellConfig } from "../lib/config";
 import { hostname } from "os";
 import { Command } from "@oclif/core";
 import { underline, blue } from "chalk";
-import fetch from "node-fetch";
 import { Secret } from "../lib/secret";
 
 const DEFAULT_NAME = "cloud";

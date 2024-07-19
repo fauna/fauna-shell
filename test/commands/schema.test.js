@@ -1,7 +1,10 @@
+import { expect } from "chai";
+import { runCommand } from "@oclif/test";
+import nock from "nock";
+import sinon from "sinon";
 const inquirer = require("@inquirer/prompts");
 const fs = require("fs");
 const path = require("path");
-const { expect, test } = require("@oclif/test");
 const { query: q } = require("faunadb");
 const { withOpts, getEndpoint, matchFqlReq } = require("../helpers/utils.js");
 
@@ -37,40 +40,41 @@ const pullfiles = {
 const updated = { version: 1 };
 
 describe("fauna schema diff test", () => {
-  test
-    .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
-      api
-        .persist()
-        .post("/", matchFqlReq(q.Now()))
-        .reply(200, new Date())
-        .post("/schema/1/validate?force=true")
-        .reply(200, diff)
-    )
-    .stdout()
-    .command(withOpts(["schema diff", "--dir=test/testdata"]))
-    .it("runs schema diff", (ctx) => {
-      expect(ctx.stdout).to.contain(`${diff.diff}`);
-    });
+  it("runs schema diff", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(q.Now()))
+      .reply(200, new Date())
+      .post("/schema/1/validate?force=true")
+      .reply(200, diff);
+
+    const { stdout } = await runCommand(
+      withOpts(["schema diff", "--dir=test/testdata"])
+    );
+
+    expect(stdout).to.contain(`${diff.diff}`);
+  });
 });
 
 describe("fauna schema push test", () => {
-  test
-    .stub(inquirer, "confirm", async () => true)
-    .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
-      api
-        .persist()
-        .post("/", matchFqlReq(q.Now()))
-        .reply(200, new Date())
-        .post("/schema/1/validate?force=true")
-        .reply(200, diff)
-        .post("/schema/1/update?version=0")
-        .reply(200, updated)
-    )
-    .stdout()
-    .command(withOpts(["schema push", "--dir=test/testdata"]))
-    .it("runs schema push", (ctx) => {
-      expect(ctx.stdout).to.contain(`${diff.diff}`);
-    });
+  it("runs schema push", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(q.Now()))
+      .reply(200, new Date())
+      .post("/schema/1/validate?force=true")
+      .reply(200, diff)
+      .post("/schema/1/update?version=0")
+      .reply(200, updated);
+    // Stubbing the confirmation to always return true
+    const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
+    const { stdout } = await runCommand(
+      withOpts(["schema push", "--dir=test/testdata"])
+    );
+    expect(stdout).to.contain(`${diff.diff}`);
+    // Restore the stub after the test
+    stubConfirm.restore();
+  });
 });
 
 const testdir = "test/testdata";
@@ -98,57 +102,64 @@ for (const ddelete of [false, true]) {
       cmd = ["schema pull", `--dir=${testdir}`, "--delete"];
     }
     setup();
-    test
-      .stub(inquirer, "confirm", async () => true)
-      .nock(getEndpoint(), { allowUnmocked: false }, (api) =>
-        api
-          .persist()
-          .post("/", matchFqlReq(q.Now()))
-          .reply(200, new Date())
-          .get("/schema/1/files")
-          .reply(200, pullfiles)
-          .get("/schema/1/files/functions.fsl")
-          .reply(200, functions)
-          .get("/schema/1/files/main.fsl")
-          .reply(200, main)
-          .get("/schema/1/files/roles%2Fmyrole.fsl")
-          .reply(200, myrole)
-      )
-      .stdout()
-      .command(withOpts(cmd))
-      .it("runs schema pull", (ctx) => {
-        expect(ctx.stdout).to.contain("Pull makes the following changes:");
-        expect(
-          fs.readFileSync(path.join(testdir, "functions.fsl"), "utf8")
-        ).to.equal(functions.content);
-        expect(
-          fs.readFileSync(path.join(testdir, "main.fsl"), "utf8")
-        ).to.equal(main.content);
-        expect(
-          fs.readFileSync(path.join(testdir, "roles", "myrole.fsl"), "utf8")
-        ).to.equal(myrole.content);
-        expect(
-          fs.statSync(path.join(testdir, "no.fsl")).isDirectory()
-        ).to.equal(true);
-        expect(fs.statSync(path.join(testdir, "nofsl")).isDirectory()).to.equal(
+    it("runs schema pull", async () => {
+      // Stubbing the confirmation to always return true
+      const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
+
+      // Setting up the nock scope for API mocking
+      nock(getEndpoint(), { allowUnmocked: false })
+        .persist()
+        .post("/", matchFqlReq(q.Now()))
+        .reply(200, new Date())
+        .get("/schema/1/files")
+        .reply(200, pullfiles)
+        .get("/schema/1/files/functions.fsl")
+        .reply(200, functions)
+        .get("/schema/1/files/main.fsl")
+        .reply(200, main)
+        .get("/schema/1/files/roles%2Fmyrole.fsl")
+        .reply(200, myrole);
+
+      // Running the command with options
+      const { stdout } = await runCommand(withOpts(cmd));
+
+      // Assertions
+      expect(stdout).to.contain("Pull makes the following changes:");
+      expect(
+        fs.readFileSync(path.join(testdir, "functions.fsl"), "utf8")
+      ).to.equal(functions.content);
+      expect(fs.readFileSync(path.join(testdir, "main.fsl"), "utf8")).to.equal(
+        main.content
+      );
+      expect(
+        fs.readFileSync(path.join(testdir, "roles", "myrole.fsl"), "utf8")
+      ).to.equal(myrole.content);
+      expect(fs.statSync(path.join(testdir, "no.fsl")).isDirectory()).to.equal(
+        true
+      );
+      expect(fs.statSync(path.join(testdir, "nofsl")).isDirectory()).to.equal(
+        true
+      );
+      expect(fs.statSync(path.join(testdir, "main.notfsl")).isFile()).to.equal(
+        true
+      );
+
+      if (!ddelete) {
+        expect(fs.statSync(path.join(testdir, "extra.fsl")).isFile()).to.equal(
           true
         );
-        expect(
-          fs.statSync(path.join(testdir, "main.notfsl")).isFile()
-        ).to.equal(true);
-        if (!ddelete) {
-          expect(
-            fs.statSync(path.join(testdir, "extra.fsl")).isFile()
-          ).to.equal(true);
-        } else {
-          // 2023 error handling technology.
-          try {
-            fs.statSync(path.join(testdir, "extra.fsl"));
-            expect(0).to.equal(1);
-          } catch (err) {
-            expect(err.code).to.equal("ENOENT");
-          }
+      } else {
+        // Error handling for file not found
+        try {
+          fs.statSync(path.join(testdir, "extra.fsl"));
+          expect(0).to.equal(1); // Fail the test if file exists when it should not
+        } catch (err) {
+          expect(err.code).to.equal("ENOENT"); // Check that the error code is 'ENOENT'
         }
-      });
+      }
+
+      // Clean up after test
+      stubConfirm.restore();
+    });
   });
 }

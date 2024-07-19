@@ -1,6 +1,5 @@
 const fs = require("fs");
-
-const { Flags } = require("@oclif/core");
+import { Flags } from "@oclif/core";
 const FaunaCommand = require("../lib/fauna-command.js").default;
 const StreamJson = require("../lib/json-stream").default;
 const faunadb = require("faunadb");

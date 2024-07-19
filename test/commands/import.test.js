@@ -1,4 +1,6 @@
-const { expect, test } = require("@oclif/test");
+import { expect } from "chai";
+import { runCommand } from "@oclif/test";
+import sinon from "sinon";
 const { withOpts } = require("../helpers/utils.js");
 const { Client, query } = require("faunadb");
 const { ImportLimits } = require("../../src/lib/import-limits");
@@ -121,185 +123,157 @@ async function doCollectionAssertions(
   }
 }
 
+afterEach(() => {
+  sinon.restore();
+});
+
 describe("import", () => {
   describe("help and bad inputs", () => {
-    test
-      .stdout()
-      .command("import")
-      .catch((err) => {
-        expect(err.message).to.contain("Missing required flag path");
-        expect(err.oclif.exit).to.not.equal(0);
-      })
-      .it("raises an error if --path not provided");
+    it("raises an error if --path not provided", async function () {
+      const { error } = await runCommand("import");
+      expect(error.message).to.contain("Missing required flag path");
+      expect(error.oclif.exit).to.not.equal(0);
+    });
 
-    test
-      .do(async () => {
-        await createOrClearCollection("already_exists");
-        await client.query(
-          query.Create(query.Collection("already_exists"), {
-            data: { cat: "dog" },
-          })
-        );
-      })
-      .command(
+    it("rejects importing to a non-empty collection if append is not provided", async () => {
+      await createOrClearCollection("already_exists");
+      await client.query(
+        query.Create(query.Collection("already_exists"), {
+          data: { cat: "dog" },
+        })
+      );
+      const { error } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/type_tests/number_type.csv",
           "--collection=already_exists",
         ])
-      )
-      .catch((e) => {
-        expect(e.message).to.contain(
-          "Collection(\"already_exists\") is not empty. Add '--append' to allow append data for non empty collection"
-        );
-      })
-      .it(
-        "rejects importing to a non-empty collection if append is not provided",
-        async () => {
-          const expected = [{ cat: "dog" }];
-          await doCollectionAssertions("already_exists", expected);
-        }
       );
+      expect(error.message).to.contain(
+        "Collection(\"already_exists\") is not empty. Add '--append' to allow append data for non empty collection"
+      );
+      const expected = [{ cat: "dog" }];
+      await doCollectionAssertions("already_exists", expected);
+    });
 
-    test
-      .stdout()
-      .stub(ImportLimits, "maximumImportSize", () => -1)
-      .do(async () => {
-        await assertCollectionDoesNotExist("bar");
-      })
-      .command(
+    it("rejects importing to a non-empty collection if append is not provided", async () => {
+      await createOrClearCollection("already_exists");
+      await client.query(
+        query.Create(query.Collection("already_exists"), {
+          data: { cat: "dog" },
+        })
+      );
+      const { error } = await runCommand(
+        withOpts([
+          "import",
+          "--path=import_test_data/type_tests/number_type.csv",
+          "--collection=already_exists",
+        ])
+      );
+      expect(error.message).to.contain(
+        "Collection(\"already_exists\") is not empty. Add '--append' to allow append data for non empty collection"
+      );
+      const expected = [{ cat: "dog" }];
+      await doCollectionAssertions("already_exists", expected);
+    });
+
+    it("rejects big files", async () => {
+      sinon.stub(ImportLimits, "maximumImportSize").returns(-1);
+      await assertCollectionDoesNotExist("bar");
+      const { error } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/type_tests/number_type.csv",
           "--collection=bar",
           "--type=age::number",
         ])
-      )
-      .catch((e) => {
-        expect(e.message).to.contain(
-          "File (import_test_data/type_tests/number_type.csv) size is greater than 10GB, can't proceed with the import"
-        );
-      })
-      .it("rejects big files", async () => {
-        await assertCollectionDoesNotExist("bar");
-      });
+      );
+      expect(error.message).to.contain(
+        "File (import_test_data/type_tests/number_type.csv) size is greater than 10GB, can't proceed with the import"
+      );
+      await assertCollectionDoesNotExist("bar");
+    });
 
-    test
-      .stdout()
-      .stub(ImportLimits, "maximumImportSize", () => -1)
-      .do(async () => {
-        await assertCollectionDoesNotExist("bar");
-      })
-      .command(
+    it("rejects big folders", async () => {
+      sinon.stub(ImportLimits, "maximumImportSize").returns(-1);
+      await assertCollectionDoesNotExist("bar");
+      const { error } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/type_tests/",
           "--collection=bar",
           "--type=age::number",
         ])
-      )
-      .catch((e) => {
-        expect(e.message).to.contain(
-          "Folder (import_test_data/type_tests/) size is greater than 10GB, can't proceed with the import"
-        );
-      })
-      .it("rejects big folders", async () => {
-        await assertCollectionDoesNotExist("bar");
-      });
+      );
+      expect(error.message).to.contain(
+        "Folder (import_test_data/type_tests/) size is greater than 10GB, can't proceed with the import"
+      );
+      await assertCollectionDoesNotExist("bar");
+    });
   });
 
   describe("successful imports of files", () => {
-    test
-      .stdout()
-      .timeout(61000)
-      .do(async () => {
-        await deleteCollection("number_type", true);
-      })
-      .finally(async () => {
-        await deleteCollection("number_type", false);
-      })
-      .command(
+    it("creates a collection from a CSV; creating the collection if it doesn't exist", async () => {
+      await deleteCollection("number_type", true);
+      const { stdout } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/type_tests/number_type.csv",
         ])
-      )
-      .it(
-        "creates a collection from a CSV; creating the collection if it doesn't exist",
-        async (ctx) => {
-          expect(ctx.stdout).to.match(/Import from .* completed/);
-          const expected = [
-            { id: "1", name: "mia", age: "14" },
-            { id: "3", name: "pixie", age: "4.5" },
-            { id: "5", name: "unborn", age: "-2" },
-            { id: "6", name: "cliff" },
-          ];
-          await doCollectionAssertions("number_type", expected);
-        }
       );
+      expect(stdout).to.match(/Import from .* completed/);
+      const expected = [
+        { id: "1", name: "mia", age: "14" },
+        { id: "3", name: "pixie", age: "4.5" },
+        { id: "5", name: "unborn", age: "-2" },
+        { id: "6", name: "cliff" },
+      ];
+      await doCollectionAssertions("number_type", expected);
+      await deleteCollection("number_type", false);
+    }).timeout(61000);
 
-    test
-      .stdout()
-      .do(async () => {
-        await createOrClearCollection("foo");
-      })
-      .command(
+    it("creates a collection with type translations from a CSV", async () => {
+      await createOrClearCollection("foo");
+      const { stdout } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/type_tests/number_type.csv",
           "--collection=foo",
           "--type=age::number",
         ])
-      )
-      .it(
-        "creates a collection with type translations from a CSV",
-        async (ctx) => {
-          expect(ctx.stdout).to.match(/Import from .* completed/);
-          const expected = [
-            { id: "1", name: "mia", age: 14 },
-            { id: "3", name: "pixie", age: 4.5 },
-            { id: "5", name: "unborn", age: -2 },
-            { id: "6", name: "cliff" },
-          ];
-          await doCollectionAssertions("foo", expected);
-        }
       );
+      expect(stdout).to.match(/Import from .* completed/);
+      const expected = [
+        { id: "1", name: "mia", age: 14 },
+        { id: "3", name: "pixie", age: 4.5 },
+        { id: "5", name: "unborn", age: -2 },
+        { id: "6", name: "cliff" },
+      ];
+      await doCollectionAssertions("foo", expected);
+    });
 
-    test
-      .stdout()
-      .stderr()
-      .do(async () => {
-        await createOrClearCollection("zed");
-      })
-      .command(
+    it("creates a collection with type translations from a CSV; ignoring bad data", async () => {
+      await createOrClearCollection("zed");
+      const { stdout, stderr, error } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/type_tests/bad_number_type.csv",
           "--collection=zed",
           "--type=age::number",
         ])
-      )
-      .catch((err) => {
-        expect(err.message).to.contain("rows/object failed to import");
-        expect(err.oclif.exit).to.not.equal(0);
-      })
-      .it(
-        "creates a collection with type translations from a CSV; ignoring bad data",
-        async (ctx) => {
-          expect(ctx.stdout).to.match(/Database connection established/);
-          expect(ctx.stderr).to.match(/item number 1 \(zero-indexed\)/);
-          const expected = [{ id: "1", name: "mia", age: 14, sign: "cancer" }];
-          await doCollectionAssertions("zed", expected);
-        }
       );
+      expect(stdout).to.match(/Database connection established/);
+      expect(stderr).to.match(/item number 1 \(zero-indexed\)/);
+      expect(error.message).to.contain("rows/object failed to import");
+      expect(error.oclif.exit).to.not.equal(0);
 
-    test
-      .stdout()
-      .stderr()
-      .do(async () => {
-        await assertCollectionDoesNotExist("nada");
-      })
-      .command(
+      const expected = [{ id: "1", name: "mia", age: 14, sign: "cancer" }];
+      await doCollectionAssertions("zed", expected);
+    });
+
+    it("dry-run creates no collection but prints errors", async () => {
+      await assertCollectionDoesNotExist("nada");
+      const { stdout, stderr, error } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/type_tests/bad_number_type.csv",
@@ -307,28 +281,22 @@ describe("import", () => {
           "--type=age::number",
           "--dry-run",
         ])
-      )
-      .catch((err) => {
-        expect(err.message).to.contain("failed to import");
-        expect(err.oclif.exit).to.not.equal(0);
-      })
-      .it("dry-run creates no collection but prints errors", async (ctx) => {
-        expect(ctx.stdout).to.match(/Database connection established/);
-        expect(ctx.stderr).to.match(/item number 1 \(zero-indexed\)/);
-        await assertCollectionDoesNotExist("nada");
-      });
+      );
+      expect(stdout).to.match(/Database connection established/);
+      expect(stderr).to.match(/item number 1 \(zero-indexed\)/);
+      expect(error.message).to.contain("failed to import");
+      expect(error.oclif.exit).to.not.equal(0);
+      await assertCollectionDoesNotExist("nada");
+    });
 
-    test
-      .stdout()
-      .do(async () => {
-        await createOrClearCollection("append-to-me");
-        await client.query(
-          query.Create(query.Collection("append-to-me"), {
-            data: { cat: "dog" },
-          })
-        );
-      })
-      .command(
+    it("appends to an existing, non-empty collection", async () => {
+      await createOrClearCollection("append-to-me");
+      await client.query(
+        query.Create(query.Collection("append-to-me"), {
+          data: { cat: "dog" },
+        })
+      );
+      const { stdout } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/type_tests/number_type.csv",
@@ -336,330 +304,312 @@ describe("import", () => {
           "--type=age::number",
           "--append",
         ])
-      )
-      .it("appends to an existing, non-empty collection", async (ctx) => {
-        expect(ctx.stdout).to.match(/Import from .* completed/);
-        const expected = [
-          { id: "1", name: "mia", age: 14 },
-          { id: "3", name: "pixie", age: 4.5 },
-          { id: "5", name: "unborn", age: -2 },
-          { id: "6", name: "cliff" },
-          { cat: "dog" },
-        ];
-        await doCollectionAssertions("append-to-me", expected);
-      });
+      );
+      expect(stdout).to.match(/Import from .* completed/);
+      const expected = [
+        { id: "1", name: "mia", age: 14 },
+        { id: "3", name: "pixie", age: 4.5 },
+        { id: "5", name: "unborn", age: -2 },
+        { id: "6", name: "cliff" },
+        { cat: "dog" },
+      ];
+      await doCollectionAssertions("append-to-me", expected);
+    });
 
-    test
-      .stdout()
-      .do(async () => {
-        await createOrClearCollection("empty_vals");
-      })
-      .command(
+    it("creates a collection from a CSV", async () => {
+      await createOrClearCollection("empty_vals");
+      const { stdout } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/type_tests/number_type.csv",
           "--treat-empty-csv-cells-as=empty",
           "--collection=empty_vals",
         ])
-      )
-      .it("creates a collection from a CSV", async (ctx) => {
-        expect(ctx.stdout).to.match(/Import from .* completed/);
-        const expected = [
-          { id: "1", name: "mia", age: "14" },
-          { id: "3", name: "pixie", age: "4.5" },
-          { id: "5", name: "unborn", age: "-2" },
-          { id: "6", name: "cliff", age: "" },
-        ];
-        await doCollectionAssertions("empty_vals", expected);
-      });
+      );
+      expect(stdout).to.match(/Import from .* completed/);
+      const expected = [
+        { id: "1", name: "mia", age: "14" },
+        { id: "3", name: "pixie", age: "4.5" },
+        { id: "5", name: "unborn", age: "-2" },
+        { id: "6", name: "cliff", age: "" },
+      ];
+      await doCollectionAssertions("empty_vals", expected);
+    });
 
-    test
-      .stdout()
-      .do(async () => {
-        await createOrClearCollection("already_exists");
-      })
-      .command(
+    it("can import to an empty collection without append argument", async () => {
+      await createOrClearCollection("already_exists");
+      const { stdout } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/type_tests/number_type.csv",
           "--collection=already_exists",
         ])
-      )
-      .it(
-        "can import to an empty collection without append argument",
-        async (ctx) => {
-          expect(ctx.stdout).to.match(/Import from .* completed/);
-          const expected = [
-            { id: "1", name: "mia", age: "14" },
-            { id: "3", name: "pixie", age: "4.5" },
-            { id: "5", name: "unborn", age: "-2" },
-            { id: "6", name: "cliff" },
-          ];
-          await doCollectionAssertions("already_exists", expected);
-        }
       );
+      expect(stdout).to.match(/Import from .* completed/);
+      const expected = [
+        { id: "1", name: "mia", age: "14" },
+        { id: "3", name: "pixie", age: "4.5" },
+        { id: "5", name: "unborn", age: "-2" },
+        { id: "6", name: "cliff" },
+      ];
+      await doCollectionAssertions("already_exists", expected);
+    });
   });
 
   describe("import folders", () => {
-    test
-      .stdout()
-      .do(async () => {
-        await deleteDatabase("folder_import");
-        await createDatabase("folder_import");
-      })
-      .command(
+    it("creates a collection for each file", async () => {
+      await deleteDatabase("folder_import");
+      await createDatabase("folder_import");
+
+      const { stdout } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/json",
           "--db=folder_import",
         ])
-      )
-      .it("creates a collection for each file", async (ctx) => {
-        expect(ctx.stdout).to.match(/All files completed/);
-        const expectedJsonArray = [
-          {
-            id: "1",
-            name: "mia",
-            birthday: "2010-10-31",
-            age: 10,
-            considered_old: true,
-            complex_object: {
-              boolean: true,
-              number: 1,
-              date: "2010-10-31",
-              array: [1, 2, 3, 4, 5],
-            },
-          },
-          // there's an empty object in here
-          undefined,
-          {
-            id: "2",
-            name: "doug",
-            birthday: "2010-10-31T00:00:00Z",
-            age: 11,
-            considered_old: false,
-          },
-          {
-            id: "3",
-            name: "fran",
-          },
-          {
-            id: "4",
-            name: "zooey",
-          },
-        ];
-        await doCollectionAssertions(
-          "json_array",
-          expectedJsonArray,
-          "folder_import"
-        );
-        const expectedJsonL = [
-          {
-            id: "11",
-            name: "mia",
-            birthday: "2010-10-31",
-            age: 10,
-            considered_old: true,
-            complex_object: {
-              boolean: true,
-              number: 1,
-              date: "2010-10-31",
-              array: [1, 2, 3, 4, 5],
-            },
-          },
-          {
-            id: "12",
-            name: "doug",
-            birthday: "2010-10-31T00:00:00Z",
-            age: 11,
-            considered_old: false,
-          },
-          { id: "13", name: "fran" },
-          // empty object in the file
-          undefined,
-          {
-            id: "14",
-            name: "zooey",
-          },
-        ];
-        await doCollectionAssertions("json_l", expectedJsonL, "folder_import");
-        const expectedJsonNestedTypeTrans = [
-          {
-            id: "21",
-            name: "mia",
-            birthday: "2010-10-31",
-            age: 10,
-            considered_old: true,
-            complex_object: {
-              boolean: true,
-              number: 1,
-              date: "2010-10-31",
-              array: [1, 2, 3, 4, 5],
-            },
-          },
-          {
-            id: "22",
-            name: "doug",
-            birthday: "2010-10-31T00:00:00Z",
-            age: 11,
-            considered_old: false,
-          },
-          {
-            id: "23",
-            name: "fran",
-            demographics: {
-              "d.o.b": "2009-10-31T00:00:00Z",
-            },
-          },
-        ];
-        await doCollectionAssertions(
-          "json_nested_type_trans",
-          expectedJsonNestedTypeTrans,
-          "folder_import"
-        );
-        // remaining files are corrupted to some extent - giving undefined behavior.
-        await assertCollectionExists("mixed_array_and_l", "folder_import");
-        await assertCollectionExists("mixed_l_and_array", "folder_import");
-        await assertCollectionExists("multi_array", "folder_import");
-      });
+      );
 
-    test
-      .stdout()
-      .do(async () => {
-        await deleteDatabase("folder_import");
-        await createDatabase("folder_import");
-      })
-      .command(
+      expect(stdout).to.match(/All files completed/);
+
+      const expectedJsonArray = [
+        {
+          id: "1",
+          name: "mia",
+          birthday: "2010-10-31",
+          age: 10,
+          considered_old: true,
+          complex_object: {
+            boolean: true,
+            number: 1,
+            date: "2010-10-31",
+            array: [1, 2, 3, 4, 5],
+          },
+        },
+        undefined,
+        {
+          id: "2",
+          name: "doug",
+          birthday: "2010-10-31T00:00:00Z",
+          age: 11,
+          considered_old: false,
+        },
+        {
+          id: "3",
+          name: "fran",
+        },
+        {
+          id: "4",
+          name: "zooey",
+        },
+      ];
+      await doCollectionAssertions(
+        "json_array",
+        expectedJsonArray,
+        "folder_import"
+      );
+
+      const expectedJsonL = [
+        {
+          id: "11",
+          name: "mia",
+          birthday: "2010-10-31",
+          age: 10,
+          considered_old: true,
+          complex_object: {
+            boolean: true,
+            number: 1,
+            date: "2010-10-31",
+            array: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          id: "12",
+          name: "doug",
+          birthday: "2010-10-31T00:00:00Z",
+          age: 11,
+          considered_old: false,
+        },
+        { id: "13", name: "fran" },
+        undefined,
+        {
+          id: "14",
+          name: "zooey",
+        },
+      ];
+      await doCollectionAssertions("json_l", expectedJsonL, "folder_import");
+
+      const expectedJsonNestedTypeTrans = [
+        {
+          id: "21",
+          name: "mia",
+          birthday: "2010-10-31",
+          age: 10,
+          considered_old: true,
+          complex_object: {
+            boolean: true,
+            number: 1,
+            date: "2010-10-31",
+            array: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          id: "22",
+          name: "doug",
+          birthday: "2010-10-31T00:00:00Z",
+          age: 11,
+          considered_old: false,
+        },
+        {
+          id: "23",
+          name: "fran",
+          demographics: {
+            "d.o.b": "2009-10-31T00:00:00Z",
+          },
+        },
+      ];
+      await doCollectionAssertions(
+        "json_nested_type_trans",
+        expectedJsonNestedTypeTrans,
+        "folder_import"
+      );
+
+      await assertCollectionExists("mixed_array_and_l", "folder_import");
+      await assertCollectionExists("mixed_l_and_array", "folder_import");
+      await assertCollectionExists("multi_array", "folder_import");
+    });
+
+    it("creates a single collection from all files when collection specified", async () => {
+      await deleteDatabase("folder_import");
+      await createDatabase("folder_import");
+
+      const { stdout } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/json",
           "--db=folder_import",
           "--collection=one_collection",
         ])
-      )
-      .it(
-        "creates a single collection from all files when collection specified",
-        async (ctx) => {
-          expect(ctx.stdout).to.match(/All files completed/);
-          const expectedJsonArray = [
-            {
-              id: "1",
-              name: "mia",
-              birthday: "2010-10-31",
-              age: 10,
-              considered_old: true,
-              complex_object: {
-                boolean: true,
-                number: 1,
-                date: "2010-10-31",
-                array: [1, 2, 3, 4, 5],
-              },
-            },
-            // there's an empty object in here
-            undefined,
-            {
-              id: "2",
-              name: "doug",
-              birthday: "2010-10-31T00:00:00Z",
-              age: 11,
-              considered_old: false,
-            },
-            {
-              id: "3",
-              name: "fran",
-            },
-            {
-              id: "4",
-              name: "zooey",
-            },
-          ];
-          const expectedJsonL = [
-            {
-              id: "11",
-              name: "mia",
-              birthday: "2010-10-31",
-              age: 10,
-              considered_old: true,
-              complex_object: {
-                boolean: true,
-                number: 1,
-                date: "2010-10-31",
-                array: [1, 2, 3, 4, 5],
-              },
-            },
-            {
-              id: "12",
-              name: "doug",
-              birthday: "2010-10-31T00:00:00Z",
-              age: 11,
-              considered_old: false,
-            },
-            { id: "13", name: "fran" },
-            // empty object in the file
-            undefined,
-            {
-              id: "14",
-              name: "zooey",
-            },
-          ];
-          const expectedJsonNestedTypeTrans = [
-            {
-              id: "21",
-              name: "mia",
-              birthday: "2010-10-31",
-              age: 10,
-              considered_old: true,
-              complex_object: {
-                boolean: true,
-                number: 1,
-                date: "2010-10-31",
-                array: [1, 2, 3, 4, 5],
-              },
-            },
-            {
-              id: "22",
-              name: "doug",
-              birthday: "2010-10-31T00:00:00Z",
-              age: 11,
-              considered_old: false,
-            },
-            {
-              id: "23",
-              name: "fran",
-              demographics: {
-                "d.o.b": "2009-10-31T00:00:00Z",
-              },
-            },
-          ];
-          await doCollectionAssertions(
-            "one_collection",
-            [
-              ...expectedJsonL,
-              ...expectedJsonArray,
-              ...expectedJsonNestedTypeTrans,
-            ],
-            "folder_import",
-            "check_item_presence"
-          );
-        }
       );
 
-    test
-      .stdout()
-      .do(async () => {
-        await deleteDatabase("append_folder_import");
-        await createDatabase("append_folder_import");
-        await createOrClearCollection(
-          "append_collection",
-          "append_folder_import"
-        );
-        await getClient("append_folder_import").query(
-          query.Create(query.Collection("append_collection"), {
-            data: { dog: "cat" },
-          })
-        );
-      })
-      .command(
+      expect(stdout).to.match(/All files completed/);
+
+      const expectedJsonArray = [
+        {
+          id: "1",
+          name: "mia",
+          birthday: "2010-10-31",
+          age: 10,
+          considered_old: true,
+          complex_object: {
+            boolean: true,
+            number: 1,
+            date: "2010-10-31",
+            array: [1, 2, 3, 4, 5],
+          },
+        },
+        undefined,
+        {
+          id: "2",
+          name: "doug",
+          birthday: "2010-10-31T00:00:00Z",
+          age: 11,
+          considered_old: false,
+        },
+        {
+          id: "3",
+          name: "fran",
+        },
+        {
+          id: "4",
+          name: "zooey",
+        },
+      ];
+
+      const expectedJsonL = [
+        {
+          id: "11",
+          name: "mia",
+          birthday: "2010-10-31",
+          age: 10,
+          considered_old: true,
+          complex_object: {
+            boolean: true,
+            number: 1,
+            date: "2010-10-31",
+            array: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          id: "12",
+          name: "doug",
+          birthday: "2010-10-31T00:00:00Z",
+          age: 11,
+          considered_old: false,
+        },
+        { id: "13", name: "fran" },
+        undefined,
+        {
+          id: "14",
+          name: "zooey",
+        },
+      ];
+
+      const expectedJsonNestedTypeTrans = [
+        {
+          id: "21",
+          name: "mia",
+          birthday: "2010-10-31",
+          age: 10,
+          considered_old: true,
+          complex_object: {
+            boolean: true,
+            number: 1,
+            date: "2010-10-31",
+            array: [1, 2, 3, 4, 5],
+          },
+        },
+        {
+          id: "22",
+          name: "doug",
+          birthday: "2010-10-31T00:00:00Z",
+          age: 11,
+          considered_old: false,
+        },
+        {
+          id: "23",
+          name: "fran",
+          demographics: {
+            "d.o.b": "2009-10-31T00:00:00Z",
+          },
+        },
+      ];
+
+      await doCollectionAssertions(
+        "one_collection",
+        [
+          ...expectedJsonL,
+          ...expectedJsonArray,
+          ...expectedJsonNestedTypeTrans,
+        ],
+        "folder_import",
+        "check_item_presence"
+      );
+    });
+
+    it("appends to an existing, non-empty collection", async () => {
+      await deleteDatabase("append_folder_import");
+      await createDatabase("append_folder_import");
+      await createOrClearCollection(
+        "append_collection",
+        "append_folder_import"
+      );
+      await getClient("append_folder_import").query(
+        query.Create(query.Collection("append_collection"), {
+          data: { dog: "cat" },
+        })
+      );
+
+      const { stdout } = await runCommand(
         withOpts([
           "import",
           "--path=import_test_data/json",
@@ -667,110 +617,111 @@ describe("import", () => {
           "--collection=append_collection",
           "--append",
         ])
-      )
-      .it("appends to an existing, non-empty collection", async (ctx) => {
-        expect(ctx.stdout).to.match(/All files completed/);
-        const expectedJsonArray = [
-          {
-            id: "1",
-            name: "mia",
-            birthday: "2010-10-31",
-            age: 10,
-            considered_old: true,
-            complex_object: {
-              boolean: true,
-              number: 1,
-              date: "2010-10-31",
-              array: [1, 2, 3, 4, 5],
-            },
+      );
+
+      expect(stdout).to.match(/All files completed/);
+
+      const expectedJsonArray = [
+        {
+          id: "1",
+          name: "mia",
+          birthday: "2010-10-31",
+          age: 10,
+          considered_old: true,
+          complex_object: {
+            boolean: true,
+            number: 1,
+            date: "2010-10-31",
+            array: [1, 2, 3, 4, 5],
           },
-          // there's an empty object in here
-          undefined,
-          {
-            id: "2",
-            name: "doug",
-            birthday: "2010-10-31T00:00:00Z",
-            age: 11,
-            considered_old: false,
+        },
+        undefined,
+        {
+          id: "2",
+          name: "doug",
+          birthday: "2010-10-31T00:00:00Z",
+          age: 11,
+          considered_old: false,
+        },
+        {
+          id: "3",
+          name: "fran",
+        },
+        {
+          id: "4",
+          name: "zooey",
+        },
+      ];
+
+      const expectedJsonL = [
+        {
+          id: "11",
+          name: "mia",
+          birthday: "2010-10-31",
+          age: 10,
+          considered_old: true,
+          complex_object: {
+            boolean: true,
+            number: 1,
+            date: "2010-10-31",
+            array: [1, 2, 3, 4, 5],
           },
-          {
-            id: "3",
-            name: "fran",
+        },
+        {
+          id: "12",
+          name: "doug",
+          birthday: "2010-10-31T00:00:00Z",
+          age: 11,
+          considered_old: false,
+        },
+        { id: "13", name: "fran" },
+        undefined,
+        {
+          id: "14",
+          name: "zooey",
+        },
+      ];
+
+      const expectedJsonNestedTypeTrans = [
+        {
+          id: "21",
+          name: "mia",
+          birthday: "2010-10-31",
+          age: 10,
+          considered_old: true,
+          complex_object: {
+            boolean: true,
+            number: 1,
+            date: "2010-10-31",
+            array: [1, 2, 3, 4, 5],
           },
-          {
-            id: "4",
-            name: "zooey",
+        },
+        {
+          id: "22",
+          name: "doug",
+          birthday: "2010-10-31T00:00:00Z",
+          age: 11,
+          considered_old: false,
+        },
+        {
+          id: "23",
+          name: "fran",
+          demographics: {
+            "d.o.b": "2009-10-31T00:00:00Z",
           },
-        ];
-        const expectedJsonL = [
-          {
-            id: "11",
-            name: "mia",
-            birthday: "2010-10-31",
-            age: 10,
-            considered_old: true,
-            complex_object: {
-              boolean: true,
-              number: 1,
-              date: "2010-10-31",
-              array: [1, 2, 3, 4, 5],
-            },
-          },
-          {
-            id: "12",
-            name: "doug",
-            birthday: "2010-10-31T00:00:00Z",
-            age: 11,
-            considered_old: false,
-          },
-          { id: "13", name: "fran" },
-          // empty object in the file
-          undefined,
-          {
-            id: "14",
-            name: "zooey",
-          },
-        ];
-        const expectedJsonNestedTypeTrans = [
-          {
-            id: "21",
-            name: "mia",
-            birthday: "2010-10-31",
-            age: 10,
-            considered_old: true,
-            complex_object: {
-              boolean: true,
-              number: 1,
-              date: "2010-10-31",
-              array: [1, 2, 3, 4, 5],
-            },
-          },
-          {
-            id: "22",
-            name: "doug",
-            birthday: "2010-10-31T00:00:00Z",
-            age: 11,
-            considered_old: false,
-          },
-          {
-            id: "23",
-            name: "fran",
-            demographics: {
-              "d.o.b": "2009-10-31T00:00:00Z",
-            },
-          },
-        ];
-        await doCollectionAssertions(
-          "append_collection",
-          [
-            ...expectedJsonL,
-            ...expectedJsonArray,
-            ...expectedJsonNestedTypeTrans,
-            //            { dog: 'cat' },
-          ],
-          "append_folder_import",
-          "check_item_presence"
-        );
-      });
+        },
+      ];
+
+      await doCollectionAssertions(
+        "append_collection",
+        [
+          ...expectedJsonL,
+          ...expectedJsonArray,
+          ...expectedJsonNestedTypeTrans,
+        ],
+        "append_folder_import",
+        "check_item_presence"
+      );
+    });
   });
 });
