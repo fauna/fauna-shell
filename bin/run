@@ -3,9 +3,4 @@
 const oclif = require("@oclif/core");
 const { flush, handle } = require("@oclif/core");
 
-oclif
-  .run()
-  .then(flush)
-  .catch((err) => {
-    handle(err);
-  });
+oclif.run().then(flush).catch(handle);
