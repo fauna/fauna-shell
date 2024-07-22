@@ -22,7 +22,10 @@ describe("database test", () => {
     nock(getEndpoint(), { allowUnmocked: true })
       .persist()
       .post("/", matchFqlReq(q.Now()))
-      .reply(200, new Date())
+      .reply(200, function () {
+        expect(this.req.headers["x-fauna-shell-builtin"]).to.equal("true");
+        return new Date();
+      })
       .post("/", matchFqlReq(q.Paginate(q.Databases(), { size: 1000 })))
       .reply(200, { resource: { data: databases } });
     const { stdout } = await runCommand(withOpts(["list-databases"]));
