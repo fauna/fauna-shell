@@ -1329,6 +1329,12 @@ do so, you can run commands like this:
 ```
 yarn install
 
+# run against just-in-time built project with dev settings
 ./bin/dev cloud-login
 ./bin/dev eval
+
+# or run against built assets; yarn link will place them in your PATH
+# as if globally installed
+yarn build && yarn link
+fauna eval
 ```
