@@ -25,7 +25,10 @@ describe("keys test", () => {
     nock(getEndpoint(), { allowUnmocked: true })
       .persist()
       .post("/", matchFqlReq(q.Now()))
-      .reply(200, new Date())
+      .reply(200, function () {
+        expect(this.req.headers["x-fauna-shell-builtin"]).to.equal("true");
+        return new Date();
+      })
       .post("/", matchFqlReq(q.Paginate(q.Keys(), { size: 100 })))
       .reply(200, { resource: currentKeys })
       .post("/", matchFqlReq(q.Paginate(q.Databases(), { size: 100 })))

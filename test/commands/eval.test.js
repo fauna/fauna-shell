@@ -10,6 +10,10 @@ const {
 } = require("../helpers/utils.js");
 const { query: q } = require("faunadb");
 
+afterEach(() => {
+  nock.cleanAll();
+});
+
 describe("eval", () => {
   it("runs eval on root db", async () => {
     const scope = nock(getEndpoint(), { allowUnmocked: true });
@@ -180,6 +184,7 @@ function mockQuery(api) {
     .post("/", matchFqlReq(q.Paginate(q.Collections())))
     .reply(200, function () {
       const auth = this.req.headers.authorization.split(" ")[1].split(":");
+      expect(this.req.headers["x-fauna-shell-builtin"]).to.not.exist;
       return {
         resource: {
           data: [

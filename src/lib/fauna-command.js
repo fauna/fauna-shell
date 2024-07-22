@@ -48,6 +48,16 @@ class FaunaCommand extends Command {
     super.error(message, { exit: 1 });
   }
 
+  _getHeaders() {
+    const headers = {
+      "X-Fauna-Source": "Fauna Shell",
+    };
+    if (!["ShellCommand", "EvalCommand"].includes(this.constructor.name)) {
+      headers["x-fauna-shell-builtin"] = "true";
+    }
+    return headers;
+  }
+
   /**
    * !!! use getClient instead
    * Runs the function in the context of a database connection.
@@ -74,9 +84,7 @@ class FaunaCommand extends Command {
         // Force http1. See getClient.
         fetch: fetch,
 
-        headers: {
-          "X-Fauna-Source": "Fauna Shell",
-        },
+        headers: this._getHeaders(),
       });
       await client.query(q.Now());
       //TODO this should return a Promise
@@ -142,9 +150,7 @@ class FaunaCommand extends Command {
           // TODO: Remove and just connect to a docker container.
           fetch: fetch,
 
-          headers: {
-            "X-Fauna-Source": "Fauna Shell",
-          },
+          headers: this._getHeaders(),
         });
 
         // validate the client settings
