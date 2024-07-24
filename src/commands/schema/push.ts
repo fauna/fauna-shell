@@ -44,8 +44,6 @@ export default class PushSchemaCommand extends SchemaCommand {
           method: "POST",
           headers: { AUTHORIZATION: `Bearer ${secret}` },
           body: this.body(files),
-          // @ts-expect-error-next-line
-          duplex: "half",
         });
         const json = await res.json();
         if (json.error) {

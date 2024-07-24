@@ -59,15 +59,11 @@ export default abstract class SchemaCommand extends FaunaCommand {
   // Helper to construct form data for a collection of files, as
   // returned by `gather`.
   body(files: File[]) {
-    const fd: Record<string, string> = {};
+    const fd = new FormData();
     for (const file of files) {
-      fd[file.name] = file.content.toString();
+      fd.set(file.name, new Blob([file.content]));
     }
-    const Readable = require("stream").Readable;
-    const s = new Readable();
-    s.push(JSON.stringify(fd));
-    s.push(null);
-    return s;
+    return fd;
   }
 
   // Reads the files using their relative-to-`basedir` paths and returns their
