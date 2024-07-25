@@ -4,7 +4,7 @@ image_resource:
   type: registry-image
   source:
     repository: node
-    tag: 16.14.2-alpine3.14
+    tag: 18-alpine
 
 params:
   NPM_TOKEN:
