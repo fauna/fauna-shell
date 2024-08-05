@@ -214,9 +214,7 @@ class FaunaCommand extends Command {
         // See getClient.
         fetch: fetch,
 
-        headers: {
-          "X-Fauna-Source": "Fauna Shell",
-        },
+        headers: this._getHeaders(),
       });
       const exists = await client.query(q.Exists(q.Database(path[i])));
       await client.close();

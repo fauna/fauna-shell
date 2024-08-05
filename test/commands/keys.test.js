@@ -140,6 +140,7 @@ function mockCreateKey(api, { role }) {
       const authParsed = this.req.headers.authorization
         .split(" ")[1]
         .split(":");
+      expect(this.req.headers["x-fauna-shell-builtin"]).to.equal("true");
       const allowedRoles = ["admin", "server", "server-readonly", "client"];
       if (allowedRoles.includes(role)) {
         return [
