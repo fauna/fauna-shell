@@ -71,8 +71,11 @@ export const shellOk = async (
   return res.stdout;
 };
 
-export const shellErr = async (cmd: string): Promise<string> => {
-  const res = await shell(cmd);
+export const shellErr = async (
+  cmd: string,
+  secret?: string
+): Promise<string> => {
+  const res = await shell(cmd, secret);
   if (res.ok) {
     fail(`Command should not have exitted succesfully:\n${res.stdout}`);
   }
