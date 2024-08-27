@@ -1,0 +1,4 @@
+collection User {
+  name: String
+  email: String
+}
