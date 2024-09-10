@@ -99,6 +99,25 @@ describe("fauna schema push test", () => {
     // Restore the stub after the test
     stubConfirm.restore();
   });
+
+  it("runs schema status", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(q.Now()))
+      .reply(200, new Date())
+      .get("/schema/1/staged/status?diff=true")
+      .reply(200, {
+        version: 0,
+        status: "ready",
+        diff: diff.diff,
+      });
+
+    // Stubbing the confirmation to always return true
+    const { stdout } = await runCommand(
+      withOpts(["schema status", "--dir=test/testdata"])
+    );
+    expect(stdout).to.contain(`${diff.diff}`);
+  });
 });
 
 const testdir = "test/testdata";
