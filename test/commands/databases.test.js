@@ -18,6 +18,10 @@ const databases = [
 describe("database test", () => {
   // Translate this test to work with version 4.0.4 of @oclif/test
 
+  it("certainly fails", async () => {
+    expect(true).to.equal(false);
+  });
+
   it("runs list-databases", async () => {
     nock(getEndpoint(), { allowUnmocked: true })
       .persist()
