@@ -106,7 +106,7 @@
     "prepack": "yarn build && oclif manifest",
     "pretest": "yarn fixlint",
     "local-test": "export $(cat .env | xargs); mocha \"test/**/*.test.{js,ts}\"",
-    "test": "export $(cat .env.test | xargs); c8 -r html mocha --forbid-only \"test/**/*.test.{js,ts}\"",
+    "test": "c8 -r html mocha --forbid-only \"test/**/*.test.{js,ts}\"",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
     "version": "oclif-dev readme && git add README.md",
