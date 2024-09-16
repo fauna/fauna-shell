@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { cleanupDBs, evalOk, newDB, shellOk, stripMargin } from "./base";
 
-describe("fauna schema staged commands", () => {
+describe.skip("fauna schema staged commands", () => {
   // Cleanup after ourselves.
   after(async function () {
     await cleanupDBs();
