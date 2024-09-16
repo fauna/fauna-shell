@@ -1,0 +1,39 @@
+version: 2.1
+description: Fauna Shell Tests
+
+executors:
+  core:
+    resource_class: large
+    docker:
+      - image: cimg/node:18.20
+
+commands:
+  build_and_test:
+    description: "Run fauna-shell tests"
+    steps:
+      - checkout
+
+      - run:
+          name: Install dependencies
+          command: yarn install
+
+      - run:
+          name: Run Tests
+          command: yarn test
+
+      - store_artifacts:
+          path: coverage
+
+jobs:
+  fauna-shell-tests:
+    executor:
+      name: core
+    steps:
+      - build_and_test
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - fauna-shell-tests:
+          context: faunadb-drivers
