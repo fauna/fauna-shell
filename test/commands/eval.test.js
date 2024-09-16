@@ -97,13 +97,11 @@ describe("eval", () => {
 });
 
 describe("eval in v10", () => {
-  it("runs eval in shell format", async () => {
+  it("runs eval", async () => {
     const { stdout } = await runCommand(
       withOpts([
         "eval",
         "\"{ exists: Collection.byName('doesnt_exist').exists() }\"",
-        "--format",
-        "shell",
       ])
     );
     expect(stdout).to.equal("{\n  exists: false\n}\n");
