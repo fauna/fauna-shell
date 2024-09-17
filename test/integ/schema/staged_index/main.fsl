@@ -1,0 +1,8 @@
+collection User {
+  name: String
+  email: String
+
+  index byName {
+    terms [.name]
+  }
+}
