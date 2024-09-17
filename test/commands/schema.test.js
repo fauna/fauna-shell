@@ -118,6 +118,101 @@ describe("fauna schema push test", () => {
     );
     expect(stdout).to.contain(`${diff.diff}`);
   });
+
+  it("runs schema commit", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(q.Now()))
+      .reply(200, new Date())
+      .get("/schema/1/staged/status?diff=true")
+      .reply(200, {
+        version: 3,
+        status: "ready",
+        diff: diff.diff,
+      })
+      .post("/schema/1/staged/commit?version=3")
+      .reply(200, { version: 0 });
+
+    // Stubbing the confirmation to always return true
+    const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
+    const { stdout } = await runCommand(
+      withOpts(["schema commit", "--dir=test/testdata"])
+    );
+    expect(stdout).to.contain(`Schema has been committed`);
+    // Restore the stub after the test
+    stubConfirm.restore();
+  });
+
+  it("won't commit when schema isn't ready", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(q.Now()))
+      .reply(200, new Date())
+      .get("/schema/1/staged/status?diff=true")
+      .reply(200, {
+        version: 3,
+        status: "pending",
+        diff: diff.diff,
+      });
+
+    // Stubbing the confirmation to always return true
+    const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
+    const { stdout, error } = await runCommand(
+      withOpts(["schema commit", "--dir=test/testdata"])
+    );
+    expect(stdout).to.contain(diff.diff);
+    expect(error.message).to.equal("Schema is not ready to be committed");
+    // Restore the stub after the test
+    stubConfirm.restore();
+  });
+
+  it("runs schema abandon", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(q.Now()))
+      .reply(200, new Date())
+      .get("/schema/1/staged/status?diff=true")
+      .reply(200, {
+        version: 3,
+        status: "ready",
+        diff: diff.diff,
+      })
+      .post("/schema/1/staged/abandon?version=3")
+      .reply(200, { version: 0 });
+
+    // Stubbing the confirmation to always return true
+    const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
+    const { stdout } = await runCommand(
+      withOpts(["schema abandon", "--dir=test/testdata"])
+    );
+    expect(stdout).to.contain(`Schema has been abandoned`);
+    // Restore the stub after the test
+    stubConfirm.restore();
+  });
+
+  it("will abandon even when schema isn't ready", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(q.Now()))
+      .reply(200, new Date())
+      .get("/schema/1/staged/status?diff=true")
+      .reply(200, {
+        version: 3,
+        status: "pending",
+        diff: diff.diff,
+      })
+      .post("/schema/1/staged/abandon?version=3")
+      .reply(200, { version: 0 });
+
+    // Stubbing the confirmation to always return true
+    const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
+    const { stdout } = await runCommand(
+      withOpts(["schema abandon", "--dir=test/testdata"])
+    );
+    expect(stdout).to.contain(`Schema has been abandoned`);
+    // Restore the stub after the test
+    stubConfirm.restore();
+  });
 });
 
 const testdir = "test/testdata";
