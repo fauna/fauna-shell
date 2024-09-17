@@ -50,6 +50,9 @@ class OAuthClient {
   }
 
   public getToken() {
+    const now = new Date();
+    // Short expiry for access token as it's only used to create a session
+    now.setUTCMinutes(now.getUTCMinutes() + 10);
     const params = {
       grant_type: "authorization_code",
       client_id: clientId,
@@ -57,7 +60,7 @@ class OAuthClient {
       code: this.auth_code,
       redirect_uri: `${redirectUri}:${this.port}`,
       code_verifier: this.code_verifier,
-      ttl: "2024-09-17T00:00:00.00Z",
+      ttl: now.toISOString(),
     };
     return fetch(`${frontdoorURL}/token`, {
       method: "POST",
