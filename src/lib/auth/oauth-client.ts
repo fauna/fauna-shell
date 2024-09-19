@@ -38,7 +38,6 @@ class OAuthClient {
   public getRequestUrl() {
     const params = {
       client_id: clientId,
-      client_secret: clientSecret,
       redirect_uri: `${redirectUri}:${this.port}`,
       code_challenge: this.code_challenge,
       code_challenge_method: "S256",
