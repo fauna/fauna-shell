@@ -74,8 +74,6 @@ export class ProjectInitCommand extends Command {
       );
     }
 
-    ProjectConfig.initialConfig(schemaDir).save(projectPath);
-
     const shellConfig = ShellConfig.readWithOverrides({
       projectPath: projectPath,
     });
