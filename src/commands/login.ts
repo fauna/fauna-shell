@@ -8,8 +8,6 @@ type AccessToken = {
   state: string;
 };
 
-// const DASHBOARD_URL = "http://localhost:3005/login";
-
 export default class LoginCommand extends Command {
   static description = "Log in to a Fauna account.";
   static examples = ["$ fauna login"];
@@ -27,11 +25,13 @@ export default class LoginCommand extends Command {
       method: "POST",
       headers: myHeaders,
     };
-
     const response = await fetch(
       "http://localhost:8000/api/v1/session",
       requestOptions
     );
+    if (response.status >= 400) {
+      throw new Error(`Error creating session: ${response.statusText}`);
+    }
     const session = await response.json();
     return session;
   }
@@ -40,14 +40,19 @@ export default class LoginCommand extends Command {
     await this.parse();
 
     const oAuth = new OAuthServer();
-    const authUrl = (await fetch(oAuth.getRequestUrl())).url;
     await oAuth.start();
-    this.log(`To login, open your browser to:\n ${authUrl}`);
+    const dashboardOAuthURL = (await fetch(oAuth.getRequestUrl())).url;
+    const error = new URL(dashboardOAuthURL).searchParams.get("error");
+    if (error) {
+      throw new Error(`Error during login: ${error}`);
+    }
+    this.log(`To login, open your browser to:\n ${dashboardOAuthURL}`);
     oAuth.server.on("auth_code_received", async () => {
       try {
-        const token: AccessToken = await (await oAuth.getToken()).json();
+        const tokenResponse = await oAuth.getToken();
+        const token: AccessToken = await tokenResponse.json();
         this.log("Authentication successful!");
-        const { state, ttl, access_token, token_type } = token;
+        const { state, access_token } = token;
         if (state !== oAuth.state) {
           throw new Error("Error during login: invalid state.");
         }

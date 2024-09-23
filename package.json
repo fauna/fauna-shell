@@ -105,6 +105,7 @@
     "postpack": "rm -f oclif.manifest.json",
     "prepack": "yarn build && oclif manifest",
     "pretest": "yarn fixlint",
+    "local": "export $(cat .env | xargs); node bin/run",
     "local-test": "export $(cat .env | xargs); c8 -r text mocha --forbid-only \"test/**/*.test.{js,ts}\"",
     "test": "export $(cat .env.test | xargs); c8 -r html mocha --forbid-only \"test/**/*.test.{js,ts}\"",
     "lint": "eslint .",

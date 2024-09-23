@@ -3,14 +3,16 @@ const { randomBytes, createHash } = require("node:crypto");
 import url from "url";
 import net from "net";
 
-// env var
-const dashboardURL = "http://localhost:3005/authorize/complete";
-// env var
-const frontdoorURL = "http://localhost:8000/api/v1/oauth";
-// env var
-const clientId = "Gj6wAqni5MS0U72qfcGjh9pS8+U=";
-const clientSecret = "5kXhq2MrHLPF4iV5aPC5PRnGrCNhnRUsV6C8gtlj8PtkIJINR5Je2A==";
-const redirectUri = `http://127.0.0.1`;
+const accountURL = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
+
+// Default to prod client id and secret
+const clientId = process.env.FAUNA_CLIENT_ID ?? "Aq4_G0mOtm_F1fK3PuzE0k-i9F0";
+// Native public clients are not confidential. The client secret is not used beyond
+//   client identification. https://datatracker.ietf.org/doc/html/rfc8252#section-8.5
+const clientSecret =
+  process.env.FAUNA_CLIENT_SECRET ??
+  "2W9eZYlyN5XwnpvaP3AwOfclrtAjTXncH6k-bdFq1ZV0hZMFPzRIfg";
+const REDIRECT_URI = `http://127.0.0.1`;
 
 class OAuthClient {
   public server: http.Server;
@@ -21,47 +23,45 @@ class OAuthClient {
   public state: string;
 
   constructor() {
-    this.server = http.createServer(this.handleRequest.bind(this));
+    this.server = http.createServer(this._handleRequest.bind(this));
     this.code_verifier = Buffer.from(randomBytes(20)).toString("base64url");
     this.code_challenge = createHash("sha256")
       .update(this.code_verifier)
       .digest("base64url");
     this.port = 0;
     this.auth_code = "";
-    this.state = this.generateCSRFToken();
-  }
-
-  private generateCSRFToken(): string {
-    return Buffer.from(randomBytes(20)).toString("base64url");
+    this.state = this._generateCSRFToken();
   }
 
   public getRequestUrl() {
     const params = {
       client_id: clientId,
-      redirect_uri: `${redirectUri}:${this.port}`,
+      redirect_uri: `${REDIRECT_URI}:${this.port}`,
       code_challenge: this.code_challenge,
       code_challenge_method: "S256",
       response_type: "code",
       scope: "create_session",
       state: this.state,
     };
-    return `${frontdoorURL}/authorize?${new URLSearchParams(params)}`;
+    return `${accountURL}/api/v1/oauth/authorize?${new URLSearchParams(
+      params
+    )}`;
   }
 
   public getToken() {
     const now = new Date();
     // Short expiry for access token as it's only used to create a session
-    now.setUTCMinutes(now.getUTCMinutes() + 10);
+    now.setUTCMinutes(now.getUTCMinutes() + 5);
     const params = {
       grant_type: "authorization_code",
       client_id: clientId,
       client_secret: clientSecret,
       code: this.auth_code,
-      redirect_uri: `${redirectUri}:${this.port}`,
+      redirect_uri: `${REDIRECT_URI}:${this.port}`,
       code_verifier: this.code_verifier,
       ttl: now.toISOString(),
     };
-    return fetch(`${frontdoorURL}/token`, {
+    return fetch(`${accountURL}/api/v1/oauth/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -70,7 +70,11 @@ class OAuthClient {
     });
   }
 
-  private handleRequest(req: IncomingMessage, res: ServerResponse) {
+  private _generateCSRFToken(): string {
+    return Buffer.from(randomBytes(20)).toString("base64url");
+  }
+
+  private _handleRequest(req: IncomingMessage, res: ServerResponse) {
     const allowedOrigins = [
       "http://localhost:3005",
       "http://127.0.0.1:3005",
@@ -86,42 +90,47 @@ class OAuthClient {
       res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     }
 
+    let errorMessage = "";
+
     if (req.method === "GET") {
       const parsedUrl = url.parse(req.url || "", true);
       if (parsedUrl.pathname !== "/") {
-        console.error("Error while retrieving authorization code! Try again.");
+        errorMessage = "Invalid redirect uri";
         this.closeServer();
       }
       const query = parsedUrl.query;
       if (query.error) {
-        console.error("Error returned from server:", query.error);
+        errorMessage = query.error.toString();
         this.closeServer();
       }
       if (query.code) {
         const authCode = query.code;
         if (!authCode || typeof authCode !== "string") {
-          console.error("Invalid authorization code returned from server");
+          errorMessage = "Invalid authorization code received";
           this.server.close();
         } else {
           this.auth_code = authCode;
           if (query.state !== this.state) {
-            console.error("Invalid state returned from server");
+            errorMessage = "Invalid state received";
             this.closeServer();
           }
-          // Send them to a nice page that shows auth is complete and they can close the window.
-          res.writeHead(301, { Location: dashboardURL });
+          // TODO: Send them to a nice page that shows auth is complete and they can close the window.
+          res.writeHead(200, { "Content-Type": "text/html" });
           res.end();
           this.server.emit("auth_code_received");
           this.closeServer();
         }
       }
     } else {
-      console.error("Error while retrieving authorization code! Try again.");
+      errorMessage = "Invalid request method";
       this.closeServer();
+    }
+    if (errorMessage) {
+      console.error("Error during authentication:", errorMessage);
     }
   }
 
-  private isPortAvailable(port: number): Promise<boolean> {
+  private _isPortAvailable(port: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
       const tester = net
         .createServer()
@@ -142,14 +151,12 @@ class OAuthClient {
     // Loop until an available port is found
     do {
       port = Math.floor(Math.random() * (63000 - 62500 + 1)) + 62500;
-      isAvailable = await this.isPortAvailable(port);
+      isAvailable = await this._isPortAvailable(port);
     } while (!isAvailable);
 
     this.port = port;
 
-    this.server.listen(port, () => {
-      // console.log(`Server is listening on port ${port}`);
-    });
+    this.server.listen(port);
 
     return { server: this.server, port };
   }
