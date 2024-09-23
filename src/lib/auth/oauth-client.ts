@@ -1,7 +1,7 @@
 import http, { IncomingMessage, ServerResponse } from "http";
 const { randomBytes, createHash } = require("node:crypto");
 import url from "url";
-import net, { AddressInfo } from "net";
+import { AddressInfo } from "net";
 
 const accountURL = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
 
@@ -130,23 +130,13 @@ class OAuthClient {
     }
   }
 
-  private _getFreePort(): Promise<number> {
-    return new Promise((res, rej) => {
-      const srv = net.createServer();
-      srv.listen(0, () => {
-        const port = srv.address() as AddressInfo;
-        srv.close((err) => {
-          if (err) rej(err);
-          res(port.port);
-        });
-      });
-    });
-  }
-
   public async start() {
     try {
-      this.port = await this._getFreePort();
-      this.server.listen(this.port);
+      this.server.on("listening", () => {
+        this.port = (this.server.address() as AddressInfo).port;
+        this.server.emit("ready");
+      });
+      this.server.listen(0);
     } catch (e: any) {
       console.error("Error starting loopback server:", e.message);
     }

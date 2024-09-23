@@ -41,12 +41,14 @@ export default class LoginCommand extends Command {
 
     const oAuth = new OAuthServer();
     await oAuth.start();
-    const dashboardOAuthURL = (await fetch(oAuth.getRequestUrl())).url;
-    const error = new URL(dashboardOAuthURL).searchParams.get("error");
-    if (error) {
-      throw new Error(`Error during login: ${error}`);
-    }
-    this.log(`To login, open your browser to:\n ${dashboardOAuthURL}`);
+    oAuth.server.on("ready", async () => {
+      const dashboardOAuthURL = (await fetch(oAuth.getRequestUrl())).url;
+      const error = new URL(dashboardOAuthURL).searchParams.get("error");
+      if (error) {
+        throw new Error(`Error during login: ${error}`);
+      }
+      this.log(`To login, open your browser to:\n ${dashboardOAuthURL}`);
+    });
     oAuth.server.on("auth_code_received", async () => {
       try {
         const tokenResponse = await oAuth.getToken();
