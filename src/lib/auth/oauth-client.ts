@@ -1,7 +1,7 @@
 import http, { IncomingMessage, ServerResponse } from "http";
 const { randomBytes, createHash } = require("node:crypto");
 import url from "url";
-import net from "net";
+import net, { AddressInfo } from "net";
 
 const accountURL = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
 
@@ -130,35 +130,26 @@ class OAuthClient {
     }
   }
 
-  private _isPortAvailable(port: number): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      const tester = net
-        .createServer()
-        .once("error", (err: any) =>
-          err.code === "EADDRINUSE" ? resolve(false) : reject(err)
-        )
-        .once("listening", () =>
-          tester.once("close", () => resolve(true)).close()
-        )
-        .listen(port);
+  private _getFreePort(): Promise<number> {
+    return new Promise((res, rej) => {
+      const srv = net.createServer();
+      srv.listen(0, () => {
+        const port = srv.address() as AddressInfo;
+        srv.close((err) => {
+          if (err) rej(err);
+          res(port.port);
+        });
+      });
     });
   }
 
   public async start() {
-    let port: number;
-    let isAvailable: boolean = false;
-
-    // Loop until an available port is found
-    do {
-      port = Math.floor(Math.random() * (63000 - 62500 + 1)) + 62500;
-      isAvailable = await this._isPortAvailable(port);
-    } while (!isAvailable);
-
-    this.port = port;
-
-    this.server.listen(port);
-
-    return { server: this.server, port };
+    try {
+      this.port = await this._getFreePort();
+      this.server.listen(this.port);
+    } catch (e: any) {
+      console.error("Error starting loopback server:", e.message);
+    }
   }
 
   public closeServer() {
