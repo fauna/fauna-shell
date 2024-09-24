@@ -37,7 +37,6 @@ export default class LoginCommand extends Command {
   }
 
   async execute() {
-    await this.parse();
 
     const oAuth = new OAuthServer();
     await oAuth.start();
