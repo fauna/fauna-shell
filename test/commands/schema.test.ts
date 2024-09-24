@@ -2,12 +2,12 @@ import { expect } from "chai";
 import { runCommand } from "@oclif/test";
 import nock from "nock";
 import sinon from "sinon";
-const inquirer = require("@inquirer/prompts");
-const fs = require("fs");
-const path = require("path");
-const { query: q } = require("faunadb");
-const { withOpts, getEndpoint, matchFqlReq } = require("../helpers/utils.js");
-const { disableColor } = require("../../src/lib/color");
+import * as inquirer from "@inquirer/prompts";
+import fs from "fs";
+import path from "path";
+import { query } from "faunadb";
+import { withOpts, getEndpoint, matchFqlReq } from "../helpers/utils.js";
+import { disableColor } from "../../src/lib/color";
 
 const main = {
   version: 0,
@@ -48,7 +48,7 @@ describe("fauna schema diff test", () => {
   it("runs schema diff", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
-      .post("/", matchFqlReq(q.Now()))
+      .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
       .post("/schema/1/validate?force=true")
       .reply(200, diff);
@@ -69,7 +69,7 @@ describe("fauna schema push test", () => {
   it("runs schema push", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
-      .post("/", matchFqlReq(q.Now()))
+      .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
       .post("/schema/1/validate?force=true")
       .reply(200, diff)
@@ -88,7 +88,7 @@ describe("fauna schema push test", () => {
   it("runs schema push --stage", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
-      .post("/", matchFqlReq(q.Now()))
+      .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
       .post("/schema/1/validate?force=true")
       .reply(200, diff)
@@ -108,7 +108,7 @@ describe("fauna schema push test", () => {
   it("runs schema status", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
-      .post("/", matchFqlReq(q.Now()))
+      .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
       .get("/schema/1/staged/status?diff=true")
       .reply(200, {
@@ -127,7 +127,7 @@ describe("fauna schema push test", () => {
   it("runs schema commit", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
-      .post("/", matchFqlReq(q.Now()))
+      .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
       .get("/schema/1/staged/status?diff=true")
       .reply(200, {
@@ -151,7 +151,7 @@ describe("fauna schema push test", () => {
   it("won't commit when schema isn't ready", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
-      .post("/", matchFqlReq(q.Now()))
+      .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
       .get("/schema/1/staged/status?diff=true")
       .reply(200, {
@@ -166,7 +166,7 @@ describe("fauna schema push test", () => {
       withOpts(["schema commit", "--dir=test/testdata"])
     );
     expect(stdout).to.contain(diff.diff);
-    expect(error.message).to.equal("Schema is not ready to be committed");
+    expect(error?.message).to.equal("Schema is not ready to be committed");
     // Restore the stub after the test
     stubConfirm.restore();
   });
@@ -174,7 +174,7 @@ describe("fauna schema push test", () => {
   it("runs schema abandon", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
-      .post("/", matchFqlReq(q.Now()))
+      .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
       .get("/schema/1/staged/status?diff=true")
       .reply(200, {
@@ -198,7 +198,7 @@ describe("fauna schema push test", () => {
   it("will abandon even when schema isn't ready", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
-      .post("/", matchFqlReq(q.Now()))
+      .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
       .get("/schema/1/staged/status?diff=true")
       .reply(200, {
@@ -226,7 +226,7 @@ const setup = () => {
   try {
     fs.unlinkSync(path.join(testdir, "functions.fsl"));
     fs.rmSync(path.join(testdir, "roles"), { recursive: true, force: true });
-  } catch (err) {
+  } catch (err: any) {
     // 2023 technology.
     if (err.code === "ENOENT") {
       // OK.
@@ -238,21 +238,21 @@ const setup = () => {
   fs.writeFileSync(path.join(testdir, "extra.fsl"), "baaaaa");
 };
 
-for (const ddelete of [false, true]) {
-  describe(`fauna schema pull test (delete=${ddelete})`, () => {
-    let cmd = ["schema pull", `--dir=${testdir}`];
-    if (ddelete) {
-      cmd = ["schema pull", `--dir=${testdir}`, "--delete"];
-    }
-    setup();
-    it("runs schema pull", async () => {
+describe(`fauna schema pull`, () => {
+  for (const ddelete of [false, true]) {
+    it(`runs schema pull (delete=${ddelete})`, async () => {
+      let cmd = ["schema pull", `--dir=${testdir}`];
+      if (ddelete) {
+        cmd = ["schema pull", `--dir=${testdir}`, "--delete"];
+      }
+      setup();
       // Stubbing the confirmation to always return true
       const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
 
       // Setting up the nock scope for API mocking
       nock(getEndpoint(), { allowUnmocked: false })
         .persist()
-        .post("/", matchFqlReq(q.Now()))
+        .post("/", matchFqlReq(query.Now()))
         .reply(200, new Date())
         .get("/schema/1/files")
         .reply(200, pullfiles)
@@ -296,7 +296,7 @@ for (const ddelete of [false, true]) {
         try {
           fs.statSync(path.join(testdir, "extra.fsl"));
           expect(0).to.equal(1); // Fail the test if file exists when it should not
-        } catch (err) {
+        } catch (err: any) {
           expect(err.code).to.equal("ENOENT"); // Check that the error code is 'ENOENT'
         }
       }
@@ -304,5 +304,5 @@ for (const ddelete of [false, true]) {
       // Clean up after test
       stubConfirm.restore();
     });
-  });
-}
+  }
+});
