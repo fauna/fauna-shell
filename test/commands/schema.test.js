@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const { query: q } = require("faunadb");
 const { withOpts, getEndpoint, matchFqlReq } = require("../helpers/utils.js");
+const { disableColor } = require("../../src/lib/color");
 
 const main = {
   version: 0,
@@ -40,6 +41,10 @@ const pullfiles = {
 const updated = { version: 1 };
 
 describe("fauna schema diff test", () => {
+  before(() => {
+    disableColor();
+  });
+
   it("runs schema diff", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
