@@ -9,7 +9,7 @@ type AccessToken = {
 };
 
 export default class LoginCommand extends Command {
-  static description = "Log in to a Fauna account.";
+  static description = "Login to your Fauna account.";
   static examples = ["$ fauna login"];
   static flags = {};
 
