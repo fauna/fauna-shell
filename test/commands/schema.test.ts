@@ -85,20 +85,20 @@ describe("fauna schema push test", () => {
     stubConfirm.restore();
   });
 
-  it("runs schema push --stage", async () => {
+  it("runs schema push --staged", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
       .post("/schema/1/validate?force=true")
       .reply(200, diff)
-      .post("/schema/1/update?version=0&stage=true")
+      .post("/schema/1/update?version=0&staged=true")
       .reply(200, updated);
 
     // Stubbing the confirmation to always return true
     const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
     const { stdout } = await runCommand(
-      withOpts(["schema push", "--dir=test/testdata", "--stage"])
+      withOpts(["schema push", "--dir=test/testdata", "--staged"])
     );
     expect(stdout).to.contain(`${diff.diff}`);
     // Restore the stub after the test
