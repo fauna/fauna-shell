@@ -1,6 +1,7 @@
 import { confirm } from "@inquirer/prompts";
 import SchemaCommand from "../../lib/schema-command";
 import { Flags } from "@oclif/core";
+import { colorParam, hasColor } from "../../lib/color";
 
 export default class CommitSchemaCommand extends SchemaCommand {
   static flags = {
@@ -41,9 +42,12 @@ export default class CommitSchemaCommand extends SchemaCommand {
         this.log("Schema has been committed");
       } else {
         // Show status to confirm.
-        const { url, secret } = await this.fetchsetup();
+        const params = new URLSearchParams({
+          ...(hasColor() ? { color: colorParam() } : {}),
+          diff: "true",
+        });
         const res = await fetch(
-          new URL("/schema/1/staged/status?diff=true", url),
+          new URL(`/schema/1/staged/status?${params}`, url),
           {
             method: "GET",
             headers: { AUTHORIZATION: `Bearer ${secret}` },

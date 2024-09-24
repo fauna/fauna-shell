@@ -1,4 +1,5 @@
 import SchemaCommand from "../../lib/schema-command";
+import { colorParam, hasColor } from "../../lib/color";
 
 export default class StatusSchemaCommand extends SchemaCommand {
   static flags = {
@@ -11,8 +12,13 @@ export default class StatusSchemaCommand extends SchemaCommand {
   async run() {
     try {
       const { url, secret } = await this.fetchsetup();
+
+      const params = new URLSearchParams({
+        ...(hasColor() ? { color: colorParam() } : {}),
+        diff: "true",
+      });
       const res = await fetch(
-        new URL("/schema/1/staged/status?diff=true", url),
+        new URL(`/schema/1/staged/status?${params}`, url),
         {
           method: "GET",
           headers: { AUTHORIZATION: `Bearer ${secret}` },
