@@ -50,13 +50,76 @@ describe("fauna schema diff test", () => {
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
-      .post("/schema/1/validate?force=true")
+      .get("/schema/1/staged/status")
+      .reply(200, { status: "none", version: 0 })
+      .post("/schema/1/validate?staged=true&version=0")
       .reply(200, diff);
 
     const { stdout } = await runCommand(
       withOpts(["schema diff", "--dir=test/testdata"])
     );
 
+    expect(stdout).to.contain(
+      `Differences between the local schema and the remote schema:`
+    );
+    expect(stdout).to.contain(`${diff.diff}`);
+  });
+
+  it("runs schema diff when there's a staged schema", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(query.Now()))
+      .reply(200, new Date())
+      .get("/schema/1/staged/status")
+      .reply(200, { status: "ready", version: 0 })
+      .post("/schema/1/validate?staged=true&version=0")
+      .reply(200, diff);
+
+    const { stdout } = await runCommand(
+      withOpts(["schema diff", "--dir=test/testdata"])
+    );
+
+    expect(stdout).to.contain(
+      `Differences between the local schema and the remote, staged schema:`
+    );
+    expect(stdout).to.contain(`${diff.diff}`);
+  });
+
+  it("runs schema diff --active with no staged schema", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(query.Now()))
+      .reply(200, new Date())
+      .get("/schema/1/staged/status")
+      .reply(200, { status: "none", version: 0 })
+      .post("/schema/1/validate?staged=true&version=0")
+      .reply(200, diff);
+
+    const { error } = await runCommand(
+      withOpts(["schema diff", "--dir=test/testdata", "--active"])
+    );
+    expect(error?.message).to.equal(
+      "There is no staged schema, so passing `--active` does nothing"
+    );
+  });
+
+  it("runs schema diff --active", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(query.Now()))
+      .reply(200, new Date())
+      .get("/schema/1/staged/status")
+      .reply(200, { status: "ready", version: 0 })
+      .post("/schema/1/validate?staged=false&version=0")
+      .reply(200, diff);
+
+    const { stdout } = await runCommand(
+      withOpts(["schema diff", "--dir=test/testdata", "--active"])
+    );
+
+    expect(stdout).to.contain(
+      `Differences between the local schema and the remote, active schema:`
+    );
     expect(stdout).to.contain(`${diff.diff}`);
   });
 });

@@ -26,3 +26,14 @@ export const colorParam = (): string => {
 export const hasColor = (): boolean => {
   return colorEnabled ?? false;
 };
+
+export const reset = (): string => esc(`\u001b[0m`);
+export const bold = (): string => esc(`\u001b[1m`);
+
+const esc = (str: string): string => {
+  if (hasColor()) {
+    return str;
+  } else {
+    return "";
+  }
+};
