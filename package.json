@@ -3,8 +3,9 @@
   "description": "faunadb shell",
   "version": "2.0.2",
   "author": "Fauna",
+  "type": "module",
   "bin": {
-    "fauna": "./bin/run"
+    "fauna": "./yargs-entrypoint.js"
   },
   "bugs": "https://github.com/fauna/fauna-shell/issues",
   "dependencies": {
@@ -12,6 +13,7 @@
     "@oclif/core": "^4.0.12",
     "@oclif/plugin-help": "^5.2.14",
     "@oclif/plugin-plugins": "^2.4.7",
+    "awilix": "^11.0.0",
     "chalk": "^4.1.2",
     "cli-table": "^0.3.1",
     "cli-ux": "^4.8.0",
@@ -30,7 +32,8 @@
     "prettier": "^2.3.0",
     "rate-limiter-flexible": "^2.3.6",
     "stream-json": "^1.7.3",
-    "supports-color": "^8"
+    "supports-color": "^8",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.17.0",

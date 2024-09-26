@@ -1,8 +1,9 @@
 // TODO: Remove all this stuff.
 
-import { createContext, runInContext } from "vm";
+import { createContext, runInContext, isContext } from "vm";
 import { readFile as _readFile, writeFile as _writeFile } from "fs";
-import { query } from "faunadb";
+import faunadb from "faunadb";
+const { query } = faunadb
 import { generate } from "escodegen";
 
 /**
@@ -61,6 +62,7 @@ function wrapQueries(expressions, client) {
     let query;
     try {
       query = runInContext(generate(exp), q);
+      console.log("query", query)
     } catch (e) {
       return Promise.reject(e);
     }

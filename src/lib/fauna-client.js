@@ -1,43 +1,35 @@
-export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
+// export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
 
-export type QuerySuccess<T> = {
-  status: 200;
-  body: {
-    summary?: string;
-    data: T;
-  };
-};
+// export type QuerySuccess<T> = {
+//   status: 200;
+//   body: {
+//     summary?: string;
+//     data: T;
+//   };
+// };
 
-export type QueryFailure = {
-  status: number;
-  body: {
-    summary?: string;
-    error: {
-      code: string;
-      message?: string;
-    };
-  };
-};
+// export type QueryFailure = {
+//   status: number;
+//   body: {
+//     summary?: string;
+//     error: {
+//       code: string;
+//       message?: string;
+//     };
+//   };
+// };
 
 export default class FaunaClient {
-  endpoint: string;
-  secret: string;
-  timeout?: number;
-
-  constructor(opts: { endpoint: string; secret: string; timeout?: number }) {
+  // : { endpoint: string; secret: string; timeout?: number }
+  constructor(opts) {
     this.endpoint = opts.endpoint;
     this.secret = opts.secret;
     this.timeout = opts.timeout;
   }
 
-  async query<T>(
-    query: string,
-    opts?: {
-      format?: string;
-      typecheck?: boolean;
-      secret?: string;
-    }
-  ): Promise<QueryResponse<T>> {
+  // query<T>(query: string, opts?: format?: string; typecheck?: boolean; secret?: string;
+  // returns Promise<QueryResponse<T>>
+  async query(query, opts) {
     const { format, typecheck, secret } = {
       format: opts?.format ?? "simple",
       typecheck: opts?.typecheck ?? undefined,
@@ -86,7 +78,7 @@ export default class FaunaClient {
    * In order to allow commands to just close their client without having to worry about which
    * client they received, adding this noop method here.
    */
-  close(): Promise<void> {
-    return Promise.resolve();
+  async close() {
+    return undefined;
   }
 }
