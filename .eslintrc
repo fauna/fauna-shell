@@ -27,7 +27,7 @@
     "node/no-unsupported-features": "off",
     "camelcase": "off"
   },
-  "ignorePatterns": ["dist/**/*"],
+  "ignorePatterns": ["dist/**/*", "coverage/**/*"],
   "overrides": [
     {
       "files": ["*.test.js", "*.spec.js", "*.test.ts"],
