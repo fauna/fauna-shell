@@ -1,6 +1,7 @@
 import { confirm } from "@inquirer/prompts";
 import SchemaCommand from "../../lib/schema-command";
 import { Flags } from "@oclif/core";
+import { colorParam, hasColor } from "../../lib/color";
 
 export default class PushSchemaCommand extends SchemaCommand {
   static flags = {
@@ -55,6 +56,7 @@ export default class PushSchemaCommand extends SchemaCommand {
         // Confirm diff, then push it. `force` is set on `validate` so we don't
         // need to pass the last known schema version through.
         const params = new URLSearchParams({
+          ...(hasColor() ? { color: colorParam() } : {}),
           force: "true",
         });
         const path = new URL(`/schema/1/validate?${params}`, url);

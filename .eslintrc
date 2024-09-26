@@ -32,7 +32,8 @@
     {
       "files": ["*.test.js", "*.spec.js", "*.test.ts"],
       "rules": {
-        "no-unused-expressions": "off"
+        "no-unused-expressions": "off",
+        "node/no-missing-require": "off"
       }
     },
     {
@@ -40,7 +41,8 @@
       "parser": "@typescript-eslint/parser",
       "rules": {
         "lines-between-class-members": "off",
-        "no-use-before-define": "off"
+        "no-use-before-define": "off",
+        "no-undef-init": "off"
       }
     }
   ],
