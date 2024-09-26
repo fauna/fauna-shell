@@ -12,6 +12,7 @@
     "no-console": "off",
     "no-multi-str": "off",
     "no-prototype-builtins": "off",
+    "unicorn/escape-case": "off",
     "node/no-extraneous-require": [
       "error",
       {
