@@ -1,29 +1,30 @@
 export class Secret {
   // A fauna key, like `fn1234`.
-  key: string;
+    // string
+  key
   // Do we allow database scope?
-  allowDatabase: boolean;
+    // boolean
+  allowDatabase
   // A database scope, like `["foo", "bar"]`
-  databaseScope: string[];
+  // array<string>
+  databaseScope
 
-  constructor(opts: {
-    key: string;
-    allowDatabase: boolean;
-    databaseScope?: string[];
-  }) {
+  constructor(opts) {
     this.key = opts.key;
     this.allowDatabase = opts.allowDatabase;
     this.databaseScope = opts.databaseScope ?? [];
   }
 
-  static parseFlag(key: string) {
+  // string
+  static parseFlag(key) {
     if (key.length === 0) {
       throw new Error("Secret cannot be empty");
     }
     return new Secret({ key, allowDatabase: !key.includes(":") });
   }
 
-  static parse(key: string) {
+  // string
+  static parse(key) {
     if (key.length === 0) {
       throw new Error("Secret cannot be empty");
     }
@@ -33,7 +34,9 @@ export class Secret {
     return new Secret({ key, allowDatabase: true });
   }
 
-  buildSecret(opts?: { role?: string }): string {
+  // opts?: { role?: string }
+  // returns string
+  buildSecret(opts){
     let secret = this.key;
     if (this.databaseScope.length > 0) {
       secret += `:${this.databaseScope.join("/")}`;
@@ -51,7 +54,7 @@ export class Secret {
    * Parses the given scope, appends it to the `Secret`, and returns the new
    * secret. This mutates `this`.
    */
-  appendScope(scope: string) {
+  appendScope(scope) {
     if (this.allowDatabase) {
       this.databaseScope.push(...scope.split("/"));
       return this;
@@ -62,7 +65,7 @@ export class Secret {
     }
   }
 
-  clone(): Secret {
+  clone() {
     return new Secret({
       key: this.key,
       allowDatabase: this.allowDatabase,
