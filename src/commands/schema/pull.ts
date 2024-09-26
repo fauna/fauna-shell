@@ -12,6 +12,10 @@ export default class PullSchemaCommand extends SchemaCommand {
         "Delete .fsl files in the target directory that are not part of the database schema",
       default: false,
     }),
+    staged: Flags.boolean({
+      description: "Pulls staged schema instead of the active schema",
+      default: false,
+    }),
   };
 
   static description =
@@ -32,6 +36,29 @@ export default class PullSchemaCommand extends SchemaCommand {
       if (filesjson.error) {
         this.error(filesjson.error.message);
       }
+
+      // Check if there's a staged schema, and require `--staged` if there is one.
+      const params = new URLSearchParams({
+        version: filesjson.version,
+      });
+      const statusres = await fetch(
+        new URL(`/schema/1/staged/status?${params}`, url),
+        {
+          method: "GET",
+          headers: { AUTHORIZATION: `Bearer ${secret}` },
+        }
+      );
+      const statusjson = await statusres.json();
+      if (statusjson.error) {
+        this.error(statusjson.error.message);
+      }
+
+      if (statusjson.status !== "none" && !this.flags?.staged) {
+        this.error("There is a staged schema change. Use --staged to pull it.");
+      } else if (statusjson.status === "none" && this.flags?.staged) {
+        this.error("There are no staged schema changes to pull.");
+      }
+
       // Sort for consistent order. It's nice for tests.
       const filenames = filesjson.files
         .map((file: any) => file.filename)

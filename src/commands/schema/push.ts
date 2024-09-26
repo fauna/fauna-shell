@@ -10,7 +10,7 @@ export default class PushSchemaCommand extends SchemaCommand {
       description: "Push the change without a diff or schema version check",
       default: false,
     }),
-    stage: Flags.boolean({
+    staged: Flags.boolean({
       description:
         "Stages the schema change, instead of applying it immediately",
       default: false,
@@ -22,7 +22,7 @@ export default class PushSchemaCommand extends SchemaCommand {
   static examples = [
     "$ fauna schema push",
     "$ fauna schema push --dir schemas/myschema",
-    "$ fauna schema push --stage",
+    "$ fauna schema push --staged",
   ];
 
   async run() {
@@ -33,7 +33,7 @@ export default class PushSchemaCommand extends SchemaCommand {
       if (this.flags?.force) {
         const params = new URLSearchParams({
           force: "true", // Just push.
-          staged: this.flags?.stage ? "true" : "false",
+          staged: this.flags?.staged ? "true" : "false",
         });
 
         // This is how MDN says to do it for some reason.
@@ -88,7 +88,7 @@ export default class PushSchemaCommand extends SchemaCommand {
         if (confirmed) {
           const params = new URLSearchParams({
             version: json.version,
-            staged: this.flags?.stage ? "true" : "false",
+            staged: this.flags?.staged ? "true" : "false",
           });
 
           const path = new URL(`/schema/1/update?${params}`, url);
