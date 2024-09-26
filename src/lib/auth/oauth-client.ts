@@ -3,7 +3,8 @@ const { randomBytes, createHash } = require("node:crypto");
 import url from "url";
 import { AddressInfo } from "net";
 
-const accountURL = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
+export const ACCOUNT_URL =
+  process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com/api/v1";
 
 // Default to prod client id and secret
 const clientId = process.env.FAUNA_CLIENT_ID ?? "Aq4_G0mOtm_F1fK3PuzE0k-i9F0";
@@ -43,15 +44,12 @@ class OAuthClient {
       scope: "create_session",
       state: this.state,
     };
-    return `${accountURL}/api/v1/oauth/authorize?${new URLSearchParams(
+    return `${ACCOUNT_URL}/api/v1/oauth/authorize?${new URLSearchParams(
       params
     )}`;
   }
 
   public getToken() {
-    const now = new Date();
-    // Short expiry for access token as it's only used to create a session
-    now.setUTCMinutes(now.getUTCMinutes() + 5);
     const params = {
       grant_type: "authorization_code",
       client_id: clientId,
@@ -59,9 +57,8 @@ class OAuthClient {
       code: this.auth_code,
       redirect_uri: `${REDIRECT_URI}:${this.port}`,
       code_verifier: this.code_verifier,
-      ttl: now.toISOString(),
     };
-    return fetch(`${accountURL}/api/v1/oauth/token`, {
+    return fetch(`${ACCOUNT_URL}/api/v1/oauth/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -94,13 +91,23 @@ class OAuthClient {
 
     if (req.method === "GET") {
       const parsedUrl = url.parse(req.url || "", true);
-      if (parsedUrl.pathname !== "/") {
+      if (parsedUrl.pathname === "/success") {
+        console.log("Received success response");
+        res.write(`
+          <body>
+            <h1>Success</h1>
+            <p>Authentication successful. You can close this window and return to the terminal.</p>
+          </body>
+        `);
+        res.end();
+        this.closeServer();
+      } else if (parsedUrl.pathname !== "/") {
         errorMessage = "Invalid redirect uri";
         this.closeServer();
       }
       const query = parsedUrl.query;
       if (query.error) {
-        errorMessage = query.error.toString();
+        errorMessage = `${query.error.toString()} - ${query.error_description}`;
         this.closeServer();
       }
       if (query.code) {
@@ -114,11 +121,9 @@ class OAuthClient {
             errorMessage = "Invalid state received";
             this.closeServer();
           }
-          // TODO: Send them to a nice page that shows auth is complete and they can close the window.
-          res.writeHead(200, { "Content-Type": "text/html" });
+          res.writeHead(302, { Location: "/success" });
           res.end();
           this.server.emit("auth_code_received");
-          this.closeServer();
         }
       }
     } else {

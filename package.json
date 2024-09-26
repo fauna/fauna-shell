@@ -27,6 +27,7 @@
     "inquirer": "^8.1.1",
     "moment": "^2.29.1",
     "object-sizeof": "^1.6.1",
+    "open": "8.4.2",
     "prettier": "^2.3.0",
     "rate-limiter-flexible": "^2.3.6",
     "stream-json": "^1.7.3"
