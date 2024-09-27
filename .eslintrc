@@ -1,0 +1,57 @@
+{
+  "extends": ["oclif", "plugin:prettier/recommended"],
+  "rules": {
+    "no-await-in-loop": "off",
+    "new-cap": "off",
+    "quote-props": "off",
+    "no-negated-condition": "off",
+    "no-warning-comments": "off",
+    "spaced-comment": "off",
+    "max-nested-callbacks": "off",
+    "no-else-return": "off",
+    "no-console": "off",
+    "no-multi-str": "off",
+    "no-prototype-builtins": "off",
+    "unicorn/escape-case": "off",
+    "node/no-extraneous-require": [
+      "error",
+      {
+        "allowModules": [
+          "@oclif/errors",
+          "expect",
+          "jest-mock",
+          "@jest/globals"
+        ]
+      }
+    ],
+    // we use typescript so dynamic imports are fine
+    "node/no-unsupported-features": "off",
+    "camelcase": "off"
+  },
+  "ignorePatterns": ["dist/**/*", "coverage/**/*"],
+  "overrides": [
+    {
+      "files": ["*.test.js", "*.spec.js", "*.test.ts"],
+      "rules": {
+        "no-unused-expressions": "off",
+        "node/no-missing-require": "off"
+      }
+    },
+    {
+      "files": ["*.ts"],
+      "parser": "@typescript-eslint/parser",
+      "rules": {
+        "lines-between-class-members": "off",
+        "no-use-before-define": "off",
+        "no-undef-init": "off"
+      }
+    }
+  ],
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "requireConfigFile": false
+  },
+  "env": {
+    "mocha": true
+  }
+}

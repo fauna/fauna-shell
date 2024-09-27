@@ -184,7 +184,7 @@ function mockQuery(api) {
     .post("/", matchFqlReq(q.Now()))
     .reply(200, { resource: new Date() })
     .post("/", matchFqlReq(q.Paginate(q.Collections())))
-    .reply(200, function() {
+    .reply(200, function () {
       const auth = this.req.headers.authorization.split(" ")[1].split(":");
       expect(this.req.headers["x-fauna-shell-builtin"]).to.not.exist;
       return {
