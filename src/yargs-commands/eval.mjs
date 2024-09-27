@@ -1,12 +1,11 @@
-// import { container } from '../cli.js'
 const EVAL_OUTPUT_FORMATS = ["json", "json-tagged", "shell"];
 
 import util from 'util'
 import { existsSync } from 'fs'
 import esprima from 'esprima'
-import faunadb from 'faunadb'
 import * as misc from '../lib/misc.js'
-import { getSimpleClient, ensureDbScopeClient } from '../lib/command-helpers.js'
+import { ensureDbScopeClient } from '../lib/command-helpers.js'
+import { container } from '../cli.mjs'
 
 const { readFile, runQueries, writeFile } = misc
 
@@ -53,6 +52,7 @@ async function writeFormattedOutput(file, data, format) {
     return writeFormattedShell(file, util.inspect(data, { depth: null }));
   }
 }
+
 /**
   * Perform a v4 or v10 query, depending on the FQL version
   *
@@ -64,14 +64,13 @@ async function writeFormattedOutput(file, data, format) {
   * @param {("json" | "json-tagged" | "shell")} flags.format - Result format
   * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
   */
-
-  async function performQuery(client, fqlQuery, outputFile, flags) {
-    if (flags.version === '4') {
-      return performV4Query(client, fqlQuery, outputFile, flags);
-    } else {
-      return performV10Query(client, fqlQuery, outputFile, flags);
-    }
+export async function performQuery(client, fqlQuery, outputFile, flags) {
+  if (flags.version === '4') {
+    return performV4Query(client, fqlQuery, outputFile, flags);
+  } else {
+    return performV10Query(client, fqlQuery, outputFile, flags);
   }
+}
 
 // Remap arguments if a user provide only one
 function getArgs() {
@@ -101,6 +100,8 @@ async function performV10Query(client, fqlQuery, outputFile, flags) {
 }
 
 async function performV4Query(client, fqlQuery, outputFile, flags) {
+  const faunadb = (await import("faunadb")).default
+
   if (flags.format === "json-tagged") {
     flags.format = "json";
   }
@@ -189,7 +190,7 @@ async function doEval(argv) {
         version: argv.version,
         argv
       })).client
-      : await getSimpleClient(argv)
+      : await (container.resolve("getSimpleClient")(argv))
 
     const readQuery = queryFromStdin || queriesFile !== undefined;
     let queryFromFile;
@@ -204,6 +205,8 @@ async function doEval(argv) {
     const format =
       argv.format ?? (process.stdout.isTTY ? "shell" : "json");
 
+    const performQuery = container.resolve("performQuery");
+
     const result = await performQuery(
       client,
       queryFromFile || query,
@@ -216,7 +219,7 @@ async function doEval(argv) {
     );
 
     if (result) {
-      console.log(result);
+      (await container.resolve("logger")).stdout(result);
     }
 
     // required to make the process not hang
@@ -231,16 +234,7 @@ async function doEval(argv) {
 
 function buildEvalCommand(yargs) {
   return yargs
-    .positional('dbname', {
-      type: 'string',
-      description: "Database name",
-    })
-    .positional('query', {
-      type: 'string',
-      description: "FQL query to execute",
-    })
     .options({
-      // ...FaunaCommand.flags,
       url: {
         type: 'string',
         description: 'The Fauna URL to query',
@@ -284,6 +278,11 @@ function buildEvalCommand(yargs) {
         description: "FQL Version",
         default: '10',
         choices: ['4', '10'],
+      },
+      timeout: {
+        type: 'number',
+        description: "Connection timeout in milliseconds",
+        default: 5000
       },
 
       // v10 specific options

@@ -1,4 +1,5 @@
 // export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
+import https from 'node:https'
 
 // export type QuerySuccess<T> = {
 //   status: 200;
@@ -37,7 +38,25 @@ export default class FaunaClient {
     };
     const url = new URL(this.endpoint);
     url.pathname = "/query/1";
-    const res = await fetch(url, {
+    // const res = await fetch(url, {
+    //   method: "POST",
+    //   headers: {
+    //     authorization: `Bearer ${secret ?? this.secret}`,
+    //     "x-fauna-source": "Fauna Shell",
+    //     ...(typecheck !== undefined && { "x-typecheck": typecheck.toString() }),
+    //     ...(format !== undefined && { "x-format": format }),
+    //     ...((this.timeout && {
+    //       "x-query-timeout-ms": this.timeout.toString(10),
+    //     }) ??
+    //       {}),
+    //   },
+    //   body: JSON.stringify({ query }),
+    // });
+
+    const options = {
+      hostname: url.hostname,
+      port: url.port,
+      path: "/query/1",
       method: "POST",
       headers: {
         authorization: `Bearer ${secret ?? this.secret}`,
@@ -49,12 +68,26 @@ export default class FaunaClient {
         }) ??
           {}),
       },
-      body: JSON.stringify({ query }),
-    });
+    }
 
-    const json = await res.json();
+    let response = await (new Promise((resolve, reject) => {
+      let responseString = ''
 
-    if (res.status === 200 || res.status === 201) {
+      const req = https.request(options, (res) => {
+        res.on('data', (d) => responseString += d)
+        res.on('end', () => resolve({ status: res.statusCode, body: responseString }))
+      })
+
+      req.on('error', (e) => reject(e))
+      req.write(JSON.stringify({ query }))
+      req.end()
+    }))
+
+    // const json = await res.json();
+    console.log(response.body)
+    const json = JSON.parse(response.body)
+
+    if (response.status === 200 || response.status === 201) {
       return {
         status: 200,
         body: json,
