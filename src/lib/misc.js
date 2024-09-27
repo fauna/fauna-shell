@@ -2,8 +2,6 @@
 
 import { createContext, runInContext, isContext } from "vm";
 import { readFile as _readFile, writeFile as _writeFile } from "fs";
-import faunadb from "faunadb";
-const { query } = faunadb
 import { generate } from "escodegen";
 
 /**
@@ -55,7 +53,9 @@ class QueryError extends Error {
   }
 }
 
-function wrapQueries(expressions, client) {
+async function wrapQueries(expressions, client) {
+  const faunadb = await (import("faunadb")).default;
+  const { query } = faunadb;
   const q = query;
   createContext(q);
   return expressions.map((exp, queryNumber) => () => {
@@ -75,7 +75,7 @@ function wrapQueries(expressions, client) {
 
 export async function runQueries(expressions, client) {
   if (expressions.length === 1) {
-    var f = wrapQueries(expressions, client)[0];
+    var f = await wrapQueries(expressions, client)[0];
     return f();
   } else {
     return promiseSerial(wrapQueries(expressions, client));
