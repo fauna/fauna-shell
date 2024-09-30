@@ -53,7 +53,7 @@ export async function getSimpleClient(argv) {
     // validate the client settings
     await client.query(q.Now());
   } else {
-    const FaunaClient = (await import("./fauna-client.js")).default;
+    const FaunaClient = (await import("./fauna-client.mjs")).default;
     client = new FaunaClient({
       endpoint: argv.url,
       secret: argv.secret,

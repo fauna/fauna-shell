@@ -3,8 +3,8 @@ const EVAL_OUTPUT_FORMATS = ["json", "json-tagged", "shell"];
 import util from 'util'
 import { existsSync } from 'fs'
 import esprima from 'esprima'
-import * as misc from '../lib/misc.js'
-import { ensureDbScopeClient } from '../lib/command-helpers.js'
+import * as misc from '../lib/misc.mjs'
+import { ensureDbScopeClient } from '../lib/command-helpers.mjs'
 import { container } from '../cli.mjs'
 
 const { readFile, runQueries, writeFile } = misc
