@@ -2,6 +2,7 @@ import { Command, Flags } from "@oclif/core";
 import { green } from "chalk";
 import { Client, errors, query as q } from "faunadb";
 import { ShellConfig } from "./config";
+import { setHasColor } from "./color";
 import FaunaClient from "./fauna-client";
 
 /**
@@ -37,6 +38,8 @@ class FaunaCommand extends Command {
     this.flags = f;
     this.args = a;
     this.shellConfig = ShellConfig.read(this.flags, this);
+
+    setHasColor(this.flags.color);
   }
 
   success(msg) {
@@ -298,6 +301,10 @@ FaunaCommand.flags = {
   }),
   environment: Flags.string({
     description: "Environment to use, from a Fauna project",
+  }),
+  color: Flags.boolean({
+    description: "Force color output",
+    allowNo: true,
   }),
 };
 

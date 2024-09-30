@@ -1,4 +1,5 @@
 import SchemaCommand from "../../lib/schema-command";
+import { colorParam, hasColor } from "../../lib/color";
 
 export default class DiffSchemaCommand extends SchemaCommand {
   static flags = {
@@ -16,7 +17,11 @@ export default class DiffSchemaCommand extends SchemaCommand {
     const files = this.read(fps);
     try {
       const { url, secret } = await this.fetchsetup();
-      const res = await fetch(new URL("/schema/1/validate?force=true", url), {
+      const params = new URLSearchParams({
+        ...(hasColor() ? { color: colorParam() } : {}),
+        force: "true",
+      });
+      const res = await fetch(new URL(`/schema/1/validate?${params}`, url), {
         method: "POST",
         headers: { AUTHORIZATION: `Bearer ${secret}` },
         body: this.body(files),

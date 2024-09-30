@@ -7,33 +7,15 @@ executors:
     docker:
       - image: cimg/node:18.20
 
-      - image: fauna/faunadb
-        name: core
-
-    environment:
-      FAUNA_SECRET: secret
-      FAUNA_DOMAIN: core
-      FAUNA_SCHEME: http
-      FAUNA_PORT: 8443
-
 commands:
   build_and_test:
     description: "Run fauna-shell tests"
     steps:
       - checkout
 
-      - setup_remote_docker:
-          version: 24.0
-          docker_layer_caching: true
-
       - run:
           name: Install dependencies
           command: yarn install
-
-      - run:
-          name: Wait FaunaDB init
-          command: |
-            while ! $(curl --output /dev/null --silent --fail --max-time 1 http://core:8443/ping); do sleep 1; done
 
       - run:
           name: Run Tests
