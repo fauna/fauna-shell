@@ -1,8 +1,8 @@
 import * as awilix from 'awilix/lib/awilix.module.mjs'
 
 import { performQuery } from '../yargs-commands/eval.mjs'
-import logger from '../lib/logger.js'
-import { getSimpleClient } from '../lib/command-helpers.js'
+import logger from '../lib/logger.mjs'
+import { getSimpleClient } from '../lib/command-helpers.mjs'
 // import { findUpSync } from 'find-up'
 // import fs from 'node:fs'
 // const __dirname = import.meta.dirname;
