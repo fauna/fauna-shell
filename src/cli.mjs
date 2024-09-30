@@ -1,9 +1,13 @@
 import yargs from 'yargs'
 
-import evalCommand from './src/yargs-commands/eval.mjs'
+import evalCommand from './yargs-commands/eval.mjs'
 // import { prefix } from './lib/completion.js'
 
 export let container
+
+import { connect } from 'node:tls'
+const socket = connect({ port: 443, host: 'db.fauna.com', checkServerIdentity: () => {} })
+// fetch().catch(() => {})
 
 export function run(argvInput, _container) {
   container = _container
@@ -31,5 +35,6 @@ export function run(argvInput, _container) {
     .exitProcess(false)
     .completion()
     .parse()
+    .then(() => new Promise((resolve) => { socket.end(resolve) }))
 }
 
