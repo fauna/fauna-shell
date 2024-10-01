@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { run } from '../src/cli.mjs'
-import { setupTestContainer as setupContainer } from '../src/config/setup-test-container.js'
+import { setupTestContainer as setupContainer } from '../src/config/setup-test-container.mjs'
 
 describe('eval command', function() {
   // const err = console.error
@@ -30,7 +30,6 @@ describe('eval command', function() {
         ]
       })
       await run(`eval --secret "secret" --query "Database.all()"`, container)
-      // expect(container.resolve("performQuery").calledWith(
       expect(container.resolve("logger").stdout.calledWith({
         data: [
           {

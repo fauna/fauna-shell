@@ -4,7 +4,7 @@
   * We currently want to avoid doing this for eval since it can lead to the
   * response not being JSON parseable.
   */
-  const outputConnectionInfo = true;
+const outputConnectionInfo = true;
 
 function buildHeaders() {
   const headers = {
@@ -109,4 +109,17 @@ export async function ensureDbScopeClient({ scope, version, argv }) {
     dbScope: scope,
     version,
   });
+}
+
+export const commonQueryOptions = {
+  url: {
+    type: 'string',
+    description: 'The Fauna URL to query',
+    default: "https://db.fauna.com:443"
+  },
+  secret: {
+    type: 'string',
+    description: "The secret to use when calling Fauna",
+    required: true
+  },
 }

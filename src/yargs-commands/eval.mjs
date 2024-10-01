@@ -4,7 +4,7 @@ import util from 'util'
 import { existsSync } from 'fs'
 import esprima from 'esprima'
 import * as misc from '../lib/misc.mjs'
-import { ensureDbScopeClient } from '../lib/command-helpers.mjs'
+import { ensureDbScopeClient, commonQueryOptions } from '../lib/command-helpers.mjs'
 import { container } from '../cli.mjs'
 
 const { readFile, runQueries, writeFile } = misc
@@ -235,16 +235,7 @@ async function doEval(argv) {
 function buildEvalCommand(yargs) {
   return yargs
     .options({
-      url: {
-        type: 'string',
-        description: 'The Fauna URL to query',
-        default: "https://db.fauna.com:443"
-      },
-      secret: {
-        type: 'string',
-        description: "The secret to use when calling Fauna",
-        required: true
-      },
+      ...commonQueryOptions,
       file: {
         type: 'string',
         description: "File where to read queries from",
@@ -308,4 +299,3 @@ export default {
   builder: buildEvalCommand,
   handler: doEval
 }
-

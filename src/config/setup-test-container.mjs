@@ -21,6 +21,8 @@ export function setupTestContainer() {
     }),
     performQuery: awilix.asValue(stub()),
     getSimpleClient: awilix.asValue(stub().returns({ close: () => Promise.resolve() })),
+    gatherFSL: awilix.asValue(stub()),
+    fetch: awilix.asValue(stub()),
   })
 
   return container
