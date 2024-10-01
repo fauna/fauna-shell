@@ -1,6 +1,7 @@
 import yargs from 'yargs'
 
 import evalCommand from './yargs-commands/eval.mjs'
+import loginCommand from './yargs-commands/login.mjs'
 // import { prefix } from './lib/completion.js'
 
 export let container
@@ -14,6 +15,7 @@ export function run(argvInput, _container) {
   return yargs(argvInput)
     .scriptName("fauna")
     .command("eval", "Evaluate the given query.", evalCommand)
+    .command("login", "Login via website", loginCommand)
     .demandCommand()
     .strict()
     // .completion('completion', function(currentWord, argv, defaultCompletions, done) {

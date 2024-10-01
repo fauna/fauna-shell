@@ -1,7 +1,6 @@
 import http, { IncomingMessage, ServerResponse } from "http";
-const { randomBytes, createHash } = require("node:crypto");
+import { randomBytes, createHash } from "crypto";
 import url from "url";
-import { AddressInfo } from "net";
 
 export const ACCOUNT_URL =
   process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com/api/v1";
@@ -16,12 +15,12 @@ const clientSecret =
 const REDIRECT_URI = `http://127.0.0.1`;
 
 class OAuthClient {
-  public server: http.Server;
-  public port: number;
-  private code_verifier: string;
-  private code_challenge: string;
-  private auth_code: string;
-  public state: string;
+  server; //: http.Server;
+  port; //: number;
+  code_verifier; //: string;
+  code_challenge; //: string;
+  auth_code; //: string;
+  state; //: string;
 
   constructor() {
     this.server = http.createServer(this._handleRequest.bind(this));
@@ -34,7 +33,7 @@ class OAuthClient {
     this.state = this._generateCSRFToken();
   }
 
-  public getRequestUrl() {
+  getRequestUrl() {
     const params = {
       client_id: clientId,
       redirect_uri: `${REDIRECT_URI}:${this.port}`,
@@ -49,7 +48,7 @@ class OAuthClient {
     )}`;
   }
 
-  public getToken() {
+  getToken() {
     const params = {
       grant_type: "authorization_code",
       client_id: clientId,
@@ -67,11 +66,12 @@ class OAuthClient {
     });
   }
 
-  private _generateCSRFToken(): string {
+  _generateCSRFToken() {
     return Buffer.from(randomBytes(20)).toString("base64url");
   }
 
-  private _handleRequest(req: IncomingMessage, res: ServerResponse) {
+  // req: IncomingMessage, res: ServerResponse
+  _handleRequest(req, res) {
     const allowedOrigins = [
       "http://localhost:3005",
       "http://127.0.0.1:3005",
@@ -135,19 +135,19 @@ class OAuthClient {
     }
   }
 
-  public async start() {
+  async start() {
     try {
       this.server.on("listening", () => {
-        this.port = (this.server.address() as AddressInfo).port;
+        this.port = (this.server.address()).port;
         this.server.emit("ready");
       });
       this.server.listen(0);
-    } catch (e: any) {
+    } catch (e) {
       console.error("Error starting loopback server:", e.message);
     }
   }
 
-  public closeServer() {
+  closeServer() {
     this.server.closeAllConnections();
     this.server.close();
   }
