@@ -2,14 +2,14 @@ import { expect } from 'chai'
 import { run } from '../../src/cli.mjs'
 import { setupTestContainer as setupContainer } from '../../src/config/setup-test-container.mjs'
 
-describe('schema push', function() {
+describe('schema pull', function() {
   let container
 
   beforeEach(() => {
     container = setupContainer()
   })
 
-  it('can force push schema', async function() {
+  it('can pull schema', async function() {
     const fetch = container.resolve("fetch")
     fetch.resolves({ json: async () => ({}) })
 
@@ -18,7 +18,16 @@ describe('schema push', function() {
 
     const logger = container.resolve("logger")
 
-    await run(`schema push --secret "secret" --force`, container)
+    const confirm = container.resolve("confirm")
+    confirm.resolves(true)
+
+    const getSchemaFiles = container.resolve("getSchemaFiles")
+      .resolves({ json: async () => ({ version: "194838274939473" }) })
+    const getStagedSchemaStatus = container.resolve("getStagedSchemaStatus")
+      .resolves({ json: async () => ({ status: "none" }) })
+    console.log(getStagedSchemaStatus)
+
+    await run(`schema pull --secret "secret"`, container)
 
     expect(gatherFSL.calledWith(".")).to.be.true
 

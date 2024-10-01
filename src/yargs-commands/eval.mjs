@@ -169,67 +169,56 @@ async function writeFormattedOutputV10(file, res, format) {
 }
 
 async function doEval(argv) {
-  const queryFromStdin = argv.stdin;
-  let queriesFile = argv.file;
-
-  const { dbname, query } = argv
-  console.log(argv)
-
   const noSourceSet =
-    !queryFromStdin && query === undefined && queriesFile === undefined;
+    !argv.stdin && argv.query === undefined && argv.file === undefined;
   if (noSourceSet) {
     throw new Error(
       "No source set. Pass --stdin to  read from stdin or --file."
     );
   }
 
-  try {
-    const client = dbname
-      ? (await ensureDbScopeClient({
-        scope: dbname,
-        version: argv.version,
-        argv
-      })).client
-      : await (container.resolve("getSimpleClient")(argv))
+  const client = argv.dbname
+    ? (await ensureDbScopeClient({
+      scope: argv.dbname,
+      version: argv.version,
+      argv
+    })).client
+    : await (container.resolve("getSimpleClient")(argv))
 
-    const readQuery = queryFromStdin || queriesFile !== undefined;
-    let queryFromFile;
-    if (readQuery) {
-      if (queryFromStdin && !existsSync(queriesFile)) {
-        warn("Reading from stdin");
-        queriesFile = process.stdin.fd;
-      }
-      queryFromFile = await readFile(queriesFile);
+  const readQuery = argv.stdin || argv.file !== undefined;
+  let queryFromFile;
+  if (readQuery) {
+    if (argv.stdin && !existsSync(argv.file)) {
+      warn("Reading from stdin");
+      argv.file = process.stdin.fd;
     }
-
-    const format =
-      argv.format ?? (process.stdout.isTTY ? "shell" : "json");
-
-    const performQuery = container.resolve("performQuery");
-
-    const result = await performQuery(
-      client,
-      queryFromFile || query,
-      argv.output,
-      {
-        format: format,
-        version: argv.version,
-        typecheck: argv.typecheck,
-      }
-    );
-
-    if (result) {
-      (await container.resolve("logger")).stdout(result);
-    }
-
-    // required to make the process not hang
-    client.close();
-
-    return result;
-  } catch (err) {
-    throw err
-    // throw new Error(err.message, 1);
+    queryFromFile = await readFile(argv.file);
   }
+
+  const format =
+    argv.format ?? (process.stdout.isTTY ? "shell" : "json");
+
+  const performQuery = container.resolve("performQuery");
+
+  const result = await performQuery(
+    client,
+    queryFromFile || argv.query,
+    argv.output,
+    {
+      format: format,
+      version: argv.version,
+      typecheck: argv.typecheck,
+    }
+  );
+
+  if (result) {
+    (await container.resolve("logger")).stdout(result);
+  }
+
+  // required to make the process not hang
+  client.close();
+
+  return result;
 }
 
 function buildEvalCommand(yargs) {

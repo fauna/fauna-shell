@@ -1,4 +1,6 @@
 import pushCommand from './push.mjs'
+import pullCommand from './pull.mjs'
+import statusCommand from './status.mjs'
 
 function buildSchema(yargs) {
   return yargs
@@ -11,6 +13,8 @@ function buildSchema(yargs) {
       }
     })
     .command("push", "Push the current project's .fsl files to Fauna.", pushCommand)
+    .command("pull", "Pull a database schema's .fsl files into the current project.", pullCommand)
+    .command("status", "Print the staged schema status.", statusCommand)
     .demandCommand()
 }
 

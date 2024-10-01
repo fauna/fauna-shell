@@ -1,7 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
-import { dirExists, dirIsWriteable } from "./file-util.mjs";
+import { dirExists, dirIsWriteable } from "./file-util.mjs"
 import { container } from '../cli.mjs'
+import { makeFaunaRequest } from '../lib/db.mjs'
 
 function checkDirUsability(dir) {
   if (!dirExists(dir)) {
@@ -37,7 +38,7 @@ function read(dir, relpaths) {
 // list of relative paths.
 // Fails if there are too many files.
 // returns string[]
-async function gatherRelativeFSLFilePaths(dir) {
+export async function gatherRelativeFSLFilePaths(dir) {
   const logger = (await container.resolve("logger"))
 
   const FILE_LIMIT = 256;
@@ -69,8 +70,28 @@ async function gatherRelativeFSLFilePaths(dir) {
 }
 
 export async function gatherFSL(dir) {
+  const gatherRelativeFSLFilePaths = container.resolve("gatherRelativeFSLFilePaths")
+
   checkDirUsability(dir)
   const fps = await gatherRelativeFSLFilePaths(dir);
   const files = read(dir, fps);
   return JSON.stringify(files)
+}
+
+export async function getSchemaFiles({ argv, ...overrides }) {
+  const args = {
+    url: "/schema/1/files",
+    method: "GET",
+    ...overrides
+  }
+  return makeFaunaRequest({ argv, ...args})
+}
+
+export async function getStagedSchemaStatus({ argv, ...overrides }) {
+  const args = {
+    url: "/schema/1/staged/status",
+    method: "GET",
+    ...overrides
+  }
+  return makeFaunaRequest({ argv, ...args })
 }
