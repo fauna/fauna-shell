@@ -125,6 +125,10 @@ describe("fauna schema diff test", () => {
 });
 
 describe("fauna schema push test", () => {
+  before(() => {
+    disableColor();
+  });
+
   afterEach(() => {
     nock.cleanAll();
   });
@@ -173,10 +177,15 @@ describe("fauna schema push test", () => {
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
-      .get("/schema/1/staged/status?diff=true")
+      .get("/schema/1/staged/status?diff=summary")
       .reply(200, {
         version: 0,
         status: "ready",
+        diff: diff.diff,
+      })
+      .post("/schema/1/validate?diff=summary&staged=true&version=0")
+      .reply(200, {
+        version: 0,
         diff: diff.diff,
       });
 
