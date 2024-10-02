@@ -85,7 +85,7 @@ async function doPush(argv) {
       }
     }
   } catch (err) {
-    stderr.error(err);
+    logger.stderr(err);
   }
 }
 

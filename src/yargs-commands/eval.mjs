@@ -259,6 +259,7 @@ function buildEvalCommand(yargs) {
         default: '10',
         choices: ['4', '10'],
       },
+      // TODO: is this unused? i think it might be
       timeout: {
         type: 'number',
         description: "Connection timeout in milliseconds",

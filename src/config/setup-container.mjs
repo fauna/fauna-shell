@@ -5,6 +5,7 @@ import logger from '../lib/logger.mjs'
 import { getSimpleClient } from '../lib/command-helpers.mjs'
 import { gatherFSL, gatherRelativeFSLFilePaths, getStagedSchemaStatus, getSchemaFiles } from '../lib/schema.mjs'
 import { confirm } from "@inquirer/prompts"
+import fetchWrapper from '../lib/fetch-wrapper.mjs'
 
 // import { findUpSync } from 'find-up'
 // import fs from 'node:fs'
@@ -23,7 +24,7 @@ export function setupCommonContainer() {
 
 export const injectables = {
     // node libraries
-    fetch: awilix.asValue(fetch),
+    fetch: awilix.asValue(fetchWrapper),
 
     // third-party libraries
     confirm: awilix.asValue(confirm),

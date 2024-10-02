@@ -37,8 +37,17 @@ export function run(argvInput, _container) {
         description: "Whether or not to emit escape codes for multi-color terminal output.",
         type: 'boolean',
         // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
-        default: chalk.level > 0
-      }
+        default: chalk.level > 0,
+      },
+      "verbosity": {
+        type: 'number',
+        default: 0,
+      },
+      "verbose-component": {
+        type: 'array',
+        default: [],
+        choices: ['fetch'],
+      },
     })
     .wrap(yargs.terminalWidth)
     .help()
@@ -48,4 +57,3 @@ export function run(argvInput, _container) {
     .parse()
     .then(() => new Promise((resolve) => { socket.end(resolve) }))
 }
-

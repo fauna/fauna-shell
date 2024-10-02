@@ -1,4 +1,7 @@
+import { container } from '../cli.mjs'
+
 export async function makeFaunaRequest({ argv, url, params, method, shouldThrow = true }) {
+  const fetch = container.resolve("fetch")
   const paramsString = params
     ? `?${new URLSearchParams(params)}`
     : ''
