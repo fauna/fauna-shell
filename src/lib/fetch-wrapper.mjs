@@ -7,6 +7,7 @@ export default async function fetchWrapper(url, options) {
   const method = options?.method || "GET"
 
   logger.debug(`Starting ${method} "${url}"`, "fetch")
+
   return fetch(url, options)
     .then(async (response) => {
       const body = await response.json()

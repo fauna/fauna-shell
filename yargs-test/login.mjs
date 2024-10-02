@@ -11,8 +11,14 @@ describe('login command', function () {
   })
 
   it('can login', async function () {
+    const oauthClient = container.resolve("oauthClient")
+    const logger = container.resolve("logger")
     await run(`login`, container);
-    expect(container.resolve("open").calledWith("test"));
+
+    expect(container.resolve("open").calledWith("test"))
+
+    expect(oauthClient.start.called).to.be.true
+    expect(logger.stdout.calledWith("To login, open your browser to:\n test"))
   })
 })
 

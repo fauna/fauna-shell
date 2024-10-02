@@ -1,13 +1,17 @@
+import { container } from '../cli.mjs'
+
 export class FaunaAccountClient {
+
   constructor() {
     this.url = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com/api/v1";
+    this.fetch = container.resolve("fetch")
   }
 
   async startOAuthRequest(authCodeParams) {
     const OAuthUrl = `${this.url}/api/v1/oauth/authorize?${new URLSearchParams(
       authCodeParams
     )}`;
-    const dashboardOAuthURL = (await fetch(OAuthUrl)).url;
+    const dashboardOAuthURL = (await this.fetch(OAuthUrl)).url;
     const error = new URL(dashboardOAuthURL).searchParams.get("error");
     if (error) {
       throw new Error(`Error during login: ${error}`);
@@ -25,7 +29,7 @@ export class FaunaAccountClient {
       code_verifier: opts.codeVerifier,
     };
     try {
-      const response = await fetch(`${this.url}/api/v1/oauth/token`, {
+      const response = await this.fetch(`${this.url}/api/v1/oauth/token`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -54,7 +58,7 @@ export class FaunaAccountClient {
       headers,
     };
     try {
-      const response = await fetch(
+      const response = await this.fetch(
         `${this.url}/api/v1/session`,
         requestOptions
       );
@@ -82,7 +86,7 @@ export class FaunaAccountClient {
       headers,
     };
     try {
-      const response = await fetch(
+      const response = await this.fetch(
         `${this.url}/api/v1/databases`,
         requestOptions
       );

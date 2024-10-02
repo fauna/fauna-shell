@@ -2,13 +2,11 @@ import OAuthServer from "../lib/auth/oauth-client.mjs";
 import { container } from '../cli.mjs'
 
 async function doLogin(argv) {
-  const { user } = argv;
   const logger = container.resolve("logger")
   const open = container.resolve("open")
   const accountClient = container.resolve("accountClient")
-  const oAuth = new OAuthServer();
+  const oAuth = container.resolve("oauthClient")
 
-  await oAuth.start();
   oAuth.server.on("ready", async () => {
     const authCodeParams = oAuth.getOAuthParams();
     const dashboardOAuthURL = await accountClient.startOAuthRequest(authCodeParams);
@@ -27,6 +25,8 @@ async function doLogin(argv) {
       console.error(err);
     }
   });
+
+  await oAuth.start();
 }
 
 function buildLoginCommand(yargs) {

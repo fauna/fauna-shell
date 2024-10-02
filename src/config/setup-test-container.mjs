@@ -22,7 +22,7 @@ function confirmManualMocks(manualMocks, thingsToManuallyMock) {
   for (let i = 0; i < thingsToManuallyMock.length; i++) {
     const manualMock = manualMocks[thingsToManuallyMock[i]]
     if (!manualMock || !manualMock.resolve)
-      throw new Error (`Please mock the injectable "${thingsToManuallyMock[i]}".`)
+      throw new Error (`Please mock the injectable "${thingsToManuallyMock[i]}" by adding it to "./src/config/setup-test-container.mjs".`)
   }
 }
 
@@ -45,9 +45,29 @@ export function setupTestContainer() {
       stderr: stub(),
     }),
     getSimpleClient: awilix.asValue(stub().returns({ close: () => Promise.resolve() })),
-    accountClient: awilix.asClass(FaunaAccountClient),
-    oauthClient: awilix.asValue(stub().returns()),
-    open: awilix.asValue(stub())
+    accountClient: awilix.asFunction(() => {
+      return {
+        startOAuthRequest: stub().resolves("test"),
+        listDatabases: stub(),
+        getSession: stub(),
+        getToken: stub(),
+      }
+    }).scoped(),
+    oauthClient: awilix.asFunction(() => {
+      let handlers = {}
+
+      return {
+        start: stub(Promise.resolve().then(async () => {
+          await handlers.ready();
+          await handlers.auth_code_received()
+        })),
+        server: {
+          on: (eventName, handler) => {
+            handlers[eventName] = handler
+          }
+        }
+      }
+    }).scoped(),
   }
 
   confirmManualMocks(manualMocks, thingsToManuallyMock)
