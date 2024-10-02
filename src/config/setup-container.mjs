@@ -2,7 +2,7 @@ import * as awilix from 'awilix/lib/awilix.module.mjs'
 
 import { performQuery } from '../yargs-commands/eval.mjs'
 import logger from '../lib/logger.mjs'
-import { getSimpleClient } from '../lib/command-helpers.mjs'
+import { getSimpleClient, getAccountClient } from '../lib/command-helpers.mjs'
 import { gatherFSL, gatherRelativeFSLFilePaths, getStagedSchemaStatus, getSchemaFiles } from '../lib/schema.mjs'
 import { confirm } from "@inquirer/prompts"
 
@@ -32,6 +32,7 @@ export const injectables = {
     logger: awilix.asValue(logger),
     performQuery: awilix.asValue(performQuery),
     getSimpleClient: awilix.asValue(getSimpleClient),
+    getAccountClient: awilix.asValue(getAccountClient),
 
     // feature-specific lib (homemade utilities)
     gatherFSL: awilix.asValue(gatherFSL),

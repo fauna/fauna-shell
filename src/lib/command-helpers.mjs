@@ -1,9 +1,10 @@
+import { FaunaAccountClient } from "./fauna-account-client.mjs";
 
 /**
-  * This is used to determine if the command should log the connection info.
-  * We currently want to avoid doing this for eval since it can lead to the
-  * response not being JSON parseable.
-  */
+ * This is used to determine if the command should log the connection info.
+ * We currently want to avoid doing this for eval since it can lead to the
+ * response not being JSON parseable.
+ */
 const outputConnectionInfo = true;
 
 function buildHeaders() {
@@ -18,20 +19,27 @@ function buildHeaders() {
 
 function mapConnectionError({ err, connectionOptions }) {
   if (err instanceof errors.Unauthorized) {
-    throw new Error(`Could not Connect to ${connectionOptions.url} Unauthorized Secret`);
+    throw new Error(
+      `Could not Connect to ${connectionOptions.url} Unauthorized Secret`
+    );
   } else {
     const code = err?.message ? `${err.message}: ` : "";
     const details = err?.description ?? "";
-    err.message = `${code}${details}`
-    throw err
+    err.message = `${code}${details}`;
+    throw err;
   }
 }
 
+export async function getAccountClient(argv) {
+  const accountURL = "http://localhost:8000"
+  return new FaunaAccountClient(accountURL);
+}
+
 export async function getSimpleClient(argv) {
-  let client
-  if (argv.version === '4') {
-    const faunadb = (await import("faunadb")).default
-    const { Client, query: q } = faunadb
+  let client;
+  if (argv.version === "4") {
+    const faunadb = (await import("faunadb")).default;
+    const { Client, query: q } = faunadb;
     const { hostname, port, protocol } = new URL(argv.url);
     client = new Client({
       domain: hostname,
@@ -64,7 +72,7 @@ export async function getSimpleClient(argv) {
     await client.query("0");
   }
 
-  return client
+  return client;
 }
 
 export async function ensureDbScopeClient({ scope, version, argv }) {
@@ -113,13 +121,13 @@ export async function ensureDbScopeClient({ scope, version, argv }) {
 
 export const commonQueryOptions = {
   url: {
-    type: 'string',
-    description: 'The Fauna URL to query',
-    default: "https://db.fauna.com:443"
+    type: "string",
+    description: "The Fauna URL to query",
+    default: "https://db.fauna.com:443",
   },
   secret: {
-    type: 'string',
+    type: "string",
     description: "The secret to use when calling Fauna",
-    required: true
+    required: true,
   },
-}
+};
