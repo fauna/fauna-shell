@@ -1,9 +1,9 @@
 import yargs from 'yargs'
+import chalk from 'chalk'
 
 import evalCommand from './yargs-commands/eval.mjs'
 import loginCommand from './yargs-commands/login.mjs'
-// import { prefix } from './lib/completion.js'
-
+import schemaCommand from './yargs-commands/schema/schema.mjs'
 export let container
 
 import { connect } from 'node:tls'
@@ -16,6 +16,7 @@ export function run(argvInput, _container) {
     .scriptName("fauna")
     .command("eval", "Evaluate the given query.", evalCommand)
     .command("login", "Login via website", loginCommand)
+    .command("schema", "", schemaCommand)
     .demandCommand()
     .strict()
     // .completion('completion', function(currentWord, argv, defaultCompletions, done) {
@@ -31,6 +32,14 @@ export function run(argvInput, _container) {
       // }
       // defaultCompletions()
     // })
+    .options({
+      "color": {
+        description: "Whether or not to emit escape codes for multi-color terminal output.",
+        type: 'boolean',
+        // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
+        default: chalk.level > 0
+      }
+    })
     .wrap(yargs.terminalWidth)
     .help()
     .version(false)
