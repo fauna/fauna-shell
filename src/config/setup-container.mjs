@@ -1,3 +1,5 @@
+import { exit } from 'node:process'
+
 import * as awilix from 'awilix/lib/awilix.module.mjs'
 
 import { performQuery } from '../yargs-commands/eval.mjs'
@@ -23,22 +25,23 @@ export function setupCommonContainer() {
 }
 
 export const injectables = {
-    // node libraries
-    fetch: awilix.asValue(fetchWrapper),
+  // node libraries
+  fetch: awilix.asValue(fetchWrapper),
+  exit: awilix.asValue(exit),
 
-    // third-party libraries
-    confirm: awilix.asValue(confirm),
+  // third-party libraries
+  confirm: awilix.asValue(confirm),
 
-    // generic lib (homemade utilities)
-    logger: awilix.asValue(logger),
-    performQuery: awilix.asValue(performQuery),
-    getSimpleClient: awilix.asValue(getSimpleClient),
+  // generic lib (homemade utilities)
+  logger: awilix.asValue(logger),
+  performQuery: awilix.asValue(performQuery),
+  getSimpleClient: awilix.asValue(getSimpleClient),
 
-    // feature-specific lib (homemade utilities)
-    gatherFSL: awilix.asValue(gatherFSL),
-    gatherRelativeFSLFilePaths: awilix.asValue(gatherRelativeFSLFilePaths),
-    getSchemaFiles: awilix.asValue(getSchemaFiles),
-    getStagedSchemaStatus: awilix.asValue(getStagedSchemaStatus),
+  // feature-specific lib (homemade utilities)
+  gatherFSL: awilix.asValue(gatherFSL),
+  gatherRelativeFSLFilePaths: awilix.asValue(gatherRelativeFSLFilePaths),
+  getSchemaFiles: awilix.asValue(getSchemaFiles),
+  getStagedSchemaStatus: awilix.asValue(getStagedSchemaStatus),
 }
 
 export function setupRealContainer() {

@@ -227,49 +227,49 @@ function buildEvalCommand(yargs) {
       ...commonQueryOptions,
       file: {
         type: 'string',
-        description: "File where to read queries from",
+        description: "file path to read the query (or queries) from",
       },
       query: {
         type: 'string',
-        description: "The query to run",
+        description: "the query to run",
       },
       dbname: {
         type: 'string',
-        description: "The database to run the query against",
+        description: "the database to run the query against",
       },
       stdin: {
         type: 'boolean',
-        description: "Read file input from stdin. Writes to stdout by default",
+        description: "read file input from stdin. Writes to stdout by default",
         default: false,
       },
       output: {
         type: 'string',
-        description: "File to write output to",
+        description: "file to write output to",
         default: null,
       },
       format: {
         type: 'string',
-        description: "Output format",
+        description: "output format",
         default: 'shell',
         options: EVAL_OUTPUT_FORMATS,
       },
       version: {
         type: 'string',
-        description: "FQL Version",
+        description: "which FQL version to use",
         default: '10',
         choices: ['4', '10'],
       },
       // TODO: is this unused? i think it might be
       timeout: {
         type: 'number',
-        description: "Connection timeout in milliseconds",
+        description: "connection timeout in milliseconds",
         default: 5000
       },
 
       // v10 specific options
       typecheck: {
         type: 'boolean',
-        description: "Enable typechecking",
+        description: "enable typechecking",
         default: undefined,
       },
     })
@@ -282,7 +282,7 @@ function buildEvalCommand(yargs) {
       ['$0 eval "2 + 3" --format=json --output=/tmp/result"'],
     ])
     .version(false)
-    .help()
+    .help('help', 'show help')
 }
 
 export default {

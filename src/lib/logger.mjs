@@ -18,8 +18,9 @@ function log(text, verbosity, stream, component="unknown", formatter) {
       },
     })
     .argv
-  if (argv.verbosity >= verbosity || argv.verboseComponent.includes(component))
+  if (argv.verbosity >= verbosity || argv.verboseComponent.includes(component)) {
     stream(`[${formatter(component)}]: ${formatter(text)}`)
+  }
 }
 
 const logger = {
