@@ -16,11 +16,32 @@ export async function run(argvInput, _container) {
   const logger = container.resolve("logger")
 
   try {
-    await yargs(argvInput)
+    buildYargs(argvInput)
+    await builtYargs.parseAsync()
+  } catch (e) {
+    const message = `${await builtYargs.getHelp()}\n\n${chalk.red(e.message)}`
+    logger.stderr(message)
+    logger.fatal("\n" + e.stack, "error")
+    const exit = container.resolve("exit")
+    exit(1)
+  }
+}
+
+export let builtYargs
+
+// this snapshots the yargs object after building it but before parsing
+// this lets us use `builtYargs.argv` anywhere where we need argv but where
+// it might be difficult to pipe them in.
+function buildYargs(argvInput) {
+  const logger = container.resolve("logger")
+
+  builtYargs = yargs(argvInput)
     .scriptName("fauna")
     .command("eval", "evaluate a query", evalCommand)
     .command("login", "login via website", loginCommand)
     .command("schema <subcommand>", "manipulate Fauna schema state", schemaCommand)
+    .command("throw", false, { handler: () => { throw new Error("this is a test error") }, builder: {} })
+    .command("reject", false, { handler: async () => { throw new Error("this is a rejected promise") }, builder: {} })
     .demandCommand()
     .strict()
   // .completion('completion', function(currentWord, argv, defaultCompletions, done) {
@@ -58,20 +79,19 @@ export async function run(argvInput, _container) {
     .wrap(yargs.terminalWidth)
     .help('help', 'show help')
     .fail((msg, err, yargs) => {
-      logger.stdout(yargs.help() + '\n')
-      logger.stderr(chalk.red(msg))
-      if (err && err.stack) {
-        throw err
-      } else {
-        throw new Error(msg)
-      }
+      const exit = container.resolve("exit")
+      const message = `${yargs.help()}\n\n${chalk.red(msg || err?.message)}`
+      logger.stderr(message)
+      // for some reason, this causes 2 promise rejections to be printed?
+      // debug by using `fauna reject`
+      // if (err && err.stack) {
+      //   logger.fatal(err.stack)
+      // }
+      exit(1)
     })
+    .exitProcess(false)
     .version(false)
     .completion()
-    .parseAsync()
-  } catch (e) {
-    logger.fatal(e.stack, "error")
-    const exit = container.resolve("exit")
-    exit(1)
-  }
+
+  return builtYargs
 }

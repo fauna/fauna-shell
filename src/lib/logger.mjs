@@ -1,25 +1,12 @@
 import chalk from 'chalk'
-import yargs from 'yargs'
-import { hideBin } from 'yargs/helpers'
+import { builtYargs } from '../cli.mjs'
 
 function log(text, verbosity, stream, component="unknown", formatter) {
-  const argv = yargs(hideBin(process.argv))
-  // this is a huge hack... providing this allows argv to parse w/defaults
-  // need a better option
-    .options({
-      "verbosity": {
-        type: 'number',
-        default: 0
-      },
-      "verbose-component": {
-        type: 'array',
-        default: [],
-        choices: ['fetch'],
-      },
-    })
-    .argv
+  const argv = builtYargs.argv
   if (argv.verbosity >= verbosity || argv.verboseComponent.includes(component)) {
-    stream(`[${formatter(component)}]: ${formatter(text)}`)
+    const prefix = /^(\n*)(.*)$/gm.exec(text)[1]
+    const strippedText = /^(\n*)(.*)$/gm.exec(text)[2]
+    stream(`${prefix}[${formatter(component)}]: ${formatter(strippedText)}`)
   }
 }
 
