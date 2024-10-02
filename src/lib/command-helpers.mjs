@@ -1,12 +1,5 @@
 import { FaunaAccountClient } from "./fauna-account-client.mjs";
 
-/**
- * This is used to determine if the command should log the connection info.
- * We currently want to avoid doing this for eval since it can lead to the
- * response not being JSON parseable.
- */
-const outputConnectionInfo = true;
-
 function buildHeaders() {
   const headers = {
     "X-Fauna-Source": "Fauna Shell",
@@ -121,6 +114,7 @@ export async function ensureDbScopeClient({ scope, version, argv }) {
 
 export const commonQueryOptions = {
   url: {
+<<<<<<< HEAD
     type: "string",
     description: "The Fauna URL to query",
     default: "https://db.fauna.com:443",
@@ -129,5 +123,15 @@ export const commonQueryOptions = {
     type: "string",
     description: "The secret to use when calling Fauna",
     required: true,
+=======
+    type: 'string',
+    description: 'the Fauna URL to query',
+    default: "https://db.fauna.com:443"
+  },
+  secret: {
+    type: 'string',
+    description: "the secret to use when calling Fauna",
+    required: true
+>>>>>>> origin/schema-cmds
   },
 };

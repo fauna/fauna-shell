@@ -37,7 +37,7 @@ function buildStatusCommand(yargs) {
     ["$0 fauna schema status"],
   ])
   .version(false)
-  .help()
+  .help('help', 'show help')
 }
 
 export default {

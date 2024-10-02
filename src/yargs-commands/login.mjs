@@ -36,7 +36,8 @@ function buildLoginCommand(yargs) {
       description: "a user profile",
       default: "default",
     },
-  });
+  })
+  .help('help', 'show help')
 }
 
 export default {

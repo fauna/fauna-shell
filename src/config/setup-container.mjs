@@ -1,3 +1,5 @@
+import { exit } from 'node:process'
+
 import * as awilix from 'awilix/lib/awilix.module.mjs'
 
 import { performQuery } from '../yargs-commands/eval.mjs'
@@ -5,6 +7,7 @@ import logger from '../lib/logger.mjs'
 import { getSimpleClient, getAccountClient } from '../lib/command-helpers.mjs'
 import { gatherFSL, gatherRelativeFSLFilePaths, getStagedSchemaStatus, getSchemaFiles } from '../lib/schema.mjs'
 import { confirm } from "@inquirer/prompts"
+import fetchWrapper from '../lib/fetch-wrapper.mjs'
 
 // import { findUpSync } from 'find-up'
 // import fs from 'node:fs'
@@ -22,11 +25,12 @@ export function setupCommonContainer() {
 }
 
 export const injectables = {
-    // node libraries
-    fetch: awilix.asValue(fetch),
+  // node libraries
+  fetch: awilix.asValue(fetchWrapper),
+  exit: awilix.asValue(exit),
 
-    // third-party libraries
-    confirm: awilix.asValue(confirm),
+  // third-party libraries
+  confirm: awilix.asValue(confirm),
 
     // generic lib (homemade utilities)
     logger: awilix.asValue(logger),
@@ -34,11 +38,11 @@ export const injectables = {
     getSimpleClient: awilix.asValue(getSimpleClient),
     getAccountClient: awilix.asValue(getAccountClient),
 
-    // feature-specific lib (homemade utilities)
-    gatherFSL: awilix.asValue(gatherFSL),
-    gatherRelativeFSLFilePaths: awilix.asValue(gatherRelativeFSLFilePaths),
-    getSchemaFiles: awilix.asValue(getSchemaFiles),
-    getStagedSchemaStatus: awilix.asValue(getStagedSchemaStatus),
+  // feature-specific lib (homemade utilities)
+  gatherFSL: awilix.asValue(gatherFSL),
+  gatherRelativeFSLFilePaths: awilix.asValue(gatherRelativeFSLFilePaths),
+  getSchemaFiles: awilix.asValue(getSchemaFiles),
+  getStagedSchemaStatus: awilix.asValue(getStagedSchemaStatus),
 }
 
 export function setupRealContainer() {

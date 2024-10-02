@@ -121,10 +121,10 @@ function buildPullCommand(yargs) {
     ["$0 fauna schema pull --delete"],
   ])
   .version(false)
-  .help()
+  .help('help', 'show help')
 }
 
 export default {
   builder: buildPullCommand,
-  handler: doPull
+  handler: async (argv) => { await doPull(argv) }
 }

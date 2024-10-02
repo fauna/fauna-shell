@@ -16,6 +16,7 @@ function buildSchema(yargs) {
     .command("pull", "Pull a database schema's .fsl files into the current project.", pullCommand)
     .command("status", "Print the staged schema status.", statusCommand)
     .demandCommand()
+    .help('help', 'show help')
 }
 
 export default {

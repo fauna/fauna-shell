@@ -85,7 +85,7 @@ async function doPush(argv) {
       }
     }
   } catch (err) {
-    stderr.error(err);
+    logger.stderr(err);
   }
 }
 
@@ -110,7 +110,7 @@ function buildPushCommand(yargs) {
     ["$0 fauna schema push --staged"],
   ])
   .version(false)
-  .help()
+  .help('help', 'show help')
 }
 
 export default {
