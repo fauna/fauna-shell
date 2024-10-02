@@ -17,7 +17,8 @@ function checkDirUsability(dir) {
 // Fails if the total size of the files is too large.
 // relpaths: string[]
 function read(dir, relpaths) {
-  const FILESIZE_LIMIT_BYTES = 32 * 1024 * 1024;
+  // database file size limit: 8mb
+  const FILESIZE_LIMIT_BYTES = 8 * 1024 * 1024;
   const curr = [];
   var totalsize = 0;
   for (const relp of relpaths) {
@@ -41,7 +42,7 @@ function read(dir, relpaths) {
 export async function gatherRelativeFSLFilePaths(dir) {
   const logger = (await container.resolve("logger"))
 
-  const FILE_LIMIT = 256;
+  const FILE_LIMIT = 32000;
   // rel: string, curr: string[]
   const go = (rel, curr) => {
     const names = fs.readdirSync(path.join(dir, rel));

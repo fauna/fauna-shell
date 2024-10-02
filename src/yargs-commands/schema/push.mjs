@@ -23,7 +23,6 @@ async function doPush(argv) {
         body: fsl,
         // https://github.com/nodejs/node/issues/46221
         // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1483
-        // @ts-expect-error-next-line
         duplex: "half",
       });
 
@@ -42,7 +41,6 @@ async function doPush(argv) {
         method: "POST",
         headers: { AUTHORIZATION: `Bearer ${argv.secret}` },
         body: fsl,
-        // @ts-expect-error-next-line
         duplex: "half",
       });
 
@@ -75,7 +73,6 @@ async function doPush(argv) {
           method: "POST",
           headers: { AUTHORIZATION: `Bearer ${argv.secret}` },
           body: fsl,
-          // @ts-expect-error-next-line
           duplex: "half",
         });
 

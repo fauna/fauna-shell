@@ -16,7 +16,6 @@ async function doStatus(argv) {
       headers: { AUTHORIZATION: `Bearer ${secret}` },
       // https://github.com/nodejs/node/issues/46221
       // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1483
-      // @ts-expect-error-next-line
       duplex: "half",
     }
   );
