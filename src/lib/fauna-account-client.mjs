@@ -1,6 +1,6 @@
 export class FaunaAccountClient {
-  constructor(url) {
-    this.url = url;
+  constructor() {
+    this.url = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com/api/v1";
   }
 
   async startOAuthRequest(authCodeParams) {

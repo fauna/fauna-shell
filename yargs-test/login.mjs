@@ -12,6 +12,7 @@ describe('login command', function () {
 
   it('can login', async function () {
     await run(`login`, container);
+    expect(container.resolve("open").calledWith("test"));
   })
 })
 

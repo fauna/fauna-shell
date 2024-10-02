@@ -2,6 +2,7 @@ import * as awilix from 'awilix/lib/awilix.module.mjs'
 
 import { setupCommonContainer, injectables } from './setup-container.mjs'
 import stub from '@cloudcmd/stub'
+import { FaunaAccountClient } from '../lib/fauna-account-client.mjs'
 
 // Mocks all _functions_ declared on the injectables export from setup-container.mjs
 function automock(container) {
@@ -44,6 +45,9 @@ export function setupTestContainer() {
       stderr: stub(),
     }),
     getSimpleClient: awilix.asValue(stub().returns({ close: () => Promise.resolve() })),
+    accountClient: awilix.asClass(FaunaAccountClient),
+    oauthClient: awilix.asValue(stub().returns()),
+    open: awilix.asValue(stub())
   }
 
   confirmManualMocks(manualMocks, thingsToManuallyMock)

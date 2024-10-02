@@ -23,11 +23,6 @@ function mapConnectionError({ err, connectionOptions }) {
   }
 }
 
-export async function getAccountClient(argv) {
-  const accountURL = "http://localhost:8000"
-  return new FaunaAccountClient(accountURL);
-}
-
 export async function getSimpleClient(argv) {
   let client;
   if (argv.version === "4") {
@@ -114,16 +109,6 @@ export async function ensureDbScopeClient({ scope, version, argv }) {
 
 export const commonQueryOptions = {
   url: {
-<<<<<<< HEAD
-    type: "string",
-    description: "The Fauna URL to query",
-    default: "https://db.fauna.com:443",
-  },
-  secret: {
-    type: "string",
-    description: "The secret to use when calling Fauna",
-    required: true,
-=======
     type: 'string',
     description: 'the Fauna URL to query',
     default: "https://db.fauna.com:443"
@@ -132,6 +117,5 @@ export const commonQueryOptions = {
     type: 'string',
     description: "the secret to use when calling Fauna",
     required: true
->>>>>>> origin/schema-cmds
   },
 };

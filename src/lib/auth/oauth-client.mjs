@@ -1,9 +1,7 @@
 import http, { IncomingMessage, ServerResponse } from "http";
 import { randomBytes, createHash } from "crypto";
 import url from "url";
-
-export const ACCOUNT_URL =
-  process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com/api/v1";
+  
 
 // Default to prod client id and secret
 const clientId = process.env.FAUNA_CLIENT_ID ?? "-_vEB3FKRoWbJdFpMg72Mx0UVAA";

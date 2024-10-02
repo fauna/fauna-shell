@@ -1,13 +1,13 @@
-import OAuthServer, { ACCOUNT_URL } from "../lib/auth/oauth-client.mjs";
-import open from "open";
+import OAuthServer from "../lib/auth/oauth-client.mjs";
 import { container } from '../cli.mjs'
 
 async function doLogin(argv) {
   const { user } = argv;
-  const logger = await container.resolve("logger")
-
-  const accountClient = await (container.resolve("getAccountClient")(argv))
+  const logger = container.resolve("logger")
+  const open = container.resolve("open")
+  const accountClient = container.resolve("accountClient")
   const oAuth = new OAuthServer();
+
   await oAuth.start();
   oAuth.server.on("ready", async () => {
     const authCodeParams = oAuth.getOAuthParams();
