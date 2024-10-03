@@ -12,14 +12,15 @@ function buildSchema(yargs) {
         default: "."
       }
     })
-    .command("push", "Push the current project's .fsl files to Fauna.", pushCommand)
-    .command("pull", "Pull a database schema's .fsl files into the current project.", pullCommand)
-    .command("status", "Print the staged schema status.", statusCommand)
+    .command(pushCommand)
+    .command(pullCommand)
+    .command(statusCommand)
     .demandCommand()
     .help('help', 'show help')
 }
 
 export default {
-  builder: buildSchema,
-  handler: () => {}
+  command: 'schema',
+  describe: 'Manipulate Fauna schema stat',
+  builder: buildSchema
 }

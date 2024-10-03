@@ -19,7 +19,7 @@ describe('cli operations', function() {
     } catch (e) {}
 
     expect(logger.stdout.called).to.be.false
-    const message = `${await builtYargs.getHelp()}\n\n${chalk.red("Missing required argument: secret")}`
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red("Missing required argument: secret")}`
     expect(logger.stderr.calledWith(message)).to.be.true
   })
 
@@ -32,7 +32,7 @@ describe('cli operations', function() {
     } catch (e) {}
 
     expect(logger.stdout.called).to.be.false
-    const message = `${await builtYargs.getHelp()}\n\n${chalk.red("Unknown argument: inland-empire")}`
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red("Unknown argument: inland-empire")}`
     expect(logger.stderr.calledWith(message)).to.be.true
   })
 
@@ -45,7 +45,7 @@ describe('cli operations', function() {
     } catch (e) {}
 
     expect(logger.stdout.called).to.be.false
-    const message = `${await builtYargs.getHelp()}\n\n${chalk.red("this is a test error")}`
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red("this is a test error")}`
     expect(logger.stderr.calledWith(message)).to.be.true
   })
 
@@ -58,7 +58,7 @@ describe('cli operations', function() {
     } catch (e) {}
 
     expect(logger.stdout.called).to.be.false
-    const message = `${await builtYargs.getHelp()}\n\n${chalk.red("this is a rejected promise")}`
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red("this is a rejected promise")}`
     expect(logger.stderr.calledWith(message)).to.be.true
   })
 })

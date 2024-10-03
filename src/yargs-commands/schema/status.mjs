@@ -13,7 +13,7 @@ async function doStatus(argv) {
     (new URL(`/schema/1/staged/status?${params}`, argv.url)).toString(),
     {
       method: "GET",
-      headers: { AUTHORIZATION: `Bearer ${secret}` },
+      headers: { AUTHORIZATION: `Bearer ${argv.secret}` },
       // https://github.com/nodejs/node/issues/46221
       // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1483
       duplex: "half",
@@ -34,13 +34,15 @@ function buildStatusCommand(yargs) {
     ...commonQueryOptions,
   })
   .example([
-    ["$0 fauna schema status"],
+    ["$0 schema status"],
   ])
   .version(false)
   .help('help', 'show help')
 }
 
 export default {
+  command: 'status',
+  describe: 'Print the staged schema status',
   builder: buildStatusCommand,
   handler: doStatus
 }

@@ -116,15 +116,17 @@ function buildPullCommand(yargs) {
     },
   })
   .example([
-    ["$0 fauna schema pull"],
-    ["$0 fauna schema pull --staged"],
-    ["$0 fauna schema pull --delete"],
+    ["$0 schema pull"],
+    ["$0 schema pull --staged"],
+    ["$0 schema pull --delete"],
   ])
   .version(false)
   .help('help', 'show help')
 }
 
 export default {
+  command: 'pull',
+  describe: 'Pull a database schema\'s .fsl files into the current project',
   builder: buildPullCommand,
   handler: async (argv) => { await doPull(argv) }
 }

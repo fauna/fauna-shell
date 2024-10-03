@@ -4,6 +4,7 @@ import chalk from 'chalk'
 import evalCommand from './yargs-commands/eval.mjs'
 import loginCommand from './yargs-commands/login.mjs'
 import schemaCommand from './yargs-commands/schema/schema.mjs'
+import { logArgv } from './lib/middleware.mjs'
 export let container
 
 // import { connect } from 'node:tls'
@@ -19,7 +20,7 @@ export async function run(argvInput, _container) {
     buildYargs(argvInput)
     await builtYargs.parseAsync()
   } catch (e) {
-    const message = `${await builtYargs.getHelp()}\n\n${chalk.red(e.message)}`
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(e.message)}`
     logger.stderr(message)
     logger.fatal("\n" + e.stack, "error")
     const exit = container.resolve("exit")
@@ -37,13 +38,16 @@ function buildYargs(argvInput) {
 
   builtYargs = yargs(argvInput)
     .scriptName("fauna")
+    .middleware([logArgv], true)
     .command("eval", "evaluate a query", evalCommand)
     .command("login", "login via website", loginCommand)
-    .command("schema <subcommand>", "manipulate Fauna schema state", schemaCommand)
+    .command(schemaCommand)
     .command("throw", false, { handler: () => { throw new Error("this is a test error") }, builder: {} })
     .command("reject", false, { handler: async () => { throw new Error("this is a rejected promise") }, builder: {} })
     .demandCommand()
-    .strict()
+    //.strictCommands(true) blows up... why?
+    .strictOptions(true)
+
   // .completion('completion', function(currentWord, argv, defaultCompletions, done) {
     // const logger = container.resolve("logger")
     // logger.debug(`Attempting auto-complete for current word ${currentWord} with argv ${JSON.stringify(argv, null, 4)}.`, 'completion')
@@ -73,14 +77,14 @@ function buildYargs(argvInput) {
         description: "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
         type: 'array',
         default: [],
-        choices: ['fetch'],
+        choices: ['fetch', 'error', 'argv'],
       },
     })
     .wrap(yargs.terminalWidth)
     .help('help', 'show help')
     .fail((msg, err, yargs) => {
       const exit = container.resolve("exit")
-      const message = `${yargs.help()}\n\n${chalk.red(msg || err?.message)}`
+      const message = `${chalk.reset(yargs.help())}\n\n${chalk.red(msg || err?.message)}`
       logger.stderr(message)
       // for some reason, this causes 2 promise rejections to be printed?
       // debug by using `fauna reject`
