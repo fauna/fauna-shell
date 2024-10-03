@@ -58,6 +58,7 @@ export default class PushSchemaCommand extends SchemaCommand {
         const params = new URLSearchParams({
           ...(hasColor() ? { color: colorParam() } : {}),
           force: "true",
+          diff: "summary",
         });
         const path = new URL(`/schema/1/validate?${params}`, url);
         const res = await fetch(path, {
@@ -74,12 +75,13 @@ export default class PushSchemaCommand extends SchemaCommand {
 
         let message = "Accept and push changes?";
         if (json.diff) {
-          this.log(`Proposed diff:\n`);
+          this.log("Proposed diff:\n");
           this.log(json.diff);
         } else {
           this.log("No logical changes.");
           message = "Push file contents anyway?";
         }
+        this.log("(use `fauna schema diff` to show the complete diff)");
         const confirmed = await confirm({
           message,
           default: false,

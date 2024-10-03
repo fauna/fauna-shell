@@ -138,9 +138,9 @@ describe("fauna schema push test", () => {
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
-      .post("/schema/1/validate?force=true")
+      .post("/schema/1/validate?force=true&diff=summary")
       .reply(200, diff)
-      .post("/schema/1/update?version=0")
+      .post("/schema/1/update?version=0&staged=false")
       .reply(200, updated);
     // Stubbing the confirmation to always return true
     const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
@@ -157,7 +157,7 @@ describe("fauna schema push test", () => {
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
-      .post("/schema/1/validate?force=true")
+      .post("/schema/1/validate?force=true&diff=summary")
       .reply(200, diff)
       .post("/schema/1/update?version=0&staged=true")
       .reply(200, updated);
