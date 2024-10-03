@@ -85,7 +85,7 @@ async function doPush(argv) {
       }
     }
   } catch (err) {
-    stderr.error(err);
+    logger.stderr(err);
   }
 }
 
@@ -105,15 +105,17 @@ function buildPushCommand(yargs) {
     }
   })
   .example([
-    ["$0 fauna schema push"],
-    ["$0 fauna schema push --dir schemas/myschema"],
-    ["$0 fauna schema push --staged"],
+    ["$0 schema push"],
+    ["$0 schema push --dir schemas/myschema"],
+    ["$0 schema push --staged"],
   ])
   .version(false)
-  .help()
+  .help('help', 'show help')
 }
 
 export default {
+  command: 'push',
+  describe: 'Push the current project\'s .fsl files to Fauna',
   builder: buildPushCommand,
   handler: doPush
 }
