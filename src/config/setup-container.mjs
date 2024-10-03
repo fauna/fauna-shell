@@ -16,6 +16,7 @@ import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 import open from "open";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
+import { Lifetime } from "awilix";
 
 // import { findUpSync } from 'find-up'
 // import fs from 'node:fs'
@@ -45,8 +46,10 @@ export const injectables = {
   logger: awilix.asValue(logger),
   performQuery: awilix.asValue(performQuery),
   getSimpleClient: awilix.asValue(getSimpleClient),
-  accountClient: awilix.asClass(FaunaAccountClient),
-  oauthClient: awilix.asClass(OAuthClient),
+  accountClient: awilix.asClass(FaunaAccountClient, {
+    lifetime: Lifetime.SCOPED,
+  }),
+  oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),

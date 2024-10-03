@@ -127,7 +127,9 @@ class OAuthClient {
         this.port = (this.server.address()).port;
         this.server.emit("ready");
       });
-      this.server.listen(0);
+      if (!this.server.listening) {
+        this.server.listen(0);
+      }
     } catch (e) {
       console.error("Error starting loopback server:", e.message);
     }

@@ -6,7 +6,7 @@ export function log(text, verbosity, stream, component="unknown", formatter, arg
     argv = builtYargs.argv
   }
 
-  if (argv.verbosity >= verbosity || argv.verboseComponent.includes(component)) {
+  if (argv.verbosity >= verbosity || argv.verboseComponent?.includes(component)) {
     // fails on intentional multi-line output
     // demo with `--verbose-component argv`
     // const prefix = /^(\n*)(.*)$/gm.exec(text)[1]

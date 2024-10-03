@@ -1,5 +1,4 @@
 import * as awilix from 'awilix/lib/awilix.module.mjs'
-
 import { setupCommonContainer, injectables } from './setup-container.mjs'
 import stub from '@cloudcmd/stub'
 import logger from '../lib/logger.mjs'
@@ -51,29 +50,8 @@ export function setupTestContainer() {
       stderr: stub(),
     }),
     getSimpleClient: awilix.asValue(stub().returns({ close: () => Promise.resolve() })),
-    accountClient: awilix.asFunction(() => {
-      return {
-        startOAuthRequest: stub().resolves("test"),
-        listDatabases: stub(),
-        getSession: stub(),
-        getToken: stub(),
-      }
-    }).scoped(),
-    oauthClient: awilix.asFunction(() => {
-      let handlers = {}
-
-      return {
-        start: stub(Promise.resolve().then(async () => {
-          await handlers.ready();
-          await handlers.auth_code_received()
-        })),
-        server: {
-          on: (eventName, handler) => {
-            handlers[eventName] = handler
-          }
-        }
-      }
-    }).scoped(),
+    accountClient: awilix.asFunction(stub()),
+    oauthClient: awilix.asFunction(stub()),
     // in tests, let's exit by throwing
     exit: awilix.asValue(() => {
       throw new Error(1);

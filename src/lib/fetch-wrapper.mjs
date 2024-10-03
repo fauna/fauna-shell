@@ -10,8 +10,13 @@ export default async function fetchWrapper(url, options) {
 
   return fetch(url, options)
     .then(async (response) => {
-      const body = await response.json()
-      logger.debug(`Received ${response.status} from ${method} "${url} with body:\n${JSON.stringify(body, null, 2)}`, "fetch")
-      return { ...response, json: async () => body }
+      const isJSON = response.headers.get("content-type") === "application/json";
+      let logMessage = `Received ${response.status} of type ${response.type} from ${method} ${url}`
+      if (isJSON) {
+        const body = await response.json()
+        logMessage += ` with body:\n${JSON.stringify(body, null, 2)}`
+      }
+      logger.debug(logMessage, "fetch")
+      return isJSON ? { ...response, json: async () => body } : response
     })
 }

@@ -1,4 +1,3 @@
-import OAuthServer from "../lib/auth/oauth-client.mjs";
 import { container } from '../cli.mjs'
 
 async function doLogin(argv) {
