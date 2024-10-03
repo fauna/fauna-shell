@@ -183,7 +183,7 @@ async function doEval(argv) {
       version: argv.version,
       argv
     })).client
-    : await (container.resolve("getSimpleClient")(argv))
+    : container.resolve("getSimpleClient")(argv)
 
   const readQuery = argv.stdin || argv.file !== undefined;
   let queryFromFile;
@@ -212,7 +212,7 @@ async function doEval(argv) {
   );
 
   if (result) {
-    (await container.resolve("logger")).stdout(result);
+    container.resolve("logger").stdout(result);
   }
 
   // required to make the process not hang

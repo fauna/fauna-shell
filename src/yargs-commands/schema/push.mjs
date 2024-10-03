@@ -3,7 +3,7 @@ import { confirm } from "@inquirer/prompts";
 import { commonQueryOptions } from '../../lib/command-helpers.mjs';
 
 async function doPush(argv) {
-  const logger = (await container.resolve("logger"))
+  const logger = container.resolve("logger")
   const fetch = container.resolve("fetch")
 
   const gatherFSL = container.resolve("gatherFSL")
@@ -114,8 +114,8 @@ function buildPushCommand(yargs) {
 }
 
 export default {
-  command: 'push',
-  describe: 'Push the current project\'s .fsl files to Fauna',
+  command: "push",
+  description: "Push the current project's .fsl files to Fauna.",
   builder: buildPushCommand,
   handler: doPush
 }
