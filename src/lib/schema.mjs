@@ -1,8 +1,8 @@
-import * as fs from "fs";
 import * as path from "path";
 import { dirExists, dirIsWriteable } from "./file-util.mjs"
 import { container } from '../cli.mjs'
 import { makeFaunaRequest } from '../lib/db.mjs'
+import { builtYargs } from '../cli.mjs'
 
 function checkDirUsability(dir) {
   if (!dirExists(dir)) {
@@ -40,7 +40,8 @@ function read(dir, relpaths) {
 // Fails if there are too many files.
 // returns string[]
 export async function gatherRelativeFSLFilePaths(dir) {
-  const logger = (await container.resolve("logger"))
+  const logger = container.resolve("logger")
+  const fs = container.resolve("fs")
 
   const FILE_LIMIT = 32000;
   // rel: string, curr: string[]
@@ -70,6 +71,16 @@ export async function gatherRelativeFSLFilePaths(dir) {
   return files;
 }
 
+export async function deleteUnusedSchemaFiles(dir, filesToDelete) {
+  const fs = container.resolve("fs")
+  const promises = []
+  for (const fileName of filesToDelete) {
+    promises.push(fs.unlink(path.join(dir, fileName)))
+  }
+
+  return Promise.all(promises)
+}
+
 export async function gatherFSL(dir) {
   const gatherRelativeFSLFilePaths = container.resolve("gatherRelativeFSLFilePaths")
 
@@ -79,20 +90,61 @@ export async function gatherFSL(dir) {
   return JSON.stringify(files)
 }
 
-export async function getSchemaFiles({ argv, ...overrides }) {
-  const args = {
-    url: "/schema/1/files",
-    method: "GET",
-    ...overrides
+export async function writeSchemaFiles(filenameToContentsHash) {
+  const fs = container.resolve("fs")
+  const argv = builtYargs.argv
+  fs.mkdirSync(path.dirname(argv.dir), { recursive: true });
+
+  const promises = []
+  for (const [filename, fileContents] of Object.entries(filenameToContentsHash)) {
+    const fp = path.join(argv.dir, filename);
+    promises.push(fs.writeFile(fp, fileContents))
   }
-  return makeFaunaRequest({ argv, ...args})
+
+  return Promise.all(promises)
 }
 
-export async function getStagedSchemaStatus({ argv, ...overrides }) {
+export async function getAllSchemaFileContents(filenames) {
+  const promises = []
+  const fileContents = {}
+  for (const filename of filenames) {
+    promises.push(getSchemaFile(filename).then((fileContent) => {
+      fileContents[filename] = fileContent
+    }))
+  }
+
+  return Promise.all(promises)
+}
+
+export async function getSchemaFiles({ ...overrides } = {}) {
+  const argv = builtYargs.argv
   const args = {
-    url: "/schema/1/staged/status",
+    baseUrl: argv.url,
+    path: "/schema/1/files",
     method: "GET",
     ...overrides
   }
-  return makeFaunaRequest({ argv, ...args })
+  return makeFaunaRequest({ secret: argv.secret, ...args })
+}
+
+export async function getSchemaFile(filename, { ...overrides } = {}) {
+  const argv = builtYargs.argv
+  const args = {
+    baseUrl: argv.url,
+    path: `/schema/1/files/${encodeURIComponent(filename)}`,
+    method: "GET",
+    ...overrides
+  }
+  return makeFaunaRequest({ secret: argv.secret, ...args })
+}
+
+export async function getStagedSchemaStatus({ ...overrides } = {}) {
+  const argv = builtYargs.argv
+  const args = {
+    baseUrl: argv.url,
+    path: "/schema/1/staged/status",
+    method: "GET",
+    ...overrides
+  }
+  return makeFaunaRequest({ secret: argv.secret, ...args })
 }

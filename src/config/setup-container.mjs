@@ -8,8 +8,12 @@ import { getSimpleClient } from "../lib/command-helpers.mjs";
 import {
   gatherFSL,
   gatherRelativeFSLFilePaths,
+  getAllSchemaFileContents,
   getStagedSchemaStatus,
+  getSchemaFile,
   getSchemaFiles,
+  deleteUnusedSchemaFiles,
+  writeSchemaFiles,
 } from "../lib/schema.mjs";
 import { confirm } from "@inquirer/prompts";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
@@ -17,6 +21,7 @@ import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 import open from "open";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { Lifetime } from "awilix";
+import fs from 'node:fs'
 
 // import { findUpSync } from 'find-up'
 // import fs from 'node:fs'
@@ -35,8 +40,9 @@ export function setupCommonContainer() {
 
 export const injectables = {
   // node libraries
-  fetch: awilix.asValue(fetchWrapper),
   exit: awilix.asValue(exit),
+  fetch: awilix.asValue(fetchWrapper),
+  fs: awilix.asValue(fs),
 
   // third-party libraries
   confirm: awilix.asValue(confirm),
@@ -54,8 +60,12 @@ export const injectables = {
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),
   gatherRelativeFSLFilePaths: awilix.asValue(gatherRelativeFSLFilePaths),
+  getSchemaFile: awilix.asValue(getSchemaFile),
   getSchemaFiles: awilix.asValue(getSchemaFiles),
+  writeSchemaFiles: awilix.asValue(writeSchemaFiles),
+  getAllSchemaFileContents: awilix.asValue(getAllSchemaFileContents),
   getStagedSchemaStatus: awilix.asValue(getStagedSchemaStatus),
+  deleteUnusedSchemaFiles: awilix.asValue(deleteUnusedSchemaFiles),
 };
 
 export function setupRealContainer() {

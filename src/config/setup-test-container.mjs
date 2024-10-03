@@ -1,6 +1,10 @@
+import fs from 'node:fs'
+
 import * as awilix from 'awilix/lib/awilix.module.mjs'
 import { setupCommonContainer, injectables } from './setup-container.mjs'
-import stub from '@cloudcmd/stub'
+
+import sinon, { stub } from 'sinon'
+
 import logger from '../lib/logger.mjs'
 
 // Mocks all _functions_ declared on the injectables export from setup-container.mjs
@@ -31,6 +35,7 @@ export function setupTestContainer() {
   const thingsToManuallyMock = automock(container)
 
   const manualMocks = {
+    fs: awilix.asValue(sinon.stub(fs)),
     logger: awilix.asValue({
       // use these for making dev, support tickets easier.
       // they're not mocked because we shouldn't test them

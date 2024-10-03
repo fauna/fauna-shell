@@ -33,6 +33,7 @@
     "prettier": "^2.3.0",
     "rate-limiter-flexible": "^2.3.6",
     "sinon-called-with-diff": "^3.1.1",
+    "sinon-chai": "^4.0.0",
     "stream-json": "^1.7.3",
     "supports-color": "^8",
     "yargs": "^17.7.2"
@@ -109,6 +110,7 @@
     "local": "export $(cat .env | xargs); node bin/run",
     "local-test": "export $(cat .env | xargs); mocha \"test/**/*.test.{js,ts}\"",
     "test": "c8 -r html mocha --forbid-only \"test/**/*.test.{js,ts}\"",
+    "test-yargs": "mocha --recursive ./yargs-test --require ./yargs-test/mocha-root-hooks.mjs",
     "version": "oclif-dev readme && git add README.md",
     "fmt": "prettier -w src"
   },

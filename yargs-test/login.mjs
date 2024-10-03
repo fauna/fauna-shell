@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import * as awilix from "awilix/lib/awilix.module.mjs";
+// TODO: this breaks if we swap the stub implementation to sinon. ugh
 import stub from "@cloudcmd/stub";
 
 describe("login command", function () {
@@ -54,7 +55,7 @@ describe("login command", function () {
       getToken: stub().resolves({ access_token: "access-token" }),
     };
   };
-  this.beforeEach(() => {
+  beforeEach(() => {
     container = setupContainer();
     container.register({
       oauthClient: awilix.asFunction(mockOAuth).scoped(),

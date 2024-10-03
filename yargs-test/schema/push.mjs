@@ -20,9 +20,9 @@ describe('schema push', function() {
 
     await run(`schema push --secret "secret" --force`, container)
 
-    expect(gatherFSL.calledWith(".")).to.be.true
+    expect(gatherFSL).to.have.been.calledWith(".")
 
-    expect(fetch.calledWith(
+    expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/update?force=true",
       {
         method: "POST",
@@ -30,9 +30,9 @@ describe('schema push', function() {
         body: "[{\"name\":\"coll.fsl\",\"content\":\"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n\"}]",
         duplex: "half"
       }
-    )).to.be.true
+    )
 
-    expect(logger.stdout.called).to.be.false
-    expect(logger.stderr.called).to.be.false
+    expect(logger.stdout).to.not.be.called
+    expect(logger.stderr).to.not.be.called
   })
 })

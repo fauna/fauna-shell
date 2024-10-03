@@ -2,37 +2,40 @@ import { container } from '../../cli.mjs'
 import { commonQueryOptions } from '../../lib/command-helpers.mjs'
 
 async function doPull(argv) {
-  const logger = (await container.resolve("logger"))
-  const gatherRelativeFSLFilePaths = container.resolve("gatherRelativeFSLFilePaths")
-  const fetch = container.resolve("fetch")
+  const logger = container.resolve("logger")
+  const gatherFSL = container.resolve("gatherFSL")
   const confirm = container.resolve("confirm")
   const getSchemaFiles = container.resolve("getSchemaFiles")
   const getStagedSchemaStatus = container.resolve("getStagedSchemaStatus")
+  const exit = container.resolve("exit")
 
-  const filesResponse = await getSchemaFiles({ argv })
+  // fetch the list of remote FSL files
+  const filesResponse = await getSchemaFiles()
 
-  // Check if there's a staged schema, and require `--staged` if there is one.
+  // check if there's a staged schema
   const statusResponse = await getStagedSchemaStatus({
-    argv,
-    params: { version: filesResponse.version },
-    shouldThrow: false
+    params: { version: filesResponse.version }
   })
 
+  // if there's a staged schema, require the --staged flag.
+  // getting unstaged FSL while staged FSL exists is not yet
+  // implemented at the service level.
   if (statusResponse.status !== "none" && !argv.staged) {
-    logger.stdout("There is a staged schema change. Use --staged to pull it.");
+    logger.stderr("There is a staged schema change. Use --staged to pull it.")
+    exit(1)
   } else if (statusResponse.status === "none" && argv.staged) {
-    logger.stdout("There are no staged schema changes to pull.");
+    logger.stderr("There are no staged schema changes to pull.")
+    exit(1)
   }
 
-  console.log(filesResponse.files)
-  // Sort for consistent order. It's nice for tests.
+  // sort for consistent order (it's nice for tests)
   const filenames = filesResponse.files
   .map((file) => file.filename)
   .filter((name) => name.endsWith(".fsl"))
   .sort();
 
   // Gather local .fsl files to overwrite or delete.
-  const existing = await gatherRelativeFSLFilePaths(argv.dir);
+  const existing = await gatherFSL(argv.dir);
 
   // Summarize file changes.
   const adds = [];
@@ -53,48 +56,41 @@ async function doPull(argv) {
   }
   deletes.sort();
 
-  console.log("Pull makes the following changes:");
+  logger.stdout("Pull makes the following changes:");
   if (argv.delete) {
     for (const deleteme of deletes) {
-      console.log(`delete:    ${deleteme}`);
+      logger.stdout(`delete:    ${deleteme}`);
     }
   }
   for (const add of adds) {
-    console.log(`add:       ${add}`);
+    logger.stdout(`add:       ${add}`);
   }
   for (const overwrite of overwrites) {
-    console.log(`overwrite: ${overwrite}`);
-  }
-
-  if (argv.delete) {
-    // Delete extra .fsl files.
-      for (const deleteme of deletes) {
-        fs.unlinkSync(path.join(argv.dir, deleteme));
-      }
+    logger.stdout(`overwrite: ${overwrite}`);
   }
 
   const confirmed = await confirm({
     message: "Accept the changes?",
     default: false,
-  });
+  })
 
   if (confirmed) {
-    for (const filename of filenames) {
-      const fileres = await fetch(
-        new URL(`/schema/1/files/${encodeURIComponent(filename)}`, argv.url),
-        {
-          method: "GET",
-          headers: { AUTHORIZATION: `Bearer ${argv.secret}` },
-        }
-      );
-      const filejson = await fileres.json();
-      if (filejson.error) {
-        logger.stderr(filejson.error.message);
-      }
-      const fp = path.join(argv.dir, filename);
-      fs.mkdirSync(path.dirname(fp), { recursive: true });
-      fs.writeFileSync(fp, filejson.content);
+    const writeSchemaFiles = container.resolve("writeSchemaFiles")
+    const getAllSchemaFileContents = container.resolve("getAllSchemaFileContents")
+    const contents = await getAllSchemaFileContents(filenames)
+
+    // don't start writing or deleting files until we've successfully fetched all
+    // the remote schema files
+    const promises = []
+    promises.push(writeSchemaFiles(contents))
+    if (argv.delete) {
+      const deleteUnusedSchemaFiles = container.resolve("deleteUnusedSchemaFiles")
+      promises.push(deleteUnusedSchemaFiles(argv.dir, deletes))
     }
+
+    // process writes and deletes together async - it'll be fastest
+    await Promise.all(promises)
+
   } else {
     logger.stdout("Change cancelled");
   }
@@ -126,7 +122,7 @@ function buildPullCommand(yargs) {
 
 export default {
   command: 'pull',
-  describe: 'Pull a database schema\'s .fsl files into the current project',
+  describe: "Pull a database schema's .fsl files into the current project",
   builder: buildPullCommand,
-  handler: async (argv) => { await doPull(argv) }
+  handler: doPull
 }

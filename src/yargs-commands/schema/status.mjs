@@ -2,7 +2,7 @@ import { container } from '../../cli.mjs'
 import { commonQueryOptions } from '../../lib/command-helpers.mjs';
 
 async function doStatus(argv) {
-  const logger = (await container.resolve("logger"))
+  const logger = container.resolve("logger")
   const fetch = container.resolve("fetch")
 
   const params = new URLSearchParams()
@@ -42,7 +42,7 @@ function buildStatusCommand(yargs) {
 
 export default {
   command: 'status',
-  describe: 'Print the staged schema status',
+  description: "Print the staged schema status.",
   builder: buildStatusCommand,
   handler: doStatus
 }

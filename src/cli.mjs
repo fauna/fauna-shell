@@ -86,11 +86,9 @@ function buildYargs(argvInput) {
       const exit = container.resolve("exit")
       const message = `${chalk.reset(yargs.help())}\n\n${chalk.red(msg || err?.message)}`
       logger.stderr(message)
-      // for some reason, this causes 2 promise rejections to be printed?
-      // debug by using `fauna reject`
-      // if (err && err.stack) {
-      //   logger.fatal(err.stack)
-      // }
+      if (err && err.stack) {
+        logger.fatal(err.stack)
+      }
       exit(1)
     })
     .exitProcess(false)

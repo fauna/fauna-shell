@@ -1,15 +1,22 @@
 import { container } from '../cli.mjs'
 
-export async function makeFaunaRequest({ argv, url, params, method, shouldThrow = true }) {
+export async function makeFaunaRequest({ secret, baseUrl, path, params, method, shouldThrow = true }) {
   const fetch = container.resolve("fetch")
   const paramsString = params
     ? `?${new URLSearchParams(params)}`
     : ''
+  let fullUrl
 
-  const fullUrl = new URL(`${url}${paramsString}`, argv.url)
+  try {
+    fullUrl = new URL(`${path}${paramsString}`, baseUrl).href
+  } catch (e) {
+    e.message = `Could not build valid URL out of base url (${baseUrl}), path (${path}), and params string (${paramsString}) built from params (${JSON.stringify(params)}).`
+    throw e
+  }
+
   const response = await fetch(fullUrl, {
     method,
-    headers: { AUTHORIZATION: `Bearer ${argv.secret}` },
+    headers: { AUTHORIZATION: `Bearer ${secret}` },
   })
 
   const obj = await response.json()

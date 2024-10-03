@@ -11,6 +11,7 @@ describe('eval command', function() {
 
   describe('happy path', function() {
     it('works great', async function() {
+      const logger = container.resolve("logger")
       container.resolve("performQuery").resolves({
         data: [
           {
@@ -21,8 +22,10 @@ describe('eval command', function() {
           }
         ]
       })
+
       await run(`eval --secret "secret" --query "Database.all()"`, container)
-      expect(container.resolve("logger").stdout.calledWith({
+
+      expect(logger.stdout).to.have.been.calledWith({
         data: [
           {
             name: "v4-test",
@@ -31,8 +34,8 @@ describe('eval command', function() {
             global_id: "asd7zi8pharfn"
           }
         ]
-      }))
-      expect(container.resolve("logger").stderr.notCalled)
+      })
+      expect(logger.stderr).to.not.be.called
     })
   })
 })
