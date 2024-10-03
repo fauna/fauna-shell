@@ -17,6 +17,10 @@ function checkDirUsability(dir) {
 // Fails if the total size of the files is too large.
 // relpaths: string[]
 function read(dir, relpaths) {
+  const fs = container.resolve("fs")
+  const logger = container.resolve("logger")
+  const exit = container.resolve("exit")
+
   // database file size limit: 8mb
   const FILESIZE_LIMIT_BYTES = 8 * 1024 * 1024;
   const curr = [];
@@ -26,13 +30,12 @@ function read(dir, relpaths) {
     const content = fs.readFileSync(fp);
     totalsize += content.length;
     if (totalsize > FILESIZE_LIMIT_BYTES) {
-      this.error(
-        `Too many bytes: tool accepts at most ${FILESIZE_LIMIT_BYTES}`
-      );
+      logger.stderr(`Too many bytes: tool accepts at most ${FILESIZE_LIMIT_BYTES}`)
+      exit(1)
     }
     curr.push({ name: relp, content: content.toString("utf8") });
   }
-  return curr;
+  return curr
 }
 
 // Gathers all FSL files in the directory rooted at `basedir` and returns a

@@ -13,6 +13,18 @@ describe('schema commit', function() {
     container = setupContainer()
   })
 
-  it.skip('...?', async function() {
+  it.skip('can commit a schema change', async function() {
+  })
+
+  it.skip('can force commit a schema change', async function() {
+  })
+
+  it.skip('warns if there is no staged schema change', async function() {
+  })
+
+  it.skip('warns if the schema is not in a ready state', async function() {
+  })
+
+  it.skip('can be cancelled without making mutating network calls', async function() {
   })
 })

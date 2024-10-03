@@ -13,6 +13,15 @@ describe('schema abandon', function() {
     container = setupContainer()
   })
 
-  it.skip('...?', async function() {
+  it.skip('can force abandon a staged schema change', async function() {
+  })
+
+  it.skip('can abandon a staged schema change', async function() {
+  })
+
+  it.skip('warns if there is no staged schema', async function() {
+  })
+
+  it.skip('can be cancelled without making mutating network calls', async function() {
   })
 })

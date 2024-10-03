@@ -3,29 +3,20 @@ import { commonQueryOptions } from '../../lib/command-helpers.mjs';
 
 async function doStatus(argv) {
   const logger = container.resolve("logger")
-  const fetch = container.resolve("fetch")
+  const makeFaunaRequest = container.resolve("makeFaunaRequest")
 
-  const params = new URLSearchParams()
+  const params = new URLSearchParams({ diff: "true" })
   if (argv.color)
-    params.set("diff", "true")
+    params.set("color", "ansii")
 
-  const res = await fetch(
-    (new URL(`/schema/1/staged/status?${params}`, argv.url)).toString(),
-    {
-      method: "GET",
-      headers: { AUTHORIZATION: `Bearer ${argv.secret}` },
-      // https://github.com/nodejs/node/issues/46221
-      // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1483
-      duplex: "half",
-    }
-  );
+  const response = await makeFaunaRequest({
+    baseUrl: argv.url,
+    path: `/schema/1/staged/status?${params}`,
+    secret: argv.secret,
+    method: "GET",
+  })
 
-  const json = await res.json();
-  if (json.error) {
-    logger.stderr(json.error.message);
-  }
-
-  logger.stdout(json.diff);
+  logger.stdout(response.diff)
 }
 
 function buildStatusCommand(yargs) {

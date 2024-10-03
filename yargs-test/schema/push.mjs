@@ -35,4 +35,16 @@ describe('schema push', function() {
     expect(logger.stdout).to.not.be.called
     expect(logger.stderr).to.not.be.called
   })
+
+  it.skip('can push schema by version', async function() {
+  })
+
+  it.skip('can staged schema changes', async function() {
+  })
+
+  it.skip('can be cancelled by the user before making mutating network calls', async function() {
+  })
+
+  it.skip('warns when attempting to push an empty diff', async function() {
+  })
 })

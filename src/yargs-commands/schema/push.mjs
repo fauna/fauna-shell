@@ -33,7 +33,7 @@ async function doPush(argv) {
     } else {
       // Confirm diff, then push it. `force` is set on `validate` so we don't
       // need to pass the last known schema version through.
-        const params = new URLSearchParams({ force: true })
+      const params = new URLSearchParams({ force: true })
       if (argv.color)
         params.set("color", "ansi")
       const path = new URL(`/schema/1/validate?${params}`, argv.url);

@@ -1,26 +1,30 @@
+import chalk from 'chalk'
+
 import { container } from '../../cli.mjs'
 import { commonQueryOptions } from '../../lib/command-helpers.mjs'
 
-async function doDiff() {
-  const gatherRelativeFSLFilePaths = container.resolve("gatherRelativeFSLFilePaths")
-  const read = container.resolve("read")
+async function doDiff(argv) {
+  const gatherFSL = container.resolve("gatherFSL")
   const logger = container.resolve("logger")
+  const makeFaunaRequest = container.resolve("makeFaunaRequest")
 
-  const fps = gatherRelativeFSLFilePaths()
-  const files = read(fps)
+  const files = await gatherFSL(argv.dir)
 
   const params = new URLSearchParams({ force: "true" })
-  if (argv.color) params.set("color", "ansi")
+  if (argv.color) params.set("color", "ansii")
+  params.set("staged", argv.staged)
 
   const response = await makeFaunaRequest({
     baseUrl: argv.url,
     path: (new URL(`/schema/1/validate?${params}`, argv.url)).href,
     secret: argv.secret,
-    // TODO: does body work?
-    body: this.body(files),
+    body: files,
     method: "POST",
   })
 
+  const bold = argv.color ? chalk.bold : (str) => str
+  const description = argv.staged ? 'remote, staged' : 'remote, active'
+  logger.stdout(`Differences between the ${bold('local')} schema and the ${bold(description)} schema:`)
   logger.stdout(response.diff ? response.diff : "No schema differences");
 }
 
@@ -28,6 +32,11 @@ function buildDiffCommand(yargs) {
   return yargs
   .options({
     ...commonQueryOptions,
+    staged: {
+      'description': "Compare the local schema to the staged schema instead of the active schema.",
+      default: false,
+      type: 'boolean',
+    }
   })
   .example([
     ["$0 schema diff"],

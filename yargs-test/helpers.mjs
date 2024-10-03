@@ -3,3 +3,10 @@
 export function f(returnValue) {
   return { json: async () => returnValue }
 }
+
+export const commonFetchParams = {
+  method: 'GET',
+  headers: {
+    AUTHORIZATION: 'Bearer secret',
+  },
+}

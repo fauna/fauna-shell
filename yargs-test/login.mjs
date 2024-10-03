@@ -5,7 +5,7 @@ import * as awilix from "awilix/lib/awilix.module.mjs";
 // TODO: this breaks if we swap the stub implementation to sinon. ugh
 import stub from "@cloudcmd/stub";
 
-describe("login command", function () {
+describe("login", function () {
   let container;
   const mockOAuth = () => {
     let handlers = {};
