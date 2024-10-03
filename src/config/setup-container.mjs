@@ -16,6 +16,7 @@ import {
   writeSchemaFiles,
 } from "../lib/schema.mjs";
 import { confirm } from "@inquirer/prompts";
+import { makeFaunaRequest } from "../lib/db.mjs"
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 import open from "open";
@@ -56,6 +57,7 @@ export const injectables = {
     lifetime: Lifetime.SCOPED,
   }),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
+  makeFaunaRequest: awilix.asValue(makeFaunaRequest),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),

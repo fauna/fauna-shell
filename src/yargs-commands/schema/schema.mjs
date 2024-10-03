@@ -1,5 +1,8 @@
-import pushCommand from './push.mjs'
+import abandonCommand from './abandon.mjs'
+import commitCommand from './commit.mjs'
+import diffCommand from './diff.mjs'
 import pullCommand from './pull.mjs'
+import pushCommand from './push.mjs'
 import statusCommand from './status.mjs'
 
 function buildSchema(yargs) {
@@ -12,6 +15,9 @@ function buildSchema(yargs) {
         default: "."
       }
     })
+    .command(abandonCommand)
+    .command(commitCommand)
+    .command(diffCommand)
     .command(pushCommand)
     .command(pullCommand)
     .command(statusCommand)
@@ -21,6 +27,6 @@ function buildSchema(yargs) {
 
 export default {
   command: 'schema',
-  describe: 'Manipulate Fauna schema stat',
+  describe: 'Manipulate Fauna schema state',
   builder: buildSchema
 }
