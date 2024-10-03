@@ -2,16 +2,14 @@ import http, { IncomingMessage, ServerResponse } from "http";
 import { randomBytes, createHash } from "crypto";
 import url from "url";
 
-export const ACCOUNT_URL =
-  process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com/api/v1";
 
 // Default to prod client id and secret
-const clientId = process.env.FAUNA_CLIENT_ID ?? "Aq4_G0mOtm_F1fK3PuzE0k-i9F0";
+const clientId = process.env.FAUNA_CLIENT_ID ?? "-_vEB3FKRoWbJdFpMg72Mx0UVAA";
 // Native public clients are not confidential. The client secret is not used beyond
 //   client identification. https://datatracker.ietf.org/doc/html/rfc8252#section-8.5
 const clientSecret =
   process.env.FAUNA_CLIENT_SECRET ??
-  "2W9eZYlyN5XwnpvaP3AwOfclrtAjTXncH6k-bdFq1ZV0hZMFPzRIfg";
+  "CGNriRe8uZakmOL6yfhuSZJ_-15Tio4ueM3whw0O38fXLb2829PHCA";
 const REDIRECT_URI = `http://127.0.0.1`;
 
 class OAuthClient {
@@ -33,8 +31,8 @@ class OAuthClient {
     this.state = this._generateCSRFToken();
   }
 
-  getRequestUrl() {
-    const params = {
+  getOAuthParams() {
+    return {
       client_id: clientId,
       redirect_uri: `${REDIRECT_URI}:${this.port}`,
       code_challenge: this.code_challenge,
@@ -43,27 +41,16 @@ class OAuthClient {
       scope: "create_session",
       state: this.state,
     };
-    return `${ACCOUNT_URL}/api/v1/oauth/authorize?${new URLSearchParams(
-      params
-    )}`;
   }
 
-  getToken() {
-    const params = {
-      grant_type: "authorization_code",
-      client_id: clientId,
-      client_secret: clientSecret,
-      code: this.auth_code,
-      redirect_uri: `${REDIRECT_URI}:${this.port}`,
-      code_verifier: this.code_verifier,
-    };
-    return fetch(`${ACCOUNT_URL}/api/v1/oauth/token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams(params),
-    });
+  getTokenParams() {
+    return {
+      clientId,
+      clientSecret,
+      authCode: this.auth_code,
+      redirectURI: `${REDIRECT_URI}:${this.port}`,
+      codeVerifier: this.code_verifier
+    }
   }
 
   _generateCSRFToken() {
@@ -92,7 +79,6 @@ class OAuthClient {
     if (req.method === "GET") {
       const parsedUrl = url.parse(req.url || "", true);
       if (parsedUrl.pathname === "/success") {
-        console.log("Received success response");
         res.write(`
           <body>
             <h1>Success</h1>
@@ -141,7 +127,9 @@ class OAuthClient {
         this.port = (this.server.address()).port;
         this.server.emit("ready");
       });
-      this.server.listen(0);
+      if (!this.server.listening) {
+        this.server.listen(0);
+      }
     } catch (e) {
       console.error("Error starting loopback server:", e.message);
     }
