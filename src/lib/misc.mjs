@@ -1,5 +1,3 @@
-// TODO: Remove all this stuff.
-
 import { createContext, runInContext } from "vm";
 import { readFile as _readFile, writeFile as _writeFile } from "fs";
 import { generate } from "escodegen";
@@ -53,6 +51,7 @@ class QueryError extends Error {
   }
 }
 
+// TODO: Find out if/how we can replace wrapQueries...
 async function wrapQueries(expressions, client) {
   const faunadb = (await import("faunadb")).default;
   const { query } = faunadb;

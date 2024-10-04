@@ -86,7 +86,7 @@ describe("schema pull", function () {
     fs.writeFile.resolves();
 
     try {
-      await run(`schema pull --secret "secret" --verbosity 5`, container);
+      await run(`schema pull --secret "secret"`, container);
     } catch (e) {
       console.error(logger.stderr.args.join("\n"));
     }
@@ -160,7 +160,7 @@ describe("schema pull", function () {
       })
     );
 
-    await run(`schema pull --secret "secret" --verbosity 5`, container);
+    await run(`schema pull --secret "secret"`, container);
 
     expect(logger.stdout).to.have.been.calledWith("add:       main.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       second.fsl");

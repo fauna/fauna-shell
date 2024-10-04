@@ -70,4 +70,12 @@ describe("cli operations", function () {
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
   });
+
+  it.skip("should detect color support if the user does not specify", async function () {
+    // i can't find a way to mock this that doesn't involve setting a flag
+    // and setting a flag defeats the purpose of testing if it's _detected_ automatically
+    // skipping for now
+  });
+
+  it.skip("should only ever parse args once", async function () {});
 });

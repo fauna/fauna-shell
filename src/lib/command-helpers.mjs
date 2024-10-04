@@ -21,11 +21,6 @@ export async function getSimpleClient(argv) {
       secret: argv.secret,
       timeout: argv.timeout,
 
-      // Force http1. Fixes tests I guess? I spent a solid 30 minutes
-      // debugging the whole `nock` thing in our tests, only to realize this
-      // `fetch` key wasn't set after switching to the new config parsing.
-      //
-      // TODO: Remove and just connect to a docker container.
       fetch: fetch,
 
       headers: buildHeaders(),

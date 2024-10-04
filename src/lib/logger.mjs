@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import { builtYargs } from "../cli.mjs";
 
 export function log(
   text,
@@ -10,7 +9,7 @@ export function log(
   argv
 ) {
   if (!argv) {
-    argv = builtYargs.argv;
+    throw new Error("lol, lmao");
   }
 
   if (
