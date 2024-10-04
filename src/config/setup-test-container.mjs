@@ -61,6 +61,7 @@ export function setupTestContainer() {
     ),
     accountClient: awilix.asFunction(stub()),
     oauthClient: awilix.asFunction(stub()),
+    accountCreds: awilix.asFunction(stub()),
     // in tests, let's exit by throwing
     exit: awilix.asValue(() => {
       throw new Error(1);

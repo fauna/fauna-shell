@@ -37,16 +37,9 @@ export function fileExists(path) {
   }
 }
 
-export function testCreds() {
-  const a = new SecretKey();
-  console.log("before", a.get());
-  a.save({ myrefreshtoken: "myaccountkey" });
-  console.log("after", a.get());
-  console.log("getting creds", a.get("default"));
-}
-
 export class Credentials {
   logger = container.resolve("logger");
+
   exit = container.resolve("exit");
 
   constructor(filename = "") {
@@ -111,6 +104,14 @@ export class AccountKey extends Credentials {
   constructor() {
     super("access_keys");
   }
+}
+
+export function testCreds() {
+  const a = new SecretKey();
+  console.log("before", a.get());
+  a.save({ myrefreshtoken: "myaccountkey" });
+  console.log("after", a.get());
+  console.log("getting creds", a.get("default"));
 }
 
 function isJSON(value) {

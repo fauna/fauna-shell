@@ -12,7 +12,6 @@ const clientSecret =
 const REDIRECT_URI = `http://127.0.0.1`;
 
 class OAuthClient {
-
   constructor() {
     this.server = http.createServer(this._handleRequest.bind(this));
     this.code_verifier = Buffer.from(randomBytes(20)).toString("base64url");
@@ -118,7 +117,7 @@ class OAuthClient {
     try {
       if (!this.server.listening) {
         this.server.on("listening", () => {
-          this.port = (this.server.address()).port;
+          this.port = this.server.address().port;
           this.server.emit("ready");
         });
         this.server.listen(0);

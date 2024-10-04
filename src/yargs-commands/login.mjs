@@ -1,4 +1,4 @@
-import { builtYargs, container } from "../cli.mjs";
+import { container } from "../cli.mjs";
 
 async function doLogin(argv) {
   const logger = container.resolve("logger");
@@ -28,7 +28,7 @@ async function doLogin(argv) {
           creds: { account_key, refresh_token },
           user: argv.user,
         });
-        logger.stdout(`Login Success!\n\n`)
+        logger.stdout(`Login Success!\n\n`);
         logger.stdout("Listing Databases...");
         const databases = await accountClient.listDatabases(account_key);
         logger.stdout(databases);

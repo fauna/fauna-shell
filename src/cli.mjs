@@ -1,12 +1,13 @@
 import yargs from "yargs";
 import chalk from "chalk";
 
-import evalCommand from './yargs-commands/eval.mjs'
-import loginCommand from './yargs-commands/login.mjs'
-import schemaCommand from './yargs-commands/schema/schema.mjs'
-import { logArgv } from './lib/middleware.mjs'
+import evalCommand from "./yargs-commands/eval.mjs";
+import loginCommand from "./yargs-commands/login.mjs";
+import schemaCommand from "./yargs-commands/schema/schema.mjs";
+import { logArgv } from "./lib/middleware.mjs";
 // import { testCreds } from './lib/file-util.mjs'
-export let container
+export let container;
+export let builtYargs;
 
 // import { connect } from 'node:tls'
 // const socket = connect({ port: 443, host: 'db.fauna.com', checkServerIdentity: () => {} })
