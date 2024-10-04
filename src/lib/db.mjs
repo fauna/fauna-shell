@@ -6,6 +6,7 @@ export async function makeFaunaRequest({
   path,
   params,
   method,
+  body,
   shouldThrow = true,
 }) {
   const fetch = container.resolve("fetch");
@@ -21,10 +22,14 @@ export async function makeFaunaRequest({
     throw e;
   }
 
-  const response = await fetch(fullUrl, {
+  const fetchArgs = {
     method,
     headers: { AUTHORIZATION: `Bearer ${secret}` },
-  });
+  };
+
+  if (body) fetchArgs.body = body;
+
+  const response = await fetch(fullUrl, fetchArgs);
 
   const obj = await response.json();
 
