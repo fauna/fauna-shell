@@ -6,6 +6,8 @@ executors:
     resource_class: large
     docker:
       - image: cimg/node:22.9.0
+    environment:
+      TERM: xterm-256color
 
 commands:
   build_and_test:
