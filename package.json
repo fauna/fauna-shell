@@ -4,7 +4,7 @@
   "version": "2.0.2",
   "author": "Fauna",
   "bin": {
-    "fauna": "./yargs-entrypoint.js"
+    "fauna": "./yargs-entrypoint.mjs"
   },
   "bugs": "https://github.com/fauna/fauna-shell/issues",
   "dependencies": {
