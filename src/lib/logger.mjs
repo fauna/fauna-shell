@@ -1,42 +1,108 @@
 import chalk from "chalk";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 
-export function log(
+export function log({
   text,
   verbosity,
   stream,
   component = "unknown",
   formatter,
-  argv
-) {
+  argv,
+}) {
+  // stringified errors come with this prefix; since we're going to add a component
+  // tag (usually "[error]") to the front anyways, let's strip this prefix
+  text = text.replace(/^Error: /, "");
+
+  // this case only occurs when an error is thrown and not caught
   if (!argv) {
-    throw new Error("lol, lmao");
+    // we give yargs _just_ enough information that we can use it to parse
+    // out the verbosity flags needed by the logger
+    argv = yargs(hideBin(process.argv)).options({
+      verboseComponent: {
+        type: "array",
+        default: [],
+      },
+      verbosity: {
+        type: "number",
+        default: 0,
+      },
+    }).argv;
   }
 
   if (
-    !argv.then &&
-    (argv.verbosity >= verbosity || argv.verboseComponent.includes(component))
+    argv.verbosity >= verbosity ||
+    argv.verboseComponent.includes(component)
   ) {
-    // fails on intentional multi-line output
-    // demo with `--verbose-component argv`
-    // const prefix = /^(\n*)(.*)$/gm.exec(text)[1]
-    // const strippedText = /^(\n*)(.*)$/gm.exec(text)[2]
-    // stream(`${prefix}[${formatter(component)}]: ${formatter(strippedText)}`)
-    stream(`[${formatter(component)}]: ${formatter(text)}`);
+    const prefix = chalk.reset("[") + formatter(component) + chalk.reset("]: ");
+    stream(prefix + formatter(text));
+    return true;
   }
+  return false;
+}
+
+function debug(text, component, argv) {
+  log({
+    text,
+    verbosity: 5,
+    stream: console.log,
+    component,
+    formatter: chalk.blue,
+    argv,
+  });
+}
+
+function info(text, component, argv) {
+  log({
+    text,
+    verbosity: 4,
+    stream: console.log,
+    component,
+    formatter: chalk.green,
+    argv,
+  });
+}
+
+function warn(text, component, argv) {
+  log({
+    text,
+    verbosity: 3,
+    stream: console.warn,
+    component,
+    formatter: chalk.yellow,
+    argv,
+  });
+}
+
+function error(text, component, argv) {
+  log({
+    text,
+    verbosity: 2,
+    stream: console.error,
+    component,
+    formatter: chalk.red,
+    argv,
+  });
+}
+
+function fatal(text, component, argv) {
+  log({
+    text,
+    verbosity: 1,
+    stream: console.error,
+    component,
+    formatter: chalk.redBright,
+    argv,
+  });
 }
 
 const logger = {
   // use these for making dev, support tickets easier
-  debug: (text, component, argv) =>
-    log(text, 5, console.log, component, chalk.blue, argv),
-  info: (text, component, argv) =>
-    log(text, 4, console.log, component, chalk.green, argv),
-  warn: (text, component, argv) =>
-    log(text, 3, console.warn, component, chalk.yellow, argv),
-  error: (text, component, argv) =>
-    log(text, 2, console.error, component, chalk.red, argv),
-  fatal: (text, component, argv) =>
-    log(text, 1, console.error, component, chalk.redBright, argv),
+  debug,
+  info,
+  warn,
+  error,
+  fatal,
 
   // use these for communicating with customers
   stdout: console.log,

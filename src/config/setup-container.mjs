@@ -23,6 +23,7 @@ import open from "open";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { Lifetime } from "awilix";
 import fs from "node:fs";
+import { parseYargs } from "../cli.mjs";
 
 // import { findUpSync } from 'find-up'
 // import fs from 'node:fs'
@@ -50,6 +51,7 @@ export const injectables = {
   open: awilix.asValue(open),
 
   // generic lib (homemade utilities)
+  parseYargs: awilix.asValue(parseYargs),
   logger: awilix.asValue(logger),
   performQuery: awilix.asValue(performQuery),
   getSimpleClient: awilix.asValue(getSimpleClient),
@@ -58,6 +60,7 @@ export const injectables = {
   }),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
   makeFaunaRequest: awilix.asValue(makeFaunaRequest),
+  errorHandler: awilix.asValue((error, exitCode) => exit(exitCode)),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),

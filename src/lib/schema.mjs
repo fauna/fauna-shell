@@ -2,7 +2,6 @@ import * as path from "path";
 import { dirExists, dirIsWriteable } from "./file-util.mjs";
 import { container } from "../cli.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
-import { builtYargs } from "../cli.mjs";
 
 function checkDirUsability(dir) {
   if (!dirExists(dir)) {
@@ -97,28 +96,30 @@ export async function gatherFSL(dir) {
   return JSON.stringify(files);
 }
 
-export async function writeSchemaFiles(filenameToContentsHash) {
+export async function writeSchemaFiles(dir, filenameToContentsHash) {
   const fs = container.resolve("fs");
-  const argv = builtYargs.argv;
-  fs.mkdirSync(path.dirname(argv.dir), { recursive: true });
+  fs.mkdirSync(path.dirname(dir), { recursive: true });
 
   const promises = [];
   for (const [filename, fileContents] of Object.entries(
     filenameToContentsHash
   )) {
-    const fp = path.join(argv.dir, filename);
+    const fp = path.join(dir, filename);
     promises.push(fs.writeFile(fp, fileContents));
   }
 
   return Promise.all(promises);
 }
 
-export async function getAllSchemaFileContents(filenames) {
+export async function getAllSchemaFileContents(
+  filenames,
+  { ...overrides } = {}
+) {
   const promises = [];
   const fileContents = {};
   for (const filename of filenames) {
     promises.push(
-      getSchemaFile(filename).then((fileContent) => {
+      getSchemaFile(filename, overrides).then((fileContent) => {
         fileContents[filename] = fileContent;
       })
     );
@@ -128,34 +129,28 @@ export async function getAllSchemaFileContents(filenames) {
 }
 
 export async function getSchemaFiles({ ...overrides } = {}) {
-  const argv = builtYargs.argv;
   const args = {
-    baseUrl: argv.url,
     path: "/schema/1/files",
     method: "GET",
     ...overrides,
   };
-  return makeFaunaRequest({ secret: argv.secret, ...args });
+  return makeFaunaRequest({ ...args });
 }
 
 export async function getSchemaFile(filename, { ...overrides } = {}) {
-  const argv = builtYargs.argv;
   const args = {
-    baseUrl: argv.url,
     path: `/schema/1/files/${encodeURIComponent(filename)}`,
     method: "GET",
     ...overrides,
   };
-  return makeFaunaRequest({ secret: argv.secret, ...args });
+  return makeFaunaRequest({ ...args });
 }
 
 export async function getStagedSchemaStatus({ ...overrides } = {}) {
-  const argv = builtYargs.argv;
   const args = {
-    baseUrl: argv.url,
     path: "/schema/1/staged/status",
     method: "GET",
     ...overrides,
   };
-  return makeFaunaRequest({ secret: argv.secret, ...args });
+  return makeFaunaRequest({ ...args });
 }

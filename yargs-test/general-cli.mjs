@@ -23,6 +23,7 @@ describe("cli operations", function () {
       "Missing required argument: secret"
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
+    expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
   // TODO: this doesn't work because turning on strict mode breaks parsing sub-commands. why?
@@ -39,6 +40,7 @@ describe("cli operations", function () {
       "Unknown argument: inland-empire"
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
+    expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
   it("should exit with a helpful message if the handler throws", async function () {
@@ -54,6 +56,7 @@ describe("cli operations", function () {
       "this is a test error"
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
+    expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
   it("should exit with a helpful message if the handler returns a rejected promise", async function () {
@@ -69,6 +72,7 @@ describe("cli operations", function () {
       "this is a rejected promise"
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
+    expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
   it.skip("should detect color support if the user does not specify", async function () {
@@ -77,5 +81,8 @@ describe("cli operations", function () {
     // skipping for now
   });
 
-  it.skip("should only ever parse args once", async function () {});
+  it.skip("should only ever parse args once", async function () {
+    // for now, this is mostly taken care of by the tests above, which set assert that
+    // parseYargs was only called once in their respective error cases
+  });
 });
