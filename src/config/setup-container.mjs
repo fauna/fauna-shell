@@ -16,13 +16,13 @@ import {
   writeSchemaFiles,
 } from "../lib/schema.mjs";
 import { confirm } from "@inquirer/prompts";
-import { makeFaunaRequest } from "../lib/db.mjs"
+import { makeFaunaRequest } from "../lib/db.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 import open from "open";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { Lifetime } from "awilix";
-import fs from 'node:fs'
+import fs from "node:fs";
 
 // import { findUpSync } from 'find-up'
 // import fs from 'node:fs'

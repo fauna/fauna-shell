@@ -1,20 +1,18 @@
-import { container } from '../../cli.mjs'
+import { container } from "../../cli.mjs";
 import { confirm } from "@inquirer/prompts";
-import { commonQueryOptions } from '../../lib/command-helpers.mjs';
+import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 
 async function doPush(argv) {
-  const logger = container.resolve("logger")
-  const fetch = container.resolve("fetch")
+  const logger = container.resolve("logger");
+  const fetch = container.resolve("fetch");
 
-  const gatherFSL = container.resolve("gatherFSL")
+  const gatherFSL = container.resolve("gatherFSL");
   try {
-    const fsl = await gatherFSL(argv.dir)
+    const fsl = await gatherFSL(argv.dir);
     if (argv.force) {
-      const params = new URLSearchParams()
-      if (argv.force)
-        params.set("force", "true")
-      if (argv.staged)
-        params.set("staged", "true")
+      const params = new URLSearchParams();
+      if (argv.force) params.set("force", "true");
+      if (argv.staged) params.set("staged", "true");
 
       const path = new URL(`/schema/1/update?${params}`, argv.url);
       const res = await fetch(path.toString(), {
@@ -33,9 +31,8 @@ async function doPush(argv) {
     } else {
       // Confirm diff, then push it. `force` is set on `validate` so we don't
       // need to pass the last known schema version through.
-      const params = new URLSearchParams({ force: true })
-      if (argv.color)
-        params.set("color", "ansi")
+      const params = new URLSearchParams({ force: true });
+      if (argv.color) params.set("color", "ansi");
       const path = new URL(`/schema/1/validate?${params}`, argv.url);
       const res = await fetch(path, {
         method: "POST",
@@ -91,31 +88,32 @@ async function doPush(argv) {
 
 function buildPushCommand(yargs) {
   return yargs
-  .options({
-    ...commonQueryOptions,
-    force: {
-      description: "Push the change without a diff or schema version check",
-      type: 'boolean',
-      default: false
-    },
-    staged: {
-      description: "Stages the schema change instead of applying it immediately",
-      type: 'boolean',
-      default: false
-    }
-  })
-  .example([
-    ["$0 schema push"],
-    ["$0 schema push --dir schemas/myschema"],
-    ["$0 schema push --staged"],
-  ])
-  .version(false)
-  .help('help', 'show help')
+    .options({
+      ...commonQueryOptions,
+      force: {
+        description: "Push the change without a diff or schema version check",
+        type: "boolean",
+        default: false,
+      },
+      staged: {
+        description:
+          "Stages the schema change instead of applying it immediately",
+        type: "boolean",
+        default: false,
+      },
+    })
+    .example([
+      ["$0 schema push"],
+      ["$0 schema push --dir schemas/myschema"],
+      ["$0 schema push --staged"],
+    ])
+    .version(false)
+    .help("help", "show help");
 }
 
 export default {
   command: "push",
   description: "Push the current project's .fsl files to Fauna.",
   builder: buildPushCommand,
-  handler: doPush
-}
+  handler: doPush,
+};

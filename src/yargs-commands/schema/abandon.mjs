@@ -1,10 +1,12 @@
 import { confirm } from "@inquirer/prompts";
 
-import { commonQueryOptions } from '../../lib/command-helpers.mjs'
-import { container } from '../../cli.mjs'
+import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { container } from "../../cli.mjs";
 
 async function doAbandon(argv) {
-  const makeFaunaRequest = container.resolve("makeFaunaRequest")
+  const makeFaunaRequest = container.resolve("makeFaunaRequest");
+  const logger = container.resolve("logger");
+  const exit = container.resolve("exit");
 
   if (argv.force) {
     const params = new URLSearchParams({
@@ -13,30 +15,29 @@ async function doAbandon(argv) {
 
     await makeFaunaRequest({
       baseUrl: argv.url,
-      path: (new URL(`/schema/1/staged/abandon?${params}`, argv.url)).href,
+      path: new URL(`/schema/1/staged/abandon?${params}`, argv.url).href,
       secret: argv.secret,
       method: "POST",
-    })
+    });
     logger.stdout("Schema has been abandonded");
   } else {
     // Show status to confirm.
-    const params = new URLSearchParams({ diff: "true" })
-    if (argv.color)
-      params.set("color", "ansi")
+    const params = new URLSearchParams({ diff: "true" });
+    if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({
       baseUrl: argv.url,
-      path: (new URL(`/schema/1/staged/status?${params}`, argv.url)).href,
+      path: new URL(`/schema/1/staged/status?${params}`, argv.url).href,
       secret: argv.secret,
       method: "GET",
-    })
+    });
 
     if (response.status === "none") {
-      logger.stderr("There is no staged schema to abandon")
-      exit(1)
+      logger.stderr("There is no staged schema to abandon");
+      exit(1);
     }
 
-    logger.stdout(json.diff);
+    logger.stdout(response.diff);
 
     const confirmed = await confirm({
       message: "Abandon these changes?",
@@ -48,10 +49,10 @@ async function doAbandon(argv) {
 
       await makeFaunaRequest({
         baseUrl: argv.url,
-        path: (new URL(`/schema/1/staged/abandon?${params}`, argv.url)).href,
+        path: new URL(`/schema/1/staged/abandon?${params}`, argv.url).href,
         secret: argv.secret,
         method: "POST",
-      })
+      });
 
       logger.stdout("Schema has been abandoned");
     } else {
@@ -66,20 +67,18 @@ function buildAbandonCommand(yargs) {
       ...commonQueryOptions,
       force: {
         description: "Push the change without a diff or schema version check",
-        type: 'boolean',
+        type: "boolean",
         default: false,
       },
     })
-    .example([
-      ["$0 schema abandon"]
-    ])
+    .example([["$0 schema abandon"]])
     .version(false)
-    .help('help', 'show help')
+    .help("help", "show help");
 }
 
 export default {
   command: "abandon",
   description: "Abandons the currently staged schema.",
   builder: buildAbandonCommand,
-  handler: doAbandon
-}
+  handler: doAbandon,
+};

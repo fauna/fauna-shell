@@ -1,50 +1,48 @@
-import { expect } from 'chai'
-import { run } from '../../src/cli.mjs'
-import { setupTestContainer as setupContainer } from '../../src/config/setup-test-container.mjs'
+import { expect } from "chai";
+import { run } from "../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
-describe('schema push', function() {
-  let container
+describe("schema push", function () {
+  let container;
 
   beforeEach(() => {
-    container = setupContainer()
-  })
+    container = setupContainer();
+  });
 
-  it('can force push schema', async function() {
-    const fetch = container.resolve("fetch")
-    fetch.resolves({ json: async () => ({}) })
+  it("can force push schema", async function () {
+    const fetch = container.resolve("fetch");
+    fetch.resolves({ json: async () => ({}) });
 
-    const gatherFSL = container.resolve("gatherFSL")
-    gatherFSL.resolves("[{\"name\":\"coll.fsl\",\"content\":\"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n\"}]")
+    const gatherFSL = container.resolve("gatherFSL");
+    gatherFSL.resolves(
+      '[{"name":"coll.fsl","content":"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]'
+    );
 
-    const logger = container.resolve("logger")
+    const logger = container.resolve("logger");
 
-    await run(`schema push --secret "secret" --force`, container)
+    await run(`schema push --secret "secret" --force`, container);
 
-    expect(gatherFSL).to.have.been.calledWith(".")
+    expect(gatherFSL).to.have.been.calledWith(".");
 
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/update?force=true",
       {
         method: "POST",
-        headers: { "AUTHORIZATION": "Bearer secret" },
-        body: "[{\"name\":\"coll.fsl\",\"content\":\"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n\"}]",
-        duplex: "half"
+        headers: { AUTHORIZATION: "Bearer secret" },
+        body: '[{"name":"coll.fsl","content":"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
+        duplex: "half",
       }
-    )
+    );
 
-    expect(logger.stdout).to.not.be.called
-    expect(logger.stderr).to.not.be.called
-  })
+    expect(logger.stdout).to.not.be.called;
+    expect(logger.stderr).to.not.be.called;
+  });
 
-  it.skip('can push schema by version', async function() {
-  })
+  it.skip("can push schema by version", async function () {});
 
-  it.skip('can staged schema changes', async function() {
-  })
+  it.skip("can staged schema changes", async function () {});
 
-  it.skip('can be cancelled by the user before making mutating network calls', async function() {
-  })
+  it.skip("can be cancelled by the user before making mutating network calls", async function () {});
 
-  it.skip('warns when attempting to push an empty diff', async function() {
-  })
-})
+  it.skip("warns when attempting to push an empty diff", async function () {});
+});

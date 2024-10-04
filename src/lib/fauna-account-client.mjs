@@ -1,10 +1,10 @@
-import { container } from '../cli.mjs'
+import { container } from "../cli.mjs";
 
 export class FaunaAccountClient {
-
   constructor() {
-    this.url = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com/api/v1";
-    this.fetch = container.resolve("fetch")
+    this.url =
+      process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com/api/v1";
+    this.fetch = container.resolve("fetch");
   }
 
   async startOAuthRequest(authCodeParams) {
@@ -41,7 +41,7 @@ export class FaunaAccountClient {
           `Failure to authorize with Fauna (${response.status}): ${response.statusText}`
         );
       }
-      const { state, access_token } = await response.json();
+      const { /*state,*/ access_token } = await response.json();
       return access_token;
     } catch (err) {
       throw new Error("Failure to authorize with Fauna: ", err.message);

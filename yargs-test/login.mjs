@@ -72,10 +72,17 @@ describe("login", function () {
     expect(oauthClient.start.called).to.be.true;
     // We open auth url in the browser and prompt user
     expect(container.resolve("open").calledWith("dashboard-url"));
-    expect(logger.stdout.calledWith("To login, open your browser to:\n dashboard-url"));
+    expect(
+      logger.stdout.calledWith(
+        "To login, open your browser to:\n dashboard-url"
+      )
+    );
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
     // We create a session and list databases
-    expect(logger.stdout.args.flat()).to.include("Listing Databases...", "test databases")
+    expect(logger.stdout.args.flat()).to.include(
+      "Listing Databases...",
+      "test databases"
+    );
   });
 });

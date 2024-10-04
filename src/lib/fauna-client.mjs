@@ -1,5 +1,5 @@
 // export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
-import https from 'node:https'
+import https from "node:https";
 
 // export type QuerySuccess<T> = {
 //   status: 200;
@@ -68,24 +68,28 @@ export default class FaunaClient {
         }) ??
           {}),
       },
-    }
+    };
 
-    let response = await (new Promise((resolve, reject) => {
-      let responseString = ''
+    let response = await new Promise((resolve, reject) => {
+      let responseString = "";
 
       const req = https.request(options, (res) => {
-        res.on('data', (d) => responseString += d)
-        res.on('end', () => resolve({ status: res.statusCode, body: responseString }))
-      })
+        res.on("data", (d) => {
+          responseString += d;
+        });
+        res.on("end", () =>
+          resolve({ status: res.statusCode, body: responseString })
+        );
+      });
 
-      req.on('error', (e) => reject(e))
-      req.write(JSON.stringify({ query }))
-      req.end()
-    }))
+      req.on("error", (e) => reject(e));
+      req.write(JSON.stringify({ query }));
+      req.end();
+    });
 
     // const json = await res.json();
-    console.log(response.body)
-    const json = JSON.parse(response.body)
+    console.log(response.body);
+    const json = JSON.parse(response.body);
 
     if (response.status === 200 || response.status === 201) {
       return {
@@ -94,7 +98,7 @@ export default class FaunaClient {
       };
     } else {
       return {
-        status: res.status,
+        status: response.status,
         body: {
           summary: json.summary,
           error: {

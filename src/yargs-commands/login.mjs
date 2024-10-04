@@ -1,14 +1,16 @@
-import { container } from '../cli.mjs'
+import { container } from "../cli.mjs";
 
-async function doLogin(argv) {
-  const logger = container.resolve("logger")
-  const open = container.resolve("open")
-  const accountClient = container.resolve("accountClient")
-  const oAuth = container.resolve("oauthClient")
+async function doLogin() {
+  const logger = container.resolve("logger");
+  const open = container.resolve("open");
+  const accountClient = container.resolve("accountClient");
+  const oAuth = container.resolve("oauthClient");
 
   oAuth.server.on("ready", async () => {
     const authCodeParams = oAuth.getOAuthParams();
-    const dashboardOAuthURL = await accountClient.startOAuthRequest(authCodeParams);
+    const dashboardOAuthURL = await accountClient.startOAuthRequest(
+      authCodeParams
+    );
     open(dashboardOAuthURL);
     logger.stdout(`To login, open your browser to:\n ${dashboardOAuthURL}`);
   });
@@ -19,7 +21,7 @@ async function doLogin(argv) {
       const { account_key } = await accountClient.getSession(accessToken);
       logger.stdout("Listing Databases...");
       const databases = await accountClient.listDatabases(account_key);
-      logger.stdout(databases)
+      logger.stdout(databases);
     } catch (err) {
       console.error(err);
     }
@@ -29,14 +31,15 @@ async function doLogin(argv) {
 }
 
 function buildLoginCommand(yargs) {
-  return yargs.options({
-    user: {
-      type: "string",
-      description: "a user profile",
-      default: "default",
-    },
-  })
-  .help('help', 'show help')
+  return yargs
+    .options({
+      user: {
+        type: "string",
+        description: "a user profile",
+        default: "default",
+      },
+    })
+    .help("help", "show help");
 }
 
 export default {

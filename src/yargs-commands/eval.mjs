@@ -1,13 +1,16 @@
 const EVAL_OUTPUT_FORMATS = ["json", "json-tagged", "shell"];
 
-import util from 'util'
-import { existsSync } from 'fs'
-import esprima from 'esprima'
-import * as misc from '../lib/misc.mjs'
-import { ensureDbScopeClient, commonQueryOptions } from '../lib/command-helpers.mjs'
-import { container } from '../cli.mjs'
+import util from "util";
+import { existsSync } from "fs";
+import esprima from "esprima";
+import * as misc from "../lib/misc.mjs";
+import {
+  // ensureDbScopeClient,
+  commonQueryOptions,
+} from "../lib/command-helpers.mjs";
+import { container } from "../cli.mjs";
 
-const { readFile, runQueries, writeFile } = misc
+const { readFile, runQueries, writeFile } = misc;
 
 /**
  * Write json encoded output
@@ -54,31 +57,22 @@ async function writeFormattedOutput(file, data, format) {
 }
 
 /**
-  * Perform a v4 or v10 query, depending on the FQL version
-  *
-  * @param {Object} client - An instance of the client used to execute the query.
-  * @param {string} fqlQuery - The FQL v4 query to be executed.
-  * @param {string} outputFile - Target filename
-  * @param {Object} flags - Options for the query execution.
-  * @param {(4 | 10)} flags.version - FQL version number
-  * @param {("json" | "json-tagged" | "shell")} flags.format - Result format
-  * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
-  */
+ * Perform a v4 or v10 query, depending on the FQL version
+ *
+ * @param {Object} client - An instance of the client used to execute the query.
+ * @param {string} fqlQuery - The FQL v4 query to be executed.
+ * @param {string} outputFile - Target filename
+ * @param {Object} flags - Options for the query execution.
+ * @param {(4 | 10)} flags.version - FQL version number
+ * @param {("json" | "json-tagged" | "shell")} flags.format - Result format
+ * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
+ */
 export async function performQuery(client, fqlQuery, outputFile, flags) {
-  if (flags.version === '4') {
+  if (flags.version === "4") {
     return performV4Query(client, fqlQuery, outputFile, flags);
   } else {
     return performV10Query(client, fqlQuery, outputFile, flags);
   }
-}
-
-// Remap arguments if a user provide only one
-function getArgs() {
-  const { stdin, file } = flags;
-  const { dbname, query } = args;
-  if (dbname && !query && !stdin && !file) return { query: dbname };
-
-  return { dbname, query };
 }
 
 async function performV10Query(client, fqlQuery, outputFile, flags) {
@@ -100,7 +94,7 @@ async function performV10Query(client, fqlQuery, outputFile, flags) {
 }
 
 async function performV4Query(client, fqlQuery, outputFile, flags) {
-  const faunadb = (await import("faunadb")).default
+  const faunadb = (await import("faunadb")).default;
 
   if (flags.format === "json-tagged") {
     flags.format = "json";
@@ -115,22 +109,24 @@ async function performV4Query(client, fqlQuery, outputFile, flags) {
     const response = await runQueries(res.body, client);
     return await writeFormattedOutput(outputFile, response, flags.format);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     if (error.faunaError === undefined) {
       // this happens when wrapQueries fails during the runInContext step
       // at that point, we have Errors that didn't get run as a query, so
-      // they don't have a .faunaError property
-      error.message = error.message
+      // they don't have a .faunaError property. regardless, the error
+      // message at this point is correct - we don't want to change it any.
     } else if (error.faunaError instanceof faunadb.errors.FaunaHTTPError) {
-      error.message =
-        util.inspect(JSON.parse(error.faunaError.requestResult.responseRaw), {
+      error.message = util.inspect(
+        JSON.parse(error.faunaError.requestResult.responseRaw),
+        {
           depth: null,
           compact: false,
-        })
+        }
+      );
     } else {
-      error.message = error.faunaError.message
+      error.message = error.faunaError.message;
     }
-    throw error
+    throw error;
   }
 }
 async function writeFormattedOutputV10(file, res, format) {
@@ -177,26 +173,31 @@ async function doEval(argv) {
     );
   }
 
-  const client = argv.dbname
-    ? (await ensureDbScopeClient({
-      scope: argv.dbname,
-      version: argv.version,
-      argv
-    })).client
-    : container.resolve("getSimpleClient")(argv)
+  // const client = argv.dbname
+  //   ? (
+  //       await ensureDbScopeClient({
+  //         scope: argv.dbname,
+  //         version: argv.version,
+  //         argv,
+  //       })
+  //     ).client
+  //   : container.resolve("getSimpleClient")(argv);
+
+  if (argv.dbname) throw new Error("Not currently supported!");
+
+  const client = container.resolve("getSimpleClient")(argv);
 
   const readQuery = argv.stdin || argv.file !== undefined;
   let queryFromFile;
   if (readQuery) {
     if (argv.stdin && !existsSync(argv.file)) {
-      warn("Reading from stdin");
+      container.resolve("logger").warn("Reading from stdin");
       argv.file = process.stdin.fd;
     }
     queryFromFile = await readFile(argv.file);
   }
 
-  const format =
-    argv.format ?? (process.stdout.isTTY ? "shell" : "json");
+  const format = argv.format ?? (process.stdout.isTTY ? "shell" : "json");
 
   const performQuery = container.resolve("performQuery");
 
@@ -226,49 +227,49 @@ function buildEvalCommand(yargs) {
     .options({
       ...commonQueryOptions,
       file: {
-        type: 'string',
+        type: "string",
         description: "file path to read the query (or queries) from",
       },
       query: {
-        type: 'string',
+        type: "string",
         description: "the query to run",
       },
       dbname: {
-        type: 'string',
+        type: "string",
         description: "the database to run the query against",
       },
       stdin: {
-        type: 'boolean',
+        type: "boolean",
         description: "read file input from stdin. Writes to stdout by default",
         default: false,
       },
       output: {
-        type: 'string',
+        type: "string",
         description: "file to write output to",
         default: null,
       },
       format: {
-        type: 'string',
+        type: "string",
         description: "output format",
-        default: 'shell',
+        default: "shell",
         options: EVAL_OUTPUT_FORMATS,
       },
       version: {
-        type: 'string',
+        type: "string",
         description: "which FQL version to use",
-        default: '10',
-        choices: ['4', '10'],
+        default: "10",
+        choices: ["4", "10"],
       },
       // TODO: is this unused? i think it might be
       timeout: {
-        type: 'number',
+        type: "number",
         description: "connection timeout in milliseconds",
-        default: 5000
+        default: 5000,
       },
 
       // v10 specific options
       typecheck: {
-        type: 'boolean',
+        type: "boolean",
         description: "enable typechecking",
         default: undefined,
       },
@@ -282,10 +283,10 @@ function buildEvalCommand(yargs) {
       ['$0 eval "2 + 3" --format=json --output=/tmp/result"'],
     ])
     .version(false)
-    .help('help', 'show help')
+    .help("help", "show help");
 }
 
 export default {
   builder: buildEvalCommand,
-  handler: doEval
-}
+  handler: doEval,
+};

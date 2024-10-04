@@ -1,7 +1,6 @@
-import http, { IncomingMessage, ServerResponse } from "http";
+import http from "http";
 import { randomBytes, createHash } from "crypto";
 import url from "url";
-
 
 // Default to prod client id and secret
 const clientId = process.env.FAUNA_CLIENT_ID ?? "-_vEB3FKRoWbJdFpMg72Mx0UVAA";
@@ -14,10 +13,15 @@ const REDIRECT_URI = `http://127.0.0.1`;
 
 class OAuthClient {
   server; //: http.Server;
+
   port; //: number;
+
   code_verifier; //: string;
+
   code_challenge; //: string;
+
   auth_code; //: string;
+
   state; //: string;
 
   constructor() {
@@ -49,8 +53,8 @@ class OAuthClient {
       clientSecret,
       authCode: this.auth_code,
       redirectURI: `${REDIRECT_URI}:${this.port}`,
-      codeVerifier: this.code_verifier
-    }
+      codeVerifier: this.code_verifier,
+    };
   }
 
   _generateCSRFToken() {
@@ -124,7 +128,7 @@ class OAuthClient {
   async start() {
     try {
       this.server.on("listening", () => {
-        this.port = (this.server.address()).port;
+        this.port = this.server.address().port;
         this.server.emit("ready");
       });
       if (!this.server.listening) {

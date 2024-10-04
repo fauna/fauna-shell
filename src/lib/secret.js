@@ -1,13 +1,15 @@
 export class Secret {
   // A fauna key, like `fn1234`.
-    // string
-  key
+  // string
+  key;
+
   // Do we allow database scope?
-    // boolean
-  allowDatabase
+  // boolean
+  allowDatabase;
+
   // A database scope, like `["foo", "bar"]`
   // array<string>
-  databaseScope
+  databaseScope;
 
   constructor(opts) {
     this.key = opts.key;
@@ -36,7 +38,7 @@ export class Secret {
 
   // opts?: { role?: string }
   // returns string
-  buildSecret(opts){
+  buildSecret(opts) {
     let secret = this.key;
     if (this.databaseScope.length > 0) {
       secret += `:${this.databaseScope.join("/")}`;

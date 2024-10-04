@@ -1,6 +1,6 @@
 // TODO: Remove all this stuff.
 
-import { createContext, runInContext, isContext } from "vm";
+import { createContext, runInContext } from "vm";
 import { readFile as _readFile, writeFile as _writeFile } from "fs";
 import { generate } from "escodegen";
 

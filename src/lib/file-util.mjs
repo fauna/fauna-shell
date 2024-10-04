@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { normalize } from 'node:path'
+import { normalize } from "node:path";
 
 // path: string, returns boolean
 export function dirExists(path) {
