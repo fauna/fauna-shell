@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import { normalize } from "node:path";
+import * as os from "node:os";
+import { container } from "../cli.mjs";
 
 // path: string, returns boolean
 export function dirExists(path) {
@@ -24,4 +26,98 @@ export function dirIsWriteable(path) {
   }
 
   return true;
+}
+
+export function fileExists(path) {
+  try {
+    fs.readFileSync(path);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function testCreds() {
+  const a = new SecretKey();
+  console.log("before", a.get());
+  a.save({ myrefreshtoken: "myaccountkey" });
+  console.log("after", a.get());
+  console.log("getting creds", a.get("default"));
+}
+
+export class Credentials {
+  logger = container.resolve("logger");
+  exit = container.resolve("exit");
+
+  constructor(filename = "") {
+    this.filename = filename;
+    this.credsDir = `${os.homedir()}/.fauna/credentials`;
+    if (!dirExists(this.credsDir)) {
+      fs.mkdirSync(this.credsDir, { recursive: true });
+    }
+    this.filepath = `${this.credsDir}/${this.filename}`;
+    if (!fileExists(this.filepath)) {
+      fs.writeFileSync(this.filepath, "{}");
+    }
+  }
+
+  get(key) {
+    try {
+      // Open file for reading and writing without truncating
+      const fileContent = fs
+        .readFileSync(this.filepath, { flag: "r+" })
+        .toString();
+      if (!isJSON(fileContent)) {
+        this.logger.stderr(
+          "Credentials file contains invalid formatting: ",
+          this.filepath
+        );
+        this.exit(1);
+      }
+      const parsed = JSON.parse(fileContent);
+      return key ? parsed[key] : parsed;
+    } catch (err) {
+      this.logger.stderr(
+        "Error while parsing credentials file: ",
+        this.filepath,
+        err
+      );
+      this.exit(1);
+    }
+  }
+
+  save({ creds, overwrite = false, user }) {
+    try {
+      const existingContent = overwrite ? {} : this.get();
+      const newContent = {
+        ...existingContent,
+        [user]: creds,
+      };
+      fs.writeFileSync(this.filepath, JSON.stringify(newContent, null, 2));
+    } catch (err) {
+      this.logger.stderr("Error while saving credentials: ", err);
+      this.exit(1);
+    }
+  }
+}
+
+export class SecretKey extends Credentials {
+  constructor() {
+    super("secret_keys");
+  }
+}
+
+export class AccountKey extends Credentials {
+  constructor() {
+    super("access_keys");
+  }
+}
+
+function isJSON(value) {
+  try {
+    JSON.parse(value);
+    return true;
+  } catch {
+    return false;
+  }
 }

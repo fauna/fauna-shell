@@ -1,13 +1,12 @@
 import yargs from "yargs";
 import chalk from "chalk";
 
-import evalCommand from "./yargs-commands/eval.mjs";
-import loginCommand from "./yargs-commands/login.mjs";
-import schemaCommand from "./yargs-commands/schema/schema.mjs";
-import { logArgv } from "./lib/middleware.mjs";
-
-export let container;
-export let builtYargs;
+import evalCommand from './yargs-commands/eval.mjs'
+import loginCommand from './yargs-commands/login.mjs'
+import schemaCommand from './yargs-commands/schema/schema.mjs'
+import { logArgv } from './lib/middleware.mjs'
+// import { testCreds } from './lib/file-util.mjs'
+export let container
 
 // import { connect } from 'node:tls'
 // const socket = connect({ port: 443, host: 'db.fauna.com', checkServerIdentity: () => {} })
@@ -43,6 +42,13 @@ function buildYargs(argvInput) {
     .middleware([logArgv], true)
     .command("eval", "evaluate a query", evalCommand)
     .command("login", "login via website", loginCommand)
+    // .command("creds", "test creds", testCreds).options({
+    //   user: {
+    //     type: "string",
+    //     description: "some user",
+    //     default: "default"
+    //   }
+    // })
     .command(schemaCommand)
     .command("throw", false, {
       handler: () => {

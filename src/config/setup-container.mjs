@@ -23,6 +23,7 @@ import open from "open";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { Lifetime } from "awilix";
 import fs from "node:fs";
+import { AccountKey } from "../lib/file-util.mjs";
 
 // import { findUpSync } from 'find-up'
 // import fs from 'node:fs'
@@ -58,6 +59,7 @@ export const injectables = {
   }),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
   makeFaunaRequest: awilix.asValue(makeFaunaRequest),
+  accountCreds: awilix.asClass(AccountKey, { lifetime: Lifetime.SCOPED }),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),
