@@ -9,21 +9,21 @@ export function log(
   formatter,
   argv
 ) {
-  if (!argv) {
-    argv = builtYargs.argv;
-  }
+  // if (!argv) {
+  //   argv = builtYargs.argv;
+  // }
 
-  if (
-    !argv.then &&
-    (argv.verbosity >= verbosity || argv.verboseComponent.includes(component))
-  ) {
-    // fails on intentional multi-line output
-    // demo with `--verbose-component argv`
-    // const prefix = /^(\n*)(.*)$/gm.exec(text)[1]
-    // const strippedText = /^(\n*)(.*)$/gm.exec(text)[2]
-    // stream(`${prefix}[${formatter(component)}]: ${formatter(strippedText)}`)
-    stream(`[${formatter(component)}]: ${formatter(text)}`);
-  }
+  // if (
+  //   !argv.then &&
+  //   (argv.verbosity >= verbosity || argv.verboseComponent.includes(component))
+  // ) {
+  //   // fails on intentional multi-line output
+  //   // demo with `--verbose-component argv`
+  //   // const prefix = /^(\n*)(.*)$/gm.exec(text)[1]
+  //   // const strippedText = /^(\n*)(.*)$/gm.exec(text)[2]
+  //   // stream(`${prefix}[${formatter(component)}]: ${formatter(strippedText)}`)
+  //   stream(`[${formatter(component)}]: ${formatter(text)}`);
+  // }
 }
 
 const logger = {
