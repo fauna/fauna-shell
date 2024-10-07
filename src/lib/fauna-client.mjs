@@ -1,3 +1,5 @@
+//@ts-check
+
 // export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
 import https from "node:https";
 

@@ -1,3 +1,5 @@
+//@ts-check
+
 import { container } from "../../cli.mjs";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 

@@ -1,3 +1,5 @@
+//@ts-check
+
 import chalk from "chalk";
 
 import { container } from "../../cli.mjs";

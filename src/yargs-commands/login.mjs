@@ -1,3 +1,5 @@
+//@ts-check
+
 import { container } from "../cli.mjs";
 
 async function doLogin() {
