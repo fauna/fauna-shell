@@ -1,7 +1,8 @@
 import { container } from "../cli.mjs";
 
 // this wrapper exists for only one reason: logging
-// in the future, it could also be extended for error-handling
+// in the future, it could also be extended for error-handling,
+// analytics, or metrics collection.
 export default async function fetchWrapper(url, options) {
   const logger = container.resolve("logger");
   const method = options?.method || "GET";

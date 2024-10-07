@@ -30,4 +30,5 @@ export default {
   command: "schema",
   describe: "Manipulate Fauna schema state",
   builder: buildSchema,
+  handler: () => {},
 };
