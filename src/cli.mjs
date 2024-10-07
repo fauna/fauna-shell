@@ -13,7 +13,7 @@ import { logArgv } from "./lib/middleware.mjs";
 
 /** @type {cliContainer} */
 export let container;
-/** @type {yargs.Argv} */
+/** @type {import('yargs').Argv} */
 export let builtYargs;
 
 /**
@@ -42,7 +42,7 @@ export async function run(argvInput, _container) {
 /**
  * @function buildYargs
  * @param {string} argvInput
- * @returns {yargs.Argv<any>}
+ * @returns {import('yargs').Argv<any>}
  */
 function buildYargs(argvInput) {
   // have to build a yargsInstance _before_ chaining off it
