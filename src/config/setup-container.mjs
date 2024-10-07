@@ -1,6 +1,6 @@
 import { exit } from "node:process";
 
-import * as awilix from "awilix/lib/awilix.module.mjs";
+import awilix from "awilix";
 
 import { performQuery } from "../yargs-commands/eval.mjs";
 import logger from "../lib/logger.mjs";
@@ -40,6 +40,12 @@ export function setupCommonContainer() {
   return container;
 }
 
+/**
+ * @template T
+ * @typedef {{ [P in keyof T[P]]: ReturnType<T[P]['resolve']> }} Resolvers<T>
+ */
+
+/** @typedef {Resolvers<injectables>} modifiedInjectables */
 export const injectables = {
   // node libraries
   exit: awilix.asValue(exit),
@@ -74,6 +80,7 @@ export const injectables = {
 };
 
 export function setupRealContainer() {
+  /** @type {awilix.AwilixContainer<injectables>} */
   const container = setupCommonContainer();
 
   container.register(injectables);
