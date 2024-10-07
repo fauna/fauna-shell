@@ -3,9 +3,11 @@ import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import * as awilix from "awilix/lib/awilix.module.mjs";
 import { stub, spy } from "sinon";
+import { AccountKey } from "../src/lib/file-util.mjs";
 
 describe("login", function () {
   let container;
+  let fs;
   const mockOAuth = () => {
     let handlers = {};
 
@@ -59,12 +61,15 @@ describe("login", function () {
     container.register({
       oauthClient: awilix.asFunction(mockOAuth).scoped(),
       accountClient: awilix.asFunction(mockAccountClient).scoped(),
+      accountCreds: awilix.asClass(AccountKey),
     });
+    fs = container.resolve("fs");
   });
 
   it("can login", async function () {
     const oauthClient = container.resolve("oauthClient");
     const logger = container.resolve("logger");
+    const accountCreds = container.resolve("accountCreds");
     await run(`login`, container);
 
     // We start the loopback server
@@ -76,12 +81,19 @@ describe("login", function () {
         "To login, open your browser to:\n dashboard-url"
       )
     );
+    fs.readFileSync.returns(
+      JSON.stringify({
+        default: {
+          account_key: "test",
+          refresh_token: "test",
+        },
+      })
+    );
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
-    // We create a session and list databases
-    expect(logger.stdout.args.flat()).to.include(
-      "Listing Databases...",
-      "test databases"
-    );
+    // We create a session
+    expect(logger.stdout.args.flat()).to.include("Login Success!\n");
+    console.log(accountCreds);
+    expect(accountCreds).to.have.been.called;
   });
 });

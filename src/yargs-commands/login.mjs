@@ -6,7 +6,6 @@ async function doLogin(argv) {
   const accountClient = container.resolve("accountClient");
   const oAuth = container.resolve("oauthClient");
   const accountCreds = container.resolve("accountCreds");
-  console.log('running doLogin')
   oAuth.server.on("ready", async () => {
     const authCodeParams = oAuth.getOAuthParams();
     const dashboardOAuthURL = await accountClient.startOAuthRequest(
@@ -24,9 +23,9 @@ async function doLogin(argv) {
       );
       accountCreds.save({
         creds: { account_key, refresh_token },
-        user: argv.user,
+        profile: argv.profile,
       });
-      logger.stdout(`Login Success!\n\n`);
+      logger.stdout(`Login Success!\n`);
 
     } catch (err) {
       console.error(err);
@@ -38,7 +37,7 @@ async function doLogin(argv) {
 function buildLoginCommand(yargs) {
   return yargs
     .options({
-      user: {
+      profile: {
         type: "string",
         description: "a user profile",
         default: "default",

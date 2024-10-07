@@ -38,11 +38,10 @@ export function fileExists(path) {
 }
 
 export class Credentials {
-  logger = container.resolve("logger");
-
-  exit = container.resolve("exit");
-
   constructor(filename = "") {
+    console.log(container, "yo");
+    this.logger = container.resolve("logger");
+    this.exit = container.resolve("exit");
     this.filename = filename;
     this.credsDir = `${os.homedir()}/.fauna/credentials`;
     if (!dirExists(this.credsDir)) {
@@ -79,12 +78,12 @@ export class Credentials {
     }
   }
 
-  save({ creds, overwrite = false, user }) {
+  save({ creds, overwrite = false, profile }) {
     try {
       const existingContent = overwrite ? {} : this.get();
       const newContent = {
         ...existingContent,
-        [user]: creds,
+        [profile]: creds,
       };
       fs.writeFileSync(this.filepath, JSON.stringify(newContent, null, 2));
     } catch (err) {
