@@ -51,8 +51,12 @@ export async function parseYargs(builtYargs) {
  * @returns {yargs.Argv<any>}
  */
 function buildYargs(argvInput) {
+  // have to build a yargsInstance _before_ chaining off it
+  // https://github.com/yargs/yargs/blob/main/docs/typescript.md?plain=1#L124
+  const yargsInstance = yargs(argvInput)
+
   return (
-    yargs(argvInput)
+    yargsInstance
       .scriptName("fauna")
       .middleware([logArgv], true)
       .command("eval", "evaluate a query", evalCommand)
@@ -94,7 +98,7 @@ function buildYargs(argvInput) {
           choices: ["fetch", "error", "argv"],
         },
       })
-      .wrap(yargs.terminalWidth())
+      .wrap(yargsInstance.terminalWidth())
       .help("help", "show help")
       .fail(false)
       .exitProcess(false)
