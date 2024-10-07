@@ -1,3 +1,5 @@
+// @ts-check
+
 import yargs from "yargs";
 import chalk from "chalk";
 
@@ -6,9 +8,18 @@ import loginCommand from "./yargs-commands/login.mjs";
 import schemaCommand from "./yargs-commands/schema/schema.mjs";
 import { logArgv } from "./lib/middleware.mjs";
 
+/** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
+
+/** @type {cliContainer} */
 export let container;
+/** @type {yargs.Argv} */
 export let builtYargs;
 
+/**
+ * @function run
+ * @param {string} argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
+ * @param {cliContainer} _container - A built and ready for use awilix container with registered injectables.
+ */
 export async function run(argvInput, _container) {
   container = _container;
   const logger = container.resolve("logger");
@@ -34,6 +45,11 @@ export async function parseYargs(builtYargs) {
   return builtYargs.parseAsync();
 }
 
+/**
+ * @function buildYargs
+ * @param {string} argvInput
+ * @returns {yargs.Argv<any>}
+ */
 function buildYargs(argvInput) {
   return (
     yargs(argvInput)
@@ -78,7 +94,7 @@ function buildYargs(argvInput) {
           choices: ["fetch", "error", "argv"],
         },
       })
-      .wrap(yargs.terminalWidth)
+      .wrap(yargs.terminalWidth())
       .help("help", "show help")
       .fail(false)
       .exitProcess(false)
