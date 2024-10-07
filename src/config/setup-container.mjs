@@ -1,6 +1,6 @@
 import { exit } from "node:process";
 
-import * as awilix from "awilix/lib/awilix.module.mjs";
+import awilix from "awilix";
 
 import { performQuery } from "../yargs-commands/eval.mjs";
 import logger from "../lib/logger.mjs";
@@ -24,6 +24,7 @@ import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { Lifetime } from "awilix";
 import fs from "node:fs";
 import { AccountKey } from "../lib/file-util.mjs";
+import { parseYargs } from "../cli.mjs";
 
 // import { findUpSync } from 'find-up'
 // import fs from 'node:fs'
@@ -40,6 +41,12 @@ export function setupCommonContainer() {
   return container;
 }
 
+/**
+ * @template T
+ * @typedef {{ [P in keyof T[P]]: ReturnType<T[P]['resolve']> }} Resolvers<T>
+ */
+
+/** @typedef {Resolvers<injectables>} modifiedInjectables */
 export const injectables = {
   // node libraries
   exit: awilix.asValue(exit),
@@ -51,6 +58,7 @@ export const injectables = {
   open: awilix.asValue(open),
 
   // generic lib (homemade utilities)
+  parseYargs: awilix.asValue(parseYargs),
   logger: awilix.asValue(logger),
   performQuery: awilix.asValue(performQuery),
   getSimpleClient: awilix.asValue(getSimpleClient),
@@ -60,6 +68,7 @@ export const injectables = {
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
   makeFaunaRequest: awilix.asValue(makeFaunaRequest),
   accountCreds: awilix.asClass(AccountKey, { lifetime: Lifetime.SCOPED }),
+  errorHandler: awilix.asValue((error, exitCode) => exit(exitCode)),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),
@@ -73,6 +82,7 @@ export const injectables = {
 };
 
 export function setupRealContainer() {
+  /** @type {awilix.AwilixContainer<injectables>} */
   const container = setupCommonContainer();
 
   container.register(injectables);

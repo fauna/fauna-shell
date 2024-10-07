@@ -2,8 +2,7 @@ import { expect } from "chai";
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import * as awilix from "awilix/lib/awilix.module.mjs";
-// TODO: this breaks if we swap the stub implementation to sinon. ugh
-import stub from "@cloudcmd/stub";
+import { stub, spy } from "sinon";
 
 describe("login", function () {
   let container;
@@ -11,10 +10,10 @@ describe("login", function () {
     let handlers = {};
 
     return {
-      _receiveAuthCode: stub(async () => {
+      _receiveAuthCode: spy(async () => {
         await handlers.auth_code_received();
       }),
-      start: stub(async () => {
+      start: spy(async () => {
         await handlers.ready();
       }),
       getOAuthParams: () => {

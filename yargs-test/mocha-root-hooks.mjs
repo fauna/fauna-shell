@@ -1,6 +1,7 @@
 import * as chai from "chai";
 import sinon from "sinon";
 import sinonChai from "sinon-chai";
+
 chai.use(sinonChai);
 
 // these are mocha root hooks, they're registered for _all_ files in the test run

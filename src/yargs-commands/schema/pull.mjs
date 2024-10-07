@@ -7,25 +7,29 @@ async function doPull(argv) {
   const confirm = container.resolve("confirm");
   const getSchemaFiles = container.resolve("getSchemaFiles");
   const getStagedSchemaStatus = container.resolve("getStagedSchemaStatus");
-  const exit = container.resolve("exit");
 
   // fetch the list of remote FSL files
-  const filesResponse = await getSchemaFiles();
+  const filesResponse = await getSchemaFiles({
+    secret: argv.secret,
+    baseUrl: argv.url,
+  });
 
   // check if there's a staged schema
   const statusResponse = await getStagedSchemaStatus({
     params: { version: filesResponse.version },
+    baseUrl: argv.url,
+    secret: argv.secret,
   });
 
   // if there's a staged schema, require the --staged flag.
   // getting unstaged FSL while staged FSL exists is not yet
   // implemented at the service level.
   if (statusResponse.status !== "none" && !argv.staged) {
-    logger.stderr("There is a staged schema change. Use --staged to pull it.");
-    exit(1);
+    throw new Error(
+      "There is a staged schema change. Use --staged to pull it."
+    );
   } else if (statusResponse.status === "none" && argv.staged) {
-    logger.stderr("There are no staged schema changes to pull.");
-    exit(1);
+    throw new Error("There are no staged schema changes to pull.");
   }
 
   // sort for consistent order (it's nice for tests)
@@ -79,12 +83,15 @@ async function doPull(argv) {
     const getAllSchemaFileContents = container.resolve(
       "getAllSchemaFileContents"
     );
-    const contents = await getAllSchemaFileContents(filenames);
+    const contents = await getAllSchemaFileContents(filenames, {
+      secret: argv.secret,
+      baseUrl: argv.url,
+    });
 
     // don't start writing or deleting files until we've successfully fetched all
     // the remote schema files
     const promises = [];
-    promises.push(writeSchemaFiles(contents));
+    promises.push(writeSchemaFiles(argv.dir, contents));
     if (argv.delete) {
       const deleteUnusedSchemaFiles = container.resolve(
         "deleteUnusedSchemaFiles"

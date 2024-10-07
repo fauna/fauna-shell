@@ -23,6 +23,9 @@ commands:
           name: Run Tests
           command: yarn test
 
+      - store_test_results:
+          path: test-results.xml
+
       - store_artifacts:
           path: coverage
 

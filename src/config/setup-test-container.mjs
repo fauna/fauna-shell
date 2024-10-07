@@ -3,18 +3,19 @@ import fs from "node:fs";
 import * as awilix from "awilix/lib/awilix.module.mjs";
 import { setupCommonContainer, injectables } from "./setup-container.mjs";
 
-import sinon, { stub } from "sinon";
+import { stub, spy } from "sinon";
+import { parseYargs } from "../cli.mjs";
 
 import logger from "../lib/logger.mjs";
 
 // Mocks all _functions_ declared on the injectables export from setup-container.mjs
 function automock(container) {
   const skipped = [];
-  for (const [key, value] of Object.entries(injectables)) {
+  for (const [injectableName, value] of Object.entries(injectables)) {
     if (value.isLeakSafe && typeof value.resolve() === "function") {
-      container.register({ [key]: awilix.asValue(stub()) });
+      container.register(injectableName, awilix.asValue(stub()));
     } else {
-      skipped.push(key);
+      skipped.push(injectableName);
     }
   }
 
@@ -37,7 +38,10 @@ export function setupTestContainer() {
   const thingsToManuallyMock = automock(container);
 
   const manualMocks = {
-    fs: awilix.asValue(sinon.stub(fs)),
+    // wrap it in a spy so we can record calls, but use the
+    // real implementation
+    parseYargs: awilix.asValue(spy(parseYargs)),
+    fs: awilix.asValue(stub(fs)),
     logger: awilix.asValue({
       // use these for making dev, support tickets easier.
       // they're not mocked because we shouldn't test them
@@ -63,8 +67,9 @@ export function setupTestContainer() {
     oauthClient: awilix.asFunction(stub()),
     accountCreds: awilix.asFunction(stub()),
     // in tests, let's exit by throwing
-    exit: awilix.asValue(() => {
-      throw new Error(1);
+    errorHandler: awilix.asValue((error, exitCode) => {
+      error.code = exitCode;
+      throw error;
     }),
   };
 

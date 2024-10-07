@@ -1,12 +1,17 @@
+import * as awilix from "awilix/lib/awilix.module.mjs";
 import { expect } from "chai";
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { makeFaunaRequest } from "../../src/lib/db.mjs";
 
 describe("schema push", function () {
   let container;
 
   beforeEach(() => {
     container = setupContainer();
+    container.register({
+      makeFaunaRequest: awilix.asValue(makeFaunaRequest),
+    });
   });
 
   it("can force push schema", async function () {
@@ -25,12 +30,11 @@ describe("schema push", function () {
     expect(gatherFSL).to.have.been.calledWith(".");
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/update?force=true",
+      "https://db.fauna.com/schema/1/update?force=true&staged=false",
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
         body: '[{"name":"coll.fsl","content":"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
-        duplex: "half",
       }
     );
 

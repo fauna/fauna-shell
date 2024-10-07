@@ -3,6 +3,7 @@ import { expect } from "chai";
 import * as awilix from "awilix/lib/awilix.module.mjs";
 
 import { f } from "../helpers.mjs";
+import tryToCatch from "try-to-catch";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
@@ -86,7 +87,7 @@ describe("schema pull", function () {
     fs.writeFile.resolves();
 
     try {
-      await run(`schema pull --secret "secret" --verbosity 5`, container);
+      await run(`schema pull --secret "secret"`, container);
     } catch (e) {
       console.error(logger.stderr.args.join("\n"));
     }
@@ -140,7 +141,7 @@ describe("schema pull", function () {
     const gatherFSL = container.resolve("gatherFSL");
     gatherFSL.resolves("");
 
-    // user accepts the changes in the interactive prompt
+    // user rejects the changes in the interactive prompt
     confirm.resolves(false);
 
     fetch.onCall(0).resolves(
@@ -160,7 +161,7 @@ describe("schema pull", function () {
       })
     );
 
-    await run(`schema pull --secret "secret" --verbosity 5`, container);
+    await run(`schema pull --secret "secret"`, container);
 
     expect(logger.stdout).to.have.been.calledWith("add:       main.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       second.fsl");
@@ -177,5 +178,29 @@ describe("schema pull", function () {
   it.skip("can delete extraneous FSL files", async function () {});
   it.skip("can overwrite modified FSL files", async function () {});
   it.skip("does not modify the filesystem if it fails to read file contents", async function () {});
-  it.skip("requires the --staged flag if a schema change is staged", async function () {});
+
+  it("requires the --staged flag if a schema change is staged", async function () {
+    fetch.onCall(0).resolves(
+      f({
+        version: "194838274939473",
+        files: [
+          { filename: "main.fsl" },
+          { filename: "second.fsl" },
+          { filename: "third.fsl" },
+        ],
+      })
+    );
+    fetch.onCall(1).resolves(
+      f({
+        version: "194838274939473",
+        status: "staged",
+      })
+    );
+
+    const [error] = await tryToCatch(() =>
+      run(`schema pull --secret "secret"`, container)
+    );
+    expect(error).to.have.property("code", 1);
+    expect(container.resolve("gatherFSL")).to.not.have.been.called;
+  });
 });
