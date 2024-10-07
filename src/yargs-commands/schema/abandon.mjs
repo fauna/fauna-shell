@@ -6,7 +6,6 @@ import { container } from "../../cli.mjs";
 async function doAbandon(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
-  const exit = container.resolve("exit");
 
   if (argv.force) {
     const params = new URLSearchParams({
@@ -15,7 +14,7 @@ async function doAbandon(argv) {
 
     await makeFaunaRequest({
       baseUrl: argv.url,
-      path: new URL(`/schema/1/staged/abandon?${params}`, argv.url).href,
+      path: `/schema/1/staged/abandon?${params}`,
       secret: argv.secret,
       method: "POST",
     });
@@ -27,15 +26,13 @@ async function doAbandon(argv) {
 
     const response = await makeFaunaRequest({
       baseUrl: argv.url,
-      path: new URL(`/schema/1/staged/status?${params}`, argv.url).href,
+      path: `/schema/1/staged/status?${params}`,
       secret: argv.secret,
       method: "GET",
     });
 
-    if (response.status === "none") {
-      logger.stderr("There is no staged schema to abandon");
-      exit(1);
-    }
+    if (response.status === "none")
+      throw new Error("There is no staged schema to abandon");
 
     logger.stdout(response.diff);
 
@@ -49,7 +46,7 @@ async function doAbandon(argv) {
 
       await makeFaunaRequest({
         baseUrl: argv.url,
-        path: new URL(`/schema/1/staged/abandon?${params}`, argv.url).href,
+        path: `/schema/1/staged/abandon?${params}`,
         secret: argv.secret,
         method: "POST",
       });

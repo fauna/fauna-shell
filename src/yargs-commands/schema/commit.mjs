@@ -6,7 +6,6 @@ import { container } from "../../cli.mjs";
 async function doCommit(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
-  const exit = container.resolve("exit");
 
   if (argv.force) {
     const params = new URLSearchParams({
@@ -15,7 +14,7 @@ async function doCommit(argv) {
 
     await makeFaunaRequest({
       baseUrl: argv.url,
-      path: new URL(`/schema/1/staged/commit?${params}`, argv.url).href,
+      path: `/schema/1/staged/commit?${params}`,
       secret: argv.secret,
       method: "POST",
     });
@@ -28,22 +27,18 @@ async function doCommit(argv) {
 
     const response = await makeFaunaRequest({
       baseUrl: argv.url,
-      path: new URL(`/schema/1/staged/status?${params}`, argv.url).href,
+      path: `/schema/1/staged/status?${params}`,
       secret: argv.secret,
       method: "GET",
     });
 
-    if (response.status === "none") {
-      logger.stderr("There is no staged schema to commit");
-      exit(1);
-    }
+    if (response.status === "none")
+      throw new Error("There is no staged schema to commit");
 
     logger.stdout(response.diff);
 
-    if (response.status !== "ready") {
-      logger.stderr("Schema is not ready to be committed");
-      exit(1);
-    }
+    if (response.status !== "ready")
+      throw new Error("Schema is not ready to be committed");
 
     const confirmed = await confirm({
       message: "Accept and commit these changes?",
@@ -55,7 +50,7 @@ async function doCommit(argv) {
 
       await makeFaunaRequest({
         baseUrl: argv.url,
-        path: new URL(`/schema/1/staged/commit?${params}`, argv.url).href,
+        path: `/schema/1/staged/commit?${params}`,
         secret: argv.secret,
         method: "POST",
       });

@@ -198,7 +198,7 @@ describe("schema pull", function () {
     );
 
     const [error] = await tryToCatch(() =>
-      run(`schema pull --secret "secret" --verbosity 5`, container)
+      run(`schema pull --secret "secret"`, container)
     );
     expect(error).to.have.property("code", 1);
     expect(container.resolve("gatherFSL")).to.not.have.been.called;
