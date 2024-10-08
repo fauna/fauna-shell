@@ -23,6 +23,7 @@ export default [
       "coverage/**/*",
       "fsl/**/*",
       "test/**/*",
+      ".history",
     ],
   },
   ...compat.extends("oclif", "plugin:prettier/recommended"),

@@ -6,13 +6,14 @@ import chalk from "chalk";
 import evalCommand from "./yargs-commands/eval.mjs";
 import loginCommand from "./yargs-commands/login.mjs";
 import schemaCommand from "./yargs-commands/schema/schema.mjs";
+import databaseCommand from "./yargs-commands/database.mjs";
 import { logArgv } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
 
 /** @type {cliContainer} */
 export let container;
-/** @type {yargs.Argv} */
+/** @type {import('yargs').Argv} */
 export let builtYargs;
 
 /**
@@ -48,12 +49,12 @@ export async function parseYargs(builtYargs) {
 /**
  * @function buildYargs
  * @param {string} argvInput
- * @returns {yargs.Argv<any>}
+ * @returns {import('yargs').Argv<any>}
  */
 function buildYargs(argvInput) {
   // have to build a yargsInstance _before_ chaining off it
   // https://github.com/yargs/yargs/blob/main/docs/typescript.md?plain=1#L124
-  const yargsInstance = yargs(argvInput)
+  const yargsInstance = yargs(argvInput);
 
   return (
     yargsInstance
@@ -62,6 +63,7 @@ function buildYargs(argvInput) {
       .command("eval", "evaluate a query", evalCommand)
       .command("login", "login via website", loginCommand)
       .command(schemaCommand)
+      .command(databaseCommand)
       .command("throw", false, {
         handler: () => {
           throw new Error("this is a test error");
