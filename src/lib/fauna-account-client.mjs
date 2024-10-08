@@ -96,7 +96,7 @@ export class FaunaAccountClient {
     headers.append("Authorization", `Bearer ${accessToken}`);
 
     const requestOptions = {
-      method: "GET",
+      method: "POST",
       headers,
     };
     try {

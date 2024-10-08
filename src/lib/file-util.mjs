@@ -72,7 +72,7 @@ export class Credentials {
    * Retrieves the value associated with the given key from the credentials file.
    *
    * @param {string} [key] - The key to retrieve the value for.
-   * @returns {any} - The value associated with the key, or the entire parsed content if no key is provided.
+   * @returns {Object.<string, any>} credentialsObject - The value associated with the key, or the entire parsed content if no key is provided.
    */
   get(key) {
     try {
@@ -81,21 +81,16 @@ export class Credentials {
         .readFileSync(this.filepath, { flag: "r+" })
         .toString();
       if (!isJSON(fileContent)) {
-        this.logger.stderr(
-          "Credentials file contains invalid formatting: ",
-          this.filepath
+        throw new Error(
+          `Credentials file at ${this.filepath} contains invalid formatting.`
         );
-        this.exit(1);
       }
       const parsed = JSON.parse(fileContent);
       return key ? parsed[key] : parsed;
     } catch (err) {
-      this.logger.stderr(
-        "Error while parsing credentials file: ",
-        this.filepath,
-        err
+      throw new Error(
+        `Error while parsing credentials file at ${this.filepath}: ${err}`
       );
-      this.exit(1);
     }
   }
 
@@ -116,8 +111,7 @@ export class Credentials {
       };
       fs.writeFileSync(this.filepath, JSON.stringify(newContent, null, 2));
     } catch (err) {
-      this.logger.stderr("Error while saving credentials: ", err);
-      this.exit(1);
+      throw new Error(`Error while saving credentials: ${err}`);
     }
   }
 }
