@@ -1,3 +1,5 @@
+//@ts-check
+
 function buildHeaders() {
   const headers = {
     "X-Fauna-Source": "Fauna Shell",
@@ -14,10 +16,11 @@ export async function getSimpleClient(argv) {
     const faunadb = (await import("faunadb")).default;
     const { Client, query: q } = faunadb;
     const { hostname, port, protocol } = new URL(argv.url);
+    const scheme =  protocol?.replace(/:$/, ""),
     client = new Client({
       domain: hostname,
-      port,
-      scheme: protocol?.replace(/:$/, ""),
+      port: Number(port),
+      scheme: /** @type {('http'|'https')} */ (scheme),
       secret: argv.secret,
       timeout: argv.timeout,
 

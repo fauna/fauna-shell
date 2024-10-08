@@ -1,3 +1,5 @@
+//@ts-check
+
 import { container } from "../../cli.mjs";
 import { confirm } from "@inquirer/prompts";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
@@ -24,7 +26,7 @@ async function doPush(argv) {
   } else {
     // Confirm diff, then push it. `force` is set on `validate` so we don't
     // need to pass the last known schema version through.
-    const params = new URLSearchParams({ force: true });
+    const params = new URLSearchParams({ force: "true" });
     if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({

@@ -1,3 +1,5 @@
+//@ts-check
+
 import fs from "node:fs";
 import { normalize } from "node:path";
 import * as os from "node:os";

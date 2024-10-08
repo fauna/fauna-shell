@@ -1,3 +1,5 @@
+//@ts-check
+
 import abandonCommand from "./abandon.mjs";
 import commitCommand from "./commit.mjs";
 import diffCommand from "./diff.mjs";

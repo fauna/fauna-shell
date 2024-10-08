@@ -1,3 +1,5 @@
+//@ts-check
+
 import { container } from "../cli.mjs";
 
 // this wrapper exists for only one reason: logging
@@ -12,7 +14,7 @@ export default async function fetchWrapper(url, options) {
   return fetch(url, options).then(async (response) => {
     const isJSON = response.headers
       .get("content-type")
-      .includes("application/json");
+      ?.includes("application/json");
     let logMessage = `Received ${response.status} of type ${response.type} from ${method} ${url}`;
 
     let body;

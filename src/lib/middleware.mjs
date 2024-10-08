@@ -1,3 +1,5 @@
+//@ts-check
+
 import { container } from "../cli.mjs";
 
 export function logArgv(argv) {
