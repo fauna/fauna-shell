@@ -28,7 +28,13 @@ export function dirIsWriteable(path) {
   return true;
 }
 
-export function fileExists(path) {
+/**
+ * Checks if a file exists at the given path.
+ *
+ * @param {string} path - The path to the file.
+ * @returns {boolean} - Returns true if the file exists, otherwise false.
+ */
+function fileExists(path) {
   try {
     fs.readFileSync(path);
     return true;
@@ -37,7 +43,15 @@ export function fileExists(path) {
   }
 }
 
+/**
+ * Class representing credentials management.
+ */
 export class Credentials {
+  /**
+   * Creates an instance of Credentials.
+   *
+   * @param {string} [filename=""] - The name of the credentials file.
+   */
   constructor(filename = "") {
     this.logger = container.resolve("logger");
     this.exit = container.resolve("exit");
@@ -52,6 +66,12 @@ export class Credentials {
     }
   }
 
+  /**
+   * Retrieves the value associated with the given key from the credentials file.
+   *
+   * @param {string} [key] - The key to retrieve the value for.
+   * @returns {any} - The value associated with the key, or the entire parsed content if no key is provided.
+   */
   get(key) {
     try {
       // Open file for reading and writing without truncating
@@ -77,6 +97,14 @@ export class Credentials {
     }
   }
 
+  /**
+   * Saves the credentials to the file.
+   *
+   * @param {Object} params - The parameters for saving credentials.
+   * @param {Record<string, string>} params.creds - The credentials to save.
+   * @param {boolean} [params.overwrite=false] - Whether to overwrite existing credentials.
+   * @param {string} params.profile - The profile name to save the credentials under.
+   */
   save({ creds, overwrite = false, profile }) {
     try {
       const existingContent = overwrite ? {} : this.get();
@@ -92,18 +120,38 @@ export class Credentials {
   }
 }
 
+/**
+ * Class representing secret key management.
+ * @extends Credentials
+ */
 export class SecretKey extends Credentials {
+  /**
+   * Creates an instance of SecretKey.
+   */
   constructor() {
     super("secret_keys");
   }
 }
 
+/**
+ * Class representing account key management.
+ * @extends Credentials
+ */
 export class AccountKey extends Credentials {
+  /**
+   * Creates an instance of AccountKey.
+   */
   constructor() {
     super("access_keys");
   }
 }
 
+/**
+ * Checks if a value is a valid JSON string.
+ *
+ * @param {string} value - The value to check.
+ * @returns {boolean} - Returns true if the value is a valid JSON string, otherwise false.
+ */
 function isJSON(value) {
   try {
     JSON.parse(value);
