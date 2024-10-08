@@ -8,6 +8,10 @@ import { AccountKey } from "../src/lib/file-util.mjs";
 describe("login", function () {
   let container;
   let fs;
+  const sessionCreds = {
+    account_key: "account-key",
+    refresh_token: "refresh-token",
+  };
   const mockOAuth = () => {
     let handlers = {};
 
@@ -49,10 +53,7 @@ describe("login", function () {
     return {
       startOAuthRequest: stub().resolves("dashboard-url"),
       listDatabases: stub().resolves("test databases"),
-      getSession: stub().resolves({
-        account_key: "account-key",
-        refresh_token: "refresh-token",
-      }),
+      getSession: stub().resolves(sessionCreds),
       getToken: stub().resolves({ access_token: "access-token" }),
     };
   };
@@ -61,16 +62,28 @@ describe("login", function () {
     container.register({
       oauthClient: awilix.asFunction(mockOAuth).scoped(),
       accountClient: awilix.asFunction(mockAccountClient).scoped(),
-      accountCreds: awilix.asClass(AccountKey),
+      accountCreds: awilix.asClass(AccountKey).scoped(),
     });
     fs = container.resolve("fs");
   });
 
   it("can login", async function () {
+    // Run the command first so container is set.
+    await run(`login`, container);
+    // After container is set, we can get the mocks
     const oauthClient = container.resolve("oauthClient");
     const logger = container.resolve("logger");
     const accountCreds = container.resolve("accountCreds");
-    await run(`login`, container);
+    const existingCreds = {
+      test_profile: {
+        account_key: "test",
+        refresh_token: "test",
+      },
+    };
+    const expectedCreds = {
+      ...existingCreds,
+      default: sessionCreds,
+    };
 
     // We start the loopback server
     expect(oauthClient.start.called).to.be.true;
@@ -81,19 +94,44 @@ describe("login", function () {
         "To login, open your browser to:\n dashboard-url"
       )
     );
-    fs.readFileSync.returns(
-      JSON.stringify({
-        default: {
-          account_key: "test",
-          refresh_token: "test",
-        },
-      })
-    );
+    accountCreds.get = stub().returns(existingCreds);
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
-    // We create a session
+    // Show login success message
     expect(logger.stdout.args.flat()).to.include("Login Success!\n");
-    console.log(accountCreds);
-    expect(accountCreds).to.have.been.called;
+    // We save the session credentials alongside existing credential contents
+    expect(accountCreds.filepath).to.include(".fauna/credentials/access_keys");
+    expect(JSON.parse(fs.writeFileSync.args[0][1])).to.deep.equal(
+      expectedCreds
+    );
+  });
+
+  it("overwrites credentials on login", async function () {
+    const existingCreds = {
+      test_profile: {
+        account_key: "oldkey",
+        refresh_token: "oldtoken",
+      },
+    };
+    const expectedCreds = {
+      test_profile: {
+        account_key: "account-key",
+        refresh_token: "refresh-token",
+      },
+    };
+    await run(`login --profile test_profile`, container);
+    const accountCreds = container.resolve("accountCreds");
+    const oauthClient = container.resolve("oauthClient");
+    const logger = container.resolve("logger");
+    // Local file read returns old creds
+    accountCreds.get = stub().returns(existingCreds);
+    // Trigger server event with mocked auth code
+    await oauthClient._receiveAuthCode();
+    // Show login success message
+    expect(logger.stdout.args.flat()).to.include("Login Success!\n");
+    // We save the session credentials and overwrite the profile of the same name locally
+    expect(JSON.parse(fs.writeFileSync.args[0][1])).to.deep.equal(
+      expectedCreds
+    );
   });
 });

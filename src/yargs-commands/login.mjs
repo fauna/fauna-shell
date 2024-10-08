@@ -26,7 +26,6 @@ async function doLogin(argv) {
         profile: argv.profile,
       });
       logger.stdout(`Login Success!\n`);
-
     } catch (err) {
       console.error(err);
     }

@@ -39,6 +39,13 @@ export async function run(argvInput, _container) {
   }
 }
 
+// we split this out so it can be injected/mocked
+// this lets us record calls against it and, e.g.,
+// ensure it's only run once per command invocation
+export async function parseYargs(builtYargs) {
+  return builtYargs.parseAsync();
+}
+
 /**
  * @function buildYargs
  * @param {string} argvInput
@@ -47,7 +54,7 @@ export async function run(argvInput, _container) {
 function buildYargs(argvInput) {
   // have to build a yargsInstance _before_ chaining off it
   // https://github.com/yargs/yargs/blob/main/docs/typescript.md?plain=1#L124
-  const yargsInstance = yargs(argvInput)
+  const yargsInstance = yargs(argvInput);
 
   return (
     yargsInstance
