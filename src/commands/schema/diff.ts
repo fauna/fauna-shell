@@ -6,12 +6,14 @@ export default class DiffSchemaCommand extends SchemaCommand {
   static flags = {
     ...SchemaCommand.flags,
     active: Flags.boolean({
-      description: "Compare the local schema to the active schema.",
+      description:
+        "Compare the local schema to the active schema instead of the staged schema.",
       default: false,
     }),
   };
 
-  static description = "Print the diff between local and remote schema.";
+  static description =
+    "Print the diff between local schema and staged remote schema.";
   static examples = [
     "$ fauna schema diff",
     "$ fauna schema diff --dir schemas/myschema",
