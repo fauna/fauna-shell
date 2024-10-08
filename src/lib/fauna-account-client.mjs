@@ -1,3 +1,5 @@
+//@ts-check
+
 import { container } from "../cli.mjs";
 
 export class FaunaAccountClient {
@@ -44,7 +46,7 @@ export class FaunaAccountClient {
       const { /*state,*/ access_token } = await response.json();
       return access_token;
     } catch (err) {
-      throw new Error("Failure to authorize with Fauna: ", err.message);
+      throw new Error("Failure to authorize with Fauna: " + err.message);
     }
   }
 
@@ -71,8 +73,7 @@ export class FaunaAccountClient {
       return session;
     } catch (err) {
       throw new Error(
-        "Failure to create session with Fauna: ",
-        JSON.stringify(err)
+        "Failure to create session with Fauna: " + JSON.stringify(err)
       );
     }
   }

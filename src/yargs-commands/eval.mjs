@@ -1,3 +1,5 @@
+//@ts-check
+
 const EVAL_OUTPUT_FORMATS = ["json", "json-tagged", "shell"];
 
 import util from "util";
@@ -16,7 +18,7 @@ const { readFile, runQueries, writeFile } = misc;
  * Write json encoded output
  *
  * @param {String} file Target filename
- * @param {Any}    data Data to encode
+ * @param {any}    data Data to encode
  */
 async function writeFormattedJson(file, data) {
   let str = JSON.stringify(data);
@@ -31,7 +33,7 @@ async function writeFormattedJson(file, data) {
  * Write fauna shell encoded output
  *
  * @param {String} file Target filename
- * @param {Any}    data Data to encode
+ * @param {any}    str Data to encode
  */
 async function writeFormattedShell(file, str) {
   if (file === null) {
@@ -63,7 +65,7 @@ async function writeFormattedOutput(file, data, format) {
  * @param {string} fqlQuery - The FQL v4 query to be executed.
  * @param {string} outputFile - Target filename
  * @param {Object} flags - Options for the query execution.
- * @param {(4 | 10)} flags.version - FQL version number
+ * @param {("4" | "10")} flags.version - FQL version number
  * @param {("json" | "json-tagged" | "shell")} flags.format - Result format
  * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
  */
@@ -185,7 +187,7 @@ async function doEval(argv) {
 
   if (argv.dbname) throw new Error("Not currently supported!");
 
-  const client = container.resolve("getSimpleClient")(argv);
+  const client = await (container.resolve("getSimpleClient")(argv));
 
   const readQuery = argv.stdin || argv.file !== undefined;
   let queryFromFile;

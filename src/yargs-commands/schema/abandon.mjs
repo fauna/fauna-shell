@@ -1,3 +1,5 @@
+//@ts-check
+
 import { confirm } from "@inquirer/prompts";
 
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
