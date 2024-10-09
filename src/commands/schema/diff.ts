@@ -26,6 +26,8 @@ export default class DiffSchemaCommand extends SchemaCommand {
   static examples = [
     "$ fauna schema diff",
     "$ fauna schema diff --dir schemas/myschema",
+    "$ fauna schema diff staged",
+    "$ fauna schema diff staged --text",
   ];
 
   async run() {
