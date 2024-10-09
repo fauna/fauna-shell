@@ -35,7 +35,7 @@ export async function run(argvInput, _container) {
     )}`;
     logger.stderr(message);
     logger.fatal(e.stack, "error");
-    container.resolve("errorHandler")(e, 1);
+    container.resolve("errorHandler")(e, e.exitCode !== undefined ? e.exitCode : 1);
   }
 }
 
