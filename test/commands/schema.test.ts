@@ -125,6 +125,10 @@ describe("fauna schema diff test", () => {
 });
 
 describe("fauna schema push test", () => {
+  before(() => {
+    disableColor();
+  });
+
   afterEach(() => {
     nock.cleanAll();
   });
@@ -134,9 +138,9 @@ describe("fauna schema push test", () => {
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
-      .post("/schema/1/validate?force=true")
+      .post("/schema/1/validate?force=true&diff=summary")
       .reply(200, diff)
-      .post("/schema/1/update?version=0")
+      .post("/schema/1/update?version=0&staged=false")
       .reply(200, updated);
     // Stubbing the confirmation to always return true
     const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
@@ -153,7 +157,7 @@ describe("fauna schema push test", () => {
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
-      .post("/schema/1/validate?force=true")
+      .post("/schema/1/validate?force=true&diff=summary")
       .reply(200, diff)
       .post("/schema/1/update?version=0&staged=true")
       .reply(200, updated);
@@ -173,10 +177,15 @@ describe("fauna schema push test", () => {
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
-      .get("/schema/1/staged/status?diff=true")
+      .get("/schema/1/staged/status?diff=summary")
       .reply(200, {
         version: 0,
         status: "ready",
+        diff: diff.diff,
+      })
+      .post("/schema/1/validate?diff=summary&staged=true&version=0")
+      .reply(200, {
+        version: 0,
         diff: diff.diff,
       });
 

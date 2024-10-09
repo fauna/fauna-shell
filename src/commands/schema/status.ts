@@ -1,5 +1,5 @@
 import SchemaCommand from "../../lib/schema-command";
-import { colorParam, hasColor } from "../../lib/color";
+import { bold, colorParam, hasColor, reset } from "../../lib/color";
 
 export default class StatusSchemaCommand extends SchemaCommand {
   static flags = {
@@ -10,15 +10,19 @@ export default class StatusSchemaCommand extends SchemaCommand {
   static examples = ["$ fauna schema status"];
 
   async run() {
-    try {
-      const { url, secret } = await this.fetchsetup();
+    process.removeAllListeners("warning");
 
-      const params = new URLSearchParams({
+    const { url, secret } = await this.fetchsetup();
+    const fps = this.gatherRelativeFSLFilePaths();
+    const files = this.read(fps);
+
+    try {
+      const statusParams = new URLSearchParams({
         ...(hasColor() ? { color: colorParam() } : {}),
-        diff: "true",
+        diff: "summary",
       });
-      const res = await fetch(
-        new URL(`/schema/1/staged/status?${params}`, url),
+      const statusRes = await fetch(
+        new URL(`/schema/1/staged/status?${statusParams}`, url),
         {
           method: "GET",
           headers: { AUTHORIZATION: `Bearer ${secret}` },
@@ -29,14 +33,62 @@ export default class StatusSchemaCommand extends SchemaCommand {
         }
       );
 
-      const json = await res.json();
-      if (json.error) {
-        this.error(json.error.message);
+      const statusJson = await statusRes.json();
+      if (statusJson.error) {
+        this.error(statusJson.error.message);
       }
 
-      this.log(json.diff);
+      const validateParams = new URLSearchParams({
+        ...(hasColor() ? { color: colorParam() } : {}),
+        diff: "summary",
+        staged: "true",
+        version: statusJson.version,
+      });
+      const validateRes = await fetch(
+        new URL(`/schema/1/validate?${validateParams}`, url),
+        {
+          method: "POST",
+          headers: { AUTHORIZATION: `Bearer ${secret}` },
+          body: this.body(files),
+          // https://github.com/nodejs/node/issues/46221
+          // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1483
+          // @ts-expect-error-next-line
+          duplex: "half",
+        }
+      );
+
+      const validateJson = await validateRes.json();
+      if (validateJson.error) {
+        this.error(validateJson.error.message);
+      }
+
+      if (statusJson.status === "none") {
+        this.log(`Staged changes: ${bold()}none${reset()}`);
+      } else {
+        this.log(`Staged status: ${bold()}${statusJson.status}${reset()}`);
+        if (statusJson.pending_summary !== "") {
+          this.log(statusJson.pending_summary);
+        }
+        this.log("Staged changes:");
+        this.log();
+        this.log("  " + statusJson.diff.split("\n").join("\n  "));
+
+        if (statusJson.status === "ready") {
+          this.log("(use `fauna schema commit` to commit staged changes)");
+        }
+      }
+
+      if (validateJson.diff === "") {
+        this.log(`Local changes: ${bold()}none${reset()}`);
+      } else {
+        this.log(`Local changes:`);
+        this.log();
+        this.log("  " + validateJson.diff.split("\n").join("\n  "));
+
+        this.log("(use `fauna schema diff` to display local changes)");
+        this.log("(use `fauna schema push --staged` to stage local changes)");
+      }
     } catch (err) {
-      console.log(err);
       this.error(err);
     }
   }
