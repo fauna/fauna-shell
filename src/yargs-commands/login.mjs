@@ -44,6 +44,7 @@ function buildLoginCommand(yargs) {
         default: "default",
       },
     })
+    .version(false)
     .help("help", "show help");
 }
 

@@ -69,8 +69,11 @@ async function writeFormattedOutput(file, data, format) {
  * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
  */
 export async function performQuery(client, fqlQuery, outputFile, flags) {
+  console.log("query!");
   if (flags.version === "4") {
-    return performV4Query(client, fqlQuery, outputFile, flags);
+    const res = performV4Query(client, fqlQuery, outputFile, flags);
+    console.log(res);
+    return res;
   } else {
     return performV10Query(client, fqlQuery, outputFile, flags);
   }
@@ -106,7 +109,6 @@ async function performV4Query(client, fqlQuery, outputFile, flags) {
     const response = await runQuery(fqlQuery, client);
     return await writeFormattedOutput(outputFile, response, flags.format);
   } catch (error) {
-    console.log(error);
     if (error.faunaError === undefined) {
       // this happens when wrapQueries fails during the runInContext step
       // at that point, we have Errors that didn't get run as a query, so
@@ -190,7 +192,7 @@ async function doEval(argv) {
   // used to use runQueries/wrapQueries
   if (argv.file) throw new Error("Not currently supported!");
 
-  const client = await (container.resolve("getSimpleClient"))(argv);
+  const client = await container.resolve("getSimpleClient")(argv);
 
   const readQuery = argv.stdin || argv.file !== undefined;
   let queryFromFile;
@@ -260,8 +262,9 @@ function buildEvalCommand(yargs) {
         options: EVAL_OUTPUT_FORMATS,
       },
       version: {
-        type: "string",
         description: "which FQL version to use",
+        type: "string",
+        alias: "v",
         default: "10",
         choices: ["4", "10"],
       },

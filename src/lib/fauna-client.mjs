@@ -1,7 +1,6 @@
 //@ts-check
 
 // export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
-import https from "node:https";
 import { container } from "../cli.mjs";
 
 // export type QuerySuccess<T> = {
@@ -34,7 +33,7 @@ export default class FaunaClient {
   // query<T>(query: string, opts?: format?: string; typecheck?: boolean; secret?: string;
   // returns Promise<QueryResponse<T>>
   async query(query, opts) {
-    const fetch = container.resolve('fetch');
+    const fetch = container.resolve("fetch");
 
     const { format, typecheck, secret } = {
       format: opts?.format ?? "simple",
