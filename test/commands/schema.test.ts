@@ -52,7 +52,7 @@ describe("fauna schema diff test", () => {
       .reply(200, new Date())
       .get("/schema/1/staged/status")
       .reply(200, { status: "none", version: 0 })
-      .post("/schema/1/validate?staged=true&version=0")
+      .post("/schema/1/validate?staged=true&version=0&diff=semantic")
       .reply(200, diff);
 
     const { stdout } = await runCommand(
@@ -60,7 +60,7 @@ describe("fauna schema diff test", () => {
     );
 
     expect(stdout).to.contain(
-      `Differences between the local schema and the remote schema:`
+      `Differences from the remote schema to the local schema:`
     );
     expect(stdout).to.contain(`${diff.diff}`);
   });
@@ -72,7 +72,7 @@ describe("fauna schema diff test", () => {
       .reply(200, new Date())
       .get("/schema/1/staged/status")
       .reply(200, { status: "ready", version: 0 })
-      .post("/schema/1/validate?staged=true&version=0")
+      .post("/schema/1/validate?staged=true&version=0&diff=semantic")
       .reply(200, diff);
 
     const { stdout } = await runCommand(
@@ -80,45 +80,45 @@ describe("fauna schema diff test", () => {
     );
 
     expect(stdout).to.contain(
-      `Differences between the local schema and the remote, staged schema:`
+      `Differences from the remote, staged schema to the local schema:`
     );
     expect(stdout).to.contain(`${diff.diff}`);
   });
 
-  it("runs schema diff --active with no staged schema", async () => {
-    nock(getEndpoint(), { allowUnmocked: false })
-      .persist()
-      .post("/", matchFqlReq(query.Now()))
-      .reply(200, new Date())
-      .get("/schema/1/staged/status")
-      .reply(200, { status: "none", version: 0 })
-      .post("/schema/1/validate?staged=true&version=0")
-      .reply(200, diff);
-
-    const { error } = await runCommand(
-      withOpts(["schema diff", "--dir=test/testdata", "--active"])
-    );
-    expect(error?.message).to.equal(
-      "There is no staged schema, so passing `--active` does nothing"
-    );
-  });
-
-  it("runs schema diff --active", async () => {
+  it("runs schema diff active", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
       .get("/schema/1/staged/status")
       .reply(200, { status: "ready", version: 0 })
-      .post("/schema/1/validate?staged=false&version=0")
+      .post("/schema/1/validate?staged=false&version=0&diff=semantic")
       .reply(200, diff);
 
     const { stdout } = await runCommand(
-      withOpts(["schema diff", "--dir=test/testdata", "--active"])
+      withOpts(["schema diff", "--dir=test/testdata", "active"])
     );
 
     expect(stdout).to.contain(
-      `Differences between the local schema and the remote, active schema:`
+      `Differences from the remote, active schema to the local schema:`
+    );
+    expect(stdout).to.contain(`${diff.diff}`);
+  });
+
+  it("runs schema diff staged", async () => {
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(query.Now()))
+      .reply(200, new Date())
+      .get("/schema/1/staged/status?diff=semantic")
+      .reply(200, { status: "ready", diff: diff.diff, version: 0 });
+
+    const { stdout } = await runCommand(
+      withOpts(["schema diff", "--dir=test/testdata", "staged"])
+    );
+
+    expect(stdout).to.contain(
+      `Differences from the remote, active schema to the remote, staged schema:`
     );
     expect(stdout).to.contain(`${diff.diff}`);
   });
