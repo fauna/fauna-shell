@@ -99,18 +99,18 @@ export default class PullSchemaCommand extends SchemaCommand {
         console.log(`overwrite: ${overwrite}`);
       }
 
-      if (this.flags?.delete) {
-        // Delete extra .fsl files.
-        for (const deleteme of deletes) {
-          fs.unlinkSync(path.join(this.dir, deleteme));
-        }
-      }
-
       const confirmed = await confirm({
         message: "Accept the changes?",
         default: false,
       });
       if (confirmed) {
+        if (this.flags?.delete) {
+          // Delete extra .fsl files.
+          for (const deleteme of deletes) {
+            fs.unlinkSync(path.join(this.dir, deleteme));
+          }
+        }
+
         for (const filename of filenames) {
           const fileres = await fetch(
             new URL(`/schema/1/files/${encodeURIComponent(filename)}`, url),

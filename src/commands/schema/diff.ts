@@ -99,16 +99,14 @@ export default class DiffSchemaCommand extends SchemaCommand {
           this.log(
             `Differences from the ${bold()}remote${reset()} schema to the ${bold()}local${reset()} schema:`
           );
+        } else if (source === "active") {
+          this.log(
+            `Differences from the ${bold()}remote, active${reset()} schema to the ${bold()}local${reset()} schema:`
+          );
         } else {
-          if (source === "active") {
-            this.log(
-              `Differences from the ${bold()}remote, active${reset()} schema to the ${bold()}local${reset()} schema:`
-            );
-          } else {
-            this.log(
-              `Differences from the ${bold()}remote, staged${reset()} schema to the ${bold()}local${reset()} schema:`
-            );
-          }
+          this.log(
+            `Differences from the ${bold()}remote, staged${reset()} schema to the ${bold()}local${reset()} schema:`
+          );
         }
         this.log(json.diff ? json.diff : "No schema differences");
       }
