@@ -4,7 +4,6 @@ const EVAL_OUTPUT_FORMATS = ["json", "json-tagged", "shell"];
 
 import util from "util";
 import { existsSync } from "fs";
-import esprima from "esprima";
 import * as misc from "../lib/misc.mjs";
 import {
   // ensureDbScopeClient,
@@ -12,7 +11,7 @@ import {
 } from "../lib/command-helpers.mjs";
 import { container } from "../cli.mjs";
 
-const { readFile, runQueries, writeFile } = misc;
+const { runQuery } = misc;
 
 /**
  * Write json encoded output
@@ -98,17 +97,13 @@ async function performV10Query(client, fqlQuery, outputFile, flags) {
 async function performV4Query(client, fqlQuery, outputFile, flags) {
   const faunadb = (await import("faunadb")).default;
 
+  // why...?
   if (flags.format === "json-tagged") {
     flags.format = "json";
   }
 
-  let res = esprima.parseScript(fqlQuery);
-  if (res.body[0].type === "BlockStatement") {
-    res = esprima.parseScript(`(${fqlQuery})`);
-  }
-
   try {
-    const response = await runQueries(res.body, client);
+    const response = await runQuery(fqlQuery, client);
     return await writeFormattedOutput(outputFile, response, flags.format);
   } catch (error) {
     console.log(error);
@@ -128,6 +123,7 @@ async function performV4Query(client, fqlQuery, outputFile, flags) {
     } else {
       error.message = error.faunaError.message;
     }
+
     throw error;
   }
 }

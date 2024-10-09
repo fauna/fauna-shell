@@ -16,7 +16,7 @@ export async function getSimpleClient(argv) {
     const faunadb = (await import("faunadb")).default;
     const { Client, query: q } = faunadb;
     const { hostname, port, protocol } = new URL(argv.url);
-    const scheme =  protocol?.replace(/:$/, ""),
+    const scheme =  protocol?.replace(/:$/, "")
     client = new Client({
       domain: hostname,
       port: Number(port),
