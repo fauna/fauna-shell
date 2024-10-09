@@ -24,7 +24,7 @@ async function writeFormattedJson(file, data) {
   if (file === null) {
     return str;
   } else {
-    await writeFile(file, str);
+    // await writeFile(file, str);
   }
 }
 
@@ -38,7 +38,7 @@ async function writeFormattedShell(file, str) {
   if (file === null) {
     return str;
   } else {
-    await writeFile(file, str);
+    // await writeFile(file, str);
   }
 }
 
@@ -181,9 +181,16 @@ async function doEval(argv) {
   //     ).client
   //   : container.resolve("getSimpleClient")(argv);
 
+  // used to use ensureDbScopeClient
   if (argv.dbname) throw new Error("Not currently supported!");
 
-  const client = await (container.resolve("getSimpleClient")(argv));
+  // used to use runQueries/wrapQueries
+  if (argv.stdin) throw new Error("Not currently supported!");
+
+  // used to use runQueries/wrapQueries
+  if (argv.file) throw new Error("Not currently supported!");
+
+  const client = await (container.resolve("getSimpleClient"))(argv);
 
   const readQuery = argv.stdin || argv.file !== undefined;
   let queryFromFile;
@@ -192,7 +199,7 @@ async function doEval(argv) {
       container.resolve("logger").warn("Reading from stdin");
       argv.file = process.stdin.fd;
     }
-    queryFromFile = await readFile(argv.file);
+    // queryFromFile = await readFile(argv.file);
   }
 
   const format = argv.format ?? (process.stdout.isTTY ? "shell" : "json");
