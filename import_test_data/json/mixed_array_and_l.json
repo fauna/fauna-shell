@@ -1,9 +1,0 @@
-[{"id": "1", "name": "mia", "birthday": "2010-10-31", "age": 10, "considered_old": true, "complex_object": {"boolean": true, "number": 1, "date": "2010-10-31", "array": [1, 2, 3, 4, 5]}},
- {"id": "2", "name": "doug", "birthday": "2010-10-31T00:00:00Z", "age": 11, "considered_old": false},
-{"id": "3", "name": "fran", "birthday": null}]
-{}
-
- {
-    "id": "4",
-    "name": "zooey"
-  }
