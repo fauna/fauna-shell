@@ -16,7 +16,6 @@ describe("schema push", function () {
 
   it("can force push schema", async function () {
     const fetch = container.resolve("fetch");
-    fetch.resolves({ json: async () => ({}) });
 
     const gatherFSL = container.resolve("gatherFSL");
     gatherFSL.resolves(
@@ -47,6 +46,17 @@ describe("schema push", function () {
   it.skip("can staged schema changes", async function () {});
 
   it.skip("can be cancelled by the user before making mutating network calls", async function () {});
+
+  it("can push schema from another directory", async function () {
+    const gatherFSL = container.resolve("gatherFSL");
+
+    await run(
+      `schema push --secret "secret" --force --dir "/absolute/path/elsewhere"`,
+      container
+    );
+
+    expect(gatherFSL).to.have.been.calledWith("/absolute/path/elsewhere");
+  });
 
   it.skip("warns when attempting to push an empty diff", async function () {});
 });

@@ -1,8 +1,13 @@
+//@ts-check
+
 import * as path from "path";
 import { dirExists, dirIsWriteable } from "./file-util.mjs";
 import { container } from "../cli.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
 
+/**
+ * @param {string} dir - The directory path to check for existence and write access
+ */
 function checkDirUsability(dir) {
   if (!dirExists(dir)) {
     throw new Error(`The project fsl directory: ${dir} does not exist.`);
@@ -11,10 +16,15 @@ function checkDirUsability(dir) {
   }
 }
 
-// Reads the files using their relative-to-`basedir` paths and returns their
-// contents paired with the relative path.
-// Fails if the total size of the files is too large.
-// relpaths: string[]
+/**
+ * Reads files using their relative-to-`dir` paths and returns their contents
+ * paired with their relative paths. Fails if the total size of the files
+ * is too large.
+ *
+ * @param {string} dir - The path to the root directory the FSL files are stored in
+ * @param {string[]} relpaths - A list of paths (relative to `dir`) to individual FSL files
+ * @returns {LocalFSLFileDescription[]}
+ */
 function read(dir, relpaths) {
   const fs = container.resolve("fs");
   const logger = container.resolve("logger");
@@ -39,12 +49,14 @@ function read(dir, relpaths) {
   return curr;
 }
 
-// Gathers all FSL files in the directory rooted at `basedir` and returns a
-// list of relative paths.
-// Fails if there are too many files.
-// returns string[]
+/**
+ * Gathers all FSL files in the directory rooted at `dir` and returns a list of
+ * relative paths. Fails if there are too many files.
+ *
+ * @param {string} dir - The path to the directory to delete unused FSL files from
+ * @returns {Promise<string[]>}
+ */
 export async function gatherRelativeFSLFilePaths(dir) {
-  const logger = container.resolve("logger");
   const fs = container.resolve("fs");
 
   const FILE_LIMIT = 32000;
@@ -70,21 +82,36 @@ export async function gatherRelativeFSLFilePaths(dir) {
   };
   const files = go("", []);
   if (files.length > FILE_LIMIT) {
-    logger.stderr(`Too many files: ${files.length} > ${FILE_LIMIT}`);
+    throw new Error(`Too many files: ${files.length} > ${FILE_LIMIT}`);
   }
   return files;
 }
 
+/**
+ * @param {string} dir - The path to the directory to delete unused FSL files from
+ * @param {string[]} filesToDelete - A dictionary of filenames to their contents
+ * @returns {Promise<void>}
+ */
 export async function deleteUnusedSchemaFiles(dir, filesToDelete) {
-  const fs = container.resolve("fs");
+  const fsp = container.resolve("fsp");
   const promises = [];
   for (const fileName of filesToDelete) {
-    promises.push(fs.unlink(path.join(dir, fileName)));
+    promises.push(fsp.unlink(path.join(dir, fileName)));
   }
 
-  return Promise.all(promises);
+  await Promise.all(promises);
 }
 
+/**
+ * @typedef LocalFSLFileDescription
+ * @property {string} name
+ * @property {string} content
+ */
+
+/**
+ * @param {string} dir - The path to the directory to gather FSL files from
+ * @returns {Promise<LocalFSLFileDescription[]>}
+ */
 export async function gatherFSL(dir) {
   const gatherRelativeFSLFilePaths = container.resolve(
     "gatherRelativeFSLFilePaths"
@@ -93,64 +120,90 @@ export async function gatherFSL(dir) {
   checkDirUsability(dir);
   const fps = await gatherRelativeFSLFilePaths(dir);
   const files = read(dir, fps);
-  return JSON.stringify(files);
+  return files;
 }
 
-export async function writeSchemaFiles(dir, filenameToContentsHash) {
+/**
+ * @param {string} dir - The path to the directory to write FSL files to
+ * @param {Record<string, string>} filenameToContentsDict - A dictionary of filenames to their contents
+ * @returns {Promise<void>}
+ */
+export async function writeSchemaFiles(dir, filenameToContentsDict) {
   const fs = container.resolve("fs");
+  const fsp = container.resolve("fsp");
   fs.mkdirSync(path.dirname(dir), { recursive: true });
 
   const promises = [];
   for (const [filename, fileContents] of Object.entries(
-    filenameToContentsHash
+    filenameToContentsDict
   )) {
     const fp = path.join(dir, filename);
-    promises.push(fs.writeFile(fp, fileContents));
+    promises.push(fsp.writeFile(fp, fileContents));
   }
 
-  return Promise.all(promises);
+  await Promise.all(promises);
 }
 
-export async function getAllSchemaFileContents(
-  filenames,
-  { ...overrides } = {}
-) {
+/** @typedef {import('./db.mjs').fetchParameters} fetchParameters */
+
+/**
+ * @param {string[]} filenames - A list of schema file names to fetch
+ * @param {Omit<fetchParameters, "path"|"method">} overrides
+ * @returns {Promise<Record<string, string>>} A map of schema file names to their contents.
+ */
+export async function getAllSchemaFileContents(filenames, { ...overrides }) {
   const promises = [];
-  const fileContents = {};
+  /* @type Record<string, string> */
+  const fileContentCollection = {};
   for (const filename of filenames) {
     promises.push(
-      getSchemaFile(filename, overrides).then((fileContent) => {
-        fileContents[filename] = fileContent;
+      getSchemaFile(filename, overrides).then(({ content }) => {
+        fileContentCollection[filename] = content;
       })
     );
   }
 
-  return Promise.all(promises);
+  await Promise.all(promises);
+
+  return fileContentCollection;
 }
 
-export async function getSchemaFiles({ ...overrides } = {}) {
+/**
+ * @param {Omit<fetchParameters, "path"|"method">} overrides
+ */
+export async function getSchemaFiles({ ...overrides }) {
+  /** @type {fetchParameters} */
   const args = {
+    ...overrides,
     path: "/schema/1/files",
     method: "GET",
-    ...overrides,
   };
   return makeFaunaRequest({ ...args });
 }
 
-export async function getSchemaFile(filename, { ...overrides } = {}) {
+/**
+ * @param {string} filename
+ * @param {Omit<fetchParameters, "path"|"method">} overrides
+ */
+export async function getSchemaFile(filename, { ...overrides }) {
+  /** @type {fetchParameters} */
   const args = {
+    ...overrides,
     path: `/schema/1/files/${encodeURIComponent(filename)}`,
     method: "GET",
-    ...overrides,
   };
   return makeFaunaRequest({ ...args });
 }
 
-export async function getStagedSchemaStatus({ ...overrides } = {}) {
+/**
+ * @param {Omit<fetchParameters, "path"|"method">} overrides
+ */
+export async function getStagedSchemaStatus({ ...overrides }) {
+  /** @type {fetchParameters} */
   const args = {
+    ...overrides,
     path: "/schema/1/staged/status",
     method: "GET",
-    ...overrides,
   };
   return makeFaunaRequest({ ...args });
 }
