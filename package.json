@@ -120,7 +120,7 @@
     "pretest": "yarn fixlint",
     "local": "export $(cat .env | xargs); node bin/run",
     "local-test-old": "export $(cat .env | xargs); mocha \"test/**/*.test.{js,ts}\"",
-    "local-test": "mocha --watch --recursive ./yargs-test --require ./yargs-test/mocha-root-hooks.mjs --experimental-require-module",
+    "local-test": "mocha --recursive ./yargs-test --require ./yargs-test/mocha-root-hooks.mjs",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
     "test-old": "c8 -r html mocha --forbid-only \"test/**/*.test.{js,ts}\"",
