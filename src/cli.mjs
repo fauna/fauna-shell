@@ -7,7 +7,7 @@ import evalCommand from "./yargs-commands/eval.mjs";
 import loginCommand from "./yargs-commands/login.mjs";
 import schemaCommand from "./yargs-commands/schema/schema.mjs";
 import databaseCommand from "./yargs-commands/database.mjs";
-import { logArgv } from "./lib/middleware.mjs";
+import { logArgv, fixPaths } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
 
@@ -61,6 +61,7 @@ function buildYargs(argvInput) {
     yargsInstance
       .scriptName("fauna")
       .middleware([logArgv], true)
+      .middleware([fixPaths], false)
       .command("eval", "evaluate a query", evalCommand)
       .command("login", "login via website", loginCommand)
       .command(schemaCommand)

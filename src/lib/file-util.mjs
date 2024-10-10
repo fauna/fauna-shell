@@ -1,14 +1,27 @@
 //@ts-check
 
 import fs from "node:fs";
-import { normalize } from "node:path";
-import * as os from "node:os";
+import os from "node:os";
 import { container } from "../cli.mjs";
 
-// path: string, returns boolean
+/**
+ * Fixes paths by normalizing them (.. => parent directory) and resolving ~ to homedir.
+ * @param {string} path - The path to fix.
+ * @returns {string}
+ */
+export function fixPath(path) {
+  const normalize = container.resolve("normalize");
+  const homedir = container.resolve("homedir");
+  return normalize(path.replace(/^~/, homedir));
+}
+
+/**
+ * @function dirExists
+ * @param {string} path - The path to check existence for.
+ * @returns {boolean}
+ */
 export function dirExists(path) {
-  // TODO: needs to resolve home dir (~); node path libs won't do that for us
-  const stat = fs.statSync(normalize(path), {
+  const stat = fs.statSync(fixPath(path), {
     // returns undefined instead of throwing if the file doesn't exist
     throwIfNoEntry: false,
   });
@@ -19,10 +32,14 @@ export function dirExists(path) {
   }
 }
 
-// path: string, returns boolean
+/**
+ * @function dirIsWriteable
+ * @param {string} path - The path to check existence for.
+ * @returns {boolean}
+ */
 export function dirIsWriteable(path) {
   try {
-    fs.accessSync(path, fs.constants.W_OK);
+    fs.accessSync(fixPath(path), fs.constants.W_OK);
   } catch (e) {
     return false;
   }
@@ -38,7 +55,7 @@ export function dirIsWriteable(path) {
  */
 function fileExists(path) {
   try {
-    fs.readFileSync(path);
+    fs.readFileSync(fixPath(path));
     return true;
   } catch (e) {
     return false;
