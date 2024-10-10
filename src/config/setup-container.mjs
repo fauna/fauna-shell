@@ -82,7 +82,7 @@ export const injectables = {
 };
 
 export function setupRealContainer() {
-  /** @type {awilix.AwilixContainer<injectables>} */
+  /** @type {awilix.AwilixContainer<modifiedInjectables>} */
   const container = setupCommonContainer();
 
   container.register(injectables);

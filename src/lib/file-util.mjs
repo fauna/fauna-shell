@@ -73,7 +73,6 @@ export class Credentials {
    */
   constructor(filename = "") {
     this.logger = container.resolve("logger");
-    this.exit = container.resolve("exit");
     this.filename = filename;
     this.credsDir = `${os.homedir()}/.fauna/credentials`;
     if (!dirExists(this.credsDir)) {

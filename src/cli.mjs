@@ -17,8 +17,7 @@ export let container;
 export let builtYargs;
 
 /**
- * @function run
- * @param {string} argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
+ * @param {string|string[]} argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
  * @param {cliContainer} _container - A built and ready for use awilix container with registered injectables.
  */
 export async function run(argvInput, _container) {
@@ -40,16 +39,18 @@ export async function run(argvInput, _container) {
   }
 }
 
-// we split this out so it can be injected/mocked
-// this lets us record calls against it and, e.g.,
-// ensure it's only run once per command invocation
+/**
+ * This is split out so it can be injected & spied on. This allows ensuring that,
+ * e.g., it's only run once per command invocation.
+ * @param {import('yargs').Argv<any>} builtYargs
+ * @returns {Promise<any>} builtYargs
+ */
 export async function parseYargs(builtYargs) {
   return builtYargs.parseAsync();
 }
 
 /**
- * @function buildYargs
- * @param {string} argvInput
+ * @param {string|string[]} argvInput
  * @returns {import('yargs').Argv<any>}
  */
 function buildYargs(argvInput) {

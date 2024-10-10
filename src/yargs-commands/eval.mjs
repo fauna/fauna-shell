@@ -69,10 +69,8 @@ async function writeFormattedOutput(file, data, format) {
  * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
  */
 export async function performQuery(client, fqlQuery, outputFile, flags) {
-  console.log("query!");
   if (flags.version === "4") {
     const res = performV4Query(client, fqlQuery, outputFile, flags);
-    console.log(res);
     return res;
   } else {
     return performV10Query(client, fqlQuery, outputFile, flags);
