@@ -179,9 +179,7 @@ export class ShellConfig {
     const rootConfig =
       opts?.rootConfig ?? ini.parse(readFileOpt(getRootConfigPath()));
     const projectConfigPath = opts?.projectPath ?? getProjectConfigPath();
-    const projectConfig =
-      opts?.projectConfig ??
-      (projectConfigPath ? ini.parse(readFile(projectConfigPath)) : undefined);
+    const projectConfig = opts?.projectConfig ?? {};
 
     return new ShellConfig({
       rootConfig,
