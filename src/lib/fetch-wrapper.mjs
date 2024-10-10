@@ -24,6 +24,11 @@ export default async function fetchWrapper(url, options) {
     }
 
     logger.debug(logMessage, "fetch");
-    return isJSON ? { ...response, json: async () => body } : response;
+    // gotta do this instead of object destructuring because some of result's properties
+    // are getters and so aren't enumerable.
+    const result = response;
+    if (isJSON) result.json = async () => body;
+
+    return result;
   });
 }

@@ -25,6 +25,7 @@ function buildSchema(yargs) {
     .command(pullCommand)
     .command(statusCommand)
     .demandCommand()
+    .version(false)
     .help("help", "show help");
 }
 
