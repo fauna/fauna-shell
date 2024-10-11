@@ -104,4 +104,25 @@ describe("schema diff", function () {
     expect(logger.stdout).to.have.been.calledWith("No schema differences");
     expect(logger.stderr).to.not.have.been.called;
   });
+
+  it("can parse relative paths", async function () {
+    const gatherFSL = container.resolve("gatherFSL");
+
+    await run(
+      `schema diff --secret "secret" --dir /all/but/the/leaf/..`,
+      container
+    );
+
+    expect(gatherFSL).to.have.been.calledWith("/all/but/the");
+  });
+
+  it("can parse home directory paths", async function () {
+    const gatherFSL = container.resolve("gatherFSL");
+    const homedir = container.resolve("homedir");
+    homedir.returns("/Users/test-user");
+
+    await run(`schema diff --secret "secret" --dir ~`, container);
+
+    expect(gatherFSL).to.have.been.calledWith("/Users/test-user");
+  });
 });

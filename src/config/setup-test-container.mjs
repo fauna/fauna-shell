@@ -1,7 +1,9 @@
 import fs from "node:fs";
+import { normalize } from "node:path";
 
 import * as awilix from "awilix/lib/awilix.module.mjs";
 import { setupCommonContainer, injectables } from "./setup-container.mjs";
+import { f } from "../../yargs-test/helpers.mjs";
 
 import { stub, spy } from "sinon";
 import { parseYargs } from "../cli.mjs";
@@ -42,6 +44,10 @@ export function setupTestContainer() {
     // real implementation
     parseYargs: awilix.asValue(spy(parseYargs)),
     fs: awilix.asValue(stub(fs)),
+    fsp: awilix.asValue({
+      unlink: stub(),
+      writeFile: stub(),
+    }),
     logger: awilix.asValue({
       // use these for making dev, support tickets easier.
       // they're not mocked because we shouldn't test them
@@ -71,6 +77,8 @@ export function setupTestContainer() {
       error.code = exitCode;
       throw error;
     }),
+    normalize: awilix.asValue(spy(normalize)),
+    fetch: awilix.asValue(stub().resolves(f({}))),
   };
 
   confirmManualMocks(manualMocks, thingsToManuallyMock);

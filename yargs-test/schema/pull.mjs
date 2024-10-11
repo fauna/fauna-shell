@@ -42,9 +42,13 @@ describe("schema pull", function () {
 
   it("can pull schema", async function () {
     const gatherFSL = container.resolve("gatherFSL");
-    gatherFSL.resolves(
-      '[{"name":"coll.fsl","content":"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]'
-    );
+    gatherFSL.resolves([
+      {
+        name: "coll.fsl",
+        content:
+          "collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+      },
+    ]);
 
     // user accepts the changes in the interactive prompt
     confirm.resolves(true);
@@ -127,7 +131,7 @@ describe("schema pull", function () {
     expect(logger.stdout).to.have.been.calledWith("add:       second.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       third.fsl");
     expect(logger.stdout).to.have.been.calledWith(
-      "Pull makes the following changes:"
+      "Pull will make the following changes:"
     );
     // expect(writeSchemaFiles).to.have.been.calledWith([{
     // }])
@@ -139,7 +143,7 @@ describe("schema pull", function () {
 
   it("can be cancelled by the user without modifying the filesystem", async function () {
     const gatherFSL = container.resolve("gatherFSL");
-    gatherFSL.resolves("");
+    gatherFSL.resolves([]);
 
     // user rejects the changes in the interactive prompt
     confirm.resolves(false);
@@ -167,7 +171,7 @@ describe("schema pull", function () {
     expect(logger.stdout).to.have.been.calledWith("add:       second.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       third.fsl");
     expect(logger.stdout).to.have.been.calledWith(
-      "Pull makes the following changes:"
+      "Pull will make the following changes:"
     );
     expect(logger.stdout).to.have.been.calledWith("Change cancelled");
     expect(fs.writeFile).to.have.not.been.called;

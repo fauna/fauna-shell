@@ -7,7 +7,7 @@ import evalCommand from "./yargs-commands/eval.mjs";
 import loginCommand from "./yargs-commands/login.mjs";
 import schemaCommand from "./yargs-commands/schema/schema.mjs";
 import databaseCommand from "./yargs-commands/database.mjs";
-import { logArgv } from "./lib/middleware.mjs";
+import { logArgv, fixPaths } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
 
@@ -17,8 +17,7 @@ export let container;
 export let builtYargs;
 
 /**
- * @function run
- * @param {string} argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
+ * @param {string|string[]} argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
  * @param {cliContainer} _container - A built and ready for use awilix container with registered injectables.
  */
 export async function run(argvInput, _container) {
@@ -40,16 +39,18 @@ export async function run(argvInput, _container) {
   }
 }
 
-// we split this out so it can be injected/mocked
-// this lets us record calls against it and, e.g.,
-// ensure it's only run once per command invocation
+/**
+ * This is split out so it can be injected & spied on. This allows ensuring that,
+ * e.g., it's only run once per command invocation.
+ * @param {import('yargs').Argv<any>} builtYargs
+ * @returns {Promise<any>} builtYargs
+ */
 export async function parseYargs(builtYargs) {
   return builtYargs.parseAsync();
 }
 
 /**
- * @function buildYargs
- * @param {string} argvInput
+ * @param {string|string[]} argvInput
  * @returns {import('yargs').Argv<any>}
  */
 function buildYargs(argvInput) {
@@ -61,6 +62,7 @@ function buildYargs(argvInput) {
     yargsInstance
       .scriptName("fauna")
       .middleware([logArgv], true)
+      .middleware([fixPaths], false)
       .command("eval", "evaluate a query", evalCommand)
       .command("login", "login via website", loginCommand)
       .command(schemaCommand)

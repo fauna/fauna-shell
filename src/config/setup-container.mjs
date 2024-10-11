@@ -23,6 +23,9 @@ import open from "open";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { Lifetime } from "awilix";
 import fs from "node:fs";
+import * as fsp from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
 import { AccountKey } from "../lib/file-util.mjs";
 import { parseYargs } from "../cli.mjs";
 
@@ -47,11 +50,15 @@ export function setupCommonContainer() {
  */
 
 /** @typedef {Resolvers<injectables>} modifiedInjectables */
+
 export const injectables = {
   // node libraries
   exit: awilix.asValue(exit),
   fetch: awilix.asValue(fetchWrapper),
   fs: awilix.asValue(fs),
+  fsp: awilix.asValue(fsp),
+  normalize: awilix.asValue(path.normalize),
+  homedir: awilix.asValue(os.homedir),
 
   // third-party libraries
   confirm: awilix.asValue(confirm),
@@ -82,7 +89,7 @@ export const injectables = {
 };
 
 export function setupRealContainer() {
-  /** @type {awilix.AwilixContainer<injectables>} */
+  /** @type {awilix.AwilixContainer<modifiedInjectables>} */
   const container = setupCommonContainer();
 
   container.register(injectables);

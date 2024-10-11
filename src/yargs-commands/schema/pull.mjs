@@ -41,7 +41,7 @@ async function doPull(argv) {
     .sort();
 
   // Gather local .fsl files to overwrite or delete.
-  const existing = await gatherFSL(argv.dir);
+  const existing = (await gatherFSL(argv.dir)).map((file) => file.name);
 
   // Summarize file changes.
   const adds = [];
@@ -62,7 +62,7 @@ async function doPull(argv) {
   }
   deletes.sort();
 
-  logger.stdout("Pull makes the following changes:");
+  logger.stdout("Pull will make the following changes:");
   if (argv.delete) {
     for (const deleteme of deletes) {
       logger.stdout(`delete:    ${deleteme}`);
