@@ -1,7 +1,6 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { confirm } from "@inquirer/prompts";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 
@@ -15,7 +14,7 @@ async function doPush(argv) {
   if (argv.force) {
     const params = new URLSearchParams({
       force: argv.force,
-      staged: argv.staged,
+      staged: argv.staged ? "true" : "false",
     });
 
     await makeFaunaRequest({
@@ -28,7 +27,10 @@ async function doPush(argv) {
   } else {
     // Confirm diff, then push it. `force` is set on `validate` so we don't
     // need to pass the last known schema version through.
-    const params = new URLSearchParams({ force: "true" });
+    const params = new URLSearchParams({
+      force: "true",
+      staged: argv.staged ? "true" : "false",
+    });
     if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({
@@ -47,6 +49,7 @@ async function doPush(argv) {
       logger.stdout("No logical changes.");
       message = "Push file contents anyway?";
     }
+    const confirm = container.resolve("confirm");
     const confirmed = await confirm({
       message,
       default: false,
