@@ -27,27 +27,11 @@ export default class PullSchemaCommand extends SchemaCommand {
     const { url, secret } = await this.fetchsetup();
 
     try {
-      // Gather remote schema files to download.
-      const filesres = await fetch(new URL("/schema/1/files", url), {
+      // Check if there's a staged schema, and require `--staged` if there is one.
+      const statusres = await fetch(new URL(`/schema/1/staged/status`, url), {
         method: "GET",
         headers: { AUTHORIZATION: `Bearer ${secret}` },
       });
-      const filesjson = await filesres.json();
-      if (filesjson.error) {
-        this.error(filesjson.error.message);
-      }
-
-      // Check if there's a staged schema, and require `--staged` if there is one.
-      const params = new URLSearchParams({
-        version: filesjson.version,
-      });
-      const statusres = await fetch(
-        new URL(`/schema/1/staged/status?${params}`, url),
-        {
-          method: "GET",
-          headers: { AUTHORIZATION: `Bearer ${secret}` },
-        }
-      );
       const statusjson = await statusres.json();
       if (statusjson.error) {
         this.error(statusjson.error.message);
@@ -57,6 +41,20 @@ export default class PullSchemaCommand extends SchemaCommand {
         this.error("There is a staged schema change. Use --staged to pull it.");
       } else if (statusjson.status === "none" && this.flags?.staged) {
         this.error("There are no staged schema changes to pull.");
+      }
+
+      // Gather remote schema files to download.
+      const params = new URLSearchParams({
+        version: statusjson.version,
+        staged: this.flags?.staged ? "true" : "false",
+      });
+      const filesres = await fetch(new URL(`/schema/1/files?${params}`, url), {
+        method: "GET",
+        headers: { AUTHORIZATION: `Bearer ${secret}` },
+      });
+      const filesjson = await filesres.json();
+      if (filesjson.error) {
+        this.error(filesjson.error.message);
       }
 
       // Sort for consistent order. It's nice for tests.
@@ -112,8 +110,15 @@ export default class PullSchemaCommand extends SchemaCommand {
         }
 
         for (const filename of filenames) {
+          const params = new URLSearchParams({
+            version: statusjson.version,
+            staged: this.flags?.staged ? "true" : "false",
+          });
           const fileres = await fetch(
-            new URL(`/schema/1/files/${encodeURIComponent(filename)}`, url),
+            new URL(
+              `/schema/1/files/${encodeURIComponent(filename)}?${params}`,
+              url
+            ),
             {
               method: "GET",
               headers: { AUTHORIZATION: `Bearer ${secret}` },
