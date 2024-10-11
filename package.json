@@ -5,7 +5,7 @@
   "author": "Fauna",
   "type": "module",
   "bin": {
-    "fauna": "./yargs-entrypoint.mjs"
+    "fauna": "./user-entrypoint.mjs"
   },
   "bugs": "https://github.com/fauna/fauna-shell/issues",
   "dependencies": {
@@ -44,10 +44,8 @@
     "node": ">=18.0.0"
   },
   "files": [
-    "/yargs-entrypoint.mjs",
-    "/bin",
-    "/src",
-    "/dist"
+    "/user-entrypoint.mjs",
+    "/src"
   ],
   "homepage": "https://github.com/fauna/fauna-shell",
   "keywords": [
@@ -59,12 +57,10 @@
     "cli"
   ],
   "license": "MPL-2.0",
-  "main": "dist/index.js",
+  "main": "./user-entrypoint.mjs",
   "repository": "fauna/fauna-shell",
   "scripts": {
-    "build": "rm -rf dist && tsc -b",
     "postpack": "rm -f oclif.manifest.json",
-    "prepack": "yarn build && oclif manifest",
     "pretest": "yarn fixlint",
     "local-test": "mocha --recursive ./yargs-test --require ./yargs-test/mocha-root-hooks.mjs",
     "lint": "eslint .",
