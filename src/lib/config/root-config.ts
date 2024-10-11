@@ -26,7 +26,7 @@ export class RootConfig {
         config
           .objectsIn("endpoint")
           .filter(([k, v]) => Endpoint.fromConfig(k, v) !== undefined)
-          .map(([k, v]) => [k, Endpoint.fromConfig(k, v)!])
+          .map(([k, v]) => [k, Endpoint.fromConfig(k, v)!]),
       );
       this.invalidEndpoints = config
         .objectsIn("endpoint")
@@ -37,7 +37,7 @@ export class RootConfig {
         config
           .allObjectsWhere((k) => k !== "default")
           .filter(([k, v]) => Endpoint.fromConfig(k, v) !== undefined)
-          .map(([k, v]) => [k, Endpoint.fromConfig(k, v)!])
+          .map(([k, v]) => [k, Endpoint.fromConfig(k, v)!]),
       );
       this.invalidEndpoints = config
         .allObjectsWhere((k) => k !== "default")
@@ -47,7 +47,7 @@ export class RootConfig {
 
     if (this.defaultEndpoint === "default") {
       throw new InvalidConfigError(
-        "Default endpoint cannot be named 'default'"
+        "Default endpoint cannot be named 'default'",
       );
     }
   }
@@ -69,7 +69,7 @@ export class RootConfig {
    * will not be recognized.
    */
   private static configContainsNestedEndpointStructure(
-    config: Config
+    config: Config,
   ): boolean {
     if (config.objectExists("endpoint")) {
       const endpointObj = config.object("endpoint");
@@ -94,7 +94,7 @@ export class RootConfig {
         ? { default: this.defaultEndpoint }
         : {}),
       endpoint: Object.fromEntries(
-        Object.entries(this.endpoints).map(([k, v]) => [k, v.toIni()])
+        Object.entries(this.endpoints).map(([k, v]) => [k, v.toIni()]),
       ),
     };
   }
