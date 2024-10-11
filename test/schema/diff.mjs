@@ -32,14 +32,14 @@ describe("schema diff", function () {
       f({
         version: 0,
         diff: colorDiffString,
-      })
+      }),
     );
 
     await run(`schema diff --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/validate?force=true&color=ansii&staged=false",
-      { ...commonFetchParams, method: "POST" }
+      { ...commonFetchParams, method: "POST" },
     );
     expect(logger.stdout).to.have.been.calledWith(colorDiffString);
     expect(logger.stderr).to.not.have.been.called;
@@ -52,14 +52,14 @@ describe("schema diff", function () {
       f({
         version: 0,
         diff: colorDiffString,
-      })
+      }),
     );
 
     await run(`schema diff --staged --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/validate?force=true&color=ansii&staged=true",
-      { ...commonFetchParams, method: "POST" }
+      { ...commonFetchParams, method: "POST" },
     );
     expect(logger.stdout).to.have.been.calledWith(colorDiffString);
     expect(logger.stderr).to.not.have.been.called;
@@ -72,14 +72,14 @@ describe("schema diff", function () {
       f({
         version: 0,
         diff: noColorDiffString,
-      })
+      }),
     );
 
     await run(`schema diff --secret "secret" --no-color`, container);
 
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/validate?force=true&staged=false",
-      { ...commonFetchParams, method: "POST" }
+      { ...commonFetchParams, method: "POST" },
     );
     expect(logger.stdout).to.have.been.calledWith(noColorDiffString);
     expect(logger.stderr).to.not.have.been.called;
@@ -92,14 +92,14 @@ describe("schema diff", function () {
       f({
         version: 0,
         diff: "",
-      })
+      }),
     );
 
     await run(`schema diff --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/validate?force=true&color=ansii&staged=false",
-      { ...commonFetchParams, method: "POST" }
+      { ...commonFetchParams, method: "POST" },
     );
     expect(logger.stdout).to.have.been.calledWith("No schema differences");
     expect(logger.stderr).to.not.have.been.called;
@@ -110,7 +110,7 @@ describe("schema diff", function () {
 
     await run(
       `schema diff --secret "secret" --dir /all/but/the/leaf/..`,
-      container
+      container,
     );
 
     expect(gatherFSL).to.have.been.calledWith("/all/but/the");

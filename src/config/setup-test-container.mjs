@@ -3,7 +3,7 @@ import { normalize } from "node:path";
 
 import * as awilix from "awilix";
 import { setupCommonContainer, injectables } from "./setup-container.mjs";
-import { f } from "../../yargs-test/helpers.mjs";
+import { f } from "../../test/helpers.mjs";
 
 import { stub, spy } from "sinon";
 import { parseYargs } from "../cli.mjs";
@@ -29,7 +29,7 @@ function confirmManualMocks(manualMocks, thingsToManuallyMock) {
     const manualMock = manualMocks[thingsToManuallyMock[i]];
     if (!manualMock || !manualMock.resolve)
       throw new Error(
-        `Please mock the injectable "${thingsToManuallyMock[i]}" by adding it to "./src/config/setup-test-container.mjs".`
+        `Please mock the injectable "${thingsToManuallyMock[i]}" by adding it to "./src/config/setup-test-container.mjs".`,
       );
   }
 }
@@ -67,7 +67,7 @@ export function setupTestContainer() {
       stderr: stub(),
     }),
     getSimpleClient: awilix.asValue(
-      stub().returns({ close: () => Promise.resolve() })
+      stub().returns({ close: () => Promise.resolve() }),
     ),
     accountClient: awilix.asFunction(stub()),
     oauthClient: awilix.asFunction(stub()),

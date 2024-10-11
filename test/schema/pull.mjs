@@ -61,31 +61,31 @@ describe("schema pull", function () {
           { filename: "second.fsl" },
           { filename: "third.fsl" },
         ],
-      })
+      }),
     );
     fetch.onCall(1).resolves(
       f({
         version: "194838274939473",
         status: "none",
-      })
+      }),
     );
     fetch.onCall(2).resolves(
       f({
         content:
           '[{"name":"main.fsl","content":"collection Main {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
-      })
+      }),
     );
     fetch.onCall(3).resolves(
       f({
         content:
           '[{"name":"second.fsl","content":"collection Second {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
-      })
+      }),
     );
     fetch.onCall(4).resolves(
       f({
         content:
           '[{"name":"third.fsl","content":"collection Third {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
-      })
+      }),
     );
 
     fs.writeFile.resolves();
@@ -107,31 +107,31 @@ describe("schema pull", function () {
 
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/files",
-      commonFetchParams
+      commonFetchParams,
     );
     // the version param in the URL is important - we use it for optimistic locking
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/staged/status?version=194838274939473",
-      commonFetchParams
+      commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/files/main.fsl",
-      commonFetchParams
+      commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/files/second.fsl",
-      commonFetchParams
+      commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/files/third.fsl",
-      commonFetchParams
+      commonFetchParams,
     );
 
     expect(logger.stdout).to.have.been.calledWith("add:       main.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       second.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       third.fsl");
     expect(logger.stdout).to.have.been.calledWith(
-      "Pull will make the following changes:"
+      "Pull will make the following changes:",
     );
     // expect(writeSchemaFiles).to.have.been.calledWith([{
     // }])
@@ -156,13 +156,13 @@ describe("schema pull", function () {
           { filename: "second.fsl" },
           { filename: "third.fsl" },
         ],
-      })
+      }),
     );
     fetch.onCall(1).resolves(
       f({
         version: "194838274939473",
         status: "none",
-      })
+      }),
     );
 
     await run(`schema pull --secret "secret"`, container);
@@ -171,7 +171,7 @@ describe("schema pull", function () {
     expect(logger.stdout).to.have.been.calledWith("add:       second.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       third.fsl");
     expect(logger.stdout).to.have.been.calledWith(
-      "Pull will make the following changes:"
+      "Pull will make the following changes:",
     );
     expect(logger.stdout).to.have.been.calledWith("Change cancelled");
     expect(fs.writeFile).to.have.not.been.called;
@@ -192,17 +192,17 @@ describe("schema pull", function () {
           { filename: "second.fsl" },
           { filename: "third.fsl" },
         ],
-      })
+      }),
     );
     fetch.onCall(1).resolves(
       f({
         version: "194838274939473",
         status: "staged",
-      })
+      }),
     );
 
     const [error] = await tryToCatch(() =>
-      run(`schema pull --secret "secret"`, container)
+      run(`schema pull --secret "secret"`, container),
     );
     expect(error).to.have.property("code", 1);
     expect(container.resolve("gatherFSL")).to.not.have.been.called;

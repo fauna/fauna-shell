@@ -52,7 +52,7 @@ export default [
     },
   },
   {
-    files: ["yargs-test/**/*.mjs"],
+    files: ["test/**/*.mjs"],
 
     rules: {
       "no-unused-expressions": "off",

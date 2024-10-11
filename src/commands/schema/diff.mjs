@@ -28,8 +28,8 @@ async function doDiff(argv) {
   const description = argv.staged ? "remote, staged" : "remote, active";
   logger.stdout(
     `Differences between the ${bold("local")} schema and the ${bold(
-      description
-    )} schema:`
+      description,
+    )} schema:`,
   );
   logger.stdout(response.diff ? response.diff : "No schema differences");
 }

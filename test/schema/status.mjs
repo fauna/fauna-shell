@@ -26,13 +26,13 @@ describe("schema status", function () {
         version: 0,
         status: "none",
         diff: "Staged schema: none",
-      })
+      }),
     );
     await run(`schema status --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/staged/status?diff=true&color=ansii",
-      commonFetchParams
+      commonFetchParams,
     );
   });
 
@@ -43,13 +43,13 @@ describe("schema status", function () {
         version: 0,
         status: "none",
         diff: "Staged schema: none",
-      })
+      }),
     );
     await run(`schema status --no-color --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/staged/status?diff=true",
-      commonFetchParams
+      commonFetchParams,
     );
   });
 });

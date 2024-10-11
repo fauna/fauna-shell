@@ -2,7 +2,7 @@ import { exit } from "node:process";
 
 import * as awilix from "awilix";
 
-import { performQuery } from "../yargs-commands/eval.mjs";
+import { performQuery } from "../commands/eval.mjs";
 import logger from "../lib/logger.mjs";
 import { getSimpleClient } from "../lib/command-helpers.mjs";
 import {

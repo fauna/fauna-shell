@@ -3,11 +3,11 @@
 import yargs from "yargs";
 import chalk from "chalk";
 
-import evalCommand from "./yargs-commands/eval.mjs";
-import loginCommand from "./yargs-commands/login.mjs";
-import schemaCommand from "./yargs-commands/schema/schema.mjs";
-import databaseCommand from "./yargs-commands/database.mjs";
-import keyCommand from "./yargs-commands/key.mjs";
+import evalCommand from "./commands/eval.mjs";
+import loginCommand from "./commands/login.mjs";
+import schemaCommand from "./commands/schema/schema.mjs";
+import databaseCommand from "./commands/database.mjs";
+import keyCommand from "./commands/key.mjs";
 import { logArgv, fixPaths } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
@@ -31,7 +31,7 @@ export async function run(argvInput, _container) {
     await parseYargs(builtYargs);
   } catch (e) {
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      e.message
+      e.message,
     )}`;
     logger.stderr(message);
     logger.fatal(e.stack, "error");

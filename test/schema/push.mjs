@@ -19,7 +19,7 @@ describe("schema push", function () {
 
     const gatherFSL = container.resolve("gatherFSL");
     gatherFSL.resolves(
-      '[{"name":"coll.fsl","content":"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]'
+      '[{"name":"coll.fsl","content":"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
     );
 
     const logger = container.resolve("logger");
@@ -34,7 +34,7 @@ describe("schema push", function () {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
         body: '[{"name":"coll.fsl","content":"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
-      }
+      },
     );
 
     expect(logger.stdout).to.not.be.called;
@@ -52,7 +52,7 @@ describe("schema push", function () {
 
     await run(
       `schema push --secret "secret" --force --dir "/absolute/path/elsewhere"`,
-      container
+      container,
     );
 
     expect(gatherFSL).to.have.been.calledWith("/absolute/path/elsewhere");

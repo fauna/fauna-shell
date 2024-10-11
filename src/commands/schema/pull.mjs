@@ -28,7 +28,7 @@ async function doPull(argv) {
   // implemented at the service level.
   if (statusResponse.status !== "none" && !argv.staged) {
     throw new Error(
-      "There is a staged schema change. Use --staged to pull it."
+      "There is a staged schema change. Use --staged to pull it.",
     );
   } else if (statusResponse.status === "none" && argv.staged) {
     throw new Error("There are no staged schema changes to pull.");
@@ -83,7 +83,7 @@ async function doPull(argv) {
   if (confirmed) {
     const writeSchemaFiles = container.resolve("writeSchemaFiles");
     const getAllSchemaFileContents = container.resolve(
-      "getAllSchemaFileContents"
+      "getAllSchemaFileContents",
     );
     const contents = await getAllSchemaFileContents(filenames, {
       secret: argv.secret,
@@ -96,7 +96,7 @@ async function doPull(argv) {
     promises.push(writeSchemaFiles(argv.dir, contents));
     if (argv.delete) {
       const deleteUnusedSchemaFiles = container.resolve(
-        "deleteUnusedSchemaFiles"
+        "deleteUnusedSchemaFiles",
       );
       promises.push(deleteUnusedSchemaFiles(argv.dir, deletes));
     }

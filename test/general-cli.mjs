@@ -20,7 +20,7 @@ describe("cli operations", function () {
 
     expect(logger.stdout).to.not.be.called;
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "Missing required argument: secret"
+      "Missing required argument: secret",
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
@@ -37,7 +37,7 @@ describe("cli operations", function () {
 
     expect(logger.stdout).to.not.be.called;
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "Unknown argument: inland-empire"
+      "Unknown argument: inland-empire",
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
@@ -53,7 +53,7 @@ describe("cli operations", function () {
 
     expect(logger.stdout).to.not.be.called;
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "this is a test error"
+      "this is a test error",
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
@@ -69,7 +69,7 @@ describe("cli operations", function () {
 
     expect(logger.stdout).to.not.be.called;
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "this is a rejected promise"
+      "this is a rejected promise",
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;

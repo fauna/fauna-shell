@@ -40,7 +40,7 @@ function read(dir, relpaths) {
     totalsize += content.length;
     if (totalsize > FILESIZE_LIMIT_BYTES) {
       logger.stderr(
-        `Too many bytes: tool accepts at most ${FILESIZE_LIMIT_BYTES}`
+        `Too many bytes: tool accepts at most ${FILESIZE_LIMIT_BYTES}`,
       );
       exit(1);
     }
@@ -114,7 +114,7 @@ export async function deleteUnusedSchemaFiles(dir, filesToDelete) {
  */
 export async function gatherFSL(dir) {
   const gatherRelativeFSLFilePaths = container.resolve(
-    "gatherRelativeFSLFilePaths"
+    "gatherRelativeFSLFilePaths",
   );
 
   checkDirUsability(dir);
@@ -135,7 +135,7 @@ export async function writeSchemaFiles(dir, filenameToContentsDict) {
 
   const promises = [];
   for (const [filename, fileContents] of Object.entries(
-    filenameToContentsDict
+    filenameToContentsDict,
   )) {
     const fp = path.join(dir, filename);
     promises.push(fsp.writeFile(fp, fileContents));
@@ -159,7 +159,7 @@ export async function getAllSchemaFileContents(filenames, { ...overrides }) {
     promises.push(
       getSchemaFile(filename, overrides).then(({ content }) => {
         fileContentCollection[filename] = content;
-      })
+      }),
     );
   }
 

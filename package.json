@@ -38,7 +38,8 @@
     "sinon": "^19.0.2",
     "sinon-called-with-diff": "^3.1.1",
     "sinon-chai": "^4.0.0",
-    "try-to-catch": "^3.0.1"
+    "try-to-catch": "^3.0.1",
+    "typescript": "^5.6.3"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -62,10 +63,10 @@
   "scripts": {
     "postpack": "rm -f oclif.manifest.json",
     "pretest": "yarn fixlint",
-    "local-test": "mocha --recursive ./yargs-test --require ./yargs-test/mocha-root-hooks.mjs",
+    "local-test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
-    "test": "mocha --recursive ./yargs-test --require ./yargs-test/mocha-root-hooks.mjs --reporter spec --reporter mocha-junit-reporter",
+    "test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter spec --reporter mocha-junit-reporter",
     "fmt": "prettier -w src"
   },
   "husky": {
