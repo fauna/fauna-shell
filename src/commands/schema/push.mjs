@@ -77,7 +77,6 @@ async function doPush(argv) {
 function buildPushCommand(yargs) {
   return yargs
     .options({
-      ...commonQueryOptions,
       force: {
         description: "Push the change without a diff or schema version check",
         type: "boolean",
@@ -89,6 +88,7 @@ function buildPushCommand(yargs) {
         type: "boolean",
         default: false,
       },
+      ...commonQueryOptions,
     })
     .example([
       ["$0 schema push"],

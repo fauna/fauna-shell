@@ -111,7 +111,6 @@ async function doPull(argv) {
 function buildPullCommand(yargs) {
   return yargs
     .options({
-      ...commonQueryOptions,
       delete: {
         description:
           "Delete .fsl files in the target directory that are not part of the database schema",
@@ -123,6 +122,7 @@ function buildPullCommand(yargs) {
         type: "boolean",
         default: false,
       },
+      ...commonQueryOptions,
     })
     .example([
       ["$0 schema pull"],

@@ -38,13 +38,13 @@ async function doDiff(argv) {
 function buildDiffCommand(yargs) {
   return yargs
     .options({
-      ...commonQueryOptions,
       staged: {
         description:
           "Compare the local schema to the staged schema instead of the active schema.",
         default: false,
         type: "boolean",
       },
+      ...commonQueryOptions,
     })
     .example([["$0 schema diff"], ["$0 schema diff --dir schemas/myschema"]])
     .version(false)

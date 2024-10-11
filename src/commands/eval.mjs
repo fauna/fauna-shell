@@ -230,7 +230,6 @@ async function doEval(argv) {
 function buildEvalCommand(yargs) {
   return yargs
     .options({
-      ...commonQueryOptions,
       file: {
         type: "string",
         description: "file path to read the query (or queries) from",
@@ -279,6 +278,7 @@ function buildEvalCommand(yargs) {
         description: "enable typechecking",
         default: undefined,
       },
+      ...commonQueryOptions,
     })
     .example([
       ['$0 eval "Collection.all()"'],
