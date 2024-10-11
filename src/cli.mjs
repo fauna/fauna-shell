@@ -82,8 +82,7 @@ function buildYargs(argvInput) {
         builder: {},
       })
       .demandCommand()
-      // TODO .strictCommands(true) blows up... why?
-      .strictOptions(true)
+      .strict(true)
       .options({
         color: {
           description:

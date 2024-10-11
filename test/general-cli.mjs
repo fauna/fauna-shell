@@ -27,7 +27,7 @@ describe("cli operations", function () {
   });
 
   // TODO: this doesn't work because turning on strict mode breaks parsing sub-commands. why?
-  it.skip("should exit with a helpful message if a non-existant command is provided", async function () {
+  it("should exit with a helpful message if a non-existant command is provided", async function () {
     const logger = container.resolve("logger");
 
     // this command does not exist
