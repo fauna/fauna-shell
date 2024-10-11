@@ -1,4 +1,4 @@
-import * as awilix from "awilix/lib/awilix.module.mjs";
+import * as awilix from "awilix";
 import { expect } from "chai";
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
