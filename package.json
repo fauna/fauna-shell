@@ -3,6 +3,7 @@
   "description": "faunadb shell",
   "version": "3.0.0-beta",
   "author": "Fauna",
+  "type": "module",
   "bin": {
     "fauna": "./yargs-entrypoint.mjs"
   },
@@ -11,14 +12,13 @@
     "@inquirer/prompts": "^3.1.1",
     "awilix": "^11.0.0",
     "chalk": "^5.3.0",
+    "eslint": "^9.12.0",
     "faunadb": "^4.5.4",
     "inquirer": "^8.1.1",
     "open": "8.4.2",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.7",
-    "@babel/eslint-parser": "^7.17.0",
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.11.1",
     "@inquirer/testing": "^2.1.7",
@@ -28,7 +28,6 @@
     "@types/sinon": "^17.0.3",
     "@types/yargs": "^17.0.33",
     "chai": "^5.1.1",
-    "eslint": "^8.10.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
     "globals": "^15.10.0",

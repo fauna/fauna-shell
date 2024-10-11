@@ -1,6 +1,5 @@
 import globals from "globals";
-import babelParser from "@babel/eslint-parser";
-// import tsParser from "@typescript-eslint/parser";
+import * as espree from "espree";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import js from "@eslint/js";
@@ -16,25 +15,17 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: [
-      "dist/**/*",
-      "**/experiments",
-      "**/node_modules",
-      "coverage/**/*",
-      "fsl/**/*",
-      "test/**/*",
-      ".history",
-    ],
+    ignores: ["**/node_modules", ".history"],
   },
-  ...compat.extends("oclif", "plugin:prettier/recommended"),
+  ...compat.extends("plugin:prettier/recommended"),
   {
     languageOptions: {
       globals: {
         ...globals.mocha,
       },
 
-      parser: babelParser,
-      ecmaVersion: 6,
+      parser: espree,
+      ecmaVersion: 2020,
       sourceType: "module",
 
       parserOptions: {
@@ -55,13 +46,6 @@ export default [
       "no-console": "off",
       "no-multi-str": "off",
       "no-prototype-builtins": "off",
-
-      "node/no-extraneous-require": [
-        "error",
-        {
-          allowModules: [],
-        },
-      ],
 
       "node/no-unsupported-features": "off",
       camelcase: "off",
