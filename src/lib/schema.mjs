@@ -40,7 +40,7 @@ function read(dir, relpaths) {
     totalsize += content.length;
     if (totalsize > FILESIZE_LIMIT_BYTES) {
       logger.stderr(
-        `Too many bytes: tool accepts at most ${FILESIZE_LIMIT_BYTES}`
+        `Too many bytes: tool accepts at most ${FILESIZE_LIMIT_BYTES}`,
       );
       exit(1);
     }
@@ -114,13 +114,30 @@ export async function deleteUnusedSchemaFiles(dir, filesToDelete) {
  */
 export async function gatherFSL(dir) {
   const gatherRelativeFSLFilePaths = container.resolve(
-    "gatherRelativeFSLFilePaths"
+    "gatherRelativeFSLFilePaths",
   );
+  const logger = container.resolve("logger");
 
   checkDirUsability(dir);
   const fps = await gatherRelativeFSLFilePaths(dir);
   const files = read(dir, fps);
+  logger.debug(
+    `Looked in dir ${dir} and found files: ${JSON.stringify(files, null, 2)}`,
+    "gatherFSL",
+  );
   return files;
+}
+
+/**
+ * @param {LocalFSLFileDescription[]} input
+ * @returns {FormData}
+ */
+export function reformatFSL(input) {
+  const fd = new FormData();
+  for (const file of input) {
+    fd.set(file.name, new Blob([file.content]));
+  }
+  return fd;
 }
 
 /**
@@ -135,7 +152,7 @@ export async function writeSchemaFiles(dir, filenameToContentsDict) {
 
   const promises = [];
   for (const [filename, fileContents] of Object.entries(
-    filenameToContentsDict
+    filenameToContentsDict,
   )) {
     const fp = path.join(dir, filename);
     promises.push(fsp.writeFile(fp, fileContents));
@@ -153,13 +170,13 @@ export async function writeSchemaFiles(dir, filenameToContentsDict) {
  */
 export async function getAllSchemaFileContents(filenames, { ...overrides }) {
   const promises = [];
-  /* @type Record<string, string> */
+  /** @type Record<string, string> */
   const fileContentCollection = {};
   for (const filename of filenames) {
     promises.push(
       getSchemaFile(filename, overrides).then(({ content }) => {
         fileContentCollection[filename] = content;
-      })
+      }),
     );
   }
 

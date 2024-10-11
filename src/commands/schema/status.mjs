@@ -8,7 +8,7 @@ async function doStatus(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
   const params = new URLSearchParams({ diff: "true" });
-  if (argv.color) params.set("color", "ansii");
+  if (argv.color) params.set("color", "ansi");
 
   const response = await makeFaunaRequest({
     baseUrl: argv.url,

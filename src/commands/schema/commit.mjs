@@ -1,26 +1,26 @@
 //@ts-check
 
-import { confirm } from "@inquirer/prompts";
-
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { container } from "../../cli.mjs";
 
-async function doAbandon(argv) {
+async function doCommit(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
+  const confirm = container.resolve("confirm");
 
   if (argv.force) {
     const params = new URLSearchParams({
-      force: "true", // Just abandon, don't pass a schema version through.
+      force: "true", // Just commit, don't pass a schema version through.
     });
 
     await makeFaunaRequest({
       baseUrl: argv.url,
-      path: `/schema/1/staged/abandon?${params}`,
+      path: `/schema/1/staged/commit?${params}`,
       secret: argv.secret,
       method: "POST",
     });
-    logger.stdout("Schema has been abandonded");
+
+    logger.stdout("Schema has been committed");
   } else {
     // Show status to confirm.
     const params = new URLSearchParams({ diff: "true" });
@@ -34,12 +34,15 @@ async function doAbandon(argv) {
     });
 
     if (response.status === "none")
-      throw new Error("There is no staged schema to abandon");
+      throw new Error("There is no staged schema to commit");
 
     logger.stdout(response.diff);
 
+    if (response.status !== "ready")
+      throw new Error("Schema is not ready to be committed");
+
     const confirmed = await confirm({
-      message: "Abandon these changes?",
+      message: "Accept and commit these changes?",
       default: false,
     });
 
@@ -48,19 +51,19 @@ async function doAbandon(argv) {
 
       await makeFaunaRequest({
         baseUrl: argv.url,
-        path: `/schema/1/staged/abandon?${params}`,
+        path: `/schema/1/staged/commit?${params}`,
         secret: argv.secret,
         method: "POST",
       });
 
-      logger.stdout("Schema has been abandoned");
+      logger.stdout("Schema has been committed");
     } else {
-      logger.stdout("Abandon cancelled");
+      logger.stdout("Commit cancelled");
     }
   }
 }
 
-function buildAbandonCommand(yargs) {
+function buildCommitCommand(yargs) {
   return yargs
     .options({
       ...commonQueryOptions,
@@ -70,14 +73,14 @@ function buildAbandonCommand(yargs) {
         default: false,
       },
     })
-    .example([["$0 schema abandon"]])
+    .example([["$0 schema commit"]])
     .version(false)
     .help("help", "show help");
 }
 
 export default {
-  command: "abandon",
-  description: "Abandons the currently staged schema.",
-  builder: buildAbandonCommand,
-  handler: doAbandon,
+  command: "commit",
+  description: "Push the current project's .fsl files to Fauna.",
+  builder: buildCommitCommand,
+  handler: doCommit,
 };

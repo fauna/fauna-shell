@@ -98,14 +98,14 @@ export class Credentials {
         .toString();
       if (!isJSON(fileContent)) {
         throw new Error(
-          `Credentials file at ${this.filepath} contains invalid formatting.`
+          `Credentials file at ${this.filepath} contains invalid formatting.`,
         );
       }
       const parsed = JSON.parse(fileContent);
       return key ? parsed[key] : parsed;
     } catch (err) {
       throw new Error(
-        `Error while parsing credentials file at ${this.filepath}: ${err}`
+        `Error while parsing credentials file at ${this.filepath}: ${err}`,
       );
     }
   }

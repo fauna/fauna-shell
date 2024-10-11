@@ -3,11 +3,11 @@
 import yargs from "yargs";
 import chalk from "chalk";
 
-import evalCommand from "./yargs-commands/eval.mjs";
-import loginCommand from "./yargs-commands/login.mjs";
-import schemaCommand from "./yargs-commands/schema/schema.mjs";
-import databaseCommand from "./yargs-commands/database.mjs";
-import keyCommand from "./yargs-commands/key.mjs";
+import evalCommand from "./commands/eval.mjs";
+import loginCommand from "./commands/login.mjs";
+import schemaCommand from "./commands/schema/schema.mjs";
+import databaseCommand from "./commands/database.mjs";
+import keyCommand from "./commands/key.mjs";
 import { logArgv, fixPaths } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
@@ -31,7 +31,7 @@ export async function run(argvInput, _container) {
     await parseYargs(builtYargs);
   } catch (e) {
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      e.message
+      e.message,
     )}`;
     logger.stderr(message);
     logger.fatal(e.stack, "error");
@@ -59,57 +59,54 @@ function buildYargs(argvInput) {
   // https://github.com/yargs/yargs/blob/main/docs/typescript.md?plain=1#L124
   const yargsInstance = yargs(argvInput);
 
-  return (
-    yargsInstance
-      .scriptName("fauna")
-      .middleware([logArgv], true)
-      .middleware([fixPaths], false)
-      .command("eval", "evaluate a query", evalCommand)
-      .command("login", "login via website", loginCommand)
-      .command(keyCommand)
-      .command(schemaCommand)
-      .command(databaseCommand)
-      .command("throw", false, {
-        handler: () => {
-          throw new Error("this is a test error");
-        },
-        builder: {},
-      })
-      .command("reject", false, {
-        handler: async () => {
-          throw new Error("this is a rejected promise");
-        },
-        builder: {},
-      })
-      .demandCommand()
-      // TODO .strictCommands(true) blows up... why?
-      .strictOptions(true)
-      .options({
-        color: {
-          description:
-            "whether or not to emit escape codes for multi-color terminal output.",
-          type: "boolean",
-          // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
-          default: chalk.level > 0,
-        },
-        verbosity: {
-          description: "the lowest level diagnostic logs to emit",
-          type: "number",
-          default: 0,
-        },
-        verboseComponent: {
-          description:
-            "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
-          type: "array",
-          default: [],
-          choices: ["fetch", "error", "argv"],
-        },
-      })
-      .wrap(yargsInstance.terminalWidth())
-      .help("help", "show help")
-      .fail(false)
-      .exitProcess(false)
-      .version(false)
-      .completion()
-  );
+  return yargsInstance
+    .scriptName("fauna")
+    .middleware([logArgv], true)
+    .middleware([fixPaths], false)
+    .command("eval", "evaluate a query", evalCommand)
+    .command("login", "login via website", loginCommand)
+    .command(keyCommand)
+    .command(schemaCommand)
+    .command(databaseCommand)
+    .command("throw", false, {
+      handler: () => {
+        throw new Error("this is a test error");
+      },
+      builder: {},
+    })
+    .command("reject", false, {
+      handler: async () => {
+        throw new Error("this is a rejected promise");
+      },
+      builder: {},
+    })
+    .demandCommand()
+    .strict(true)
+    .options({
+      color: {
+        description:
+          "whether or not to emit escape codes for multi-color terminal output.",
+        type: "boolean",
+        // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
+        default: chalk.level > 0,
+      },
+      verbosity: {
+        description: "the lowest level diagnostic logs to emit",
+        type: "number",
+        default: 0,
+      },
+      verboseComponent: {
+        description:
+          "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
+        type: "array",
+        default: [],
+        choices: ["fetch", "error", "argv"],
+      },
+    })
+    .wrap(yargsInstance.terminalWidth())
+    .help("help", "show help")
+    .fail(false)
+    .exitProcess(false)
+    .version(false)
+    .completion();
 }

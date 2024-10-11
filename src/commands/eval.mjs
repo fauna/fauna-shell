@@ -118,7 +118,7 @@ async function performV4Query(client, fqlQuery, outputFile, flags) {
         {
           depth: null,
           compact: false,
-        }
+        },
       );
     } else {
       error.message = error.faunaError.message;
@@ -167,7 +167,7 @@ async function doEval(argv) {
     !argv.stdin && argv.query === undefined && argv.file === undefined;
   if (noSourceSet) {
     throw new Error(
-      "No source set. Pass --stdin to  read from stdin or --file."
+      "No source set. Pass --stdin to  read from stdin or --file.",
     );
   }
 
@@ -214,7 +214,7 @@ async function doEval(argv) {
       format: format,
       version: argv.version,
       typecheck: argv.typecheck,
-    }
+    },
   );
 
   if (result) {

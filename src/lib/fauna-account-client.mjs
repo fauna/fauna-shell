@@ -32,7 +32,7 @@ export async function makeAccountRequest({
     fullUrl = new URL(`/api/v1${path}${paramsString}`, baseUrl).href;
   } catch (e) {
     e.message = `Could not build valid URL out of base url (${baseUrl}), path (${path}), and params string (${paramsString}) built from params (${JSON.stringify(
-      params
+      params,
     )}).`;
     throw e;
   }
@@ -50,7 +50,7 @@ export async function makeAccountRequest({
   const response = await fetch(fullUrl, fetchArgs);
   if (response.status >= 400 && shouldThrow) {
     throw new Error(
-      `Failed to make request to Fauna account API: ${response.status}, ${response.statusText}`
+      `Failed to make request to Fauna account API: ${response.status}, ${response.statusText}`,
     );
   }
   const responseType = response.headers.get("content-type");
