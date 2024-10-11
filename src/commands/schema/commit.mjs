@@ -1,13 +1,12 @@
 //@ts-check
 
-import { confirm } from "@inquirer/prompts";
-
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { container } from "../../cli.mjs";
 
 async function doCommit(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
+  const confirm = container.resolve("confirm");
 
   if (argv.force) {
     const params = new URLSearchParams({

@@ -1,22 +1,15 @@
 import { expect } from "chai";
 
-import * as awilix from "awilix";
-
 import { f, commonFetchParams } from "../helpers.mjs";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-
-import { makeFaunaRequest } from "../../src/lib/db.mjs";
 
 describe("schema status", function () {
   let container;
 
   beforeEach(() => {
     container = setupContainer();
-    container.register({
-      makeFaunaRequest: awilix.asValue(makeFaunaRequest),
-    });
   });
 
   it("fetches the current status", async function () {

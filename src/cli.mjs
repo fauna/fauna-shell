@@ -59,56 +59,54 @@ function buildYargs(argvInput) {
   // https://github.com/yargs/yargs/blob/main/docs/typescript.md?plain=1#L124
   const yargsInstance = yargs(argvInput);
 
-  return (
-    yargsInstance
-      .scriptName("fauna")
-      .middleware([logArgv], true)
-      .middleware([fixPaths], false)
-      .command("eval", "evaluate a query", evalCommand)
-      .command("login", "login via website", loginCommand)
-      .command(keyCommand)
-      .command(schemaCommand)
-      .command(databaseCommand)
-      .command("throw", false, {
-        handler: () => {
-          throw new Error("this is a test error");
-        },
-        builder: {},
-      })
-      .command("reject", false, {
-        handler: async () => {
-          throw new Error("this is a rejected promise");
-        },
-        builder: {},
-      })
-      .demandCommand()
-      .strict(true)
-      .options({
-        color: {
-          description:
-            "whether or not to emit escape codes for multi-color terminal output.",
-          type: "boolean",
-          // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
-          default: chalk.level > 0,
-        },
-        verbosity: {
-          description: "the lowest level diagnostic logs to emit",
-          type: "number",
-          default: 0,
-        },
-        verboseComponent: {
-          description:
-            "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
-          type: "array",
-          default: [],
-          choices: ["fetch", "error", "argv"],
-        },
-      })
-      .wrap(yargsInstance.terminalWidth())
-      .help("help", "show help")
-      .fail(false)
-      .exitProcess(false)
-      .version(false)
-      .completion()
-  );
+  return yargsInstance
+    .scriptName("fauna")
+    .middleware([logArgv], true)
+    .middleware([fixPaths], false)
+    .command("eval", "evaluate a query", evalCommand)
+    .command("login", "login via website", loginCommand)
+    .command(keyCommand)
+    .command(schemaCommand)
+    .command(databaseCommand)
+    .command("throw", false, {
+      handler: () => {
+        throw new Error("this is a test error");
+      },
+      builder: {},
+    })
+    .command("reject", false, {
+      handler: async () => {
+        throw new Error("this is a rejected promise");
+      },
+      builder: {},
+    })
+    .demandCommand()
+    .strict(true)
+    .options({
+      color: {
+        description:
+          "whether or not to emit escape codes for multi-color terminal output.",
+        type: "boolean",
+        // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
+        default: chalk.level > 0,
+      },
+      verbosity: {
+        description: "the lowest level diagnostic logs to emit",
+        type: "number",
+        default: 0,
+      },
+      verboseComponent: {
+        description:
+          "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
+        type: "array",
+        default: [],
+        choices: ["fetch", "error", "argv"],
+      },
+    })
+    .wrap(yargsInstance.terminalWidth())
+    .help("help", "show help")
+    .fail(false)
+    .exitProcess(false)
+    .version(false)
+    .completion();
 }

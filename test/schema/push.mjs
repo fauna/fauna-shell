@@ -1,8 +1,6 @@
-import * as awilix from "awilix";
 import { expect } from "chai";
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-import { makeFaunaRequest } from "../../src/lib/db.mjs";
 import { reformatFSL } from "../../src/lib/schema.mjs";
 import { f } from "../helpers.mjs";
 import sinon from "sinon";
@@ -22,9 +20,6 @@ describe("schema push", function () {
   beforeEach(() => {
     container = setupContainer();
 
-    container.register({
-      makeFaunaRequest: awilix.asValue(makeFaunaRequest),
-    });
     gatherFSL = container.resolve("gatherFSL");
     fetch = container.resolve("fetch");
     logger = container.resolve("logger");

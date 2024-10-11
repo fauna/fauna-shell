@@ -1,13 +1,10 @@
 import { expect } from "chai";
 
-import * as awilix from "awilix";
-
 import { f, commonFetchParams } from "../helpers.mjs";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
-import { makeFaunaRequest } from "../../src/lib/db.mjs";
 import { reformatFSL } from "../../src/lib/schema.mjs";
 
 describe("schema diff", function () {
@@ -15,8 +12,7 @@ describe("schema diff", function () {
     "\u001B[1;34m* Removing collection `Todo`\u001B[0m from main.fsl:8:1:\n\n\u001B[31m  - collection Todo {\u001B[0m\n\u001B[31m  -   history_days 0\u001B[0m\n\u001B[31m  - }\u001B[0m\n\n";
   const noColorDiffString =
     "* Removing collection `Todo` from main.fsl:8:1:\n\n  - collection Todo {\n  -   history_days 0\n  - }\n\n";
-  let container;
-  let logger;
+  let container, logger, fetch, gatherFSL;
   const fsl = [
     {
       name: "coll.fsl",
@@ -27,16 +23,14 @@ describe("schema diff", function () {
 
   beforeEach(() => {
     container = setupContainer();
-    container.register({
-      makeFaunaRequest: awilix.asValue(makeFaunaRequest),
-    });
     logger = container.resolve("logger");
-    container.resolve("gatherFSL").resolves(fsl);
+    fetch = container.resolve("fetch");
+    gatherFSL = container.resolve("gatherFSL");
+
+    gatherFSL.resolves(fsl);
   });
 
   it("can display the diff between local and remote schema", async function () {
-    const fetch = container.resolve("fetch");
-
     fetch.resolves(
       f({
         version: 0,
@@ -55,8 +49,6 @@ describe("schema diff", function () {
   });
 
   it("can display the diff between local and staged remote schema", async function () {
-    const fetch = container.resolve("fetch");
-
     fetch.resolves(
       f({
         version: 0,
@@ -75,8 +67,6 @@ describe("schema diff", function () {
   });
 
   it("can display the diff without color (terminal escape codes)", async function () {
-    const fetch = container.resolve("fetch");
-
     fetch.resolves(
       f({
         version: 0,
@@ -95,8 +85,6 @@ describe("schema diff", function () {
   });
 
   it("displays useful output when a diff is empty", async function () {
-    const fetch = container.resolve("fetch");
-
     fetch.resolves(
       f({
         version: 0,
@@ -115,8 +103,6 @@ describe("schema diff", function () {
   });
 
   it("can parse relative paths", async function () {
-    const gatherFSL = container.resolve("gatherFSL");
-
     await run(
       `schema diff --secret "secret" --dir /all/but/the/leaf/..`,
       container,
@@ -126,7 +112,6 @@ describe("schema diff", function () {
   });
 
   it("can parse home directory paths", async function () {
-    const gatherFSL = container.resolve("gatherFSL");
     const homedir = container.resolve("homedir");
     homedir.returns("/Users/test-user");
 

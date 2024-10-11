@@ -4,6 +4,7 @@ import { normalize } from "node:path";
 import * as awilix from "awilix";
 import { setupCommonContainer, injectables } from "./setup-container.mjs";
 import { f } from "../../test/helpers.mjs";
+import { makeFaunaRequest } from "../lib/db.mjs";
 
 import { stub, spy } from "sinon";
 import { parseYargs } from "../cli.mjs";
@@ -81,6 +82,7 @@ export function setupTestContainer() {
     normalize: awilix.asValue(spy(normalize)),
     fetch: awilix.asValue(stub().resolves(f({}))),
     gatherFSL: awilix.asValue(stub().resolves([])),
+    makeFaunaRequest: awilix.asValue(spy(makeFaunaRequest)),
   };
 
   confirmManualMocks(manualMocks, thingsToManuallyMock);
