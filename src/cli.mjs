@@ -7,6 +7,7 @@ import evalCommand from "./yargs-commands/eval.mjs";
 import loginCommand from "./yargs-commands/login.mjs";
 import schemaCommand from "./yargs-commands/schema/schema.mjs";
 import databaseCommand from "./yargs-commands/database.mjs";
+import keyCommand from "./yargs-commands/key.mjs";
 import { logArgv, fixPaths } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
@@ -65,6 +66,7 @@ function buildYargs(argvInput) {
       .middleware([fixPaths], false)
       .command("eval", "evaluate a query", evalCommand)
       .command("login", "login via website", loginCommand)
+      .command(keyCommand)
       .command(schemaCommand)
       .command(databaseCommand)
       .command("throw", false, {

@@ -3,27 +3,69 @@
 import { container } from "../cli.mjs";
 
 /**
+ *
+ * @param {Object} opts
+ * @param {string} [opts.body] - The body of the request. JSON or form-urlencoded string
+ * @param {any} [opts.params] - The query parameters of the request
+ * @param {string} [opts.contentType] - The content type of the request
+ * @param {string} opts.method - The HTTP method of the request
+ * @param {string} opts.path - The path of the request to append to base fauna account URL
+ * @param {string} [opts.secret] - The secret key to use for the request
+ * @param {boolean} [opts.shouldThrow] - Whether or not to throw an error if the request fails
+ * @returns {Promise<Response | Object>} - The response from the request
+ */
+export async function makeAccountRequest({
+  secret = "",
+  path,
+  params = undefined,
+  method,
+  body = undefined,
+  shouldThrow = true,
+  contentType = "application/json",
+}) {
+  const fetch = container.resolve("fetch");
+  const baseUrl = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
+  const paramsString = params ? `?${new URLSearchParams(params)}` : "";
+  let fullUrl;
+
+  try {
+    fullUrl = new URL(`/api/v1${path}${paramsString}`, baseUrl).href;
+  } catch (e) {
+    e.message = `Could not build valid URL out of base url (${baseUrl}), path (${path}), and params string (${paramsString}) built from params (${JSON.stringify(
+      params
+    )}).`;
+    throw e;
+  }
+
+  const fetchArgs = {
+    method,
+    headers: {
+      AUTHORIZATION: `Bearer ${secret}`,
+      "content-type": contentType,
+    },
+  };
+
+  if (body) fetchArgs.body = body;
+
+  const response = await fetch(fullUrl, fetchArgs);
+  if (response.status >= 400 && shouldThrow) {
+    throw new Error(
+      `Failed to make request to Fauna account API: ${response.status}, ${response.statusText}`
+    );
+  }
+  const responseType = response.headers.get("content-type");
+  const result =
+    responseType === "application/json"
+      ? await response.json()
+      : await response;
+
+  return result;
+}
+
+/**
  * Class representing a client for interacting with the Fauna account API.
  */
 export class FaunaAccountClient {
-  /**
-   * Creates an instance of FaunaAccountClient.
-   */
-  constructor() {
-    /**
-     * The base URL for the Fauna account API.
-     * @type {string}
-     */
-    this.url =
-      process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com/api/v1";
-
-    /**
-     * The fetch function for making HTTP requests.
-     * @type {Function}
-     */
-    this.fetch = container.resolve("fetch");
-  }
-
   /**
    * Starts an OAuth request to the Fauna account API.
    *
@@ -32,10 +74,13 @@ export class FaunaAccountClient {
    * @throws {Error} - Throws an error if there is an issue during login.
    */
   async startOAuthRequest(authCodeParams) {
-    const OAuthUrl = `${this.url}/api/v1/oauth/authorize?${new URLSearchParams(
-      authCodeParams
-    )}`;
-    const dashboardOAuthURL = (await this.fetch(OAuthUrl)).url;
+    const dashboardOAuthURL = (
+      await makeAccountRequest({
+        path: "/oauth/authorize",
+        method: "GET",
+        params: authCodeParams,
+      })
+    ).url;
     const error = new URL(dashboardOAuthURL).searchParams.get("error");
     if (error) {
       throw new Error(`Error during login: ${error}`);
@@ -65,22 +110,17 @@ export class FaunaAccountClient {
       code_verifier: opts.codeVerifier,
     };
     try {
-      const response = await this.fetch(`${this.url}/api/v1/oauth/token`, {
+      const response = await makeAccountRequest({
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams(params),
+        contentType: "application/x-www-form-urlencoded",
+        body: new URLSearchParams(params).toString(),
+        path: "/oauth/token",
       });
-      if (response.status >= 400) {
-        throw new Error(
-          `Failure to authorize with Fauna (${response.status}): ${response.statusText}`
-        );
-      }
       const { access_token } = await response.json();
       return access_token;
     } catch (err) {
-      throw new Error("Failure to authorize with Fauna: " + err.message);
+      err.message = "Failure to authorize with Fauna: " + err.message;
+      throw err;
     }
   }
 
@@ -92,26 +132,17 @@ export class FaunaAccountClient {
    * @throws {Error} - Throws an error if there is an issue during session retrieval.
    */
   async getSession(accessToken) {
-    const headers = new Headers();
-    headers.append("Authorization", `Bearer ${accessToken}`);
-
-    const requestOptions = {
-      method: "POST",
-      headers,
-    };
     try {
-      const response = await this.fetch(
-        `${this.url}/api/v1/session`,
-        requestOptions
-      );
-      if (response.status >= 400) {
-        throw new Error(
-          `Failure to get session with Fauna (${response.status}): ${response.statusText}`
-        );
-      }
-      return await response.json();
+      const response = await makeAccountRequest({
+        method: "POST",
+        path: "/session",
+        secret: accessToken,
+      });
+      const session = await response.json();
+      return session;
     } catch (err) {
-      throw new Error("Failure to get session with Fauna: " + err.message);
+      err.message = "Failure to get session with Fauna: " + err.message;
+      throw err;
     }
   }
 
@@ -123,26 +154,39 @@ export class FaunaAccountClient {
    * @throws {Error} - Throws an error if there is an issue during the request.
    */
   async listDatabases(accountKey) {
-    const headers = new Headers();
-    headers.append("Authorization", `Bearer ${accountKey}`);
-
-    const requestOptions = {
-      method: "GET",
-      headers,
-    };
     try {
-      const response = await this.fetch(
-        `${this.url}/api/v1/databases`,
-        requestOptions
-      );
-      if (response.status >= 400) {
-        throw new Error(
-          `Failure to list databases. (${response.status}): ${response.statusText}`
-        );
-      }
+      const response = await makeAccountRequest({
+        method: "GET",
+        path: "/databases",
+        secret: accountKey,
+      });
       return await response.json();
     } catch (err) {
-      throw new Error("Failure to list databases with Fauna: " + err.message);
+      err.message = "Failure to list databases: " + err.message;
+      throw err;
     }
+  }
+
+  /**
+   * Creates a new key for a specified database.
+   *
+   * @param {Object} params - The parameters for creating the key.
+   * @param {string} params.accountKey - The account key for authentication.
+   * @param {string} params.path - The path of the database, including region group
+   * @param {string} [params.role] - The builtin role for the key. Default admin.
+   * @returns {Promise<Object>} - A promise that resolves when the key is created.
+   * @throws {Error} - Throws an error if there is an issue during key creation.
+   */
+  async createKey({ accountKey, path, role = "admin" }) {
+    return await makeAccountRequest({
+      method: "POST",
+      path: "/databases/keys",
+      body: JSON.stringify({
+        path,
+        regionGroup: "us-std",
+        role,
+      }),
+      secret: accountKey,
+    });
   }
 }

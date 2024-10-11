@@ -26,7 +26,7 @@ import fs from "node:fs";
 import * as fsp from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { AccountKey } from "../lib/file-util.mjs";
+import { AccountKey, SecretKey } from "../lib/file-util.mjs";
 import { parseYargs } from "../cli.mjs";
 
 // import { findUpSync } from 'find-up'
@@ -75,6 +75,7 @@ export const injectables = {
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
   makeFaunaRequest: awilix.asValue(makeFaunaRequest),
   accountCreds: awilix.asClass(AccountKey, { lifetime: Lifetime.SCOPED }),
+  secretCreds: awilix.asClass(SecretKey, { lifetime: Lifetime.SCOPED }),
   errorHandler: awilix.asValue((error, exitCode) => exit(exitCode)),
 
   // feature-specific lib (homemade utilities)
