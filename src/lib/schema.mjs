@@ -170,7 +170,7 @@ export async function writeSchemaFiles(dir, filenameToContentsDict) {
  */
 export async function getAllSchemaFileContents(filenames, { ...overrides }) {
   const promises = [];
-  /* @type Record<string, string> */
+  /** @type Record<string, string> */
   const fileContentCollection = {};
   for (const filename of filenames) {
     promises.push(

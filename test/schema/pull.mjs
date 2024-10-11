@@ -1,8 +1,9 @@
 import { expect } from "chai";
+import sinon from "sinon";
 
 import * as awilix from "awilix";
 
-import { f } from "../helpers.mjs";
+import { f, commonFetchParams } from "../helpers.mjs";
 import tryToCatch from "try-to-catch";
 
 import { run } from "../../src/cli.mjs";
@@ -13,14 +14,11 @@ import {
   getStagedSchemaStatus,
   getAllSchemaFileContents,
   writeSchemaFiles,
+  deleteUnusedSchemaFiles,
 } from "../../src/lib/schema.mjs";
 
 describe("schema pull", function () {
-  let container;
-  let logger;
-  let confirm;
-  let fetch;
-  let fs;
+  let container, logger, confirm, fetch, fs, fsp, gatherFSL;
 
   beforeEach(() => {
     container = setupContainer();
@@ -28,25 +26,36 @@ describe("schema pull", function () {
     // this is a funny situation - we actually want the "real" implementations of these.
     // they end up calling fetch and fs, which is what we'll verify against in the tests.
     container.register({
-      getSchemaFile: awilix.asValue(getSchemaFile),
-      getSchemaFiles: awilix.asValue(getSchemaFiles),
-      getStagedSchemaStatus: awilix.asValue(getStagedSchemaStatus),
-      getAllSchemaFileContents: awilix.asValue(getAllSchemaFileContents),
-      writeSchemaFiles: awilix.asValue(writeSchemaFiles),
+      getSchemaFile: awilix.asValue(sinon.spy(getSchemaFile)),
+      getSchemaFiles: awilix.asValue(sinon.spy(getSchemaFiles)),
+      getStagedSchemaStatus: awilix.asValue(sinon.spy(getStagedSchemaStatus)),
+      getAllSchemaFileContents: awilix.asValue(
+        sinon.spy(getAllSchemaFileContents),
+      ),
+      writeSchemaFiles: awilix.asValue(sinon.spy(writeSchemaFiles)),
+      deleteUnusedSchemaFiles: awilix.asValue(
+        sinon.spy(deleteUnusedSchemaFiles),
+      ),
     });
     logger = container.resolve("logger");
     fetch = container.resolve("fetch");
     confirm = container.resolve("confirm");
     fs = container.resolve("fs");
+    fsp = container.resolve("fsp");
+    gatherFSL = container.resolve("gatherFSL");
   });
 
-  it("can pull schema", async function () {
-    const gatherFSL = container.resolve("gatherFSL");
+  it("can pull schema, adding new files and overwriting existing files", async function () {
     gatherFSL.resolves([
       {
         name: "coll.fsl",
         content:
           "collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+      },
+      {
+        name: "main.fsl",
+        content:
+          "collection OldMain {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
       },
     ]);
 
@@ -72,19 +81,19 @@ describe("schema pull", function () {
     fetch.onCall(2).resolves(
       f({
         content:
-          '[{"name":"main.fsl","content":"collection Main {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
+          "collection Main {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
       }),
     );
     fetch.onCall(3).resolves(
       f({
         content:
-          '[{"name":"second.fsl","content":"collection Second {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
+          "collection Second {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
       }),
     );
     fetch.onCall(4).resolves(
       f({
         content:
-          '[{"name":"third.fsl","content":"collection Third {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
+          "collection Third {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
       }),
     );
 
@@ -97,13 +106,6 @@ describe("schema pull", function () {
     }
 
     expect(gatherFSL).to.have.been.calledWith(".");
-
-    const commonFetchParams = {
-      method: "GET",
-      headers: {
-        AUTHORIZATION: "Bearer secret",
-      },
-    };
 
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/files",
@@ -127,23 +129,45 @@ describe("schema pull", function () {
       commonFetchParams,
     );
 
-    expect(logger.stdout).to.have.been.calledWith("add:       main.fsl");
+    expect(logger.stdout).to.have.been.calledWith("overwrite: main.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       second.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       third.fsl");
     expect(logger.stdout).to.have.been.calledWith(
       "Pull will make the following changes:",
     );
-    // expect(writeSchemaFiles).to.have.been.calledWith([{
-    // }])
-    // expect(getAllSchemaFileContents).to.have.been.calledWith(['main.fsl'])
-    // expect(deleteUnusedSchemaFiles.called).to.be.false
+
+    expect(fs.mkdirSync).to.have.been.calledWith(".", { recursive: true });
+    expect(fsp.writeFile).to.have.been.calledWith(
+      "main.fsl",
+      "collection Main {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+    );
+    expect(fsp.writeFile).to.have.been.calledWith(
+      "second.fsl",
+      "collection Second {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+    );
+    expect(fsp.writeFile).to.have.been.calledWith(
+      "third.fsl",
+      "collection Third {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+    );
+    expect(container.resolve("deleteUnusedSchemaFiles")).to.not.have.been
+      .called;
 
     expect(logger.stderr).to.not.have.been.called;
   });
 
   it("can be cancelled by the user without modifying the filesystem", async function () {
-    const gatherFSL = container.resolve("gatherFSL");
-    gatherFSL.resolves([]);
+    gatherFSL.resolves([
+      {
+        name: "coll.fsl",
+        content:
+          "collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+      },
+      {
+        name: "main.fsl",
+        content:
+          "collection OldMain {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+      },
+    ]);
 
     // user rejects the changes in the interactive prompt
     confirm.resolves(false);
@@ -165,22 +189,76 @@ describe("schema pull", function () {
       }),
     );
 
-    await run(`schema pull --secret "secret"`, container);
+    await run(`schema pull --secret "secret" --delete`, container);
 
-    expect(logger.stdout).to.have.been.calledWith("add:       main.fsl");
+    expect(logger.stdout).to.have.been.calledWith("overwrite: main.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       second.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       third.fsl");
+    expect(logger.stdout).to.have.been.calledWith("delete:    coll.fsl");
     expect(logger.stdout).to.have.been.calledWith(
       "Pull will make the following changes:",
     );
     expect(logger.stdout).to.have.been.calledWith("Change cancelled");
     expect(fs.writeFile).to.have.not.been.called;
-    expect(fs.unlink).to.have.not.been.called;
+    expect(fsp.unlink).to.have.not.been.called;
     expect(fs.mkdirSync).to.have.not.been.called;
   });
 
-  it.skip("can delete extraneous FSL files", async function () {});
-  it.skip("can overwrite modified FSL files", async function () {});
+  it("can delete extraneous FSL files", async function () {
+    gatherFSL.resolves([
+      {
+        name: "coll.fsl",
+        content:
+          "collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+      },
+      {
+        name: "main.fsl",
+        content:
+          "collection OldMain {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+      },
+    ]);
+
+    fetch.onCall(0).resolves(
+      f({
+        version: "194838274939473",
+        files: [{ filename: "main.fsl" }],
+      }),
+    );
+    fetch.onCall(1).resolves(
+      f({
+        version: "194838274939473",
+        status: "none",
+      }),
+    );
+    fetch.onCall(2).resolves(
+      f({
+        content:
+          "collection Main {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+      }),
+    );
+
+    // user accepts the changes in the interactive prompt
+    confirm.resolves(true);
+
+    await run(`schema pull --secret "secret" --delete`, container);
+
+    expect(fsp.unlink).to.have.been.calledOnce;
+    expect(fsp.unlink).to.have.been.calledWith("coll.fsl");
+    expect(logger.stdout).to.have.been.calledWith("overwrite: main.fsl");
+    expect(logger.stdout).to.have.been.calledWith("delete:    coll.fsl");
+    expect(logger.stdout).to.have.been.calledWith(
+      "Pull will make the following changes:",
+    );
+
+    expect(fs.mkdirSync).to.have.been.calledWith(".", { recursive: true });
+    expect(fsp.writeFile).to.have.been.calledWith(
+      "main.fsl",
+      "collection Main {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+    );
+
+    expect(logger.stderr).to.not.have.been.called;
+  });
+
   it.skip("does not modify the filesystem if it fails to read file contents", async function () {});
 
   it("requires the --staged flag if a schema change is staged", async function () {
