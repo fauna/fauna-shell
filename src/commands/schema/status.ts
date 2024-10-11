@@ -58,9 +58,6 @@ export default class StatusSchemaCommand extends SchemaCommand {
       );
 
       const validateJson = await validateRes.json();
-      if (validateJson.error) {
-        this.error(validateJson.error.message);
-      }
 
       if (statusJson.status === "none") {
         this.log(`Staged changes: ${bold()}none${reset()}`);
@@ -78,15 +75,20 @@ export default class StatusSchemaCommand extends SchemaCommand {
         }
       }
 
-      if (validateJson.diff === "") {
-        this.log(`Local changes: ${bold()}none${reset()}`);
-      } else {
+      if (validateJson.error) {
         this.log(`Local changes:`);
-        this.log();
-        this.log("  " + validateJson.diff.split("\n").join("\n  "));
+        this.error(validateJson.error.message);
+      } else {
+        if (validateJson.diff === "") {
+          this.log(`Local changes: ${bold()}none${reset()}`);
+        } else {
+          this.log(`Local changes:`);
+          this.log();
+          this.log("  " + validateJson.diff.split("\n").join("\n  "));
 
-        this.log("(use `fauna schema diff` to display local changes)");
-        this.log("(use `fauna schema push --staged` to stage local changes)");
+          this.log("(use `fauna schema diff` to display local changes)");
+          this.log("(use `fauna schema push --staged` to stage local changes)");
+        }
       }
     } catch (err) {
       this.error(err);
