@@ -12,8 +12,8 @@ export default class PullSchemaCommand extends SchemaCommand {
         "Delete .fsl files in the target directory that are not part of the database schema",
       default: false,
     }),
-    staged: Flags.boolean({
-      description: "Pulls staged schema instead of the active schema",
+    active: Flags.boolean({
+      description: "Pulls the active schema instead of the staged schema.",
       default: false,
     }),
   };
@@ -37,16 +37,12 @@ export default class PullSchemaCommand extends SchemaCommand {
         this.error(statusjson.error.message);
       }
 
-      if (statusjson.status !== "none" && !this.flags?.staged) {
-        this.error("There is a staged schema change. Use --staged to pull it.");
-      } else if (statusjson.status === "none" && this.flags?.staged) {
-        this.error("There are no staged schema changes to pull.");
-      }
+      let isStagedPull = statusjson.status !== "none" && !this.flags?.active;
 
       // Gather remote schema files to download.
       const params = new URLSearchParams({
         version: statusjson.version,
-        staged: this.flags?.staged ? "true" : "false",
+        staged: isStagedPull ? "true" : "false",
       });
       const filesres = await fetch(new URL(`/schema/1/files?${params}`, url), {
         method: "GET",
@@ -112,7 +108,7 @@ export default class PullSchemaCommand extends SchemaCommand {
         for (const filename of filenames) {
           const params = new URLSearchParams({
             version: statusjson.version,
-            staged: this.flags?.staged ? "true" : "false",
+            staged: isStagedPull ? "true" : "false",
           });
           const fileres = await fetch(
             new URL(
