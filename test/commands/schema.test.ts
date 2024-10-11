@@ -138,10 +138,13 @@ describe("fauna schema push test", () => {
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
+      .get("/schema/1/staged/status")
+      .reply(200, { status: "none", version: 0 })
       .post("/schema/1/validate?force=true&diff=summary")
       .reply(200, diff)
-      .post("/schema/1/update?version=0&staged=false")
+      .post("/schema/1/update?version=0&staged=true")
       .reply(200, updated);
+
     // Stubbing the confirmation to always return true
     const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
     const { stdout } = await runCommand(
@@ -152,20 +155,21 @@ describe("fauna schema push test", () => {
     stubConfirm.restore();
   });
 
-  it("runs schema push --staged", async () => {
+  it("runs schema push --skip-staged", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
+      .get("/schema/1/staged/status")
+      .reply(200, { status: "none", version: 0 })
       .post("/schema/1/validate?force=true&diff=summary")
       .reply(200, diff)
-      .post("/schema/1/update?version=0&staged=true")
+      .post("/schema/1/update?version=0&staged=false")
       .reply(200, updated);
-
     // Stubbing the confirmation to always return true
     const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
     const { stdout } = await runCommand(
-      withOpts(["schema push", "--dir=test/testdata", "--staged"])
+      withOpts(["schema push", "--dir=test/testdata", "--skip-staged"])
     );
     expect(stdout).to.contain(`${diff.diff}`);
     // Restore the stub after the test
