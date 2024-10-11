@@ -1,6 +1,6 @@
 import { exit } from "node:process";
 
-import awilix from "awilix";
+import * as awilix from "awilix";
 
 import { performQuery } from "../yargs-commands/eval.mjs";
 import logger from "../lib/logger.mjs";

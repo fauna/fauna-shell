@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import * as awilix from "awilix/lib/awilix.module.mjs";
+import * as awilix from "awilix";
 
 import { f } from "../helpers.mjs";
 import tryToCatch from "try-to-catch";

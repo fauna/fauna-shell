@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { normalize } from "node:path";
 
-import * as awilix from "awilix/lib/awilix.module.mjs";
+import * as awilix from "awilix";
 import { setupCommonContainer, injectables } from "./setup-container.mjs";
 import { f } from "../../yargs-test/helpers.mjs";
 

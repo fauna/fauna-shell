@@ -1,7 +1,0 @@
-id,name,birthday,considered_old
-1,mia,,true
-2,mia,null,true
-3,mia,NULL,true
-,mia,present,true
-5,,present,true
-6,mia,present,

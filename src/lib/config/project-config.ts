@@ -22,7 +22,7 @@ export class ProjectConfig {
   private constructor(
     environments: { [key: string]: Environment },
     defaultEnvironment?: string,
-    schemaDir?: string
+    schemaDir?: string,
   ) {
     this.environments = environments;
     this.defaultEnvironment = defaultEnvironment;
@@ -33,18 +33,18 @@ export class ProjectConfig {
     const defaultEnvironment = config.strOpt(ProjectConfig.DEFAULT_FIELD_NAME);
     const fslDir = config.strOpt(ProjectConfig.SCHEMA_DIRECTORY_FIELD_NAME);
     const environments: { [key: string]: Environment } = config.objectExists(
-      ProjectConfig.ENVIRONMENT_FIELD_NAME
+      ProjectConfig.ENVIRONMENT_FIELD_NAME,
     )
       ? Object.fromEntries<Environment>(
           config
             .objectsIn("environment")
-            .map(([k, v]) => [k, new Environment(v)])
+            .map(([k, v]) => [k, new Environment(v)]),
         )
       : {};
 
     if (defaultEnvironment && environments[defaultEnvironment] === undefined) {
       throw new InvalidConfigError(
-        `Default environment '${defaultEnvironment}' was not found`
+        `Default environment '${defaultEnvironment}' was not found`,
       );
     }
 
@@ -55,7 +55,7 @@ export class ProjectConfig {
     for (const environment of Object.values(this.environments)) {
       if (rootConfig.endpoints[environment.endpoint] === undefined) {
         throw new InvalidConfigError(
-          `Endpoint '${environment.endpoint}' not found in ~/.fauna-shell`
+          `Endpoint '${environment.endpoint}' not found in ~/.fauna-shell`,
         );
       }
     }

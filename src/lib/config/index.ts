@@ -31,7 +31,7 @@ export class Config {
       return v;
     } else {
       throw new InvalidConfigError(
-        `Expected string for ${this.keyName} ${key}, got ${typeof v}`
+        `Expected string for ${this.keyName} ${key}, got ${typeof v}`,
       );
     }
   }
@@ -49,12 +49,12 @@ export class Config {
         return parseInt(v, 10);
       } catch (_) {
         throw new InvalidConfigError(
-          `Invalid number for ${this.keyName} ${key}`
+          `Invalid number for ${this.keyName} ${key}`,
         );
       }
     } else {
       throw new InvalidConfigError(
-        `Expected number for ${this.keyName} ${key}, got ${typeof v}`
+        `Expected number for ${this.keyName} ${key}, got ${typeof v}`,
       );
     }
   }
@@ -63,13 +63,13 @@ export class Config {
     const v = this.config[key];
     if (v === undefined) {
       throw new InvalidConfigError(
-        `Missing value for required ${this.keyName} ${key}`
+        `Missing value for required ${this.keyName} ${key}`,
       );
     } else if (v !== null && typeof v === "object") {
       return new Config(this.keyName, v as any);
     } else {
       throw new InvalidConfigError(
-        `Expected object for ${this.keyName} ${key}, got ${typeof v}`
+        `Expected object for ${this.keyName} ${key}, got ${typeof v}`,
       );
     }
   }
@@ -90,7 +90,7 @@ export class Config {
   require<T>(key: string, value: T | undefined): T {
     if (value === undefined) {
       throw new InvalidConfigError(
-        `Missing value for required ${this.keyName} ${key}`
+        `Missing value for required ${this.keyName} ${key}`,
       );
     } else {
       return value;
@@ -100,7 +100,7 @@ export class Config {
   // Returns a list of all keys that match `pred`.
   allObjectsWhere(pred: (_: string) => boolean): [string, Config][] {
     return Object.keys(this.config).flatMap((k: string) =>
-      pred(k) ? [[k, this.object(k)]] : []
+      pred(k) ? [[k, this.object(k)]] : [],
     );
   }
 
@@ -197,7 +197,7 @@ export class ShellConfig {
     this.flags = new Config("flag", opts.flags ?? {});
 
     this.rootConfig = new RootConfig(
-      new Config("config key", opts.rootConfig ?? {})
+      new Config("config key", opts.rootConfig ?? {}),
     );
     this.projectPath = opts.projectPath;
     this.projectConfig = opts.projectConfig
@@ -219,7 +219,7 @@ export class ShellConfig {
     if (this.projectConfig === undefined) {
       if (environmentFlag !== undefined) {
         throw new Error(
-          `No ${PROJECT_FILE_NAME} was found, so environment '${environmentFlag}' cannot be used`
+          `No ${PROJECT_FILE_NAME} was found, so environment '${environmentFlag}' cannot be used`,
         );
       }
     } else {
@@ -251,7 +251,7 @@ export class ShellConfig {
 
     if (secretFlag !== undefined && environmentFlag !== undefined) {
       throw new Error(
-        "Cannot specify both --secret and --environment, as --secret will override the settings from a environment."
+        "Cannot specify both --secret and --environment, as --secret will override the settings from a environment.",
       );
     }
 
@@ -288,7 +288,7 @@ export class ShellConfig {
     if (this.endpoint === undefined && this.secretFlag === undefined) {
       // No `~/.fauna-shell` was found, and no `--secret` was passed.
       throw new Error(
-        `No endpoint or secret set. Set an endpoint in ~/.fauna-shell, ${PROJECT_FILE_NAME}, or pass --endpoint`
+        `No endpoint or secret set. Set an endpoint in ~/.fauna-shell, ${PROJECT_FILE_NAME}, or pass --endpoint`,
       );
       /**
        * If there is no secret flag set we need to ensure we validate we can find a secret
@@ -325,7 +325,7 @@ export class ShellConfig {
     if (this.rootConfig.invalidEndpoints.length > 0) {
       return [
         `The following endpoint definitions in ${getRootConfigPath()} are invalid:\n ${this.rootConfig.invalidEndpoints.join(
-          "\n"
+          "\n",
         )}\n Resolve them by ensuring they have a secret defined or remove them if they are not needed.`,
         ...this.errors,
       ];
@@ -354,8 +354,8 @@ export class ShellConfig {
     if (this.rootConfig.invalidEndpoints.length > 0) {
       throw new Error(
         `The following endpoint definitions in ${getRootConfigPath()} are invalid:\n ${this.rootConfig.invalidEndpoints.join(
-          "\n"
-        )}\n Resolve them by ensuring they have a secret defined or remove them if they are not needed.`
+          "\n",
+        )}\n Resolve them by ensuring they have a secret defined or remove them if they are not needed.`,
       );
     }
     this.rootConfig.save(getRootConfigPath());
@@ -426,7 +426,7 @@ export const fileExists = (filePath: string): boolean => {
 };
 
 export const fileExistsWithNonPermission600 = (
-  filePath: string | undefined
+  filePath: string | undefined,
 ): boolean => {
   try {
     if (filePath === undefined) {
