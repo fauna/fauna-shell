@@ -31,7 +31,7 @@ describe("schema status", function () {
     await run(`schema status --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/status?diff=true&color=ansii",
+      "https://db.fauna.com/schema/1/staged/status?diff=true&color=ansi",
       commonFetchParams,
     );
   });

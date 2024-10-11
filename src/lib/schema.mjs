@@ -116,11 +116,28 @@ export async function gatherFSL(dir) {
   const gatherRelativeFSLFilePaths = container.resolve(
     "gatherRelativeFSLFilePaths",
   );
+  const logger = container.resolve("logger");
 
   checkDirUsability(dir);
   const fps = await gatherRelativeFSLFilePaths(dir);
   const files = read(dir, fps);
+  logger.debug(
+    `Looked in dir ${dir} and found files: ${JSON.stringify(files, null, 2)}`,
+    "gatherFSL",
+  );
   return files;
+}
+
+/**
+ * @param {LocalFSLFileDescription[]} input
+ * @returns {FormData}
+ */
+export function reformatFSL(input) {
+  const fd = new FormData();
+  for (const file of input) {
+    fd.set(file.name, new Blob([file.content]));
+  }
+  return fd;
 }
 
 /**

@@ -4,5 +4,8 @@
 
 #### Testing guidelines
 - Prefer to mock the "far" edges of the application - methods on `fs`, complex async libraries (e.g., `http#Server`), `fetch`. This results in the test code traversing all of the CLI's business logic, but not interacting with error-prone external resources like disk, network, port availability, etc. `sinon` records all calls to a mock, and allows asserting against them. Use this if, e.g., your business logic calls `fetch` multiple times.
-- Prefer to run local tests in watch mode with (e.g., with `yarn local-test`) while developing.
+- ~~Prefer to run local tests in watch mode with (e.g., with `yarn local-test`) while developing.~~ This is currently broken.
+- Use debug logs to output the shape of objects (especially network responses) to determine how to structure mocks.
 
+#### Debugging strategies
+- Fetch is not particularly amenable to debugging, but if you need to see the raw requests being made, open a netcat server locally (`nc -l 8080`) and then change the code to call the netcat server, either by passing the flag `--url http://localhost:8080` or by editing the code.

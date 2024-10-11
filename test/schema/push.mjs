@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import { makeFaunaRequest } from "../../src/lib/db.mjs";
+import { reformatFSL } from "../../src/lib/schema.mjs";
 
 describe("schema push", function () {
   let container;
@@ -18,9 +19,13 @@ describe("schema push", function () {
     const fetch = container.resolve("fetch");
 
     const gatherFSL = container.resolve("gatherFSL");
-    gatherFSL.resolves(
-      '[{"name":"coll.fsl","content":"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
-    );
+    gatherFSL.resolves([
+      {
+        name: "coll.fsl",
+        content:
+          "collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+      },
+    ]);
 
     const logger = container.resolve("logger");
 
@@ -33,7 +38,13 @@ describe("schema push", function () {
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
-        body: '[{"name":"coll.fsl","content":"collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n"}]',
+        body: reformatFSL([
+          {
+            name: "coll.fsl",
+            content:
+              "collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+          },
+        ]),
       },
     );
 

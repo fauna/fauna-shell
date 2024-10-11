@@ -80,6 +80,7 @@ export function setupTestContainer() {
     }),
     normalize: awilix.asValue(spy(normalize)),
     fetch: awilix.asValue(stub().resolves(f({}))),
+    gatherFSL: awilix.asValue(stub().resolves([])),
   };
 
   confirmManualMocks(manualMocks, thingsToManuallyMock);

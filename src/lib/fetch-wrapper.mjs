@@ -1,5 +1,7 @@
 //@ts-check
 
+import { inspect } from "node:util";
+
 import { container } from "../cli.mjs";
 
 // this wrapper exists for only one reason: logging
@@ -9,7 +11,9 @@ export default async function fetchWrapper(url, options) {
   const logger = container.resolve("logger");
   const method = options?.method || "GET";
 
-  logger.debug(`Starting ${method} "${url}"`, "fetch");
+  let debugInfo = `Starting ${method} "${url}"`;
+  if (options.body) debugInfo += ` with body ${inspect(options.body)}`;
+  logger.debug(debugInfo, "fetch");
 
   return fetch(url, options).then(async (response) => {
     const isJSON = response.headers

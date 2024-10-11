@@ -3,13 +3,15 @@
 import { container } from "../../cli.mjs";
 import { confirm } from "@inquirer/prompts";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { reformatFSL } from "../../lib/schema.mjs";
 
 async function doPush(argv) {
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
   const gatherFSL = container.resolve("gatherFSL");
-  const fsl = await gatherFSL(argv.dir);
+  const fsl = reformatFSL(await gatherFSL(argv.dir));
+
   if (argv.force) {
     const params = new URLSearchParams({
       force: argv.force,

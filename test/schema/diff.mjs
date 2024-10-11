@@ -8,6 +8,7 @@ import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
 import { makeFaunaRequest } from "../../src/lib/db.mjs";
+import { reformatFSL } from "../../src/lib/schema.mjs";
 
 describe("schema diff", function () {
   const colorDiffString =
@@ -16,6 +17,13 @@ describe("schema diff", function () {
     "* Removing collection `Todo` from main.fsl:8:1:\n\n  - collection Todo {\n  -   history_days 0\n  - }\n\n";
   let container;
   let logger;
+  const fsl = [
+    {
+      name: "coll.fsl",
+      content:
+        "collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+    },
+  ];
 
   beforeEach(() => {
     container = setupContainer();
@@ -23,6 +31,7 @@ describe("schema diff", function () {
       makeFaunaRequest: awilix.asValue(makeFaunaRequest),
     });
     logger = container.resolve("logger");
+    container.resolve("gatherFSL").resolves(fsl);
   });
 
   it("can display the diff between local and remote schema", async function () {
@@ -38,8 +47,8 @@ describe("schema diff", function () {
     await run(`schema diff --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&color=ansii&staged=false",
-      { ...commonFetchParams, method: "POST" },
+      "https://db.fauna.com/schema/1/validate?force=true&color=ansi&staged=false",
+      { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(colorDiffString);
     expect(logger.stderr).to.not.have.been.called;
@@ -58,8 +67,8 @@ describe("schema diff", function () {
     await run(`schema diff --staged --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&color=ansii&staged=true",
-      { ...commonFetchParams, method: "POST" },
+      "https://db.fauna.com/schema/1/validate?force=true&color=ansi&staged=true",
+      { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(colorDiffString);
     expect(logger.stderr).to.not.have.been.called;
@@ -79,7 +88,7 @@ describe("schema diff", function () {
 
     expect(fetch).to.have.been.calledWith(
       "https://db.fauna.com/schema/1/validate?force=true&staged=false",
-      { ...commonFetchParams, method: "POST" },
+      { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(noColorDiffString);
     expect(logger.stderr).to.not.have.been.called;
@@ -98,8 +107,8 @@ describe("schema diff", function () {
     await run(`schema diff --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&color=ansii&staged=false",
-      { ...commonFetchParams, method: "POST" },
+      "https://db.fauna.com/schema/1/validate?force=true&color=ansi&staged=false",
+      { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith("No schema differences");
     expect(logger.stderr).to.not.have.been.called;
