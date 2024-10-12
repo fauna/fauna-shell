@@ -87,7 +87,7 @@ export default class StatusSchemaCommand extends SchemaCommand {
           this.log("  " + validateJson.diff.split("\n").join("\n  "));
 
           this.log("(use `fauna schema diff` to display local changes)");
-          this.log("(use `fauna schema push --staged` to stage local changes)");
+          this.log("(use `fauna schema push` to stage local changes)");
         }
       }
     } catch (err) {

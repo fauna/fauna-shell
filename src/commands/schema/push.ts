@@ -22,7 +22,7 @@ export default class PushSchemaCommand extends SchemaCommand {
   static examples = [
     "$ fauna schema push",
     "$ fauna schema push --dir schemas/myschema",
-    "$ fauna schema push --staged",
+    "$ fauna schema push --skip-staged",
   ];
 
   async run() {
