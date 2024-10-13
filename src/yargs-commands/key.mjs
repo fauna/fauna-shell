@@ -1,16 +1,31 @@
 import { container } from "../cli.mjs";
 
-async function createKey(profile) {
+async function createKey(argv) {
+  const { database, profile, role } = argv;
+  console.log("db and profile", database, profile);
   const logger = container.resolve("logger");
   const accountClient = container.resolve("accountClient");
   const accountCreds = container.resolve("accountCreds");
   const secretCreds = container.resolve("secretCreds");
-  const account_key = accountCreds.get(profile).account_key;
-  console.log(accountCreds.get());
-  console.log(account_key);
-  logger.stdout("Creating key...");
-  const databases = await accountClient.createKey(account_key);
-  logger.stdout(databases);
+  const accountKey = accountCreds.get({ key: profile }).account_key;
+  console.log("Account key", accountKey);
+  const dbSecret = await accountClient.createKey({
+    accountKey,
+    path: database,
+    role,
+  });
+  console.log("Key created: ", dbSecret);
+  secretCreds.save({ creds: dbSecret, key: accountKey });
+  console.log("Getting secrets", secretCreds.get());
+  console.log("Secrets for key", secretCreds.get({ key: accountKey }));
+  console.log(
+    "Secrets for path",
+    secretCreds.get({ key: accountKey, path: database }),
+  );
+  console.log(
+    "Secrets for role",
+    secretCreds.get({ key: accountKey, path: database, role }),
+  );
 }
 
 function buildKeyCommand(yargs) {
@@ -21,10 +36,11 @@ function buildKeyCommand(yargs) {
       describe: "choose a method to interact with your databases",
     })
     .options({
-      profile: {
+      role: {
+        alias: "r",
         type: "string",
-        description: "a user profile",
-        default: "default",
+        default: "admin",
+        describe: "The role to assign to the key",
       },
     })
     .help("help", "show help")
@@ -35,7 +51,7 @@ function keyHandler(argv) {
   const method = argv.method;
   switch (method) {
     case "create":
-      createKey(argv.profile);
+      createKey(argv);
       break;
     case "delete":
       console.log("Deleting key...");

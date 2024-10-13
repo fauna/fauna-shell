@@ -62,6 +62,16 @@ function fileExists(path) {
   }
 }
 
+function getJSONFileContents(path) {
+  // Open file for reading and writing without truncating
+  const fileContent = fs.readFileSync(path, { flag: "r+" }).toString();
+  if (!isJSON(fileContent)) {
+    throw new Error(`Credentials file at ${path} contains invalid formatting.`);
+  }
+  const parsed = JSON.parse(fileContent);
+  return parsed;
+}
+
 /**
  * Class representing credentials management.
  */
@@ -87,27 +97,18 @@ export class Credentials {
   /**
    * Retrieves the value associated with the given key from the credentials file.
    *
-   * @param {string} [key] - The key to retrieve the value for.
+   * @param {Object} [opts]
+   * @param {string} [opts.key] - The key to retrieve from the credentials file.
    * @returns {Object.<string, any>} credentialsObject - The value associated with the key, or the entire parsed content if no key is provided.
    */
-  get(key) {
-    try {
-      // Open file for reading and writing without truncating
-      const fileContent = fs
-        .readFileSync(this.filepath, { flag: "r+" })
-        .toString();
-      if (!isJSON(fileContent)) {
-        throw new Error(
-          `Credentials file at ${this.filepath} contains invalid formatting.`
-        );
-      }
-      const parsed = JSON.parse(fileContent);
-      return key ? parsed[key] : parsed;
-    } catch (err) {
-      throw new Error(
-        `Error while parsing credentials file at ${this.filepath}: ${err}`
-      );
+  get(opts) {
+    const parsed = getJSONFileContents(this.filepath);
+    if (!opts) return parsed;
+    const { key } = opts;
+    if (!key) {
+      throw new InvalidcCredsError("key");
     }
+    return parsed?.[key];
   }
 
   /**
@@ -116,19 +117,31 @@ export class Credentials {
    * @param {Object} params - The parameters for saving credentials.
    * @param {Record<string, string>} params.creds - The credentials to save.
    * @param {boolean} [params.overwrite=false] - Whether to overwrite existing credentials.
-   * @param {string} params.profile - The profile name to save the credentials under.
+   * @param {string} params.key - The key to index the creds under
    */
-  save({ creds, overwrite = false, profile }) {
+  save({ creds, overwrite = false, key }) {
     try {
       const existingContent = overwrite ? {} : this.get();
       const newContent = {
         ...existingContent,
-        [profile]: creds,
+        [key]: creds,
       };
       fs.writeFileSync(this.filepath, JSON.stringify(newContent, null, 2));
     } catch (err) {
       throw new Error(`Error while saving credentials: ${err}`);
     }
+  }
+}
+
+export class InvalidcCredsError extends Error {
+  /**
+   *
+   * @param {"key" | "path" | "role"} invalidAccessor
+   */
+  constructor(invalidAccessor) {
+    super(invalidAccessor);
+    this.name = "InvalidcCredsError";
+    this.message = `No secret found for the provided ${invalidAccessor}`;
   }
 }
 
@@ -142,6 +155,53 @@ export class SecretKey extends Credentials {
    */
   constructor() {
     super("secret_keys");
+    this.save = ({ creds, overwrite = false, key }) => {
+      try {
+        const existingContent = overwrite ? {} : this.get();
+        const existingAccountSecrets = existingContent[key] || {};
+        const { secret, path, role } = creds;
+        const existingPathSecrets = existingContent[key]?.[path] || {};
+        const newContent = {
+          ...existingContent,
+          [key]: {
+            ...existingAccountSecrets,
+            [path]: {
+              ...existingPathSecrets,
+              [role]: secret,
+            },
+          },
+        };
+        fs.writeFileSync(this.filepath, JSON.stringify(newContent, null, 2));
+      } catch (err) {
+        err.message = `Error while saving credentials: ${err.message}`;
+        throw err;
+      }
+    };
+    /**
+     *
+     * @param {*} [opts]
+     * @returns {Object.<string, any>} credentialsObject - The value associated with the key, or the entire parsed content if no key is provided.
+     */
+    this.get = (opts) => {
+      const secrets = getJSONFileContents(this.filepath);
+      if (!opts) return secrets;
+      const { key, path, role } = opts;
+      const [keyData, pathData, roleData] = [
+        secrets?.[key],
+        secrets?.[key]?.[path],
+        secrets?.[key]?.[path]?.[role],
+      ];
+      if (role && !roleData) {
+        throw new InvalidcCredsError("role");
+      }
+      if (path && !pathData) {
+        throw new InvalidcCredsError("path");
+      }
+      if (key && !keyData) {
+        throw new InvalidcCredsError("key");
+      }
+      return roleData ?? pathData ?? keyData;
+    };
   }
 }
 

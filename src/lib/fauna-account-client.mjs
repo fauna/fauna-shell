@@ -32,7 +32,7 @@ export async function makeAccountRequest({
     fullUrl = new URL(`/api/v1${path}${paramsString}`, baseUrl).href;
   } catch (e) {
     e.message = `Could not build valid URL out of base url (${baseUrl}), path (${path}), and params string (${paramsString}) built from params (${JSON.stringify(
-      params
+      params,
     )}).`;
     throw e;
   }
@@ -50,14 +50,13 @@ export async function makeAccountRequest({
   const response = await fetch(fullUrl, fetchArgs);
   if (response.status >= 400 && shouldThrow) {
     throw new Error(
-      `Failed to make request to Fauna account API: ${response.status}, ${response.statusText}`
+      `Failed to make request to Fauna account API: ${response.status}, ${response.statusText}`,
     );
   }
   const responseType = response.headers.get("content-type");
-  const result =
-    responseType === "application/json"
-      ? await response.json()
-      : await response;
+  const result = responseType?.includes("application/json")
+    ? await response.json()
+    : await response;
 
   return result;
 }
@@ -116,7 +115,7 @@ export class FaunaAccountClient {
         body: new URLSearchParams(params).toString(),
         path: "/oauth/token",
       });
-      const { access_token } = await response.json();
+      const { access_token } = response;
       return access_token;
     } catch (err) {
       err.message = "Failure to authorize with Fauna: " + err.message;
@@ -133,12 +132,11 @@ export class FaunaAccountClient {
    */
   async getSession(accessToken) {
     try {
-      const response = await makeAccountRequest({
+      const session = await makeAccountRequest({
         method: "POST",
         path: "/session",
         secret: accessToken,
       });
-      const session = await response.json();
       return session;
     } catch (err) {
       err.message = "Failure to get session with Fauna: " + err.message;
@@ -178,12 +176,12 @@ export class FaunaAccountClient {
    * @throws {Error} - Throws an error if there is an issue during key creation.
    */
   async createKey({ accountKey, path, role = "admin" }) {
+    console.log("Creating key...", accountKey);
     return await makeAccountRequest({
       method: "POST",
       path: "/databases/keys",
       body: JSON.stringify({
         path,
-        regionGroup: "us-std",
         role,
       }),
       secret: accountKey,

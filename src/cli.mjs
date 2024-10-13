@@ -31,7 +31,7 @@ export async function run(argvInput, _container) {
     await parseYargs(builtYargs);
   } catch (e) {
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      e.message
+      e.message,
     )}`;
     logger.stderr(message);
     logger.fatal(e.stack, "error");
@@ -85,6 +85,18 @@ function buildYargs(argvInput) {
       // TODO .strictCommands(true) blows up... why?
       .strictOptions(true)
       .options({
+        profile: {
+          alias: "p",
+          type: "string",
+          description: "a user profile",
+          default: "default",
+        },
+        database: {
+          alias: "d",
+          type: "string",
+          description: "a database path, including region",
+          default: "",
+        },
         color: {
           description:
             "whether or not to emit escape codes for multi-color terminal output.",

@@ -10,9 +10,8 @@ async function doLogin(argv) {
   const accountCreds = container.resolve("accountCreds");
   oAuth.server.on("ready", async () => {
     const authCodeParams = oAuth.getOAuthParams();
-    const dashboardOAuthURL = await accountClient.startOAuthRequest(
-      authCodeParams
-    );
+    const dashboardOAuthURL =
+      await accountClient.startOAuthRequest(authCodeParams);
     open(dashboardOAuthURL);
     logger.stdout(`To login, open your browser to:\n ${dashboardOAuthURL}`);
   });
@@ -20,12 +19,11 @@ async function doLogin(argv) {
     try {
       const tokenParams = oAuth.getTokenParams();
       const accessToken = await accountClient.getToken(tokenParams);
-      const { account_key, refresh_token } = await accountClient.getSession(
-        accessToken
-      );
+      const { account_key, refresh_token } =
+        await accountClient.getSession(accessToken);
       accountCreds.save({
         creds: { account_key, refresh_token },
-        profile: argv.profile,
+        key: argv.profile,
       });
       logger.stdout(`Login Success!\n`);
     } catch (err) {
