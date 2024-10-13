@@ -326,15 +326,15 @@ describe(`fauna schema pull`, () => {
         .persist()
         .post("/", matchFqlReq(query.Now()))
         .reply(200, new Date())
-        .get("/schema/1/files")
+        .get("/schema/1/staged/status")
+        .reply(200, { status: "none", version: 0 })
+        .get("/schema/1/files?version=0&staged=false")
         .reply(200, pullfiles)
-        .get("/schema/1/staged/status?version=0")
-        .reply(200, { status: "none" })
-        .get("/schema/1/files/functions.fsl")
+        .get("/schema/1/files/functions.fsl?version=0&staged=false")
         .reply(200, functions)
-        .get("/schema/1/files/main.fsl")
+        .get("/schema/1/files/main.fsl?version=0&staged=false")
         .reply(200, main)
-        .get("/schema/1/files/roles%2Fmyrole.fsl")
+        .get("/schema/1/files/roles%2Fmyrole.fsl?version=0&staged=false")
         .reply(200, myrole);
 
       // Running the command with options
@@ -380,71 +380,76 @@ describe(`fauna schema pull`, () => {
     });
   }
 
-  it(`requires --staged when there's a staged schema`, async () => {
+  it(`runs schema pull with a staged schema`, async () => {
     const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
 
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
       .post("/", matchFqlReq(query.Now()))
       .reply(200, new Date())
-      .get("/schema/1/files")
+      .get("/schema/1/staged/status")
+      .reply(200, { status: "ready", version: 0 })
+      .get("/schema/1/files?version=0&staged=true")
       .reply(200, pullfiles)
-      .get("/schema/1/staged/status?version=0")
-      .reply(200, { status: "ready" });
-
-    const { error } = await runCommand(
-      withOpts(["schema pull", `--dir=${testdir}`])
-    );
-    expect(error?.message).to.equal(
-      "There is a staged schema change. Use --staged to pull it."
-    );
-
-    stubConfirm.restore();
-  });
-
-  it(`disallows --staged when there's no staged schema`, async () => {
-    const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
-
-    nock(getEndpoint(), { allowUnmocked: false })
-      .persist()
-      .post("/", matchFqlReq(query.Now()))
-      .reply(200, new Date())
-      .get("/schema/1/files")
-      .reply(200, pullfiles)
-      .get("/schema/1/staged/status?version=0")
-      .reply(200, { status: "none" });
-
-    const { error } = await runCommand(
-      withOpts(["schema pull", `--dir=${testdir}`, `--staged`])
-    );
-    expect(error?.message).to.equal(
-      "There are no staged schema changes to pull."
-    );
-
-    stubConfirm.restore();
-  });
-
-  it(`runs schema pull --staged`, async () => {
-    const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
-
-    nock(getEndpoint(), { allowUnmocked: false })
-      .persist()
-      .post("/", matchFqlReq(query.Now()))
-      .reply(200, new Date())
-      .get("/schema/1/files")
-      .reply(200, pullfiles)
-      .get("/schema/1/staged/status?version=0")
+      .get("/schema/1/staged/status?version=0&staged=true")
       .reply(200, { status: "ready" })
-      .get("/schema/1/files/functions.fsl")
+      .get("/schema/1/files/functions.fsl?version=0&staged=true")
       .reply(200, functions)
-      .get("/schema/1/files/main.fsl")
+      .get("/schema/1/files/main.fsl?version=0&staged=true")
       .reply(200, main)
-      .get("/schema/1/files/roles%2Fmyrole.fsl")
+      .get("/schema/1/files/roles%2Fmyrole.fsl?version=0&staged=true")
       .reply(200, myrole);
 
     // This should work as normal.
     const { stdout } = await runCommand(
-      withOpts(["schema pull", `--dir=${testdir}`, `--staged`])
+      withOpts(["schema pull", `--dir=${testdir}`])
+    );
+    expect(stdout).to.contain("Pull makes the following changes:");
+    expect(
+      fs.readFileSync(path.join(testdir, "functions.fsl"), "utf8")
+    ).to.equal(functions.content);
+    expect(fs.readFileSync(path.join(testdir, "main.fsl"), "utf8")).to.equal(
+      main.content
+    );
+    expect(
+      fs.readFileSync(path.join(testdir, "roles", "myrole.fsl"), "utf8")
+    ).to.equal(myrole.content);
+    expect(fs.statSync(path.join(testdir, "no.fsl")).isDirectory()).to.equal(
+      true
+    );
+    expect(fs.statSync(path.join(testdir, "nofsl")).isDirectory()).to.equal(
+      true
+    );
+    expect(fs.statSync(path.join(testdir, "main.notfsl")).isFile()).to.equal(
+      true
+    );
+
+    stubConfirm.restore();
+  });
+
+  it(`runs schema pull --active with a staged schema`, async () => {
+    const stubConfirm = sinon.stub(inquirer, "confirm").resolves(true);
+
+    nock(getEndpoint(), { allowUnmocked: false })
+      .persist()
+      .post("/", matchFqlReq(query.Now()))
+      .reply(200, new Date())
+      .get("/schema/1/staged/status")
+      .reply(200, { status: "ready", version: 0 })
+      .get("/schema/1/files?version=0&staged=false")
+      .reply(200, pullfiles)
+      .get("/schema/1/staged/status?version=0&staged=false")
+      .reply(200, { status: "ready" })
+      .get("/schema/1/files/functions.fsl?version=0&staged=false")
+      .reply(200, functions)
+      .get("/schema/1/files/main.fsl?version=0&staged=false")
+      .reply(200, main)
+      .get("/schema/1/files/roles%2Fmyrole.fsl?version=0&staged=false")
+      .reply(200, myrole);
+
+    // This should work as normal.
+    const { stdout } = await runCommand(
+      withOpts(["schema pull", `--dir=${testdir}`, `--active`])
     );
     expect(stdout).to.contain("Pull makes the following changes:");
     expect(
