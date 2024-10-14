@@ -93,14 +93,7 @@ function buildYargs(argvInput) {
         alias: "d",
         type: "string",
         description: "a database path, including region",
-        required: true,
-      },
-      // TODO: put this in middleware and override --url
-      local: {
-        alias: "l",
-        type: "boolean",
-        description: "overrides url to use localhost:8443",
-        default: false,
+        // required: true,
       },
       color: {
         description:

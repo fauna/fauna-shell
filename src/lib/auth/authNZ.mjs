@@ -24,6 +24,12 @@ import { CredsNotFoundError } from "../file-util.mjs";
 
 // create-key should specify ttl to frontdoor or in frontdoor we should shorten that down to minutes.
 
+export function authNZMiddleware(argv) {
+  // Use flags to get/validate/refresh/create account and db secrets. Cleanup creds files.
+  // Make sure stuff is there so handlers have no issue accesssing/using.
+  return argv;
+}
+
 export function getAccountKeyLocal(profile) {
   const accountCreds = container.resolve("accountCreds");
   try {

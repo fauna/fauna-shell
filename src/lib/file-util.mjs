@@ -121,6 +121,8 @@ export class Credentials {
    * @param {string} [opts.key] - The key to retrieve from the credentials file.
    * @returns {Object.<string, any>} credentialsObject - The value associated with the key, or the entire parsed content if no key is provided.
    */
+
+  // TODO: quick parity check between secret and account keys + cleanup
   get(opts) {
     const parsed = getJSONFileContents(this.filepath);
     if (!opts) return parsed;
