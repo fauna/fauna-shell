@@ -1,19 +1,20 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { confirm } from "@inquirer/prompts";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { reformatFSL } from "../../lib/schema.mjs";
 
 async function doPush(argv) {
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
   const gatherFSL = container.resolve("gatherFSL");
-  const fsl = await gatherFSL(argv.dir);
+  const fsl = reformatFSL(await gatherFSL(argv.dir));
+
   if (argv.force) {
     const params = new URLSearchParams({
       force: argv.force,
-      staged: argv.staged,
+      staged: argv.staged ? "true" : "false",
     });
 
     await makeFaunaRequest({
@@ -26,7 +27,10 @@ async function doPush(argv) {
   } else {
     // Confirm diff, then push it. `force` is set on `validate` so we don't
     // need to pass the last known schema version through.
-    const params = new URLSearchParams({ force: "true" });
+    const params = new URLSearchParams({
+      force: "true",
+      staged: argv.staged ? "true" : "false",
+    });
     if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({
@@ -45,6 +49,7 @@ async function doPush(argv) {
       logger.stdout("No logical changes.");
       message = "Push file contents anyway?";
     }
+    const confirm = container.resolve("confirm");
     const confirmed = await confirm({
       message,
       default: false,
@@ -72,7 +77,6 @@ async function doPush(argv) {
 function buildPushCommand(yargs) {
   return yargs
     .options({
-      ...commonQueryOptions,
       force: {
         description: "Push the change without a diff or schema version check",
         type: "boolean",
@@ -84,6 +88,7 @@ function buildPushCommand(yargs) {
         type: "boolean",
         default: false,
       },
+      ...commonQueryOptions,
     })
     .example([
       ["$0 schema push"],

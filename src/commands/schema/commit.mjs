@@ -1,13 +1,12 @@
 //@ts-check
 
-import { confirm } from "@inquirer/prompts";
-
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { container } from "../../cli.mjs";
 
 async function doCommit(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
+  const confirm = container.resolve("confirm");
 
   if (argv.force) {
     const params = new URLSearchParams({
@@ -67,12 +66,12 @@ async function doCommit(argv) {
 function buildCommitCommand(yargs) {
   return yargs
     .options({
-      ...commonQueryOptions,
       force: {
         description: "Push the change without a diff or schema version check",
         type: "boolean",
         default: false,
       },
+      ...commonQueryOptions,
     })
     .example([["$0 schema commit"]])
     .version(false)

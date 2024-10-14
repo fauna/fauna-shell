@@ -37,7 +37,7 @@ export async function makeFaunaRequest({
     fullUrl = new URL(`${path}${paramsString}`, baseUrl).href;
   } catch (e) {
     e.message = `Could not build valid URL out of base url (${baseUrl}), path (${path}), and params string (${paramsString}) built from params (${JSON.stringify(
-      params
+      params,
     )}).`;
     throw e;
   }

@@ -118,7 +118,7 @@ async function performV4Query(client, fqlQuery, outputFile, flags) {
         {
           depth: null,
           compact: false,
-        }
+        },
       );
     } else {
       error.message = error.faunaError.message;
@@ -167,7 +167,7 @@ async function doEval(argv) {
     !argv.stdin && argv.query === undefined && argv.file === undefined;
   if (noSourceSet) {
     throw new Error(
-      "No source set. Pass --stdin to  read from stdin or --file."
+      "No source set. Pass --stdin to  read from stdin or --file.",
     );
   }
 
@@ -214,7 +214,7 @@ async function doEval(argv) {
       format: format,
       version: argv.version,
       typecheck: argv.typecheck,
-    }
+    },
   );
 
   if (result) {
@@ -230,7 +230,6 @@ async function doEval(argv) {
 function buildEvalCommand(yargs) {
   return yargs
     .options({
-      ...commonQueryOptions,
       file: {
         type: "string",
         description: "file path to read the query (or queries) from",
@@ -279,6 +278,7 @@ function buildEvalCommand(yargs) {
         description: "enable typechecking",
         default: undefined,
       },
+      ...commonQueryOptions,
     })
     .example([
       ['$0 eval "Collection.all()"'],

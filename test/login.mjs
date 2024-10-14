@@ -91,8 +91,8 @@ describe("login", function () {
     expect(container.resolve("open").calledWith("dashboard-url"));
     expect(
       logger.stdout.calledWith(
-        "To login, open your browser to:\n dashboard-url"
-      )
+        "To login, open your browser to:\n dashboard-url",
+      ),
     );
     accountCreds.get = stub().returns(existingCreds);
     // Trigger server event with mocked auth code
@@ -102,7 +102,7 @@ describe("login", function () {
     // We save the session credentials alongside existing credential contents
     expect(accountCreds.filepath).to.include(".fauna/credentials/access_keys");
     expect(JSON.parse(fs.writeFileSync.args[0][1])).to.deep.equal(
-      expectedCreds
+      expectedCreds,
     );
   });
 
@@ -131,7 +131,7 @@ describe("login", function () {
     expect(logger.stdout.args.flat()).to.include("Login Success!\n");
     // We save the session credentials and overwrite the profile of the same name locally
     expect(JSON.parse(fs.writeFileSync.args[0][1])).to.deep.equal(
-      expectedCreds
+      expectedCreds,
     );
   });
 });

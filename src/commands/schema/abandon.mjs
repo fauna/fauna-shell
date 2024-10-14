@@ -1,13 +1,12 @@
 //@ts-check
 
-import { confirm } from "@inquirer/prompts";
-
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { container } from "../../cli.mjs";
 
 async function doAbandon(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
+  const confirm = container.resolve("confirm");
 
   if (argv.force) {
     const params = new URLSearchParams({
@@ -20,7 +19,7 @@ async function doAbandon(argv) {
       secret: argv.secret,
       method: "POST",
     });
-    logger.stdout("Schema has been abandonded");
+    logger.stdout("Schema has been abandoned");
   } else {
     // Show status to confirm.
     const params = new URLSearchParams({ diff: "true" });
@@ -63,12 +62,12 @@ async function doAbandon(argv) {
 function buildAbandonCommand(yargs) {
   return yargs
     .options({
-      ...commonQueryOptions,
       force: {
         description: "Push the change without a diff or schema version check",
         type: "boolean",
         default: false,
       },
+      ...commonQueryOptions,
     })
     .example([["$0 schema abandon"]])
     .version(false)

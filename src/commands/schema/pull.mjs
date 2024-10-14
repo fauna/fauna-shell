@@ -28,7 +28,7 @@ async function doPull(argv) {
   // implemented at the service level.
   if (statusResponse.status !== "none" && !argv.staged) {
     throw new Error(
-      "There is a staged schema change. Use --staged to pull it."
+      "There is a staged schema change. Use --staged to pull it.",
     );
   } else if (statusResponse.status === "none" && argv.staged) {
     throw new Error("There are no staged schema changes to pull.");
@@ -83,7 +83,7 @@ async function doPull(argv) {
   if (confirmed) {
     const writeSchemaFiles = container.resolve("writeSchemaFiles");
     const getAllSchemaFileContents = container.resolve(
-      "getAllSchemaFileContents"
+      "getAllSchemaFileContents",
     );
     const contents = await getAllSchemaFileContents(filenames, {
       secret: argv.secret,
@@ -96,7 +96,7 @@ async function doPull(argv) {
     promises.push(writeSchemaFiles(argv.dir, contents));
     if (argv.delete) {
       const deleteUnusedSchemaFiles = container.resolve(
-        "deleteUnusedSchemaFiles"
+        "deleteUnusedSchemaFiles",
       );
       promises.push(deleteUnusedSchemaFiles(argv.dir, deletes));
     }
@@ -111,7 +111,6 @@ async function doPull(argv) {
 function buildPullCommand(yargs) {
   return yargs
     .options({
-      ...commonQueryOptions,
       delete: {
         description:
           "Delete .fsl files in the target directory that are not part of the database schema",
@@ -123,6 +122,7 @@ function buildPullCommand(yargs) {
         type: "boolean",
         default: false,
       },
+      ...commonQueryOptions,
     })
     .example([
       ["$0 schema pull"],
