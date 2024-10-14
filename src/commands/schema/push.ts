@@ -10,7 +10,7 @@ export default class PushSchemaCommand extends SchemaCommand {
       description: "Push the change without a diff or schema version check",
       default: false,
     }),
-    "skip-staged": Flags.boolean({
+    active: Flags.boolean({
       description:
         "Skip staging the schema and make the schema active immediately. This will cause indexes to be temporarily unavailable.",
       default: false,
@@ -22,7 +22,7 @@ export default class PushSchemaCommand extends SchemaCommand {
   static examples = [
     "$ fauna schema push",
     "$ fauna schema push --dir schemas/myschema",
-    "$ fauna schema push --skip-staged",
+    "$ fauna schema push --active",
   ];
 
   async run() {
@@ -44,7 +44,7 @@ export default class PushSchemaCommand extends SchemaCommand {
         this.error(statusjson.error.message);
       }
 
-      if (statusjson.status !== "none" && this.flags?.["skip-staged"]) {
+      if (statusjson.status !== "none" && this.flags?.active) {
         this.error(
           "Cannot skip a staged push while there is a staged schema.\n" +
             "Use `fauna schema status` to check the staged schema."
@@ -52,7 +52,7 @@ export default class PushSchemaCommand extends SchemaCommand {
       }
 
       // Double negatives are confusing.
-      const isStagedPush = !this.flags?.["skip-staged"];
+      const isStagedPush = !this.flags?.active;
 
       if (this.flags?.force) {
         const params = new URLSearchParams({
