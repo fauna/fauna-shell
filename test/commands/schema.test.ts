@@ -85,7 +85,7 @@ describe("fauna schema diff test", () => {
     expect(stdout).to.contain(`${diff.diff}`);
   });
 
-  it("runs schema diff active", async () => {
+  it("runs schema diff --active", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
       .post("/", matchFqlReq(query.Now()))
@@ -96,7 +96,7 @@ describe("fauna schema diff test", () => {
       .reply(200, diff);
 
     const { stdout } = await runCommand(
-      withOpts(["schema diff", "--dir=test/testdata", "active"])
+      withOpts(["schema diff", "--dir=test/testdata", "--active"])
     );
 
     expect(stdout).to.contain(
@@ -105,7 +105,7 @@ describe("fauna schema diff test", () => {
     expect(stdout).to.contain(`${diff.diff}`);
   });
 
-  it("runs schema diff staged", async () => {
+  it("runs schema diff --staged", async () => {
     nock(getEndpoint(), { allowUnmocked: false })
       .persist()
       .post("/", matchFqlReq(query.Now()))
@@ -114,7 +114,7 @@ describe("fauna schema diff test", () => {
       .reply(200, { status: "ready", diff: diff.diff, version: 0 });
 
     const { stdout } = await runCommand(
-      withOpts(["schema diff", "--dir=test/testdata", "staged"])
+      withOpts(["schema diff", "--dir=test/testdata", "--staged"])
     );
 
     expect(stdout).to.contain(

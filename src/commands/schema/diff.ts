@@ -1,6 +1,6 @@
 import SchemaCommand from "../../lib/schema-command";
 import { bold, colorParam, hasColor, reset } from "../../lib/color";
-import { Args, Flags } from "@oclif/core";
+import { Flags } from "@oclif/core";
 
 type Target = "local" | "staged" | "active";
 
@@ -11,13 +11,15 @@ export default class DiffSchemaCommand extends SchemaCommand {
       description: "Display the text diff instead of the semantic diff.",
       default: false,
     }),
-  };
-
-  static args = {
-    ...SchemaCommand.args,
-    target: Args.string({
-      description: "The target schema to compare against (active | staged).",
-      required: false,
+    active: Flags.boolean({
+      description:
+        "Show the diff against the active schema instead of the staged schema.",
+      default: false,
+    }),
+    staged: Flags.boolean({
+      description:
+        "Show the diff between the active and staged schema, instead of the local schema.",
+      default: false,
     }),
   };
 
@@ -116,15 +118,17 @@ export default class DiffSchemaCommand extends SchemaCommand {
   }
 
   parseTarget(): [Target, Target] {
-    const target: string = this.args?.target;
-
-    if (!target) {
+    if (!this.flags?.active && !this.flags?.staged) {
       return ["staged", "local"];
     }
 
-    if (target === "active") {
+    if (this.flags?.active && this.flags?.staged) {
+      this.error("Cannot specify both --active and --staged");
+    }
+
+    if (this.flags?.active) {
       return ["active", "local"];
-    } else if (target === "staged") {
+    } else if (this.flags?.staged) {
       return ["active", "staged"];
     } else {
       // NB: `this.error` quits the program, so return `any` to make typescript happy.
