@@ -1,31 +1,38 @@
 import { container } from "../cli.mjs";
+import {
+  checkAccountKeyRemote,
+  checkDBKeyRemote,
+  getAccountKeyLocal,
+  getDBKeyLocal,
+} from "../lib/auth/authNZ.mjs";
 
+// TODO: this function should just spit out the secret that was created.
+//  consider an optional flag that will save this secret to the creds file, overwriting
+//  the existing secret if it exists at key/path/role
 async function createKey(argv) {
-  const { database, profile, role } = argv;
-  console.log("db and profile", database, profile);
+  const { database, profile, role, url, local } = argv;
   const logger = container.resolve("logger");
   const accountClient = container.resolve("accountClient");
-  const accountCreds = container.resolve("accountCreds");
   const secretCreds = container.resolve("secretCreds");
-  const accountKey = accountCreds.get({ key: profile }).account_key;
-  console.log("Account key", accountKey);
-  const dbSecret = await accountClient.createKey({
-    accountKey,
-    path: database,
-    role,
+  const accountKey = getAccountKeyLocal(profile);
+  await checkAccountKeyRemote(accountKey);
+  const existingSecret = getDBKeyLocal({ accountKey, path: database, role });
+  const dbSecret =
+    existingSecret ??
+    (await accountClient.createKey({
+      accountKey,
+      path: database,
+      role,
+    }));
+  secretCreds.save({
+    creds: {
+      path: database,
+      role,
+      secret: dbSecret.secret,
+    },
+    key: accountKey,
   });
-  console.log("Key created: ", dbSecret);
-  secretCreds.save({ creds: dbSecret, key: accountKey });
-  console.log("Getting secrets", secretCreds.get());
-  console.log("Secrets for key", secretCreds.get({ key: accountKey }));
-  console.log(
-    "Secrets for path",
-    secretCreds.get({ key: accountKey, path: database }),
-  );
-  console.log(
-    "Secrets for role",
-    secretCreds.get({ key: accountKey, path: database, role }),
-  );
+  await checkDBKeyRemote(dbSecret.secret, argv.url);
 }
 
 function buildKeyCommand(yargs) {
@@ -36,6 +43,12 @@ function buildKeyCommand(yargs) {
       describe: "choose a method to interact with your databases",
     })
     .options({
+      // TODO: make this a common option after new authNZ is in place
+      url: {
+        type: "string",
+        description: "the Fauna URL to query",
+        default: "https://db.fauna.com:443",
+      },
       role: {
         alias: "r",
         type: "string",

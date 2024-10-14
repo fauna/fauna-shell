@@ -48,15 +48,18 @@ export async function makeAccountRequest({
   if (body) fetchArgs.body = body;
 
   const response = await fetch(fullUrl, fetchArgs);
-  if (response.status >= 400 && shouldThrow) {
-    throw new Error(
-      `Failed to make request to Fauna account API: ${response.status}, ${response.statusText}`,
-    );
-  }
   const responseType = response.headers.get("content-type");
-  const result = responseType?.includes("application/json")
-    ? await response.json()
-    : await response;
+  const responseIsJSON = responseType?.includes("application/json");
+  if (response.status >= 400 && shouldThrow) {
+    let message = `Failed to make request to Fauna account API [${response.status}]`;
+    if (responseIsJSON) {
+      const body = await response.json();
+      const { reason, code } = body;
+      message += `: ${code} - ${reason}`;
+    }
+    throw new Error(message);
+  }
+  const result = responseIsJSON ? await response.json() : await response;
 
   return result;
 }
@@ -85,6 +88,14 @@ export class FaunaAccountClient {
       throw new Error(`Error during login: ${error}`);
     }
     return dashboardOAuthURL;
+  }
+
+  async whoAmI(accountKey) {
+    return await makeAccountRequest({
+      method: "GET",
+      path: "/whoami",
+      secret: accountKey,
+    });
   }
 
   /**

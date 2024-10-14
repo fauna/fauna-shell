@@ -62,14 +62,34 @@ function fileExists(path) {
   }
 }
 
+/**
+ *
+ * @param {string} path - The path to the file.
+ * @returns {Object.<string, any>} - The parsed JSON content of the file.
+ */
 function getJSONFileContents(path) {
   // Open file for reading and writing without truncating
   const fileContent = fs.readFileSync(path, { flag: "r+" }).toString();
+  if (!fileContent) {
+    return {};
+  }
   if (!isJSON(fileContent)) {
     throw new Error(`Credentials file at ${path} contains invalid formatting.`);
   }
   const parsed = JSON.parse(fileContent);
   return parsed;
+}
+
+export class CredsNotFoundError extends Error {
+  /**
+   *
+   * @param {"key" | "path" | "role"} invalidAccessor
+   */
+  constructor(invalidAccessor) {
+    super(invalidAccessor);
+    this.name = "CredsNotFoundError";
+    this.message = `No secret found for the provided ${invalidAccessor}`;
+  }
 }
 
 /**
@@ -106,7 +126,7 @@ export class Credentials {
     if (!opts) return parsed;
     const { key } = opts;
     if (!key) {
-      throw new InvalidcCredsError("key");
+      throw new CredsNotFoundError("key");
     }
     return parsed?.[key];
   }
@@ -133,18 +153,6 @@ export class Credentials {
   }
 }
 
-export class InvalidcCredsError extends Error {
-  /**
-   *
-   * @param {"key" | "path" | "role"} invalidAccessor
-   */
-  constructor(invalidAccessor) {
-    super(invalidAccessor);
-    this.name = "InvalidcCredsError";
-    this.message = `No secret found for the provided ${invalidAccessor}`;
-  }
-}
-
 /**
  * Class representing secret key management.
  * @extends Credentials
@@ -155,6 +163,17 @@ export class SecretKey extends Credentials {
    */
   constructor() {
     super("secret_keys");
+    /**
+     *
+     * @param {Object} opts
+     * @param {string} opts.key - The key to retrieve from the credentials file.
+      // TODO smarter overwrite
+     * @param {boolean} opts.overwrite - Whether to overwrite existing file contents.
+     * @param {Object} opts.creds - The credentials to save.
+     * @param {string} opts.creds.secret - The secret to save.
+     * @param {string} opts.creds.path - The path to save the secret under.
+     * @param {string} opts.creds.role - The role to save the secret
+    */
     this.save = ({ creds, overwrite = false, key }) => {
       try {
         const existingContent = overwrite ? {} : this.get();
@@ -192,13 +211,13 @@ export class SecretKey extends Credentials {
         secrets?.[key]?.[path]?.[role],
       ];
       if (role && !roleData) {
-        throw new InvalidcCredsError("role");
+        throw new CredsNotFoundError("role");
       }
       if (path && !pathData) {
-        throw new InvalidcCredsError("path");
+        throw new CredsNotFoundError("path");
       }
       if (key && !keyData) {
-        throw new InvalidcCredsError("key");
+        throw new CredsNotFoundError("key");
       }
       return roleData ?? pathData ?? keyData;
     };
