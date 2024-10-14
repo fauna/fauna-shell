@@ -12,8 +12,8 @@ export default class PullSchemaCommand extends SchemaCommand {
         "Delete .fsl files in the target directory that are not part of the database schema",
       default: false,
     }),
-    staged: Flags.boolean({
-      description: "Pulls staged schema instead of the active schema",
+    active: Flags.boolean({
+      description: "Pulls the active schema instead of the staged schema.",
       default: false,
     }),
   };
@@ -27,36 +27,30 @@ export default class PullSchemaCommand extends SchemaCommand {
     const { url, secret } = await this.fetchsetup();
 
     try {
+      // Check if there's a staged schema, and require `--staged` if there is one.
+      const statusres = await fetch(new URL(`/schema/1/staged/status`, url), {
+        method: "GET",
+        headers: { AUTHORIZATION: `Bearer ${secret}` },
+      });
+      const statusjson = await statusres.json();
+      if (statusjson.error) {
+        this.error(statusjson.error.message);
+      }
+
+      let isStagedPull = statusjson.status !== "none" && !this.flags?.active;
+
       // Gather remote schema files to download.
-      const filesres = await fetch(new URL("/schema/1/files", url), {
+      const params = new URLSearchParams({
+        version: statusjson.version,
+        staged: isStagedPull ? "true" : "false",
+      });
+      const filesres = await fetch(new URL(`/schema/1/files?${params}`, url), {
         method: "GET",
         headers: { AUTHORIZATION: `Bearer ${secret}` },
       });
       const filesjson = await filesres.json();
       if (filesjson.error) {
         this.error(filesjson.error.message);
-      }
-
-      // Check if there's a staged schema, and require `--staged` if there is one.
-      const params = new URLSearchParams({
-        version: filesjson.version,
-      });
-      const statusres = await fetch(
-        new URL(`/schema/1/staged/status?${params}`, url),
-        {
-          method: "GET",
-          headers: { AUTHORIZATION: `Bearer ${secret}` },
-        }
-      );
-      const statusjson = await statusres.json();
-      if (statusjson.error) {
-        this.error(statusjson.error.message);
-      }
-
-      if (statusjson.status !== "none" && !this.flags?.staged) {
-        this.error("There is a staged schema change. Use --staged to pull it.");
-      } else if (statusjson.status === "none" && this.flags?.staged) {
-        this.error("There are no staged schema changes to pull.");
       }
 
       // Sort for consistent order. It's nice for tests.
@@ -112,8 +106,15 @@ export default class PullSchemaCommand extends SchemaCommand {
         }
 
         for (const filename of filenames) {
+          const params = new URLSearchParams({
+            version: statusjson.version,
+            staged: isStagedPull ? "true" : "false",
+          });
           const fileres = await fetch(
-            new URL(`/schema/1/files/${encodeURIComponent(filename)}`, url),
+            new URL(
+              `/schema/1/files/${encodeURIComponent(filename)}?${params}`,
+              url
+            ),
             {
               method: "GET",
               headers: { AUTHORIZATION: `Bearer ${secret}` },
