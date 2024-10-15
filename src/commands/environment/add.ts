@@ -13,8 +13,10 @@ export default class AddEnvironmentCommand extends Command {
     database: Flags.string({
       description: "Database path to use in this environment",
     }),
-    "non-interactive": Flags.boolean({
-      description: "Disable interaction",
+    "no-input": Flags.boolean({
+      char: "y",
+      description: "Do not read from user input.",
+      default: false,
       dependsOn: ["name", "endpoint", "database"],
     }),
     "set-default": Flags.boolean({
@@ -51,7 +53,7 @@ export default class AddEnvironmentCommand extends Command {
       database: flags.database,
       name: flags.name,
       default: flags["set-default"],
-      nonInteractive: flags["non-interactive"],
+      nonInteractive: flags["no-input"],
     });
   }
 }

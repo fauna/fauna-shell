@@ -16,11 +16,11 @@ describe.skip("fauna schema staged commands", () => {
     await cleanupDBs();
   });
 
-  it("fauna schema push --stage --force works", async () => {
+  it("fauna schema push --stage --no-input works", async () => {
     const secret = await newDB();
 
     await shellOk(
-      "fauna schema push --dir test/integ/schema/start --force",
+      "fauna schema push --dir test/integ/schema/start --no-input",
       secret
     );
 
@@ -29,7 +29,7 @@ describe.skip("fauna schema staged commands", () => {
     ).to.deep.equal(["User"]);
 
     await shellOk(
-      "fauna schema push --dir test/integ/schema/staged_index --force --stage",
+      "fauna schema push --dir test/integ/schema/staged_index --no-input --stage",
       secret
     );
 
@@ -70,7 +70,7 @@ describe.skip("fauna schema staged commands", () => {
     const secret = await newDB();
 
     await shellOk(
-      "fauna schema push --dir test/integ/schema/start --force",
+      "fauna schema push --dir test/integ/schema/start --no-input",
       secret
     );
 
@@ -82,7 +82,7 @@ describe.skip("fauna schema staged commands", () => {
     );
 
     await shellOk(
-      "fauna schema push --dir test/integ/schema/staged_index --force --stage",
+      "fauna schema push --dir test/integ/schema/staged_index --no-input --stage",
       secret
     );
 
@@ -112,11 +112,11 @@ describe.skip("fauna schema staged commands", () => {
     );
   });
 
-  it("fauna schema commit --force works", async () => {
+  it("fauna schema commit --no-input works", async () => {
     const secret = await newDB();
 
     await shellOk(
-      "fauna schema push --dir test/integ/schema/start --force",
+      "fauna schema push --dir test/integ/schema/start --no-input",
       secret
     );
 
@@ -130,7 +130,7 @@ describe.skip("fauna schema staged commands", () => {
     ).to.deep.equal(["User"]);
 
     await shellOk(
-      "fauna schema push --dir test/integ/schema/staged_index --force --stage",
+      "fauna schema push --dir test/integ/schema/staged_index --no-input --stage",
       secret
     );
 
@@ -146,7 +146,7 @@ describe.skip("fauna schema staged commands", () => {
     ).to.deep.equal(null);
 
     // Commit the schema
-    await shellOk("fauna schema commit --dir . --force", secret);
+    await shellOk("fauna schema commit --dir . --no-input", secret);
 
     // Index should now be available on the companion object.
     expect(
@@ -166,15 +166,15 @@ describe.skip("fauna schema staged commands", () => {
 
     // Comitting when there is nothing staged should return an error.
     expect(
-      await shellErr("fauna schema commit --dir . --force", secret)
+      await shellErr("fauna schema commit --dir . --no-input", secret)
     ).to.equal("There is no staged schema to commit");
   });
 
-  it("fauna schema abandon --force works", async () => {
+  it("fauna schema abandon --no-input works", async () => {
     const secret = await newDB();
 
     await shellOk(
-      "fauna schema push --dir test/integ/schema/start --force",
+      "fauna schema push --dir test/integ/schema/start --no-input",
       secret
     );
 
@@ -188,7 +188,7 @@ describe.skip("fauna schema staged commands", () => {
     ).to.deep.equal(["User"]);
 
     await shellOk(
-      "fauna schema push --dir test/integ/schema/staged_index --force --stage",
+      "fauna schema push --dir test/integ/schema/staged_index --no-input --stage",
       secret
     );
 
@@ -218,7 +218,7 @@ describe.skip("fauna schema staged commands", () => {
     ).to.deep.equal(null);
 
     // Abandon the schema
-    await shellOk("fauna schema abandon --dir . --force", secret);
+    await shellOk("fauna schema abandon --dir . --no-input", secret);
 
     // Index should no longer be in the definition object.
     expect(
@@ -244,7 +244,7 @@ describe.skip("fauna schema staged commands", () => {
 
     // Abandoning when there is no staged schema should return an error.
     expect(
-      await shellErr("fauna schema abandon --dir . --force", secret)
+      await shellErr("fauna schema abandon --dir . --no-input", secret)
     ).to.equal("There is no staged schema to abandon");
   });
 });

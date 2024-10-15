@@ -6,10 +6,6 @@ import { colorParam, hasColor } from "../../lib/color";
 export default class PushSchemaCommand extends SchemaCommand {
   static flags = {
     ...SchemaCommand.flags,
-    force: Flags.boolean({
-      description: "Push the change without a diff or schema version check",
-      default: false,
-    }),
     active: Flags.boolean({
       description:
         "Skip staging the schema and make the schema active immediately. This will cause indexes to be temporarily unavailable.",
@@ -54,7 +50,7 @@ export default class PushSchemaCommand extends SchemaCommand {
       // Double negatives are confusing.
       const isStagedPush = !this.flags?.active;
 
-      if (this.flags?.force) {
+      if (this.flags?.["no-input"]) {
         const params = new URLSearchParams({
           force: "true", // Just push.
           staged: isStagedPush ? "true" : "false",
