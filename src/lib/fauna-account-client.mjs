@@ -1,6 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
+import { InvalidCredsError, UnauthorizedError } from "./misc.mjs";
 
 /**
  *
@@ -57,7 +58,14 @@ export async function makeAccountRequest({
       const { reason, code } = body;
       message += `: ${code} - ${reason}`;
     }
-    throw new Error(message);
+    switch (response.status) {
+      case 401:
+        throw new InvalidCredsError(message);
+      case 403:
+        throw new UnauthorizedError(message);
+      default:
+        throw new Error(message);
+    }
   }
   const result = responseIsJSON ? await response.json() : await response;
 
@@ -155,6 +163,14 @@ export class FaunaAccountClient {
     }
   }
 
+  async refreshSession(refreshToken) {
+    return await makeAccountRequest({
+      method: "POST",
+      path: "/session/refresh",
+      secret: refreshToken,
+    });
+  }
+
   /**
    * Lists databases associated with the given account key.
    *
@@ -188,6 +204,7 @@ export class FaunaAccountClient {
    */
   async createKey({ accountKey, path, role = "admin" }) {
     console.log("Creating key...", accountKey);
+    // TODO: specify short ttl
     return await makeAccountRequest({
       method: "POST",
       path: "/databases/keys",

@@ -127,10 +127,10 @@ export class Credentials {
     const parsed = getJSONFileContents(this.filepath);
     if (!opts) return parsed;
     const { key } = opts;
-    if (!key) {
+    if (!key || !parsed?.[key]) {
       throw new CredsNotFoundError("key");
     }
-    return parsed?.[key];
+    return parsed[key];
   }
 
   /**
@@ -151,6 +151,18 @@ export class Credentials {
       fs.writeFileSync(this.filepath, JSON.stringify(newContent, null, 2));
     } catch (err) {
       throw new Error(`Error while saving credentials: ${err}`);
+    }
+  }
+
+  delete(key) {
+    try {
+      const existingContent = this.get();
+      delete existingContent[key];
+      fs.writeFileSync(this.filepath, JSON.stringify(existingContent, null, 2));
+    } catch (err) {
+      throw new Error(
+        `Error while deleting ${key} from ${this.filename} file: ${err}`,
+      );
     }
   }
 }
