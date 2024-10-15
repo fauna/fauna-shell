@@ -25,7 +25,7 @@ can use the CLI to:
 
 ## Requirements
 
-[Node.js](https://nodejs.org/en/download/package-manager) v20.x or later.
+[Node.js](https://nodejs.org/en/download/package-manager) v18.x or later.
 
 ## Installation
 
@@ -50,7 +50,13 @@ commands](https://docs.fauna.com/fauna/current/build/cli/commands/), see the
 You can also access help directly in the CLI by running:
 
 ```sh
+# For general help:
 fauna --help
+
+# For a specific command:
+fauna <COMMAND> --help
+# For example:
+fauna eval --help
 ```
 
 ## Development
