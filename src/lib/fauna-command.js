@@ -306,6 +306,11 @@ FaunaCommand.flags = {
     description: "Force color output",
     allowNo: true,
   }),
+  "no-input": Flags.boolean({
+    char: "y",
+    description: "Do not read from user input.",
+    default: false,
+  }),
 };
 
 export default FaunaCommand;

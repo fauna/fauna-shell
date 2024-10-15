@@ -1,15 +1,10 @@
 import { confirm } from "@inquirer/prompts";
 import SchemaCommand from "../../lib/schema-command";
-import { Flags } from "@oclif/core";
 import { colorParam, hasColor } from "../../lib/color";
 
 export default class CommitSchemaCommand extends SchemaCommand {
   static flags = {
     ...SchemaCommand.flags,
-    force: Flags.boolean({
-      description: "Push the change without a diff or schema version check",
-      default: false,
-    }),
   };
 
   static description = "Abandons the currently staged schema.";
@@ -19,7 +14,7 @@ export default class CommitSchemaCommand extends SchemaCommand {
   async run() {
     try {
       const { url, secret } = await this.fetchsetup();
-      if (this.flags?.force) {
+      if (this.flags?.["no-input"]) {
         const params = new URLSearchParams({
           force: "true", // Just abandon, don't pass a schema version through.
         });

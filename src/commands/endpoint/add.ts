@@ -28,8 +28,10 @@ export default class AddEndpointCommand extends Command {
       description: "Database secret",
       required: false,
     }),
-    "non-interactive": Flags.boolean({
-      description: "Disables interaction",
+    "no-input": Flags.boolean({
+      char: "y",
+      description: "Do not read from user input.",
+      default: false,
       dependsOn: ["url", "secret"],
     }),
     "set-default": Flags.boolean({
@@ -49,8 +51,8 @@ export default class AddEndpointCommand extends Command {
   async execute(config: ShellConfig) {
     const { args, flags } = await this.parse();
 
-    if (args.name === undefined && flags["non-interactive"]) {
-      this.error("A name must be given if --non-interactive is set");
+    if (args.name === undefined && flags["no-input"]) {
+      this.error("A name must be given if --no-input is set");
     }
 
     const endpointName =
@@ -123,7 +125,7 @@ export default class AddEndpointCommand extends Command {
 
     const setDefault =
       flags?.["set-default"] ??
-      (flags?.["non-interactive"]
+      (flags?.["no-input"]
         ? false
         : await confirm({
             message: "Make this endpoint default",

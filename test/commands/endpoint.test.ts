@@ -37,7 +37,7 @@ describe("endpoint:add", () => {
     sinon.stub(ShellConfig, "read").returns(this.config);
     const { stdout } = await captureOutput(async () =>
       AddEndpointCommand.run([
-        "--non-interactive",
+        "--no-input",
         "foobar",
         "--url",
         "http://foo.baz",
@@ -84,7 +84,7 @@ describe("endpoint:add", () => {
     sinon.stub(ShellConfig, "read").returns(this.config);
     const { stdout } = await captureOutput(async () =>
       AddEndpointCommand.run([
-        "--non-interactive",
+        "--no-input",
         "foobar",
         "--url",
         "http://foo.baz",

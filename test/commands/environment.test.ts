@@ -45,7 +45,7 @@ describe("environment:add", () => {
     sinon.stub(ShellConfig, "read").returns(this.config);
     const { stdout } = await captureOutput(async () =>
       AddEnvironmentComand.run([
-        "--non-interactive",
+        "--no-input",
         "--name",
         "foobar",
         "--endpoint",
@@ -87,7 +87,7 @@ describe("environment:add", () => {
     sinon.stub(ShellConfig, "read").returns(this.config);
     const { stdout } = await captureOutput(async () =>
       AddEnvironmentComand.run([
-        "--non-interactive",
+        "--no-input",
         "--name",
         "foobar",
         "--endpoint",
@@ -130,7 +130,7 @@ describe("environment:add", () => {
     sinon.stub(ShellConfig, "read").returns(this.config);
     const { error } = await captureOutput(async () =>
       AddEnvironmentComand.run([
-        "--non-interactive",
+        "--no-input",
         "--name",
         "my-app",
         "--endpoint",
@@ -167,7 +167,7 @@ describe("environment:add", () => {
     sinon.stub(ShellConfig, "read").returns(this.config);
     const { error } = await captureOutput(async () =>
       AddEnvironmentComand.run([
-        "--non-interactive",
+        "--no-input",
         "--name",
         "foobar",
         "--endpoint",
