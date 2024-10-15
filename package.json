@@ -111,7 +111,6 @@
     "test": "c8 -r html mocha --forbid-only \"test/**/*.test.{js,ts}\"",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
-    "version": "oclif-dev readme && git add README.md",
     "fmt": "prettier -w src"
   },
   "husky": {
