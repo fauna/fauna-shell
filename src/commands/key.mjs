@@ -14,6 +14,7 @@ async function createKey(argv) {
   const accountKey = await getAccountKey(profile);
   // TODO: after logging in, should we list the top level databases and create db keys for them?
   //  depending on how many top level dbs....
+  // Have to list DBs on login so we know which databases are top-level and require frontdoor calls
 
   // TODO: we should create the key with fauna unless it's a top level key
   // in which case we should create it with the account client
