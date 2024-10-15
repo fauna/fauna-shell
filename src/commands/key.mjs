@@ -1,8 +1,8 @@
 import { container } from "../cli.mjs";
 import {
   authNZMiddleware,
-  getAccountKeyLocal,
-  getDBKeyLocal,
+  getAccountKey,
+  getDBKey,
 } from "../lib/auth/authNZ.mjs";
 
 // TODO: this function should just spit out the secret that was created.
@@ -11,8 +11,16 @@ import {
 async function createKey(argv) {
   const { database, profile, role, url, local } = argv;
   const logger = container.resolve("logger");
-  const accountKey = await getAccountKeyLocal(profile);
-  const dbSecret = await getDBKeyLocal({
+  const accountKey = await getAccountKey(profile);
+  // TODO: after logging in, should we list the top level databases and create db keys for them?
+  //  depending on how many top level dbs....
+
+  // TODO: we should create the key with fauna unless it's a top level key
+  // in which case we should create it with the account client
+
+  // TODO: when using fauna to create a key at the specified database path, we should
+  //  getDBKey(parent path).
+  const dbSecret = await getDBKey({
     accountKey,
     path: database,
     role,

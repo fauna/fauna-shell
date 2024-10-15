@@ -67,7 +67,7 @@ async function setAccountKey(profile) {
   cleanupSecretsFile();
   const accountCreds = container.resolve("accountCreds");
   // If account key is not found, this will throw InvalidCredsError and prompt login
-  const existingKey = getAccountKeyLocal(profile);
+  const existingKey = getAccountKey(profile);
   // If account key is invalid, this will throw InvalidCredsError
   const accountKeyValid = await checkAccountKeyRemote(existingKey);
   if (accountKeyValid) {
@@ -82,7 +82,7 @@ async function setAccountKey(profile) {
   }
 }
 
-export function getAccountKeyLocal(profile) {
+export function getAccountKey(profile) {
   const accountCreds = container.resolve("accountCreds");
   try {
     const creds = accountCreds.get({ key: profile });
@@ -129,7 +129,7 @@ async function refreshSession(profile) {
 async function setDBKey({ accountKey, path, role, url }) {
   const secretCreds = container.resolve("secretCreds");
   const accountClient = container.resolve("accountClient");
-  const existingSecret = getDBKeyLocal({ accountKey, path, role });
+  const existingSecret = getDBKey({ accountKey, path, role });
   if (existingSecret) {
     // If this throws an error, user
     const dbKeyIsValid = await checkDBKeyRemote(existingSecret.secret, url);
@@ -154,7 +154,7 @@ async function setDBKey({ accountKey, path, role, url }) {
   return newSecret;
 }
 
-export function getDBKeyLocal({ accountKey, path, role }) {
+export function getDBKey({ accountKey, path, role }) {
   const secretCreds = container.resolve("secretCreds");
   try {
     const existingCreds = secretCreds.get({ key: accountKey, path, role });
