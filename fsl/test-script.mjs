@@ -24,9 +24,9 @@ if (secretFlag) {
 await ensureClean();
 
 /**
- * Test Push
+ * Test push --active
  */
-await execFaunaCmd(["schema", "push", "--force"]);
+await execFaunaCmd(["schema", "push", "--active", "--no-input"]);
 const collNames = await execPaginated("Collection.all().map(.name).order()");
 if (
   collNames.length != expectedCollNames.length ||
