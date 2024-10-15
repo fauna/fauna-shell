@@ -23,7 +23,7 @@ async function doLogin(argv) {
         await accountClient.getSession(accessToken);
       accountCreds.save({
         creds: { account_key, refresh_token },
-        profile: argv.profile,
+        key: argv.profile,
       });
       logger.stdout(`Login Success!\n`);
     } catch (err) {

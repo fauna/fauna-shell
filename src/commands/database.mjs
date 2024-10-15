@@ -4,7 +4,7 @@ async function listDatabases(profile) {
   const logger = container.resolve("logger");
   const accountClient = container.resolve("accountClient");
   const accountCreds = container.resolve("accountCreds");
-  const account_key = accountCreds.get(profile).account_key;
+  const account_key = accountCreds.get({ key: profile }).account_key;
   logger.stdout("Listing Databases...");
   const databases = await accountClient.listDatabases(account_key);
   logger.stdout(databases);
