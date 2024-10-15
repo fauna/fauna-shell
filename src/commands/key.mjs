@@ -1,8 +1,8 @@
 import { container } from "../cli.mjs";
 import {
   authNZMiddleware,
-  getAccountKey,
-  getDBKey,
+  getAccountKeyLocal,
+  getDBKeyLocal,
 } from "../lib/auth/authNZ.mjs";
 
 // TODO: this function should just spit out the secret that was created.
@@ -11,9 +11,13 @@ import {
 async function createKey(argv) {
   const { database, profile, role, url, local } = argv;
   const logger = container.resolve("logger");
-  await authNZMiddleware(argv);
-  const accountKey = await getAccountKey(profile);
-  const dbSecret = await getDBKey({ accountKey, path: database, role, url });
+  const accountKey = await getAccountKeyLocal(profile);
+  const dbSecret = await getDBKeyLocal({
+    accountKey,
+    path: database,
+    role,
+    url,
+  });
   console.log("got account key", accountKey);
   console.log("got db secret", dbSecret);
 }
@@ -37,6 +41,9 @@ function buildKeyCommand(yargs) {
         type: "string",
         default: "admin",
         describe: "The role to assign to the key",
+      },
+      authRequired: {
+        default: true,
       },
     })
     .help("help", "show help")

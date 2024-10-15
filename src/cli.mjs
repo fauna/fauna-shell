@@ -9,6 +9,7 @@ import schemaCommand from "./commands/schema/schema.mjs";
 import databaseCommand from "./commands/database.mjs";
 import keyCommand from "./commands/key.mjs";
 import { logArgv, fixPaths } from "./lib/middleware.mjs";
+import { authNZMiddleware } from "./lib/auth/authNZ.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
 
@@ -62,7 +63,7 @@ function buildYargs(argvInput) {
   return yargsInstance
     .scriptName("fauna")
     .middleware([logArgv], true)
-    .middleware([fixPaths], false)
+    .middleware([fixPaths, authNZMiddleware], false)
     .command("eval", "evaluate a query", evalCommand)
     .command("login", "login via website", loginCommand)
     .command(keyCommand)
@@ -113,6 +114,11 @@ function buildYargs(argvInput) {
         type: "array",
         default: [],
         choices: ["fetch", "error", "argv"],
+      },
+      // Whether authNZ middleware should run. Better way of doing this?
+      authRequired: {
+        hidden: true,
+        default: false,
       },
     })
     .wrap(yargsInstance.terminalWidth())

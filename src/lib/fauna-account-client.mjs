@@ -203,7 +203,6 @@ export class FaunaAccountClient {
    * @throws {Error} - Throws an error if there is an issue during key creation.
    */
   async createKey({ accountKey, path, role = "admin" }) {
-    console.log("Creating key...", accountKey);
     // TODO: specify short ttl
     return await makeAccountRequest({
       method: "POST",
