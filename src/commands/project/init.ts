@@ -4,7 +4,6 @@ import fs from "fs";
 import * as path from "path";
 import {
   PROJECT_FILE_NAME,
-  ProjectConfig,
   ShellConfig,
   fileExists,
   getProjectConfigPath,
