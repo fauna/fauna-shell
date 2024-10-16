@@ -4,7 +4,6 @@ import fs from "fs";
 import * as path from "path";
 import {
   PROJECT_FILE_NAME,
-  ProjectConfig,
   ShellConfig,
   fileExists,
   getProjectConfigPath,
@@ -73,8 +72,6 @@ export class ProjectInitCommand extends Command {
         `The project's schema directory: ${fullSchemaPath} is not writeable.`
       );
     }
-
-    ProjectConfig.initialConfig(schemaDir).save(projectPath);
 
     const shellConfig = ShellConfig.readWithOverrides({
       projectPath: projectPath,
