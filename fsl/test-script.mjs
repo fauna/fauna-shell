@@ -114,5 +114,12 @@ async function execFQL(fql) {
     ? await $`${faunaCmd} eval ${fql} --format=json --secret ${secretFlag}`
     : await $`${faunaCmd} eval ${fql} --format=json`;
   const respParsed = JSON.parse(resp._stdout);
+  throwIfError(respParsed);
   return respParsed;
+}
+
+function throwIfError(networkResult) {
+  if (networkResult && networkResult.error)
+    throw new Error(`${networkResult.error.code || 'unknown'}: ${networkResult.error.message || 'unknown'}`);
+  return networkResult
 }
