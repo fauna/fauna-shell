@@ -175,7 +175,12 @@ export async function getAllSchemaFileContents(filenames, { ...overrides }) {
   const fileContentCollection = {};
   for (const filename of filenames) {
     promises.push(
-      getSchemaFile(filename, overrides).then(({ content }) => {
+      makeFaunaRequest({
+        baseUrl: overrides.baseUrl,
+        secret: overrides.secret,
+        path: `/schema/1/files/${encodeURIComponent(filename)}`,
+        method: "GET",
+      }).then(({ content }) => {
         fileContentCollection[filename] = content;
       }),
     );
@@ -184,44 +189,4 @@ export async function getAllSchemaFileContents(filenames, { ...overrides }) {
   await Promise.all(promises);
 
   return fileContentCollection;
-}
-
-/**
- * @param {Omit<fetchParameters, "path"|"method">} overrides
- */
-export async function getSchemaFiles({ ...overrides }) {
-  /** @type {fetchParameters} */
-  const args = {
-    ...overrides,
-    path: "/schema/1/files",
-    method: "GET",
-  };
-  return makeFaunaRequest({ ...args });
-}
-
-/**
- * @param {string} filename
- * @param {Omit<fetchParameters, "path"|"method">} overrides
- */
-export async function getSchemaFile(filename, { ...overrides }) {
-  /** @type {fetchParameters} */
-  const args = {
-    ...overrides,
-    path: `/schema/1/files/${encodeURIComponent(filename)}`,
-    method: "GET",
-  };
-  return makeFaunaRequest({ ...args });
-}
-
-/**
- * @param {Omit<fetchParameters, "path"|"method">} overrides
- */
-export async function getStagedSchemaStatus({ ...overrides }) {
-  /** @type {fetchParameters} */
-  const args = {
-    ...overrides,
-    path: "/schema/1/staged/status",
-    method: "GET",
-  };
-  return makeFaunaRequest({ ...args });
 }

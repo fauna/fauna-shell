@@ -2,35 +2,38 @@
 
 import { container } from "../../cli.mjs";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { makeFaunaRequest } from "../../lib/db.mjs";
 
 async function doPull(argv) {
   const logger = container.resolve("logger");
   const gatherFSL = container.resolve("gatherFSL");
   const confirm = container.resolve("confirm");
-  const getSchemaFiles = container.resolve("getSchemaFiles");
-  const getStagedSchemaStatus = container.resolve("getStagedSchemaStatus");
 
   // fetch the list of remote FSL files
-  const filesResponse = await getSchemaFiles({
-    secret: argv.secret,
+  const filesResponse = await makeFaunaRequest({
     baseUrl: argv.url,
+    path: "/schema/1/files",
+    method: "GET",
+    secret: argv.secret,
   });
 
   // check if there's a staged schema
-  const statusResponse = await getStagedSchemaStatus({
-    params: { version: filesResponse.version },
+  const statusResponse = await makeFaunaRequest({
     baseUrl: argv.url,
+    path: "/schema/1/staged/status",
+    params: new URLSearchParams({ version: filesResponse.version }),
+    method: "GET",
     secret: argv.secret,
   });
 
-  // if there's a staged schema, require the --staged flag.
-  // getting unstaged FSL while staged FSL exists is not yet
+  // if there's a staged schema, cannot use the --active flag.
+  // getting active FSL while staged FSL exists is not yet
   // implemented at the service level.
-  if (statusResponse.status !== "none" && !argv.staged) {
+  if (statusResponse.status !== "none" && argv.active) {
     throw new Error(
-      "There is a staged schema change. Use --staged to pull it.",
+      "There is a staged schema change. Remove the --active flag to pull it.",
     );
-  } else if (statusResponse.status === "none" && argv.staged) {
+  } else if (statusResponse.status === "none" && !argv.active) {
     throw new Error("There are no staged schema changes to pull.");
   }
 
@@ -117,8 +120,8 @@ function buildPullCommand(yargs) {
         type: "boolean",
         default: false,
       },
-      staged: {
-        description: "Pulls staged schema instead of the active schema",
+      active: {
+        description: "Pulls the active schema instead of the staged schema",
         type: "boolean",
         default: false,
       },
@@ -126,7 +129,7 @@ function buildPullCommand(yargs) {
     })
     .example([
       ["$0 schema pull"],
-      ["$0 schema pull --staged"],
+      ["$0 schema pull --active"],
       ["$0 schema pull --delete"],
     ])
     .version(false)

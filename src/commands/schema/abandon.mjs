@@ -65,7 +65,7 @@ function buildAbandonCommand(yargs) {
       input: {
         description: "Prompt for user input (e.g., confirmations)",
         default: true,
-        type: "boolean"
+        type: "boolean",
       },
       ...commonQueryOptions,
     })

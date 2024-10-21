@@ -11,7 +11,7 @@ import { container } from "../cli.mjs";
  * @property {string} secret - The secret to include in the AUTHORIZATION header of the request.
  * @property {string} baseUrl - The base URL from the scheme up through the top level domain and optional port; defaults to "https://db.fauna.com:443".
  * @property {string} path - The path part of the URL. Added to the baseUrl and params to build the full URL.
- * @property {Record<string, string>} [params] - The parameters (and their values) to set in the query string.
+ * @property {URLSearchParams} [params] - The parameters (and their values) to set in the query string.
  * @property {method} method - The HTTP method to use when making the request.
  * @property {object} [body] - The body to include in the request.
  * @property {boolean} [shouldThrow=true] - Whether or not to throw if the network request succeeds but is not a 2XX. If this is set to false, makeFaunaRequest will return the error instead of throwing.
@@ -30,7 +30,8 @@ export async function makeFaunaRequest({
   shouldThrow = true,
 }) {
   const fetch = container.resolve("fetch");
-  const paramsString = params ? `?${new URLSearchParams(params)}` : "";
+  if (params && params.sort) params.sort();
+  const paramsString = params && params.size ? `?${params.toString()}` : "";
   let fullUrl;
 
   try {
