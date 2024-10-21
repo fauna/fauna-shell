@@ -14,12 +14,13 @@ async function doPush(argv) {
   if (!argv.input) {
     const params = new URLSearchParams({
       force: "true",
-      staged: argv.staged ? "true" : "false",
+      staged: argv.active ? "false" : "true",
     });
 
     await makeFaunaRequest({
       baseUrl: argv.url,
-      path: `/schema/1/update?${params}`,
+      path: "/schema/1/update",
+      params,
       body: fsl,
       secret: argv.secret,
       method: "POST",
@@ -29,13 +30,14 @@ async function doPush(argv) {
     // need to pass the last known schema version through.
     const params = new URLSearchParams({
       force: "true",
-      staged: argv.staged ? "true" : "false",
+      staged: argv.active ? "false" : "true",
     });
     if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({
       baseUrl: argv.url,
-      path: `/schema/1/validate?${params}`,
+      path: "/schema/1/validate",
+      params,
       body: fsl,
       secret: argv.secret,
       method: "POST",
@@ -58,12 +60,13 @@ async function doPush(argv) {
     if (confirmed) {
       const params = new URLSearchParams({
         version: response.version,
-        staged: argv.staged ? "true" : "false",
+        staged: argv.active ? "false" : "true",
       });
 
       await makeFaunaRequest({
         baseUrl: argv.url,
-        path: `/schema/1/update?${params}`,
+        path: "/schema/1/update",
+        params,
         body: fsl,
         secret: argv.secret,
         method: "POST",
@@ -80,9 +83,9 @@ function buildPushCommand(yargs) {
       input: {
         description: "Prompt for user input (e.g., confirmations)",
         default: true,
-        type: "boolean"
+        type: "boolean",
       },
-      staged: {
+      active: {
         description:
           "Stages the schema change instead of applying it immediately",
         type: "boolean",
@@ -93,7 +96,7 @@ function buildPushCommand(yargs) {
     .example([
       ["$0 schema push"],
       ["$0 schema push --dir schemas/myschema"],
-      ["$0 schema push --staged"],
+      ["$0 schema push --active"],
     ])
     .version(false)
     .help("help", "show help");

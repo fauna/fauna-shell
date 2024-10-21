@@ -7,6 +7,7 @@ import { expect } from "chai";
 import chalk from "chalk";
 import { stub } from "sinon";
 
+import { f } from "../helpers.mjs";
 import { builtYargs, run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 
@@ -83,6 +84,12 @@ describe("cli operations", function () {
   });
 
   it("should check for updates when run", async function () {
+    fetch.onCall(0).resolves(
+      f({
+        version: 0,
+        diff: "",
+      }),
+    );
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     const packagePath = path.join(__dirname, "../package.json");

@@ -4,7 +4,7 @@ import sinon from "sinon";
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import { reformatFSL } from "../../src/lib/schema.mjs";
-import { f } from "../helpers.mjs";
+import { buildUrl, f } from "../helpers.mjs";
 
 describe("schema push", function () {
   const diffString =
@@ -35,7 +35,7 @@ describe("schema push", function () {
     expect(gatherFSL).to.have.been.calledWith(".");
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/update?force=true&staged=false",
+      buildUrl("/schema/1/update", { force: "true", staged: "true" }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -47,7 +47,7 @@ describe("schema push", function () {
     expect(logger.stderr).to.not.be.called;
   });
 
-  it("can push schema by version to active (default)", async function () {
+  it("can push schema by version to staged (default)", async function () {
     // user accepts the changes in the interactive prompt
     confirm.resolves(true);
 
@@ -69,7 +69,11 @@ describe("schema push", function () {
     await run(`schema push --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&staged=false&color=ansi",
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "true",
+        color: "ansi",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -78,7 +82,10 @@ describe("schema push", function () {
     );
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/update?version=1728675598430000&staged=false",
+      buildUrl("/schema/1/update", {
+        version: "1728675598430000",
+        staged: "true",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -91,7 +98,7 @@ describe("schema push", function () {
     expect(logger.stdout).to.have.been.calledWith(diffString);
   });
 
-  it("can push schema by version to staging", async function () {
+  it("can push schema by version to active", async function () {
     // user accepts the changes in the interactive prompt
     confirm.resolves(true);
 
@@ -110,10 +117,14 @@ describe("schema push", function () {
       }),
     );
 
-    await run(`schema push --secret "secret" --staged`, container);
+    await run(`schema push --secret "secret" --active`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&staged=true&color=ansi",
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "false",
+        color: "ansi",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -122,7 +133,10 @@ describe("schema push", function () {
     );
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/update?version=1728675598430000&staged=true",
+      buildUrl("/schema/1/update", {
+        version: "1728675598430000",
+        staged: "false",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -150,7 +164,11 @@ describe("schema push", function () {
     await run(`schema push --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&staged=false&color=ansi",
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "true",
+        color: "ansi",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -189,7 +207,11 @@ describe("schema push", function () {
     await run(`schema push --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&staged=false&color=ansi",
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "true",
+        color: "ansi",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -198,7 +220,10 @@ describe("schema push", function () {
     );
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/update?version=1728675598430000&staged=false",
+      buildUrl("/schema/1/update", {
+        version: "1728675598430000",
+        staged: "true",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -212,4 +237,6 @@ describe("schema push", function () {
       sinon.match.has("message", "Push file contents anyway?"),
     );
   });
+
+  it.skip("correctly URI encodes file paths");
 });

@@ -8,7 +8,6 @@ import { confirm } from "@inquirer/prompts";
 import * as awilix from "awilix";
 import { Lifetime } from "awilix";
 import open from "open";
-import updateNotifier from "update-notifier";
 
 import { parseYargs } from "../cli.mjs";
 import { performQuery } from "../commands/eval.mjs";
@@ -24,9 +23,6 @@ import {
   gatherFSL,
   gatherRelativeFSLFilePaths,
   getAllSchemaFileContents,
-  getSchemaFile,
-  getSchemaFiles,
-  getStagedSchemaStatus,
   writeSchemaFiles,
 } from "../lib/schema.mjs";
 
@@ -64,7 +60,6 @@ export const injectables = {
   // third-party libraries
   confirm: awilix.asValue(confirm),
   open: awilix.asValue(open),
-  updateNotifier: awilix.asValue(updateNotifier),
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
@@ -83,11 +78,8 @@ export const injectables = {
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),
   gatherRelativeFSLFilePaths: awilix.asValue(gatherRelativeFSLFilePaths),
-  getSchemaFile: awilix.asValue(getSchemaFile),
-  getSchemaFiles: awilix.asValue(getSchemaFiles),
   writeSchemaFiles: awilix.asValue(writeSchemaFiles),
   getAllSchemaFileContents: awilix.asValue(getAllSchemaFileContents),
-  getStagedSchemaStatus: awilix.asValue(getStagedSchemaStatus),
   deleteUnusedSchemaFiles: awilix.asValue(deleteUnusedSchemaFiles),
 };
 
