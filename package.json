@@ -62,7 +62,7 @@
   "repository": "fauna/fauna-shell",
   "scripts": {
     "postpack": "rm -f oclif.manifest.json",
-    "pretest": "yarn fixlint",
+    "pretest": "npm run fixlint",
     "local-test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",

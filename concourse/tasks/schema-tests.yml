@@ -19,8 +19,8 @@ run:
     - |
       npm install -g zx
       cd fauna-shell-repository
-      yarn install
-      yarn build
+      npm ci
+      npm run build
       faunaCmd="$(pwd)/bin/dev"
       cd fsl
       ./test-script.mjs "$faunaCmd"
