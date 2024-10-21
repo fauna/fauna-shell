@@ -1,4 +1,11 @@
+import * as fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { expect } from "chai";
+import { stub } from "sinon";
+import * as awilix from "awilix";
+
 import { run, builtYargs } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import chalk from "chalk";
@@ -73,6 +80,29 @@ describe("cli operations", function () {
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
+  });
+
+  it("should check for updates when run", async function () {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const packagePath = path.join(__dirname, "../package.json");
+
+    const packageJson = JSON.parse(
+      fs.readFileSync(packagePath, {
+        encoding: "utf-8",
+      }),
+    );
+    const notify = stub();
+    const updateNotifier = stub().returns({ notify });
+    container.register({ updateNotifier: awilix.asValue(updateNotifier) });
+
+    await run(`schema status --secret "secret"`, container);
+
+    expect(updateNotifier).to.have.been.calledWith({
+      pkg: packageJson,
+      updateCheckInterval: 1000 * 60 * 60 * 24 * 7, // 1 week
+    })
+    expect(notify).to.have.been.called;
   });
 
   it.skip("should detect color support if the user does not specify", async function () {

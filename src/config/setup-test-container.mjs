@@ -49,6 +49,7 @@ export function setupTestContainer() {
       unlink: stub(),
       writeFile: stub(),
     }),
+    updateNotifier: awilix.asValue(stub().returns({ notify: stub() })),
     logger: awilix.asValue({
       // use these for making dev, support tickets easier.
       // they're not mocked because we shouldn't test them
