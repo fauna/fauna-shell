@@ -54,10 +54,10 @@ describe("schema commit", function () {
     );
   });
 
-  it("can force commit a schema change", async function () {
+  it("can commit a schema change without user input", async function () {
     fetch.onCall(0).resolves(f({ version: 1728684456180000 }));
 
-    await run(`schema commit --secret "secret" --force`, container);
+    await run(`schema commit --secret "secret" --no-input`, container);
 
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(

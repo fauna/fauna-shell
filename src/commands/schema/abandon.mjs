@@ -8,7 +8,7 @@ async function doAbandon(argv) {
   const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
 
-  if (argv.force) {
+  if (!argv.input) {
     const params = new URLSearchParams({
       force: "true", // Just abandon, don't pass a schema version through.
     });
@@ -62,10 +62,10 @@ async function doAbandon(argv) {
 function buildAbandonCommand(yargs) {
   return yargs
     .options({
-      force: {
-        description: "Push the change without a diff or schema version check",
-        type: "boolean",
-        default: false,
+      input: {
+        description: "Prompt for user input (e.g., confirmations)",
+        default: true,
+        type: "boolean"
       },
       ...commonQueryOptions,
     })

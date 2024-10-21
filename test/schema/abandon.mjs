@@ -21,7 +21,7 @@ describe("schema abandon", function () {
     confirm = container.resolve("confirm");
   });
 
-  it("can force abandon a staged schema change", async function () {
+  it("can abandon a staged schema change without user input", async function () {
     fetch.onCall(0).resolves(
       f({
         version: 1728677726190000,
@@ -32,7 +32,7 @@ describe("schema abandon", function () {
       }),
     );
 
-    await run(`schema abandon --secret "secret" --force`, container);
+    await run(`schema abandon --secret "secret" --no-input`, container);
 
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(

@@ -29,8 +29,8 @@ describe("schema push", function () {
     gatherFSL.resolves(fsl);
   });
 
-  it("can force push schema", async function () {
-    await run(`schema push --secret "secret" --force`, container);
+  it("can push a schema without user input", async function () {
+    await run(`schema push --secret "secret" --no-input`, container);
 
     expect(gatherFSL).to.have.been.calledWith(".");
 
@@ -167,7 +167,7 @@ describe("schema push", function () {
 
   it("can push schema from another directory", async function () {
     await run(
-      `schema push --secret "secret" --force --dir "/absolute/path/elsewhere"`,
+      `schema push --secret "secret" --no-input --dir "/absolute/path/elsewhere"`,
       container,
     );
 
