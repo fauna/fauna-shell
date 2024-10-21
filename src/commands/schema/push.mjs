@@ -11,9 +11,9 @@ async function doPush(argv) {
   const gatherFSL = container.resolve("gatherFSL");
   const fsl = reformatFSL(await gatherFSL(argv.dir));
 
-  if (argv.force) {
+  if (!argv.input) {
     const params = new URLSearchParams({
-      force: argv.force,
+      force: "true",
       staged: argv.staged ? "true" : "false",
     });
 
@@ -77,10 +77,10 @@ async function doPush(argv) {
 function buildPushCommand(yargs) {
   return yargs
     .options({
-      force: {
-        description: "Push the change without a diff or schema version check",
-        type: "boolean",
-        default: false,
+      input: {
+        description: "Prompt for user input (e.g., confirmations)",
+        default: true,
+        type: "boolean"
       },
       staged: {
         description:
