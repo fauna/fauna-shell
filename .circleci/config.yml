@@ -42,3 +42,10 @@ workflows:
     jobs:
       - fauna-shell-tests:
           context: faunadb-drivers
+          filters:
+            branches:
+              # only build the branch "main"
+              # and branches ending in "-old"
+              only:
+                - main
+                - /^.+-old$/
