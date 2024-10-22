@@ -29,6 +29,9 @@ jobs:
     - run: npm test
       env:
         TERM: xterm-256color
+        # Set to the correct color level; 2 is 256 colors
+        # https://github.com/chalk/chalk?tab=readme-ov-file#supportscolor
+        FORCE_COLOR: 2
     - name: Publish Test Report
       uses: mikepenz/action-junit-report@v4
       if: success() || failure() # always run even if the previous step fails
