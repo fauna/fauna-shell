@@ -17,11 +17,11 @@ commands:
 
       - run:
           name: Install dependencies
-          command: yarn install
+          command: npm ci
 
       - run:
           name: Run Tests
-          command: yarn test
+          command: npm test
 
       - store_test_results:
           path: test-results.xml
