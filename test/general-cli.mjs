@@ -101,7 +101,7 @@ describe("cli operations", function () {
     expect(updateNotifier).to.have.been.calledWith({
       pkg: packageJson,
       updateCheckInterval: 1000 * 60 * 60 * 24 * 7, // 1 week
-    })
+    });
     expect(notify).to.have.been.called;
   });
 

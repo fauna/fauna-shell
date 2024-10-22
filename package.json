@@ -1,7 +1,7 @@
 {
   "name": "fauna-shell",
   "description": "faunadb shell",
-  "version": "3.0.0-beta",
+  "version": "4.0.0-beta",
   "author": "Fauna",
   "type": "module",
   "bin": {
@@ -43,7 +43,7 @@
     "typescript": "^5.6.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "files": [
     "/user-entrypoint.mjs",
@@ -62,7 +62,6 @@
   "main": "./user-entrypoint.mjs",
   "repository": "fauna/fauna-shell",
   "scripts": {
-    "postpack": "rm -f oclif.manifest.json",
     "pretest": "npm run fixlint",
     "local-test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
     "lint": "eslint .",
