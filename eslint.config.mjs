@@ -13,10 +13,9 @@ const compat = new FlatCompat({
   allConfig: js.configs.all,
 });
 
+import defaultConfig from "@fauna/typescript/config/eslint.config.js";
 export default [
-  {
-    ignores: ["**/node_modules", ".history"],
-  },
+  ...defaultConfig,
   ...compat.extends("plugin:prettier/recommended"),
   {
     languageOptions: {
@@ -25,37 +24,12 @@ export default [
       },
 
       parser: espree,
-      ecmaVersion: 2020,
       sourceType: "module",
 
       parserOptions: {
         requireConfigFile: false,
         modules: true,
       },
-    },
-
-    rules: {
-      "no-await-in-loop": "off",
-      "new-cap": "off",
-      "quote-props": "off",
-      "no-negated-condition": "off",
-      "no-warning-comments": "off",
-      "spaced-comment": "off",
-      "max-nested-callbacks": "off",
-      "no-else-return": "off",
-      "no-console": "off",
-      "no-multi-str": "off",
-      "no-prototype-builtins": "off",
-
-      "node/no-unsupported-features": "off",
-      camelcase: "off",
-    },
-  },
-  {
-    files: ["test/**/*.mjs"],
-
-    rules: {
-      "no-unused-expressions": "off",
     },
   },
 ];
