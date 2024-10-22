@@ -1,6 +1,13 @@
+import fs from "node:fs";
+import * as fsp from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
 import { exit } from "node:process";
 
 import * as awilix from "awilix";
+import { Lifetime } from "awilix";
+import updateNotifier from "update-notifier";
+import { confirm } from "@inquirer/prompts";
 
 import { performQuery } from "../commands/eval.mjs";
 import logger from "../lib/logger.mjs";
@@ -15,17 +22,11 @@ import {
   deleteUnusedSchemaFiles,
   writeSchemaFiles,
 } from "../lib/schema.mjs";
-import { confirm } from "@inquirer/prompts";
 import { makeFaunaRequest } from "../lib/db.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 import open from "open";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
-import { Lifetime } from "awilix";
-import fs from "node:fs";
-import * as fsp from "node:fs/promises";
-import path from "node:path";
-import os from "node:os";
 import { AccountKey, SecretKey } from "../lib/file-util.mjs";
 import { parseYargs } from "../cli.mjs";
 
@@ -63,6 +64,7 @@ export const injectables = {
   // third-party libraries
   confirm: awilix.asValue(confirm),
   open: awilix.asValue(open),
+  updateNotifier: awilix.asValue(updateNotifier),
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
