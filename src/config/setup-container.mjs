@@ -16,9 +16,6 @@ import {
   gatherFSL,
   gatherRelativeFSLFilePaths,
   getAllSchemaFileContents,
-  getStagedSchemaStatus,
-  getSchemaFile,
-  getSchemaFiles,
   deleteUnusedSchemaFiles,
   writeSchemaFiles,
 } from "../lib/schema.mjs";
@@ -83,11 +80,8 @@ export const injectables = {
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),
   gatherRelativeFSLFilePaths: awilix.asValue(gatherRelativeFSLFilePaths),
-  getSchemaFile: awilix.asValue(getSchemaFile),
-  getSchemaFiles: awilix.asValue(getSchemaFiles),
   writeSchemaFiles: awilix.asValue(writeSchemaFiles),
   getAllSchemaFileContents: awilix.asValue(getAllSchemaFileContents),
-  getStagedSchemaStatus: awilix.asValue(getStagedSchemaStatus),
   deleteUnusedSchemaFiles: awilix.asValue(deleteUnusedSchemaFiles),
 };
 
