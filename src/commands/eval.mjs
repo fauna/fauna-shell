@@ -148,9 +148,7 @@ async function writeFormattedOutputV10(file, res, format) {
       }
       output += res.body.data ?? "";
     } else {
-      output = `${res.body.error?.code ?? ""}: ${
-        res.body.error?.message ?? ""
-      }`;
+      output = `${res.body.error?.code ?? ""}: ${res.body.error?.message ?? ""}`;
       if (res.body.summary) {
         output += "\n\n";
         output += res.body.summary ?? "";

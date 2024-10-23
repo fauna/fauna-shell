@@ -9,7 +9,7 @@
   },
   "bugs": "https://github.com/fauna/fauna-shell/issues",
   "dependencies": {
-    "@fauna/typescript": "^0.0.6",
+    "@fauna/typescript": "^0.0.7",
     "@inquirer/prompts": "^7.0.0",
     "awilix": "^12.0.2",
     "chalk": "^5.3.0",
@@ -31,7 +31,6 @@
     "@types/yargs": "^17.0.33",
     "chai": "^5.1.1",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.1",
     "globals": "^15.10.0",
     "husky": "^9.1.6",
     "mocha": "^10.7.3",
@@ -63,12 +62,11 @@
   "main": "./user-entrypoint.mjs",
   "repository": "fauna/fauna-shell",
   "scripts": {
-    "pretest": "npm run fixlint",
+    "pretest": "npm run format && npm run lint",
     "local-test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
-    "lint": "eslint .",
-    "fixlint": "eslint . --fix",
+    "lint": "eslint . --fix",
     "test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter spec --reporter mocha-junit-reporter",
-    "fmt": "prettier -w src"
+    "format": "prettier -w src test package.json prettier.config.js eslint.config.mjs user-entrypoint.mjs"
   },
   "husky": {
     "hooks": {
