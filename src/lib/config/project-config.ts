@@ -64,10 +64,14 @@ export class ProjectConfig {
   save(path: string) {
     const config = {
       ...(this.schemaDir
-        ? { [ProjectConfig.SCHEMA_DIRECTORY_FIELD_NAME]: this.schemaDir }
+        ? {
+            [ProjectConfig.SCHEMA_DIRECTORY_FIELD_NAME]: this.schemaDir,
+          }
         : {}),
       ...(this.defaultEnvironment
-        ? { [ProjectConfig.DEFAULT_FIELD_NAME]: this.defaultEnvironment }
+        ? {
+            [ProjectConfig.DEFAULT_FIELD_NAME]: this.defaultEnvironment,
+          }
         : {}),
       [ProjectConfig.ENVIRONMENT_FIELD_NAME]: this.environments,
     };
