@@ -1,21 +1,19 @@
+import * as awilix from "awilix";
 import { expect } from "chai";
 import sinon from "sinon";
-
-import * as awilix from "awilix";
-
-import { f, commonFetchParams } from "../helpers.mjs";
 import tryToCatch from "try-to-catch";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import {
+  deleteUnusedSchemaFiles,
+  getAllSchemaFileContents,
   getSchemaFile,
   getSchemaFiles,
   getStagedSchemaStatus,
-  getAllSchemaFileContents,
   writeSchemaFiles,
-  deleteUnusedSchemaFiles,
 } from "../../src/lib/schema.mjs";
+import { commonFetchParams, f } from "../helpers.mjs";
 
 describe("schema pull", function () {
   let container, logger, confirm, fetch, fs, fsp, gatherFSL;
@@ -99,11 +97,7 @@ describe("schema pull", function () {
 
     fs.writeFile.resolves();
 
-    try {
-      await run(`schema pull --secret "secret"`, container);
-    } catch (e) {
-      console.error(logger.stderr.args.join("\n"));
-    }
+    await run(`schema pull --secret "secret"`, container);
 
     expect(gatherFSL).to.have.been.calledWith(".");
 

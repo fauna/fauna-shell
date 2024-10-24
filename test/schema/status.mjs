@@ -1,9 +1,8 @@
 import { expect } from "chai";
 
-import { f, commonFetchParams } from "../helpers.mjs";
-
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { commonFetchParams, f } from "../helpers.mjs";
 
 describe("schema status", function () {
   let container;

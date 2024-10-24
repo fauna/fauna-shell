@@ -1,9 +1,10 @@
 //@ts-check
 
 import * as path from "path";
-import { dirExists, dirIsWriteable } from "./file-util.mjs";
+
 import { container } from "../cli.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
+import { dirExists, dirIsWriteable } from "./file-util.mjs";
 
 /**
  * @param {string} dir - The directory path to check for existence and write access
@@ -33,7 +34,7 @@ function read(dir, relpaths) {
   // database file size limit: 8mb
   const FILESIZE_LIMIT_BYTES = 8 * 1024 * 1024;
   const curr = [];
-  var totalsize = 0;
+  let totalsize = 0;
   for (const relp of relpaths) {
     const fp = path.join(dir, relp);
     const content = fs.readFileSync(fp);

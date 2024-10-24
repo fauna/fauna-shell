@@ -1,5 +1,5 @@
-import { createContext, runInContext } from "node:vm";
 import util from "node:util";
+import { createContext, runInContext } from "node:vm";
 
 export async function runQuery(expression, client) {
   const faunadb = (await import("faunadb")).default;

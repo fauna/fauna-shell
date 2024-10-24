@@ -1,9 +1,10 @@
 import { expect } from "chai";
+import sinon from "sinon";
+
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import { reformatFSL } from "../../src/lib/schema.mjs";
 import { f } from "../helpers.mjs";
-import sinon from "sinon";
 
 describe("schema push", function () {
   const diffString =

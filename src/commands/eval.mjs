@@ -2,14 +2,15 @@
 
 const EVAL_OUTPUT_FORMATS = ["json", "json-tagged", "shell"];
 
-import util from "util";
 import { existsSync } from "fs";
-import * as misc from "../lib/misc.mjs";
+import util from "util";
+
+import { container } from "../cli.mjs";
 import {
   // ensureDbScopeClient,
   commonQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { container } from "../cli.mjs";
+import * as misc from "../lib/misc.mjs";
 
 const { runQuery } = misc;
 
@@ -25,6 +26,7 @@ async function writeFormattedJson(file, data) {
     return str;
   } else {
     // await writeFile(file, str);
+    return undefined;
   }
 }
 
@@ -39,6 +41,7 @@ async function writeFormattedShell(file, str) {
     return str;
   } else {
     // await writeFile(file, str);
+    return undefined;
   }
 }
 
@@ -54,26 +57,41 @@ async function writeFormattedOutput(file, data, format) {
     return writeFormattedJson(file, data);
   } else if (format === "shell") {
     return writeFormattedShell(file, util.inspect(data, { depth: null }));
+  } else {
+    throw new Error(`Unrecognized format ${format}.`);
   }
 }
 
-/**
- * Perform a v4 or v10 query, depending on the FQL version
- *
- * @param {Object} client - An instance of the client used to execute the query.
- * @param {string} fqlQuery - The FQL v4 query to be executed.
- * @param {string} outputFile - Target filename
- * @param {Object} flags - Options for the query execution.
- * @param {("4" | "10")} flags.version - FQL version number
- * @param {("json" | "json-tagged" | "shell")} flags.format - Result format
- * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
- */
-export async function performQuery(client, fqlQuery, outputFile, flags) {
-  if (flags.version === "4") {
-    const res = performV4Query(client, fqlQuery, outputFile, flags);
-    return res;
+async function writeFormattedOutputV10(file, res, format) {
+  const isOk = res.status >= 200 && res.status <= 299;
+
+  if (format === "json" || format === "json-tagged") {
+    if (isOk) {
+      return writeFormattedJson(file, res.body.data);
+    } else {
+      return writeFormattedJson(file, {
+        error: res.body.error,
+        summary: res.body.summary,
+      });
+    }
+  } else if (format === "shell") {
+    let output = "";
+    if (isOk) {
+      output += res.body.summary ?? "";
+      if (output) {
+        output += "\n\n";
+      }
+      output += res.body.data ?? "";
+    } else {
+      output = `${res.body.error?.code ?? ""}: ${res.body.error?.message ?? ""}`;
+      if (res.body.summary) {
+        output += "\n\n";
+        output += res.body.summary ?? "";
+      }
+    }
+    return writeFormattedShell(file, output);
   } else {
-    return performV10Query(client, fqlQuery, outputFile, flags);
+    throw new Error("Unsupported output format");
   }
 }
 
@@ -127,36 +145,24 @@ async function performV4Query(client, fqlQuery, outputFile, flags) {
     throw error;
   }
 }
-async function writeFormattedOutputV10(file, res, format) {
-  const isOk = res.status >= 200 && res.status <= 299;
 
-  if (format === "json" || format === "json-tagged") {
-    if (isOk) {
-      return writeFormattedJson(file, res.body.data);
-    } else {
-      return writeFormattedJson(file, {
-        error: res.body.error,
-        summary: res.body.summary,
-      });
-    }
-  } else if (format === "shell") {
-    let output = "";
-    if (isOk) {
-      output += res.body.summary ?? "";
-      if (output) {
-        output += "\n\n";
-      }
-      output += res.body.data ?? "";
-    } else {
-      output = `${res.body.error?.code ?? ""}: ${res.body.error?.message ?? ""}`;
-      if (res.body.summary) {
-        output += "\n\n";
-        output += res.body.summary ?? "";
-      }
-    }
-    return writeFormattedShell(file, output);
+/**
+ * Perform a v4 or v10 query, depending on the FQL version
+ *
+ * @param {Object} client - An instance of the client used to execute the query.
+ * @param {string} fqlQuery - The FQL v4 query to be executed.
+ * @param {string} outputFile - Target filename
+ * @param {Object} flags - Options for the query execution.
+ * @param {("4" | "10")} flags.version - FQL version number
+ * @param {("json" | "json-tagged" | "shell")} flags.format - Result format
+ * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
+ */
+export async function performQuery(client, fqlQuery, outputFile, flags) {
+  if (flags.version === "4") {
+    const res = performV4Query(client, fqlQuery, outputFile, flags);
+    return res;
   } else {
-    throw new Error("Unsupported output format");
+    return performV10Query(client, fqlQuery, outputFile, flags);
   }
 }
 

@@ -2,13 +2,13 @@ import * as fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { expect } from "chai";
-import { stub } from "sinon";
 import * as awilix from "awilix";
-
-import { run, builtYargs } from "../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { expect } from "chai";
 import chalk from "chalk";
+import { stub } from "sinon";
+
+import { builtYargs, run } from "../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 
 describe("cli operations", function () {
   let container;

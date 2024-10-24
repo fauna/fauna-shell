@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import chalk from "chalk";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
@@ -74,6 +76,7 @@ function debug(text, component, argv) {
   log({
     text,
     verbosity: 5,
+     
     stream: console.log,
     component,
     formatter: chalk.blue,
