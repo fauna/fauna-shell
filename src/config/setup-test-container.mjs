@@ -2,14 +2,13 @@ import fs from "node:fs";
 import { normalize } from "node:path";
 
 import * as awilix from "awilix";
-import { setupCommonContainer, injectables } from "./setup-container.mjs";
+import { spy, stub } from "sinon";
+
 import { f } from "../../test/helpers.mjs";
-import { makeFaunaRequest } from "../lib/db.mjs";
-
-import { stub, spy } from "sinon";
 import { parseYargs } from "../cli.mjs";
-
+import { makeFaunaRequest } from "../lib/db.mjs";
 import logger from "../lib/logger.mjs";
+import { injectables, setupCommonContainer } from "./setup-container.mjs";
 
 // Mocks all _functions_ declared on the injectables export from setup-container.mjs
 function automock(container) {

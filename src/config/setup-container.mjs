@@ -1,34 +1,34 @@
 import fs from "node:fs";
 import * as fsp from "node:fs/promises";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 import { exit } from "node:process";
 
+import { confirm } from "@inquirer/prompts";
 import * as awilix from "awilix";
 import { Lifetime } from "awilix";
+import open from "open";
 import updateNotifier from "update-notifier";
-import { confirm } from "@inquirer/prompts";
 
+import { parseYargs } from "../cli.mjs";
 import { performQuery } from "../commands/eval.mjs";
-import logger from "../lib/logger.mjs";
+import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { getSimpleClient } from "../lib/command-helpers.mjs";
+import { makeFaunaRequest } from "../lib/db.mjs";
+import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
+import fetchWrapper from "../lib/fetch-wrapper.mjs";
+import { AccountKey, SecretKey } from "../lib/file-util.mjs";
+import logger from "../lib/logger.mjs";
 import {
+  deleteUnusedSchemaFiles,
   gatherFSL,
   gatherRelativeFSLFilePaths,
   getAllSchemaFileContents,
-  getStagedSchemaStatus,
   getSchemaFile,
   getSchemaFiles,
-  deleteUnusedSchemaFiles,
+  getStagedSchemaStatus,
   writeSchemaFiles,
 } from "../lib/schema.mjs";
-import { makeFaunaRequest } from "../lib/db.mjs";
-import fetchWrapper from "../lib/fetch-wrapper.mjs";
-import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
-import open from "open";
-import OAuthClient from "../lib/auth/oauth-client.mjs";
-import { AccountKey, SecretKey } from "../lib/file-util.mjs";
-import { parseYargs } from "../cli.mjs";
 
 // import { findUpSync } from 'find-up'
 // import fs from 'node:fs'

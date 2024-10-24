@@ -1,12 +1,11 @@
 import { expect } from "chai";
-import sinon from "sinon";
 import chalk from "chalk";
-
-import { commonFetchParams, f } from "../helpers.mjs";
+import sinon from "sinon";
 import tryToCatch from "try-to-catch";
 
-import { run, builtYargs } from "../../src/cli.mjs";
+import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { commonFetchParams, f } from "../helpers.mjs";
 
 describe("schema commit", function () {
   const textDiff =

@@ -85,7 +85,7 @@ export default class FaunaClient {
    * In order to allow commands to just close their client without having to worry about which
    * client they received, adding this noop method here.
    */
-  async close() {
+  static async close() {
     return undefined;
   }
 }

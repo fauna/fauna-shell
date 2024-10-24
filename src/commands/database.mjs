@@ -4,9 +4,9 @@ async function listDatabases(profile) {
   const logger = container.resolve("logger");
   const accountClient = container.resolve("accountClient");
   const accountCreds = container.resolve("accountCreds");
-  const account_key = accountCreds.get({ key: profile }).account_key;
+  const accountKey = accountCreds.get({ key: profile }).accountKey;
   logger.stdout("Listing Databases...");
-  const databases = await accountClient.listDatabases(account_key);
+  const databases = await accountClient.listDatabases(accountKey);
   logger.stdout(databases);
 }
 
@@ -29,13 +29,14 @@ function buildDatabaseCommand(yargs) {
 }
 
 function databaseHandler(argv) {
+  const logger = container.resolve("logger");
   const method = argv.method;
   switch (method) {
     case "create":
-      console.log("Creating database...");
+      logger.stdout("Creating database...");
       break;
     case "delete":
-      console.log("Deleting database...");
+      logger.stdout("Deleting database...");
       break;
     case "list":
       listDatabases(argv.profile);

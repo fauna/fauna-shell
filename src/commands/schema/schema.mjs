@@ -33,5 +33,6 @@ export default {
   command: "schema",
   describe: "Manipulate Fauna schema state",
   builder: buildSchema,
+  // eslint-disable-next-line no-empty-function
   handler: () => {},
 };

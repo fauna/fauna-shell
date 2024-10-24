@@ -19,15 +19,15 @@ async function doLogin(argv) {
     try {
       const tokenParams = oAuth.getTokenParams();
       const accessToken = await accountClient.getToken(tokenParams);
-      const { account_key, refresh_token } =
+      const { accountKey, refreshToken } =
         await accountClient.getSession(accessToken);
       accountCreds.save({
-        creds: { account_key, refresh_token },
+        creds: { accountKey, refreshToken },
         key: argv.profile,
       });
       logger.stdout(`Login Success!\n`);
     } catch (err) {
-      console.error(err);
+      logger.stderr(err);
     }
   });
   await oAuth.start();

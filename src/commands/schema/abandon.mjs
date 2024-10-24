@@ -1,7 +1,7 @@
 //@ts-check
 
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { container } from "../../cli.mjs";
+import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 
 async function doAbandon(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");

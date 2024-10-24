@@ -1,12 +1,11 @@
 import { expect } from "chai";
+import chalk from "chalk";
 import sinon from "sinon";
 import tryToCatch from "try-to-catch";
-import chalk from "chalk";
 
-import { f, commonFetchParams } from "../helpers.mjs";
-
-import { run, builtYargs } from "../../src/cli.mjs";
+import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { commonFetchParams, f } from "../helpers.mjs";
 
 describe("schema abandon", function () {
   let diff =
