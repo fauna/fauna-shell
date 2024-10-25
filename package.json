@@ -30,11 +30,13 @@
     "@types/sinon": "^17.0.3",
     "@types/yargs": "^17.0.33",
     "chai": "^5.1.1",
+    "esbuild": "^0.24.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.10.0",
     "husky": "^9.1.6",
     "mocha": "^10.7.3",
     "mocha-junit-reporter": "^2.2.1",
+    "postject": "^1.0.0-alpha.6",
     "prettier": "^3.3.3",
     "sinon": "^19.0.2",
     "sinon-called-with-diff": "^3.1.1",
@@ -63,9 +65,12 @@
   "repository": "fauna/fauna-shell",
   "scripts": {
     "pretest": "npm run format && npm run lint",
-    "local-test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
     "lint": "eslint . --fix",
-    "test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter spec --reporter mocha-junit-reporter",
+    "test": "mocha --recursive ./test --require ./test/mmcha-root-hooks.mjs --reporter spec --reporter mocha-junit-reporter",
+    "test:local": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
+    "build": "npm run build:app && npm run build:sea",
+    "build:app": "esbuild --bundle ./user-entrypoint.mjs --platform=node --outfile=./dist/cli.js --format=cjs --inject:./sea/import-meta-url.js --define:import.meta.url=import_meta_url",
+    "build:sea": "./sea/build-sea.sh",
     "format": "prettier -w src test package.json prettier.config.js eslint.config.mjs user-entrypoint.mjs"
   },
   "husky": {
