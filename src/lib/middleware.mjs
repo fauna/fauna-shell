@@ -2,7 +2,6 @@
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { container } from "../cli.mjs";
 import { fixPath } from "../lib/file-util.mjs";
@@ -22,8 +21,6 @@ export function fixPaths(argv) {
 }
 
 export function checkForUpdates(argv) {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
   const packagePath = path.join(__dirname, "../../package.json");
   const updateNotifier = container.resolve("updateNotifier");
 
