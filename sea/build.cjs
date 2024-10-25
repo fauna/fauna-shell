@@ -18,7 +18,9 @@ if (platform === "linux") {
   console.log(`Building for Windows (${arch})...`);
   buildSEAForWindows();
 } else {
-  throw new Error(`No build configured for platform ${platform} and arch ${arch}!`);
+  throw new Error(
+    `No build configured for platform ${platform} and arch ${arch}!`,
+  );
 }
 
 function buildSEAForLinux() {

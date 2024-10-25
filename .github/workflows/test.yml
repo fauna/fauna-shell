@@ -6,9 +6,9 @@ name: Test
 on:
   # temporarily "v3"; change to "main" after merge
   push:
-    branches: [ "v3" ]
+    branches: ["v3"]
   pull_request:
-    branches: [ "v3" ]
+    branches: ["v3"]
 
 jobs:
   build:
@@ -20,21 +20,21 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Test (nodeJS ${{ matrix.node-version }})
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm test
-      env:
-        TERM: xterm-256color
-        # Set to the correct color level; 2 is 256 colors
-        # https://github.com/chalk/chalk?tab=readme-ov-file#supportscolor
-        FORCE_COLOR: 2
-    - name: Publish Test Report
-      uses: mikepenz/action-junit-report@v4
-      if: success() || failure() # always run even if the previous step fails
-      with:
-        report_paths: '**/test-results.xml'
+      - uses: actions/checkout@v4
+      - name: Test (nodeJS ${{ matrix.node-version }})
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm test
+        env:
+          TERM: xterm-256color
+          # Set to the correct color level; 2 is 256 colors
+          # https://github.com/chalk/chalk?tab=readme-ov-file#supportscolor
+          FORCE_COLOR: 2
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure() # always run even if the previous step fails
+        with:
+          report_paths: "**/test-results.xml"
