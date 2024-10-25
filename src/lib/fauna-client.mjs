@@ -85,7 +85,8 @@ export default class FaunaClient {
    * In order to allow commands to just close their client without having to worry about which
    * client they received, adding this noop method here.
    */
-  static async close() {
+  // eslint-disable-next-line class-methods-use-this
+  async close() {
     return undefined;
   }
 }

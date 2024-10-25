@@ -5,7 +5,7 @@
   "author": "Fauna",
   "type": "module",
   "bin": {
-    "fauna": "./user-entrypoint.mjs"
+    "fauna": "./src/user-entrypoint.mjs"
   },
   "bugs": "https://github.com/fauna/fauna-shell/issues",
   "dependencies": {
@@ -48,7 +48,6 @@
     "node": ">=20.0.0"
   },
   "files": [
-    "/user-entrypoint.mjs",
     "/src"
   ],
   "homepage": "https://github.com/fauna/fauna-shell",
@@ -61,7 +60,7 @@
     "cli"
   ],
   "license": "MPL-2.0",
-  "main": "./user-entrypoint.mjs",
+  "main": "./src/user-entrypoint.mjs",
   "repository": "fauna/fauna-shell",
   "scripts": {
     "pretest": "npm run format && npm run lint",
@@ -69,9 +68,9 @@
     "test": "mocha --recursive ./test --require ./test/mmcha-root-hooks.mjs --reporter spec --reporter mocha-junit-reporter",
     "test:local": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
     "build": "npm run build:app && npm run build:sea",
-    "build:app": "esbuild --bundle ./user-entrypoint.mjs --platform=node --outfile=./dist/cli.js --format=cjs --inject:./sea/import-meta-url.js --define:import.meta.url=import_meta_url",
+    "build:app": "esbuild --bundle ./src/user-entrypoint.mjs --platform=node --outfile=./dist/cli.cjs --format=cjs --inject:./sea/import-meta-url.js --define:import.meta.url=importMetaUrl",
     "build:sea": "./sea/build-sea.sh",
-    "format": "prettier -w src test package.json prettier.config.js eslint.config.mjs user-entrypoint.mjs"
+    "format": "prettier -w src test package.json prettier.config.js eslint.config.mjs"
   },
   "husky": {
     "hooks": {
