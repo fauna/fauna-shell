@@ -1,0 +1,59 @@
+name: Build binaries
+on:
+  push:
+    branches: [build]
+
+jobs:
+  build-binaries:
+    name: Build binaries
+
+    strategy:
+      matrix:
+        runner: [macos-13, macos-latest, ubuntu-latest, windows-latest]
+        node: [22.x]
+        include:
+          - runner: macos-13
+            os: mac
+            arch: x64
+          - runner: macos-latest
+            os: mac
+            arch: arm
+          - runner: ubuntu-latest
+            os: linux
+            arch: x64
+          - runner: windows-latest
+            os: windows
+            arch: x64
+
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - name: Build binary
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          # Name of the artifact to upload.
+          name: fauna-shell-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.node }}
+
+          # A file, directory or wildcard pattern that describes what to upload
+          path: ${{ matrix.os == 'windows' && 'dist\fauna.exe' || 'dist/fauna' }}
+
+          # Fail the action with an error message if no files are found at the path.
+          if-no-files-found: error
+
+          # Duration after which artifact will expire in days. 0 means use the repository's default retention.
+          retention-days: 0
+
+          # The level of compression for Zlib to be applied to the artifact archive from 0 (none) to 9 (most).
+          compression-level: 6
+
+          # Deletes any artifact with a matching name before a new one is uploaded.
+          # Does not fail if the artifact does not exist.
+          overwrite: true
+
+          # Don't upload hidden files in the provided path.
+          include-hidden-files: false
