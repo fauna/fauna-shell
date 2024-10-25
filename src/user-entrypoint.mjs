@@ -4,8 +4,8 @@
 
 import { hideBin } from "yargs/helpers";
 
-import { run } from "./src/cli.mjs";
-import { setupRealContainer as setupContainer } from "./src/config/setup-container.mjs";
+import { run } from "./cli.mjs";
+import { setupRealContainer as setupContainer } from "./config/setup-container.mjs";
 (async () => {
   run(hideBin(process.argv), setupContainer());
 })();

@@ -28,7 +28,6 @@ export async function run(argvInput, _container) {
   const parseYargs = container.resolve("parseYargs");
 
   try {
-     
     builtYargs = buildYargs(argvInput);
     await parseYargs(builtYargs);
   } catch (e) {

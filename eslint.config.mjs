@@ -8,6 +8,11 @@ export default [
     languageOptions: {
       globals: {
         ...globals.mocha,
+
+        // cjs globals
+        require: "readonly",
+        exports: "readonly",
+        __filename: "readonly",
       },
 
       parser: espree,

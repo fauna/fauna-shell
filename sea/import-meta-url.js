@@ -1,1 +1,1 @@
-export var import_meta_url = require('url').pathToFileURL(__filename);
+export let importMetaUrl = require('url').pathToFileURL(__filename);

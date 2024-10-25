@@ -2,6 +2,7 @@
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { container } from "../cli.mjs";
 import { fixPath } from "../lib/file-util.mjs";
@@ -21,7 +22,14 @@ export function fixPaths(argv) {
 }
 
 export function checkForUpdates(argv) {
-  const packagePath = path.join(__dirname, "../../package.json");
+  const __filename = fileURLToPath(import.meta.url);
+  let __dirname = path.dirname(__filename);
+  if (__dirname.split(path.sep).pop() === "dist") {
+    __dirname = path.normalize(path.join(__dirname, ".."));
+  } else {
+    __dirname = path.normalize(path.join(__dirname, "../.."));
+  }
+  const packagePath = path.join(__dirname, "package.json");
   const updateNotifier = container.resolve("updateNotifier");
 
   const notifier = updateNotifier({

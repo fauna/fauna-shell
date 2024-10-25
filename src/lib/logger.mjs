@@ -76,7 +76,7 @@ function debug(text, component, argv) {
   log({
     text,
     verbosity: 5,
-     
+
     stream: console.log,
     component,
     formatter: chalk.blue,
