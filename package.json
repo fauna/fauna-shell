@@ -69,7 +69,7 @@
     "test:local": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
     "build": "npm run build:app && npm run build:sea",
     "build:app": "esbuild --bundle ./src/user-entrypoint.mjs --platform=node --outfile=./dist/cli.cjs --format=cjs --inject:./sea/import-meta-url.js --define:import.meta.url=importMetaUrl",
-    "build:sea": "./sea/build-sea.sh",
+    "build:sea": "node ./sea/build.cjs",
     "format": "prettier -w src test package.json prettier.config.js eslint.config.mjs"
   },
   "husky": {
