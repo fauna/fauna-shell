@@ -25,16 +25,17 @@ $ npm update -g fauna-shell
 ```
 
 <!-- toc -->
-* [Fauna CLI](#fauna-cli)
-* [Usage](#usage)
-* [Technical Requirements](#technical-requirements)
-* [Shell](#shell)
-* [Connecting to different endpoints](#connecting-to-different-endpoints)
-* [Connecting to local endpoints](#connecting-to-local-endpoints)
-* [Overriding Connection Parameters](#overriding-connection-parameters)
-* [Executing queries from a file](#executing-queries-from-a-file)
-* [List of Commands](#list-of-commands)
-* [Development](#development)
+
+- [Fauna CLI](#fauna-cli)
+- [Usage](#usage)
+- [Technical Requirements](#technical-requirements)
+- [Shell](#shell)
+- [Connecting to different endpoints](#connecting-to-different-endpoints)
+- [Connecting to local endpoints](#connecting-to-local-endpoints)
+- [Overriding Connection Parameters](#overriding-connection-parameters)
+- [Executing queries from a file](#executing-queries-from-a-file)
+- [List of Commands](#list-of-commands)
+- [Development](#development)
 <!-- tocstop -->
 
 # Usage
@@ -224,31 +225,31 @@ my_app> Post.create({ title: "What I had for breakfast .." })
 We can also insert items in bulk by using iterator functions on arrays.
 
 ```ts
-my_app> [
-  "My cat and other marvels",
-  "Pondering during a commute",
-  "Deep meanings in a latte"
-].map(title => Post.create({ title: title }))
-[
-  {
-    id: "373143473418666496",
-    coll: Post,
-    ts: Time("2023-08-15T16:16:36.960Z"),
-    title: "My cat and other marvels"
-  },
-  {
-    id: "373143473419715072",
-    coll: Post,
-    ts: Time("2023-08-15T16:16:36.960Z"),
-    title: "Pondering during a commute"
-  },
-  {
-    id: "373143473420763648",
-    coll: Post,
-    ts: Time("2023-08-15T16:16:36.960Z"),
-    title: "Deep meanings in a latte"
-  }
-]
+my_app >
+  [
+    "My cat and other marvels",
+    "Pondering during a commute",
+    "Deep meanings in a latte",
+  ].map((title) => Post.create({ title: title }))[
+    ({
+      id: "373143473418666496",
+      coll: Post,
+      ts: Time("2023-08-15T16:16:36.960Z"),
+      title: "My cat and other marvels",
+    },
+    {
+      id: "373143473419715072",
+      coll: Post,
+      ts: Time("2023-08-15T16:16:36.960Z"),
+      title: "Pondering during a commute",
+    },
+    {
+      id: "373143473420763648",
+      coll: Post,
+      ts: Time("2023-08-15T16:16:36.960Z"),
+      title: "Deep meanings in a latte",
+    })
+  ];
 ```
 
 Now let's try to fetch our post about _latte_. We need to access it by _id_ like this:
@@ -294,15 +295,15 @@ my_app> Post.byId("373143473418666496")!.replace({ title: "My dog and other marv
 Now let's try to delete our post about _latte_:
 
 ```ts
-my_app> Post.byId("373143473420763648")!.delete()
-Post.byId("373143473420763648") /* not found */
+my_app > Post.byId("373143473420763648")!.delete();
+Post.byId("373143473420763648"); /* not found */
 ```
 
 If we try to fetch it, we will receive a null document:
 
 ```ts
-my_app> Post.byId("373143473420763648")
-Post.byId("373143473420763648") /* not found */
+my_app > Post.byId("373143473420763648");
+Post.byId("373143473420763648"); /* not found */
 ```
 
 Finally you can exit the _shell_ by pressing `ctrl+d`.
@@ -431,10 +432,10 @@ Collection.create({
   name: "Post",
   indexes: {
     byTitle: {
-      terms: [{ field: ".title" }]
-    }
-  }
-})
+      terms: [{ field: ".title" }],
+    },
+  },
+});
 ```
 
 Once the collection is created, you can execute queries against it in another
@@ -473,34 +474,35 @@ the queries file on the default fauna shell endpoint.
 # List of Commands
 
 <!-- commands -->
-* [`fauna add-endpoint [NAME]`](#fauna-add-endpoint-name)
-* [`fauna cloud-login`](#fauna-cloud-login)
-* [`fauna create-database DBNAME`](#fauna-create-database-dbname)
-* [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
-* [`fauna default-endpoint [NAME]`](#fauna-default-endpoint-name)
-* [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
-* [`fauna delete-endpoint NAME`](#fauna-delete-endpoint-name)
-* [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
-* [`fauna endpoint add [NAME]`](#fauna-endpoint-add-name)
-* [`fauna endpoint list`](#fauna-endpoint-list)
-* [`fauna endpoint remove NAME`](#fauna-endpoint-remove-name)
-* [`fauna endpoint select [NAME]`](#fauna-endpoint-select-name)
-* [`fauna environment add`](#fauna-environment-add)
-* [`fauna environment list`](#fauna-environment-list)
-* [`fauna environment select ENVIRONMENT`](#fauna-environment-select-environment)
-* [`fauna eval [DBNAME] [QUERY]`](#fauna-eval-dbname-query)
-* [`fauna help [COMMANDS]`](#fauna-help-commands)
-* [`fauna import`](#fauna-import)
-* [`fauna list-databases`](#fauna-list-databases)
-* [`fauna list-endpoints`](#fauna-list-endpoints)
-* [`fauna list-keys`](#fauna-list-keys)
-* [`fauna project init [PROJECTDIR]`](#fauna-project-init-projectdir)
-* [`fauna run-queries [DBNAME] [QUERY]`](#fauna-run-queries-dbname-query)
-* [`fauna schema diff`](#fauna-schema-diff)
-* [`fauna schema pull`](#fauna-schema-pull)
-* [`fauna schema push`](#fauna-schema-push)
-* [`fauna shell [DB_PATH]`](#fauna-shell-db_path)
-* [`fauna upload-graphql-schema GRAPHQLFILEPATH`](#fauna-upload-graphql-schema-graphqlfilepath)
+
+- [`fauna add-endpoint [NAME]`](#fauna-add-endpoint-name)
+- [`fauna cloud-login`](#fauna-cloud-login)
+- [`fauna create-database DBNAME`](#fauna-create-database-dbname)
+- [`fauna create-key DBNAME [ROLE]`](#fauna-create-key-dbname-role)
+- [`fauna default-endpoint [NAME]`](#fauna-default-endpoint-name)
+- [`fauna delete-database DBNAME`](#fauna-delete-database-dbname)
+- [`fauna delete-endpoint NAME`](#fauna-delete-endpoint-name)
+- [`fauna delete-key KEYNAME`](#fauna-delete-key-keyname)
+- [`fauna endpoint add [NAME]`](#fauna-endpoint-add-name)
+- [`fauna endpoint list`](#fauna-endpoint-list)
+- [`fauna endpoint remove NAME`](#fauna-endpoint-remove-name)
+- [`fauna endpoint select [NAME]`](#fauna-endpoint-select-name)
+- [`fauna environment add`](#fauna-environment-add)
+- [`fauna environment list`](#fauna-environment-list)
+- [`fauna environment select ENVIRONMENT`](#fauna-environment-select-environment)
+- [`fauna eval [DBNAME] [QUERY]`](#fauna-eval-dbname-query)
+- [`fauna help [COMMANDS]`](#fauna-help-commands)
+- [`fauna import`](#fauna-import)
+- [`fauna list-databases`](#fauna-list-databases)
+- [`fauna list-endpoints`](#fauna-list-endpoints)
+- [`fauna list-keys`](#fauna-list-keys)
+- [`fauna project init [PROJECTDIR]`](#fauna-project-init-projectdir)
+- [`fauna run-queries [DBNAME] [QUERY]`](#fauna-run-queries-dbname-query)
+- [`fauna schema diff`](#fauna-schema-diff)
+- [`fauna schema pull`](#fauna-schema-pull)
+- [`fauna schema push`](#fauna-schema-push)
+- [`fauna shell [DB_PATH]`](#fauna-shell-db_path)
+- [`fauna upload-graphql-schema GRAPHQLFILEPATH`](#fauna-upload-graphql-schema-graphqlfilepath)
 
 ## `fauna add-endpoint [NAME]`
 
@@ -1317,6 +1319,7 @@ EXAMPLES
 ```
 
 _See code: [dist/commands/upload-graphql-schema.ts](https://github.com/fauna/fauna-shell/blob/v1.2.1/dist/commands/upload-graphql-schema.ts)_
+
 <!-- commandsstop -->
 
 # Development
