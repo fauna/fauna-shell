@@ -7,9 +7,9 @@ import { expect } from "chai";
 import chalk from "chalk";
 import { stub } from "sinon";
 
-import { f } from "../helpers.mjs";
 import { builtYargs, run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { f } from "./helpers.mjs";
 
 describe("cli operations", function () {
   let container;
@@ -84,7 +84,17 @@ describe("cli operations", function () {
   });
 
   it("should check for updates when run", async function () {
+    const fetch = container.resolve("fetch");
     fetch.onCall(0).resolves(
+      f({
+        version: 0,
+        status: "none",
+        diff: "Staged schema: none",
+        pending_summary: "",
+        text_diff: "",
+      }),
+    );
+    fetch.onCall(1).resolves(
       f({
         version: 0,
         diff: "",

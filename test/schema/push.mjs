@@ -95,6 +95,9 @@ describe("schema push", function () {
 
     expect(logger.stderr).to.not.be.called;
     expect(logger.stdout).to.have.been.calledWith("Proposed diff:\n");
+    expect(confirm).to.have.been.calledWith(
+      sinon.match.has("message", "Stage the above changes?"),
+    );
     expect(logger.stdout).to.have.been.calledWith(diffString);
   });
 
@@ -146,6 +149,9 @@ describe("schema push", function () {
 
     expect(logger.stderr).to.not.be.called;
     expect(logger.stdout).to.have.been.calledWith("Proposed diff:\n");
+    expect(confirm).to.have.been.calledWith(
+      sinon.match.has("message", "Push the above changes?"),
+    );
     expect(logger.stdout).to.have.been.calledWith(diffString);
   });
 
@@ -192,7 +198,7 @@ describe("schema push", function () {
     expect(gatherFSL).to.have.been.calledWith("/absolute/path/elsewhere");
   });
 
-  it("warns when attempting to push an empty diff", async function () {
+  it("warns when attempting to stage an empty diff", async function () {
     // user accepts the changes in the interactive prompt
     confirm.resolves(true);
 
@@ -234,7 +240,53 @@ describe("schema push", function () {
     expect(logger.stderr).to.not.be.called;
     expect(logger.stdout).to.have.been.calledWith("No logical changes.");
     expect(confirm).to.have.been.calledWith(
-      sinon.match.has("message", "Push file contents anyway?"),
+      sinon.match.has("message", "Stage the file contents anyway?"),
+    );
+  });
+
+  it("warns when attempting to push an empty diff", async function () {
+    // user accepts the changes in the interactive prompt
+    confirm.resolves(true);
+
+    fetch.onCall(0).resolves(
+      f({
+        // this is the version we provide when we mutate the resource
+        version: 1728675598430000,
+        // note: no diff
+      }),
+    );
+
+    await run(`schema push --secret "secret" --active`, container);
+
+    expect(fetch).to.have.been.calledWith(
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "false",
+        color: "ansi",
+      }),
+      {
+        method: "POST",
+        headers: { AUTHORIZATION: "Bearer secret" },
+        body: reformatFSL(fsl),
+      },
+    );
+
+    expect(fetch).to.have.been.calledWith(
+      buildUrl("/schema/1/update", {
+        version: "1728675598430000",
+        staged: "false",
+      }),
+      {
+        method: "POST",
+        headers: { AUTHORIZATION: "Bearer secret" },
+        body: reformatFSL(fsl),
+      },
+    );
+
+    expect(logger.stderr).to.not.be.called;
+    expect(logger.stdout).to.have.been.calledWith("No logical changes.");
+    expect(confirm).to.have.been.calledWith(
+      sinon.match.has("message", "Push the file contents anyway?"),
     );
   });
 

@@ -166,18 +166,17 @@ export async function writeSchemaFiles(dir, filenameToContentsDict) {
 
 /**
  * @param {string[]} filenames - A list of schema file names to fetch
- * @param {Omit<fetchParameters, "path"|"method">} overrides
+ * @param {object} argv
  * @returns {Promise<Record<string, string>>} A map of schema file names to their contents.
  */
-export async function getAllSchemaFileContents(filenames, { ...overrides }) {
+export async function getAllSchemaFileContents(filenames, argv) {
   const promises = [];
   /** @type Record<string, string> */
   const fileContentCollection = {};
   for (const filename of filenames) {
     promises.push(
       makeFaunaRequest({
-        baseUrl: overrides.baseUrl,
-        secret: overrides.secret,
+        argv,
         path: `/schema/1/files/${encodeURIComponent(filename)}`,
         method: "GET",
       }).then(({ content }) => {

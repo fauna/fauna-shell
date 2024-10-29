@@ -11,6 +11,8 @@ async function doPush(argv) {
   const gatherFSL = container.resolve("gatherFSL");
   const fsl = reformatFSL(await gatherFSL(argv.dir));
 
+  const isStagedPush = !argv.active;
+
   if (!argv.input) {
     const params = new URLSearchParams({
       force: "true",
@@ -18,11 +20,10 @@ async function doPush(argv) {
     });
 
     await makeFaunaRequest({
-      baseUrl: argv.url,
+      argv,
       path: "/schema/1/update",
       params,
       body: fsl,
-      secret: argv.secret,
       method: "POST",
     });
   } else {
@@ -35,21 +36,24 @@ async function doPush(argv) {
     if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({
-      baseUrl: argv.url,
+      argv,
       path: "/schema/1/validate",
       params,
       body: fsl,
-      secret: argv.secret,
       method: "POST",
     });
 
-    let message = "Accept and push changes?";
+    let message = isStagedPush
+      ? "Stage the above changes?"
+      : "Push the above changes?";
     if (response.diff) {
       logger.stdout(`Proposed diff:\n`);
       logger.stdout(response.diff);
     } else {
       logger.stdout("No logical changes.");
-      message = "Push file contents anyway?";
+      message = isStagedPush
+        ? "Stage the file contents anyway?"
+        : "Push the file contents anyway?";
     }
     const confirm = container.resolve("confirm");
     const confirmed = await confirm({
@@ -64,11 +68,10 @@ async function doPush(argv) {
       });
 
       await makeFaunaRequest({
-        baseUrl: argv.url,
+        argv,
         path: "/schema/1/update",
         params,
         body: fsl,
-        secret: argv.secret,
         method: "POST",
       });
     } else {
@@ -87,7 +90,7 @@ function buildPushCommand(yargs) {
       },
       active: {
         description:
-          "Stages the schema change instead of applying it immediately",
+          "Immediately applies the schema change instead of staging it",
         type: "boolean",
         default: false,
       },

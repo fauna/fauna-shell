@@ -42,10 +42,9 @@ async function doDiff(argv) {
   if (target === "staged") params.set("diff", diffKind);
 
   const { version, status, diff } = await makeFaunaRequest({
-    baseUrl: argv.url,
+    argv,
     path: "/schema/1/staged/status",
     params,
-    secret: argv.secret,
     method: "GET",
   });
 
@@ -71,10 +70,9 @@ async function doDiff(argv) {
     }
 
     const { diff } = await makeFaunaRequest({
-      baseUrl: argv.url,
+      argv,
       path: "/schema/1/validate",
       params,
-      secret: argv.secret,
       body: files,
       method: "POST",
     });
