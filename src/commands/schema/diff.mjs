@@ -27,9 +27,34 @@ function parseTarget(argv) {
   }
 }
 
+function buildStatusParams(argv) {
+  const params = new URLSearchParams({});
+  const [, target] = parseTarget(argv);
+  const diffKind = argv.text ? "textual" : "semantic";
+
+  if (target === "staged") params.set("diff", diffKind);
+
+  return params;
+}
+
+function buildValidateParams(argv, version) {
+  const [source] = parseTarget(argv);
+  const diffKind = argv.text ? "textual" : "semantic";
+  const params = new URLSearchParams({
+    diff: diffKind,
+    staged: String(source === "staged"),
+  });
+  if (version) {
+    params.set("version", version);
+  } else {
+    params.set("force", "true");
+  }
+
+  return params;
+}
+
 async function doDiff(argv) {
   const [source, target] = parseTarget(argv);
-  const diffKind = argv.text ? "textual" : "semantic";
 
   const gatherFSL = container.resolve("gatherFSL");
   const logger = container.resolve("logger");
@@ -37,14 +62,10 @@ async function doDiff(argv) {
 
   const files = reformatFSL(await gatherFSL(argv.dir));
 
-  const params = new URLSearchParams({});
-  if (argv.color) params.set("color", "ansi");
-  if (target === "staged") params.set("diff", diffKind);
-
   const { version, status, diff } = await makeFaunaRequest({
     argv,
     path: "/schema/1/staged/status",
-    params,
+    params: buildStatusParams(argv),
     method: "GET",
   });
 
@@ -58,21 +79,10 @@ async function doDiff(argv) {
       logger.stdout(diff ? diff : "No schema differences.");
     }
   } else {
-    const params = new URLSearchParams({
-      diff: diffKind,
-      staged: String(source === "staged"),
-    });
-    if (argv.color) params.set("color", "ansi");
-    if (version) {
-      params.set("version", version);
-    } else {
-      params.set("force", "true");
-    }
-
     const { diff } = await makeFaunaRequest({
       argv,
       path: "/schema/1/validate",
-      params,
+      params: buildValidateParams(argv, version),
       body: files,
       method: "POST",
     });

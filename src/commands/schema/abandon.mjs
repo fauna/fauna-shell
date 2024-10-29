@@ -15,18 +15,19 @@ async function doAbandon(argv) {
 
     await makeFaunaRequest({
       argv,
-      path: `/schema/1/staged/abandon?${params}`,
+      path: "/schema/1/staged/abandon",
+      params,
       method: "POST",
     });
     logger.stdout("Schema has been abandoned");
   } else {
     // Show status to confirm.
     const params = new URLSearchParams({ diff: "true" });
-    if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({
       argv,
-      path: `/schema/1/staged/status?${params}`,
+      path: "/schema/1/staged/status",
+      params,
       method: "GET",
     });
 
@@ -45,7 +46,8 @@ async function doAbandon(argv) {
 
       await makeFaunaRequest({
         argv,
-        path: `/schema/1/staged/abandon?${params}`,
+        path: "/schema/1/staged/abandon",
+        params,
         method: "POST",
       });
 

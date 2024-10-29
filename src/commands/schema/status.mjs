@@ -11,7 +11,6 @@ async function doStatus(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
   let params = new URLSearchParams({ diff: "summary" });
-  if (argv.color) params.set("color", "ansi");
   const gatherFSL = container.resolve("gatherFSL");
   const fsl = reformatFSL(await gatherFSL(argv.dir));
 
@@ -27,7 +26,6 @@ async function doStatus(argv) {
     staged: "true",
     version: statusResponse.version,
   });
-  if (argv.color) params.set("color", "ansi");
   const validationResponse = await makeFaunaRequest({
     argv,
     path: "/schema/1/validate",
