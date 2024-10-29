@@ -8,6 +8,7 @@ import { confirm } from "@inquirer/prompts";
 import * as awilix from "awilix";
 import { Lifetime } from "awilix";
 import open from "open";
+import updateNotifier from "update-notifier";
 
 import { parseYargs } from "../cli.mjs";
 import { performQuery } from "../commands/eval.mjs";
@@ -60,6 +61,7 @@ export const injectables = {
   // third-party libraries
   confirm: awilix.asValue(confirm),
   open: awilix.asValue(open),
+  updateNotifier: awilix.asValue(updateNotifier),
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
