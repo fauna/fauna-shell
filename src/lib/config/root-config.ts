@@ -106,16 +106,11 @@ export class RootConfig {
  * An endpoint contains:
  * - A secret. This is the accout secret for this database.
  * - An optional URL. This is the URL of the database. It defaults to `https://db.fauna.com`.
- * - An optional GraphQL host. This is the host to use for GraphQL requests. It defaults to `graphql.fauna.com`.
- * - An optional GraphQL port. This is the port to use for GraphQL requests. It defaults to `443`.
  */
 export class Endpoint {
   name?: string;
   secret: Secret;
   url: string;
-
-  graphqlHost: string;
-  graphqlPort: number;
 
   static fromConfig(name: string, config: Config): Endpoint | undefined {
     const secOpt = config.strOpt("secret");
@@ -126,9 +121,6 @@ export class Endpoint {
         name: name,
         secret: Secret.parse(secOpt),
         url: Endpoint.getURLFromConfig(config),
-
-        graphqlHost: config.strOpt("graphqlHost"),
-        graphqlPort: config.numberOpt("graphqlPort"),
       });
     }
   }
@@ -137,15 +129,10 @@ export class Endpoint {
     name?: string;
     secret: Secret;
     url?: string;
-    graphqlHost?: string;
-    graphqlPort?: number;
   }) {
     this.name = opts.name;
     this.secret = opts.secret;
     this.url = opts.url ?? "https://db.fauna.com";
-
-    this.graphqlHost = opts.graphqlHost ?? "graphql.fauna.com";
-    this.graphqlPort = opts.graphqlPort ?? 443;
   }
 
   makeScopedEndpoint(databaseScope?: string[]): EndpointConfig {
@@ -158,8 +145,6 @@ export class Endpoint {
       secret,
       name: this.name,
       url: this.url,
-      graphqlHost: this.graphqlHost,
-      graphqlPort: this.graphqlPort,
     };
   }
 
@@ -215,11 +200,6 @@ export class Endpoint {
     return {
       secret: this.secret.key,
       ...(this.url !== "https://db.fauna.com" ? { url: this.url } : {}),
-
-      ...(this.graphqlHost !== "graphql.fauna.com"
-        ? { graphqlHost: this.graphqlHost }
-        : {}),
-      ...(this.graphqlPort !== 443 ? { graphqlPort: this.graphqlPort } : {}),
     };
   }
 }

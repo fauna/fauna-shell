@@ -311,8 +311,6 @@ ImportCommand.examples = [
   "$ fauna import --path ./my_directory --append",
 ];
 
-const { graphqlHost, graphqlPort, ...commonFlags } = FaunaCommand.flags;
-
 ImportCommand.flags = {
   path: Flags.string({
     required: true,
@@ -357,7 +355,7 @@ Enables you to detect issues with your file(s) before writing to your collection
     options: ["empty", "null"],
     default: "null",
   }),
-  ...commonFlags,
+  ...FaunaCommand.flags,
 };
 
 module.exports = ImportCommand;
