@@ -122,8 +122,6 @@ export type EndpointConfig = {
   secret: Secret;
   url: string;
   name?: string;
-  graphqlHost: string;
-  graphqlPort: number;
 };
 
 export interface LogChannel {
@@ -267,17 +265,11 @@ export class ShellConfig {
       this.endpoint = new Endpoint({
         secret: new Secret({ key: "", allowDatabase: true }),
         url: urlFlag,
-        graphqlHost: this.flags.strOpt("graphqlHost"),
-        graphqlPort: this.flags.numberOpt("graphqlPort"),
       });
     } else {
       this.endpoint = this.rootConfig.endpoints[endpointName];
       if (this.endpoint !== undefined) {
         this.endpoint.url = urlFlag ?? this.endpoint.url;
-        this.endpoint.graphqlHost =
-          this.flags.strOpt("graphqlHost") ?? this.endpoint.graphqlHost;
-        this.endpoint.graphqlPort =
-          this.flags.numberOpt("graphqlHost") ?? this.endpoint.graphqlPort;
       }
     }
   }

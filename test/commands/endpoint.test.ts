@@ -55,17 +55,11 @@ describe("endpoint:add", () => {
           url: "http://bar.baz",
           secret: Secret.parse("fn3333"),
           name: "my-endpoint",
-          // These graphql bits are only saved if they differ from the
-          // default.
-          graphqlHost: "graphql.fauna.com",
-          graphqlPort: 443,
         },
         foobar: {
           url: "http://foo.baz",
           name: undefined,
           secret: Secret.parse("fn1234"),
-          graphqlHost: "graphql.fauna.com",
-          graphqlPort: 443,
         },
       },
       invalidEndpoints: [],
@@ -103,17 +97,11 @@ describe("endpoint:add", () => {
           url: "http://bar.baz",
           secret: Secret.parse("fn3333"),
           name: "my-endpoint",
-          // These graphql bits are only saved if they differ from the
-          // default.
-          graphqlHost: "graphql.fauna.com",
-          graphqlPort: 443,
         },
         foobar: {
           url: "http://foo.baz",
           secret: Secret.parse("fn1234"),
           name: undefined,
-          graphqlHost: "graphql.fauna.com",
-          graphqlPort: 443,
         },
       },
       invalidEndpoints: [],
@@ -171,10 +159,6 @@ describe("endpoint:remove", () => {
           url: "http://bar.baz",
           secret: Secret.parse("fn3333"),
           name: "my-endpoint",
-          // These graphql bits are only saved if they differ from the
-          // default.
-          graphqlHost: "graphql.fauna.com",
-          graphqlPort: 443,
         },
       },
       invalidEndpoints: [],
@@ -206,10 +190,6 @@ describe("endpoint:remove", () => {
           url: "http://bar.baz",
           secret: Secret.parse("fn3333"),
           name: "other-endpoint",
-          // These graphql bits are only saved if they differ from the
-          // default.
-          graphqlHost: "graphql.fauna.com",
-          graphqlPort: 443,
         },
       },
       invalidEndpoints: [],
