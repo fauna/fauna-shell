@@ -33,7 +33,6 @@ async function doPush(argv) {
       force: "true",
       staged: argv.active ? "false" : "true",
     });
-    if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({
       argv,

@@ -2,6 +2,15 @@
 
 import { container } from "../cli.mjs";
 
+function buildParamsString({ argv, params, path }) {
+  const routesWithColor = ["/schema/1/staged/status", "/schema/1/validate"];
+  if (params && argv.color && routesWithColor.includes(path))
+    params.set("color", "ansi");
+  if (params && params.sort) params.sort();
+  const paramsString = params && params.size ? `?${params.toString()}` : "";
+  return paramsString;
+}
+
 /**
  * @typedef {('GET'|'HEAD'|'OPTIONS'|'PATCH'|'PUT'|'POST'|'DELETE'|'PATCH')} method
  */
@@ -28,11 +37,7 @@ export async function makeFaunaRequest({
   shouldThrow = true,
 }) {
   const fetch = container.resolve("fetch");
-  const routesWithColor = ["/schema/1/staged/status", "/schema/1/validate"];
-  if (params && argv.color && routesWithColor.includes(path))
-    params.set("color", "ansi");
-  if (params && params.sort) params.sort();
-  const paramsString = params && params.size ? `?${params.toString()}` : "";
+  const paramsString = buildParamsString({ argv, params, path });
   let fullUrl;
 
   try {

@@ -166,7 +166,7 @@ export async function performQuery(client, fqlQuery, outputFile, flags) {
   }
 }
 
-async function doEval(argv) {
+function validateArgv(argv) {
   const noSourceSet =
     !argv.stdin && argv.query === undefined && argv.file === undefined;
   if (noSourceSet) {
@@ -174,16 +174,6 @@ async function doEval(argv) {
       "No source set. Pass --stdin to  read from stdin or --file.",
     );
   }
-
-  // const client = argv.dbname
-  //   ? (
-  //       await ensureDbScopeClient({
-  //         scope: argv.dbname,
-  //         version: argv.version,
-  //         argv,
-  //       })
-  //     ).client
-  //   : container.resolve("getSimpleClient")(argv);
 
   // used to use ensureDbScopeClient
   if (argv.dbname) throw new Error("Not currently supported!");
@@ -193,6 +183,21 @@ async function doEval(argv) {
 
   // used to use runQueries/wrapQueries
   if (argv.file) throw new Error("Not currently supported!");
+}
+
+async function doEval(argv) {
+  validateArgv(argv);
+
+  // TODO: this used to be a scoped db client...
+  // const client = argv.dbname
+  //   ? (
+  //       await ensureDbScopeClient({
+  //         scope: argv.dbname,
+  //         version: argv.version,
+  //         argv,
+  //       })
+  //     ).client
+  //   : container.resolve("getSimpleClient")(argv);
 
   const client = await container.resolve("getSimpleClient")(argv);
 
