@@ -2,6 +2,7 @@
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { isSea } from "node:sea";
 import { fileURLToPath } from "node:url";
 
 import { container } from "../cli.mjs";
@@ -22,6 +23,9 @@ export function fixPaths(argv) {
 }
 
 export function checkForUpdates(argv) {
+  // TODO: figure out upgrade path for SEA installations
+  if (isSea()) return argv;
+
   const __filename = fileURLToPath(import.meta.url);
   let __dirname = path.dirname(__filename);
   if (__dirname.split(path.sep).pop() === "dist") {

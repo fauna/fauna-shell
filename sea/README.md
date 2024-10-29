@@ -18,4 +18,4 @@ The process generally looks like this:
 
 _All 3 versions should be runnable and behave the same, with these exceptions:_
 
-- Currently, no exceptions.
+- SEA installations do not check for updates, present a nag, or have an upgrade path.
