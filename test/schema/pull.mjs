@@ -101,7 +101,10 @@ describe("schema pull", function () {
     );
     // the version param in the URL is important - we use it for optimistic locking
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { version: "194838274939473" }),
+      buildUrl("/schema/1/staged/status", {
+        version: "194838274939473",
+        color: "ansi",
+      }),
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(

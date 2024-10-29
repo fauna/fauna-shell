@@ -11,19 +11,17 @@ async function doPull(argv) {
 
   // fetch the list of remote FSL files
   const filesResponse = await makeFaunaRequest({
-    baseUrl: argv.url,
+    argv,
     path: "/schema/1/files",
     method: "GET",
-    secret: argv.secret,
   });
 
   // check if there's a staged schema
   const statusResponse = await makeFaunaRequest({
-    baseUrl: argv.url,
+    argv,
     path: "/schema/1/staged/status",
     params: new URLSearchParams({ version: filesResponse.version }),
     method: "GET",
-    secret: argv.secret,
   });
 
   // if there's a staged schema, cannot use the --active flag.
@@ -88,10 +86,7 @@ async function doPull(argv) {
     const getAllSchemaFileContents = container.resolve(
       "getAllSchemaFileContents",
     );
-    const contents = await getAllSchemaFileContents(filenames, {
-      secret: argv.secret,
-      baseUrl: argv.url,
-    });
+    const contents = await getAllSchemaFileContents(filenames, argv);
 
     // don't start writing or deleting files until we've successfully fetched all
     // the remote schema files

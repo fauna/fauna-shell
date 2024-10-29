@@ -14,9 +14,8 @@ async function doCommit(argv) {
     });
 
     await makeFaunaRequest({
-      baseUrl: argv.url,
+      argv,
       path: `/schema/1/staged/commit?${params}`,
-      secret: argv.secret,
       method: "POST",
     });
 
@@ -27,9 +26,8 @@ async function doCommit(argv) {
     if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({
-      baseUrl: argv.url,
+      argv,
       path: `/schema/1/staged/status?${params}`,
-      secret: argv.secret,
       method: "GET",
     });
 
@@ -50,9 +48,8 @@ async function doCommit(argv) {
       const params = new URLSearchParams({ version: response.version });
 
       await makeFaunaRequest({
-        baseUrl: argv.url,
+        argv,
         path: `/schema/1/staged/commit?${params}`,
-        secret: argv.secret,
         method: "POST",
       });
 

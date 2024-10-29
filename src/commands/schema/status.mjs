@@ -16,10 +16,9 @@ async function doStatus(argv) {
   const fsl = reformatFSL(await gatherFSL(argv.dir));
 
   const statusResponse = await makeFaunaRequest({
-    baseUrl: argv.url,
+    argv,
     path: "/schema/1/staged/status",
     params,
-    secret: argv.secret,
     method: "GET",
   });
 
@@ -28,11 +27,11 @@ async function doStatus(argv) {
     staged: "true",
     version: statusResponse.version,
   });
+  if (argv.color) params.set("color", "ansi");
   const validationResponse = await makeFaunaRequest({
-    baseUrl: argv.url,
+    argv,
     path: "/schema/1/validate",
     params,
-    secret: argv.secret,
     method: "POST",
     body: fsl,
   });

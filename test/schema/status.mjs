@@ -96,6 +96,7 @@ describe("schema status", function () {
         diff: "summary",
         staged: "true",
         version: "0",
+        color: "ansi",
       }),
       { ...commonFetchParams, method: "POST", body: new FormData() },
     );
@@ -138,6 +139,7 @@ describe("schema status", function () {
         diff: "summary",
         staged: "true",
         version: "0",
+        color: "ansi",
       }),
       { ...commonFetchParams, method: "POST", body: new FormData() },
     );
@@ -186,14 +188,7 @@ describe("schema status", function () {
         diff: "summary",
         staged: "true",
         version: "0",
-      }),
-      { ...commonFetchParams, method: "POST", body: new FormData() },
-    );
-    expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
-        diff: "summary",
-        staged: "true",
-        version: "0",
+        color: "ansi",
       }),
       { ...commonFetchParams, method: "POST", body: new FormData() },
     );
@@ -239,6 +234,7 @@ describe("schema status", function () {
         diff: "summary",
         staged: "true",
         version: "0",
+        color: "ansi",
       }),
       { ...commonFetchParams, method: "POST", body: new FormData() },
     );
