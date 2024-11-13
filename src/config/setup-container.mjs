@@ -19,7 +19,7 @@ import { makeFaunaRequest } from "../lib/db.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import { AccountKey, SecretKey } from "../lib/file-util.mjs";
-import logger from "../lib/logger.mjs";
+import buildLogger from "../lib/logger.mjs";
 import {
   deleteUnusedSchemaFiles,
   gatherFSL,
@@ -51,6 +51,11 @@ export function setupCommonContainer() {
 /** @typedef {Resolvers<injectables>} modifiedInjectables */
 
 export const injectables = {
+  // process specifics
+  stdinStream: awilix.asValue(process.stdin),
+  stdoutStream: awilix.asValue(process.stdout),
+  stderrStream: awilix.asValue(process.stderr),
+
   // node libraries
   exit: awilix.asValue(exit),
   fetch: awilix.asValue(fetchWrapper),
@@ -66,7 +71,7 @@ export const injectables = {
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
-  logger: awilix.asValue(logger),
+  logger: awilix.asFunction(buildLogger),
   performQuery: awilix.asValue(performQuery),
   getSimpleClient: awilix.asValue(getSimpleClient),
   accountClient: awilix.asClass(FaunaAccountClient, {

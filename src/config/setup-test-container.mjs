@@ -1,14 +1,15 @@
 import fs from "node:fs";
 import { normalize } from "node:path";
+import { Readable } from "node:stream";
 
 import * as awilix from "awilix";
 import { spy, stub } from "sinon";
 
-import { f } from "../../test/helpers.mjs";
+import { f, InMemoryWritableStream } from "../../test/helpers.mjs";
 import { parseYargs } from "../cli.mjs";
 import { makeAccountRequest } from "../lib/account.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
-import logger from "../lib/logger.mjs";
+import buildLogger from "../lib/logger.mjs";
 import { injectables, setupCommonContainer } from "./setup-container.mjs";
 
 // Mocks all _functions_ declared on the injectables export from setup-container.mjs
@@ -41,6 +42,11 @@ export function setupTestContainer() {
   const thingsToManuallyMock = automock(container);
 
   const manualMocks = {
+    // process specifics
+    stdinStream: awilix.asValue(Readable.from("")),
+    stdoutStream: awilix.asValue(new InMemoryWritableStream()),
+    stderrStream: awilix.asValue(new InMemoryWritableStream()),
+
     // wrap it in a spy so we can record calls, but use the
     // real implementation
     parseYargs: awilix.asValue(spy(parseYargs)),
@@ -50,24 +56,7 @@ export function setupTestContainer() {
       writeFile: stub(),
     }),
     updateNotifier: awilix.asValue(stub().returns({ notify: stub() })),
-    logger: awilix.asValue({
-      // use these for making dev, support tickets easier.
-      // they're not mocked because we shouldn't test them
-      // as part of our public interface. this way, we can
-      // add `--verbosity 5` to a command in a test to get
-      // more output.
-      debug: logger.debug,
-      info: logger.info,
-      warn: logger.warn,
-      error: logger.error,
-      fatal: logger.fatal,
-
-      // use these for communicating with customers.
-      // mocked because they _are_ part of our public
-      // interface and should be tested.
-      stdout: stub(),
-      stderr: stub(),
-    }),
+    logger: awilix.asFunction((cradle) => spy(buildLogger(cradle))).singleton(),
     getSimpleClient: awilix.asValue(
       stub().returns({ close: () => Promise.resolve() }),
     ),

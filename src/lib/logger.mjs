@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 
 import chalk from "chalk";
+import { Console } from "console";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
@@ -68,16 +69,16 @@ export function log({
  * Log text at a debug log level (verbosity 5).
  *
  * @function
+ * @param {any} customConsole
  * @param {string} text - The text to log.
  * @param {string} [component] - A string that identifies what "component" of the application this is. Included in the log line as a prefix and also used for formatting with verboseComponents
  * @param {argv} [argv] - The parsed yargs argv. Used to determine the current verbosity and if any components are included in verboseComponents.
  */
-function debug(text, component, argv) {
+function debug(customConsole, text, component, argv) {
   log({
     text,
     verbosity: 5,
-
-    stream: console.log,
+    stream: customConsole.log,
     component,
     formatter: chalk.blue,
     argv,
@@ -88,15 +89,16 @@ function debug(text, component, argv) {
  * Log text at a info log level (verbosity 4).
  *
  * @function
+ * @param {any} customConsole
  * @param {string} text - The text to log.
  * @param {string} [component] - A string that identifies what "component" of the application this is. Included in the log line as a prefix and also used for formatting with verboseComponents
  * @param {argv} [argv] - The parsed yargs argv. Used to determine the current verbosity and if any components are included in verboseComponents.
  */
-function info(text, component, argv) {
+function info(customConsole, text, component, argv) {
   log({
     text,
     verbosity: 4,
-    stream: console.log,
+    stream: customConsole.log,
     component,
     formatter: chalk.green,
     argv,
@@ -107,15 +109,16 @@ function info(text, component, argv) {
  * Log text at a warn log level (verbosity 3).
  *
  * @function
+ * @param {any} customConsole
  * @param {string} text - The text to log.
  * @param {string} [component] - A string that identifies what "component" of the application this is. Included in the log line as a prefix and also used for formatting with verboseComponents
  * @param {argv} [argv] - The parsed yargs argv. Used to determine the current verbosity and if any components are included in verboseComponents.
  */
-function warn(text, component, argv) {
+function warn(customConsole, text, component, argv) {
   log({
     text,
     verbosity: 3,
-    stream: console.warn,
+    stream: customConsole.warn,
     component,
     formatter: chalk.yellow,
     argv,
@@ -126,15 +129,16 @@ function warn(text, component, argv) {
  * Log text at a error log level (verbosity 2).
  *
  * @function
+ * @param {any} customConsole
  * @param {string} text - The text to log.
  * @param {string} [component] - A string that identifies what "component" of the application this is. Included in the log line as a prefix and also used for formatting with verboseComponents
  * @param {argv} [argv] - The parsed yargs argv. Used to determine the current verbosity and if any components are included in verboseComponents.
  */
-function error(text, component, argv) {
+function error(customConsole, text, component, argv) {
   log({
     text,
     verbosity: 2,
-    stream: console.error,
+    stream: customConsole.error,
     component,
     formatter: chalk.red,
     argv,
@@ -145,32 +149,40 @@ function error(text, component, argv) {
  * Log text at a fatal log level (verbosity 1).
  *
  * @function
+ * @param {any} customConsole
  * @param {string} text - The text to log.
  * @param {string} [component] - A string that identifies what "component" of the application this is. Included in the log line as a prefix and also used for formatting with verboseComponents
  * @param {argv} [argv] - The parsed yargs argv. Used to determine the current verbosity and if any components are included in verboseComponents.
  */
-function fatal(text, component, argv) {
+function fatal(customConsole, text, component, argv) {
   log({
     text,
     verbosity: 1,
-    stream: console.error,
+    stream: customConsole.error,
     component,
     formatter: chalk.redBright,
     argv,
   });
 }
 
-const logger = {
-  // use these for making dev, support tickets easier
-  debug,
-  info,
-  warn,
-  error,
-  fatal,
+function buildLogger({ stderrStream, stdoutStream }) {
+  const customConsole = new Console({
+    stderr: stderrStream,
+    stdout: stdoutStream,
+  });
 
-  // use these for communicating with customers
-  stdout: console.log,
-  stderr: console.error,
-};
+  return {
+    // use these for making dev, support tickets easier
+    debug: debug.bind(null, customConsole),
+    info: info.bind(null, customConsole),
+    warn: warn.bind(null, customConsole),
+    error: error.bind(null, customConsole),
+    fatal: fatal.bind(null, customConsole),
 
-export default logger;
+    // use these for communicating with customers
+    stdout: customConsole.log,
+    stderr: customConsole.error,
+  };
+}
+
+export default buildLogger;
