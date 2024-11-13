@@ -8,7 +8,7 @@ import util from "util";
 import { container } from "../cli.mjs";
 import {
   // ensureDbScopeClient,
-  commonQueryOptions,
+  commonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
 import * as misc from "../lib/misc.mjs";
 
@@ -33,11 +33,13 @@ async function writeFormattedJson(file, data) {
 /**
  * Write fauna shell encoded output
  *
- * @param {String} file Target filename
+ * @param {String | undefined} file Target filename
  * @param {any}    str Data to encode
  */
 async function writeFormattedShell(file, str) {
-  if (file === null) {
+  // TODO: this should really normalize the line endings
+  // using os.EOL.
+  if (file === undefined) {
     return str;
   } else {
     // await writeFile(file, str);
@@ -95,7 +97,7 @@ async function writeFormattedOutputV10(file, res, format) {
   }
 }
 
-async function performV10Query(client, fqlQuery, outputFile, flags) {
+export async function performV10Query(client, fqlQuery, outputFile, flags) {
   let format;
   if (flags.format === "shell") {
     format = "decorated";
@@ -113,7 +115,7 @@ async function performV10Query(client, fqlQuery, outputFile, flags) {
   return writeFormattedOutputV10(outputFile, res, flags.format);
 }
 
-async function performV4Query(client, fqlQuery, outputFile, flags) {
+export async function performV4Query(client, fqlQuery, outputFile, flags) {
   const faunadb = (await import("faunadb")).default;
 
   // why...?
@@ -151,7 +153,7 @@ async function performV4Query(client, fqlQuery, outputFile, flags) {
  *
  * @param {Object} client - An instance of the client used to execute the query.
  * @param {string} fqlQuery - The FQL v4 query to be executed.
- * @param {string} outputFile - Target filename
+ * @param {string | undefined} outputFile - Target filename
  * @param {Object} flags - Options for the query execution.
  * @param {("4" | "10")} flags.version - FQL version number
  * @param {("json" | "json-tagged" | "shell")} flags.format - Result format
@@ -159,8 +161,7 @@ async function performV4Query(client, fqlQuery, outputFile, flags) {
  */
 export async function performQuery(client, fqlQuery, outputFile, flags) {
   if (flags.version === "4") {
-    const res = performV4Query(client, fqlQuery, outputFile, flags);
-    return res;
+    return performV4Query(client, fqlQuery, outputFile, flags);
   } else {
     return performV10Query(client, fqlQuery, outputFile, flags);
   }
@@ -267,27 +268,7 @@ function buildEvalCommand(yargs) {
         default: "shell",
         options: EVAL_OUTPUT_FORMATS,
       },
-      version: {
-        description: "which FQL version to use",
-        type: "string",
-        alias: "v",
-        default: "10",
-        choices: ["4", "10"],
-      },
-      // TODO: is this unused? i think it might be
-      timeout: {
-        type: "number",
-        description: "connection timeout in milliseconds",
-        default: 5000,
-      },
-
-      // v10 specific options
-      typecheck: {
-        type: "boolean",
-        description: "enable typechecking",
-        default: undefined,
-      },
-      ...commonQueryOptions,
+      ...commonConfigurableQueryOptions,
     })
     .example([
       ['$0 eval "Collection.all()"'],

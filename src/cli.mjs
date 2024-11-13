@@ -8,6 +8,7 @@ import evalCommand from "./commands/eval.mjs";
 import keyCommand from "./commands/key.mjs";
 import loginCommand from "./commands/login.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
+import shellCommand from "./commands/shell.mjs";
 import { authNZMiddleware } from "./lib/auth/authNZ.mjs";
 import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
@@ -65,6 +66,7 @@ function buildYargs(argvInput) {
     .middleware([checkForUpdates, logArgv], true)
     .middleware([fixPaths, authNZMiddleware], false)
     .command("eval", "evaluate a query", evalCommand)
+    .command("shell", "start an interactive shell", shellCommand)
     .command("login", "login via website", loginCommand)
     .command(keyCommand)
     .command(schemaCommand)
