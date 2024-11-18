@@ -62,7 +62,7 @@ export function cleanupSecretsFile() {
 }
 
 // TODO: account for env var for account key. if profile isn't defined.
-async function setAccountKey(profile) {
+export async function setAccountKey(profile) {
   // Don't leave hanging db secrets that don't match up to stored account keys
   cleanupSecretsFile();
   const accountCreds = container.resolve("accountCreds");
@@ -97,7 +97,7 @@ export function getAccountKey(profile) {
   }
 }
 
-async function checkAccountKeyRemote(accountKey) {
+export async function checkAccountKeyRemote(accountKey) {
   const accountClient = container.resolve("accountClient");
   // If account key is invalid or expired, this will throw InvalidCredsError
   try {
@@ -111,7 +111,7 @@ async function checkAccountKeyRemote(accountKey) {
   }
 }
 
-async function refreshSession(profile) {
+export async function refreshSession(profile) {
   const accountClient = container.resolve("accountClient");
   const accountCreds = container.resolve("accountCreds");
   const creds = accountCreds.get({ key: profile });
@@ -126,7 +126,7 @@ async function refreshSession(profile) {
   return newCreds;
 }
 
-async function setDBKey({ accountKey, path, role, url }) {
+export async function setDBKey({ accountKey, path, role, url }) {
   const secretCreds = container.resolve("secretCreds");
   const accountClient = container.resolve("accountClient");
   const existingSecret = getDBKey({ accountKey, path, role });

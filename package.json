@@ -63,7 +63,7 @@
   "scripts": {
     "postpack": "rm -f oclif.manifest.json",
     "pretest": "yarn fixlint",
-    "local-test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
+    "local-test": "mocha --recursive ./test/authNZ.mjs --require ./test/mocha-root-hooks.mjs",
     "lint": "eslint .",
     "fixlint": "eslint . --fix",
     "test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter spec --reporter mocha-junit-reporter",

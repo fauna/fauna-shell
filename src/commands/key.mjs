@@ -5,30 +5,17 @@ import {
   getDBKey,
 } from "../lib/auth/authNZ.mjs";
 
-// TODO: this function should just spit out the secret that was created.
-//  consider an optional flag that will save this secret to the creds file, overwriting
-//  the existing secret if it exists at key/path/role
 async function createKey(argv) {
   const { database, profile, role, url, local } = argv;
   const logger = container.resolve("logger");
+  const accountClient = container.resolve("accountClient");
   const accountKey = await getAccountKey(profile);
-  // TODO: after logging in, should we list the top level databases and create db keys for them?
-  //  depending on how many top level dbs....
-  // Have to list DBs on login so we know which databases are top-level and require frontdoor calls
-
-  // TODO: we should create the key with fauna unless it's a top level key
-  // in which case we should create it with the account client
-
-  // TODO: when using fauna to create a key at the specified database path, we should
-  //  getDBKey(parent path).
-  const dbSecret = await getDBKey({
+  const key = await accountClient.createKey({
     accountKey,
     path: database,
     role,
-    url,
   });
-  console.log("got account key", accountKey);
-  console.log("got db secret", dbSecret);
+  logger.stdout(`Key created:\n${JSON.stringify(key, null, 2)}`);
 }
 
 function buildKeyCommand(yargs) {
