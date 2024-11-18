@@ -37,12 +37,20 @@ export async function makeAccountRequest({
     throw e;
   }
 
+  function _getHeaders() {
+    const headers = {
+      "content-type": contentType,
+    };
+    if (secret) {
+      headers.Authorization = `Bearer ${secret}`;
+    }
+    return headers;
+  }
+
   const fetchArgs = {
     method,
-    headers: {
-      AUTHORIZATION: `Bearer ${secret}`,
-      "content-type": contentType,
-    },
+    headers: _getHeaders(),
+    redirect: "manual",
   };
 
   if (body) fetchArgs.body = body;
@@ -74,13 +82,18 @@ export class FaunaAccountClient {
    * @throws {Error} - Throws an error if there is an issue during login.
    */
   async startOAuthRequest(authCodeParams) {
-    const dashboardOAuthURL = (
-      await makeAccountRequest({
-        path: "/oauth/authorize",
-        method: "GET",
-        params: authCodeParams,
-      })
-    ).url;
+    const oauthRedirect = await makeAccountRequest({
+      path: "/oauth/authorize",
+      method: "GET",
+      params: authCodeParams,
+      contentType: "text/html",
+    });
+    if (oauthRedirect.status != 302) {
+      throw new Error(
+        `Failed to start OAuth request: ${oauthRedirect.status} - ${oauthRedirect.statusText}`,
+      );
+    }
+    const dashboardOAuthURL = oauthRedirect.headers.get("location");
     const error = new URL(dashboardOAuthURL).searchParams.get("error");
     if (error) {
       throw new Error(`Error during login: ${error}`);
