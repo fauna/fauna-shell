@@ -2,43 +2,10 @@
 
 import { container } from "../../cli.mjs";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { makeFaunaRequest } from "../../lib/db.mjs";
 
-async function doPull(argv) {
-  const logger = container.resolve("logger");
+async function determineFileState(argv, filenames) {
   const gatherFSL = container.resolve("gatherFSL");
-  const confirm = container.resolve("confirm");
-  const getSchemaFiles = container.resolve("getSchemaFiles");
-  const getStagedSchemaStatus = container.resolve("getStagedSchemaStatus");
-
-  // fetch the list of remote FSL files
-  const filesResponse = await getSchemaFiles({
-    secret: argv.secret,
-    baseUrl: argv.url,
-  });
-
-  // check if there's a staged schema
-  const statusResponse = await getStagedSchemaStatus({
-    params: { version: filesResponse.version },
-    baseUrl: argv.url,
-    secret: argv.secret,
-  });
-
-  // if there's a staged schema, require the --staged flag.
-  // getting unstaged FSL while staged FSL exists is not yet
-  // implemented at the service level.
-  if (statusResponse.status !== "none" && !argv.staged) {
-    throw new Error(
-      "There is a staged schema change. Use --staged to pull it.",
-    );
-  } else if (statusResponse.status === "none" && argv.staged) {
-    throw new Error("There are no staged schema changes to pull.");
-  }
-
-  // sort for consistent order (it's nice for tests)
-  const filenames = filesResponse.files
-    .map((file) => file.filename)
-    .filter((name) => name.endsWith(".fsl"))
-    .sort();
 
   // Gather local .fsl files to overwrite or delete.
   const existing = (await gatherFSL(argv.dir)).map((file) => file.name);
@@ -62,6 +29,11 @@ async function doPull(argv) {
   }
   deletes.sort();
 
+  return { adds, deletes, existing, overwrites };
+}
+
+function logDiff({ argv, adds, overwrites, deletes }) {
+  const logger = container.resolve("logger");
   logger.stdout("Pull will make the following changes:");
   if (argv.delete) {
     for (const deleteme of deletes) {
@@ -74,6 +46,49 @@ async function doPull(argv) {
   for (const overwrite of overwrites) {
     logger.stdout(`overwrite: ${overwrite}`);
   }
+}
+
+async function doPull(argv) {
+  const logger = container.resolve("logger");
+  const confirm = container.resolve("confirm");
+
+  // fetch the list of remote FSL files
+  const filesResponse = await makeFaunaRequest({
+    argv,
+    path: "/schema/1/files",
+    method: "GET",
+  });
+
+  // sort for consistent order (it's nice for tests)
+  const filenames = filesResponse.files
+    .map((file) => file.filename)
+    .filter((name) => name.endsWith(".fsl"))
+    .sort();
+
+  // check if there's a staged schema
+  const statusResponse = await makeFaunaRequest({
+    argv,
+    path: "/schema/1/staged/status",
+    params: new URLSearchParams({ version: filesResponse.version }),
+    method: "GET",
+  });
+
+  // if there's a staged schema, cannot use the --active flag.
+  // getting active FSL while staged FSL exists is not yet
+  // implemented at the service level.
+  if (statusResponse.status !== "none" && argv.active) {
+    throw new Error(
+      "There is a staged schema change. Remove the --active flag to pull it.",
+    );
+  } else if (statusResponse.status === "none" && !argv.active) {
+    throw new Error("There are no staged schema changes to pull.");
+  }
+
+  const { adds, deletes, overwrites } = await determineFileState(
+    argv,
+    filenames,
+  );
+  logDiff({ argv, adds, deletes, overwrites });
 
   const confirmed = await confirm({
     message: "Accept the changes?",
@@ -85,10 +100,7 @@ async function doPull(argv) {
     const getAllSchemaFileContents = container.resolve(
       "getAllSchemaFileContents",
     );
-    const contents = await getAllSchemaFileContents(filenames, {
-      secret: argv.secret,
-      baseUrl: argv.url,
-    });
+    const contents = await getAllSchemaFileContents(filenames, argv);
 
     // don't start writing or deleting files until we've successfully fetched all
     // the remote schema files
@@ -117,8 +129,8 @@ function buildPullCommand(yargs) {
         type: "boolean",
         default: false,
       },
-      staged: {
-        description: "Pulls staged schema instead of the active schema",
+      active: {
+        description: "Pulls the active schema instead of the staged schema",
         type: "boolean",
         default: false,
       },
@@ -126,7 +138,7 @@ function buildPullCommand(yargs) {
     })
     .example([
       ["$0 schema pull"],
-      ["$0 schema pull --staged"],
+      ["$0 schema pull --active"],
       ["$0 schema pull --delete"],
     ])
     .version(false)

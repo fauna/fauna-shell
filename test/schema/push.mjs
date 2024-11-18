@@ -1,9 +1,10 @@
 import { expect } from "chai";
+import sinon from "sinon";
+
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import { reformatFSL } from "../../src/lib/schema.mjs";
-import { f } from "../helpers.mjs";
-import sinon from "sinon";
+import { buildUrl, f } from "../helpers.mjs";
 
 describe("schema push", function () {
   const diffString =
@@ -28,13 +29,13 @@ describe("schema push", function () {
     gatherFSL.resolves(fsl);
   });
 
-  it("can force push schema", async function () {
-    await run(`schema push --secret "secret" --force`, container);
+  it("can push a schema without user input", async function () {
+    await run(`schema push --secret "secret" --no-input`, container);
 
     expect(gatherFSL).to.have.been.calledWith(".");
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/update?force=true&staged=false",
+      buildUrl("/schema/1/update", { force: "true", staged: "true" }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -46,7 +47,7 @@ describe("schema push", function () {
     expect(logger.stderr).to.not.be.called;
   });
 
-  it("can push schema by version to active (default)", async function () {
+  it("can push schema by version to staged (default)", async function () {
     // user accepts the changes in the interactive prompt
     confirm.resolves(true);
 
@@ -68,7 +69,11 @@ describe("schema push", function () {
     await run(`schema push --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&staged=false&color=ansi",
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "true",
+        color: "ansi",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -77,7 +82,10 @@ describe("schema push", function () {
     );
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/update?version=1728675598430000&staged=false",
+      buildUrl("/schema/1/update", {
+        version: "1728675598430000",
+        staged: "true",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -87,10 +95,13 @@ describe("schema push", function () {
 
     expect(logger.stderr).to.not.be.called;
     expect(logger.stdout).to.have.been.calledWith("Proposed diff:\n");
+    expect(confirm).to.have.been.calledWith(
+      sinon.match.has("message", "Stage the above changes?"),
+    );
     expect(logger.stdout).to.have.been.calledWith(diffString);
   });
 
-  it("can push schema by version to staging", async function () {
+  it("can push schema by version to active", async function () {
     // user accepts the changes in the interactive prompt
     confirm.resolves(true);
 
@@ -109,10 +120,14 @@ describe("schema push", function () {
       }),
     );
 
-    await run(`schema push --secret "secret" --staged`, container);
+    await run(`schema push --secret "secret" --active`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&staged=true&color=ansi",
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "false",
+        color: "ansi",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -121,7 +136,10 @@ describe("schema push", function () {
     );
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/update?version=1728675598430000&staged=true",
+      buildUrl("/schema/1/update", {
+        version: "1728675598430000",
+        staged: "false",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -131,6 +149,9 @@ describe("schema push", function () {
 
     expect(logger.stderr).to.not.be.called;
     expect(logger.stdout).to.have.been.calledWith("Proposed diff:\n");
+    expect(confirm).to.have.been.calledWith(
+      sinon.match.has("message", "Push the above changes?"),
+    );
     expect(logger.stdout).to.have.been.calledWith(diffString);
   });
 
@@ -149,7 +170,11 @@ describe("schema push", function () {
     await run(`schema push --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&staged=false&color=ansi",
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "true",
+        color: "ansi",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -166,14 +191,14 @@ describe("schema push", function () {
 
   it("can push schema from another directory", async function () {
     await run(
-      `schema push --secret "secret" --force --dir "/absolute/path/elsewhere"`,
+      `schema push --secret "secret" --no-input --dir "/absolute/path/elsewhere"`,
       container,
     );
 
     expect(gatherFSL).to.have.been.calledWith("/absolute/path/elsewhere");
   });
 
-  it("warns when attempting to push an empty diff", async function () {
+  it("warns when attempting to stage an empty diff", async function () {
     // user accepts the changes in the interactive prompt
     confirm.resolves(true);
 
@@ -188,7 +213,11 @@ describe("schema push", function () {
     await run(`schema push --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&staged=false&color=ansi",
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "true",
+        color: "ansi",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -197,7 +226,10 @@ describe("schema push", function () {
     );
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/update?version=1728675598430000&staged=false",
+      buildUrl("/schema/1/update", {
+        version: "1728675598430000",
+        staged: "true",
+      }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
@@ -208,7 +240,55 @@ describe("schema push", function () {
     expect(logger.stderr).to.not.be.called;
     expect(logger.stdout).to.have.been.calledWith("No logical changes.");
     expect(confirm).to.have.been.calledWith(
-      sinon.match.has("message", "Push file contents anyway?"),
+      sinon.match.has("message", "Stage the file contents anyway?"),
     );
   });
+
+  it("warns when attempting to push an empty diff", async function () {
+    // user accepts the changes in the interactive prompt
+    confirm.resolves(true);
+
+    fetch.onCall(0).resolves(
+      f({
+        // this is the version we provide when we mutate the resource
+        version: 1728675598430000,
+        // note: no diff
+      }),
+    );
+
+    await run(`schema push --secret "secret" --active`, container);
+
+    expect(fetch).to.have.been.calledWith(
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "false",
+        color: "ansi",
+      }),
+      {
+        method: "POST",
+        headers: { AUTHORIZATION: "Bearer secret" },
+        body: reformatFSL(fsl),
+      },
+    );
+
+    expect(fetch).to.have.been.calledWith(
+      buildUrl("/schema/1/update", {
+        version: "1728675598430000",
+        staged: "false",
+      }),
+      {
+        method: "POST",
+        headers: { AUTHORIZATION: "Bearer secret" },
+        body: reformatFSL(fsl),
+      },
+    );
+
+    expect(logger.stderr).to.not.be.called;
+    expect(logger.stdout).to.have.been.calledWith("No logical changes.");
+    expect(confirm).to.have.been.calledWith(
+      sinon.match.has("message", "Push the file contents anyway?"),
+    );
+  });
+
+  it.skip("correctly URI encodes file paths");
 });

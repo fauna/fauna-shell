@@ -2,16 +2,24 @@
 
 import { container } from "../cli.mjs";
 
+function buildParamsString({ argv, params, path }) {
+  const routesWithColor = ["/schema/1/staged/status", "/schema/1/validate"];
+  if (params && argv.color && routesWithColor.includes(path))
+    params.set("color", "ansi");
+  if (params && params.sort) params.sort();
+  const paramsString = params && params.size ? `?${params.toString()}` : "";
+  return paramsString;
+}
+
 /**
  * @typedef {('GET'|'HEAD'|'OPTIONS'|'PATCH'|'PUT'|'POST'|'DELETE'|'PATCH')} method
  */
 
 /**
  * @typedef {Object} fetchParameters
- * @property {string} secret - The secret to include in the AUTHORIZATION header of the request.
- * @property {string} baseUrl - The base URL from the scheme up through the top level domain and optional port; defaults to "https://db.fauna.com:443".
+ * @property {Object} argv - The parsed argv from yargs; used to find the base url (`argv.url`), secret (`argv.secret`), and color support (`argv.color`). To overwrite, provided a modified argv to `makeFaunaRequest`.
  * @property {string} path - The path part of the URL. Added to the baseUrl and params to build the full URL.
- * @property {Record<string, string>} [params] - The parameters (and their values) to set in the query string.
+ * @property {URLSearchParams|undefined} [params] - The parameters (and their values) to set in the query string.
  * @property {method} method - The HTTP method to use when making the request.
  * @property {object} [body] - The body to include in the request.
  * @property {boolean} [shouldThrow=true] - Whether or not to throw if the network request succeeds but is not a 2XX. If this is set to false, makeFaunaRequest will return the error instead of throwing.
@@ -21,8 +29,7 @@ import { container } from "../cli.mjs";
  * @param {fetchParameters} args
  */
 export async function makeFaunaRequest({
-  secret,
-  baseUrl,
+  argv,
   path,
   params = undefined,
   method,
@@ -30,13 +37,13 @@ export async function makeFaunaRequest({
   shouldThrow = true,
 }) {
   const fetch = container.resolve("fetch");
-  const paramsString = params ? `?${new URLSearchParams(params)}` : "";
+  const paramsString = buildParamsString({ argv, params, path });
   let fullUrl;
 
   try {
-    fullUrl = new URL(`${path}${paramsString}`, baseUrl).href;
+    fullUrl = new URL(`${path}${paramsString}`, argv.url).href;
   } catch (e) {
-    e.message = `Could not build valid URL out of base url (${baseUrl}), path (${path}), and params string (${paramsString}) built from params (${JSON.stringify(
+    e.message = `Could not build valid URL out of base url (${argv.url}), path (${path}), and params string (${paramsString}) built from params (${JSON.stringify(
       params,
     )}).`;
     throw e;
@@ -44,7 +51,7 @@ export async function makeFaunaRequest({
 
   const fetchArgs = {
     method,
-    headers: { AUTHORIZATION: `Bearer ${secret}` },
+    headers: { AUTHORIZATION: `Bearer ${argv.secret}` },
   };
 
   if (body) fetchArgs.body = body;

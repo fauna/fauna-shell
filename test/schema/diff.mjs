@@ -1,11 +1,9 @@
 import { expect } from "chai";
 
-import { f, commonFetchParams } from "../helpers.mjs";
-
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-
 import { reformatFSL } from "../../src/lib/schema.mjs";
+import { buildUrl, commonFetchParams, f } from "../helpers.mjs";
 
 describe("schema diff", function () {
   const colorDiffString =
@@ -30,7 +28,7 @@ describe("schema diff", function () {
     gatherFSL.resolves(fsl);
   });
 
-  it("can display the diff between local and remote schema", async function () {
+  it("can display the diff between local and staged remote schema", async function () {
     fetch.resolves(
       f({
         version: 0,
@@ -41,14 +39,23 @@ describe("schema diff", function () {
     await run(`schema diff --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&color=ansi&staged=false",
+      buildUrl("/schema/1/staged/status", { color: "ansi" }),
+      { ...commonFetchParams, method: "GET" },
+    );
+    expect(fetch).to.have.been.calledWith(
+      buildUrl("/schema/1/validate", {
+        color: "ansi",
+        diff: "semantic",
+        force: "true",
+        staged: "true",
+      }),
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(colorDiffString);
     expect(logger.stderr).to.not.have.been.called;
   });
 
-  it("can display the diff between local and staged remote schema", async function () {
+  it("can display the diff between local and active remote schema", async function () {
     fetch.resolves(
       f({
         version: 0,
@@ -56,10 +63,19 @@ describe("schema diff", function () {
       }),
     );
 
-    await run(`schema diff --staged --secret "secret"`, container);
+    await run(`schema diff --active --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&color=ansi&staged=true",
+      buildUrl("/schema/1/staged/status", { color: "ansi" }),
+      { ...commonFetchParams, method: "GET" },
+    );
+    expect(fetch).to.have.been.calledWith(
+      buildUrl("/schema/1/validate", {
+        color: "ansi",
+        diff: "semantic",
+        force: "true",
+        staged: "false",
+      }),
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(colorDiffString);
@@ -76,8 +92,16 @@ describe("schema diff", function () {
 
     await run(`schema diff --secret "secret" --no-color`, container);
 
+    expect(fetch).to.have.been.calledWith(buildUrl("/schema/1/staged/status"), {
+      ...commonFetchParams,
+      method: "GET",
+    });
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&staged=false",
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        staged: "true",
+        diff: "semantic",
+      }),
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(noColorDiffString);
@@ -95,10 +119,19 @@ describe("schema diff", function () {
     await run(`schema diff --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/validate?force=true&color=ansi&staged=false",
+      buildUrl("/schema/1/staged/status", { color: "ansi" }),
+      { ...commonFetchParams, method: "GET" },
+    );
+    expect(fetch).to.have.been.calledWith(
+      buildUrl("/schema/1/validate", {
+        force: "true",
+        color: "ansi",
+        staged: "true",
+        diff: "semantic",
+      }),
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
-    expect(logger.stdout).to.have.been.calledWith("No schema differences");
+    expect(logger.stdout).to.have.been.calledWith("No schema differences.");
     expect(logger.stderr).to.not.have.been.called;
   });
 
@@ -119,4 +152,8 @@ describe("schema diff", function () {
 
     expect(gatherFSL).to.have.been.calledWith("/Users/test-user");
   });
+
+  it.skip("errors if user provides both --staged and --active flags");
+  it.skip("works with the --staged flag");
+  it.skip("uses the correct intro string 'from ... to ...'");
 });

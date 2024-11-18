@@ -1,6 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
+import { InvalidCredsError, UnauthorizedError } from "./misc.mjs";
 
 /**
  *
@@ -56,16 +57,25 @@ export async function makeAccountRequest({
   if (body) fetchArgs.body = body;
 
   const response = await fetch(fullUrl, fetchArgs);
-  if (response.status >= 400 && shouldThrow) {
-    throw new Error(
-      `Failed to make request to Fauna account API: ${response.status}, ${response.statusText}`,
-    );
-  }
   const responseType = response.headers.get("content-type");
-  const result =
-    responseType === "application/json"
-      ? await response.json()
-      : await response;
+  const responseIsJSON = responseType?.includes("application/json");
+  if (response.status >= 400 && shouldThrow) {
+    let message = `Failed to make request to Fauna account API [${response.status}]`;
+    if (responseIsJSON) {
+      const body = await response.json();
+      const { reason, code } = body;
+      message += `: ${code} - ${reason}`;
+    }
+    switch (response.status) {
+      case 401:
+        throw new InvalidCredsError(message);
+      case 403:
+        throw new UnauthorizedError(message);
+      default:
+        throw new Error(message);
+    }
+  }
+  const result = responseIsJSON ? await response.json() : await response;
 
   return result;
 }
@@ -81,24 +91,27 @@ export class FaunaAccountClient {
    * @returns {Promise<string>} - The URL to the Fauna dashboard for OAuth authorization.
    * @throws {Error} - Throws an error if there is an issue during login.
    */
-  async startOAuthRequest(authCodeParams) {
-    const oauthRedirect = await makeAccountRequest({
-      path: "/oauth/authorize",
-      method: "GET",
-      params: authCodeParams,
-      contentType: "text/html",
-    });
-    if (oauthRedirect.status != 302) {
-      throw new Error(
-        `Failed to start OAuth request: ${oauthRedirect.status} - ${oauthRedirect.statusText}`,
-      );
-    }
-    const dashboardOAuthURL = oauthRedirect.headers.get("location");
+  static async startOAuthRequest(authCodeParams) {
+    const dashboardOAuthURL = (
+      await makeAccountRequest({
+        path: "/oauth/authorize",
+        method: "GET",
+        params: authCodeParams,
+      })
+    ).url;
     const error = new URL(dashboardOAuthURL).searchParams.get("error");
     if (error) {
       throw new Error(`Error during login: ${error}`);
     }
     return dashboardOAuthURL;
+  }
+
+  static async whoAmI(accountKey) {
+    return await makeAccountRequest({
+      method: "GET",
+      path: "/whoami",
+      secret: accountKey,
+    });
   }
 
   /**
@@ -113,14 +126,14 @@ export class FaunaAccountClient {
    * @returns {Promise<string>} - The access token.
    * @throws {Error} - Throws an error if there is an issue during token retrieval.
    */
-  async getToken(opts) {
+  static async getToken(opts) {
     const params = {
-      grant_type: "authorization_code",
-      client_id: opts.clientId,
-      client_secret: opts.clientSecret,
+      grant_type: "authorization_code", // eslint-disable-line camelcase
+      client_id: opts.clientId, // eslint-disable-line camelcase
+      client_secret: opts.clientSecret, // eslint-disable-line camelcase
       code: opts.authCode,
-      redirect_uri: opts.redirectURI,
-      code_verifier: opts.codeVerifier,
+      redirect_uri: opts.redirectURI, // eslint-disable-line camelcase
+      code_verifier: opts.codeVerifier, // eslint-disable-line camelcase
     };
     try {
       const response = await makeAccountRequest({
@@ -129,10 +142,10 @@ export class FaunaAccountClient {
         body: new URLSearchParams(params).toString(),
         path: "/oauth/token",
       });
-      const { access_token } = await response.json();
-      return access_token;
+      const { access_token: accessToken } = response;
+      return accessToken;
     } catch (err) {
-      err.message = "Failure to authorize with Fauna: " + err.message;
+      err.message = `Failure to authorize with Fauna: ${err.message}`;
       throw err;
     }
   }
@@ -141,22 +154,30 @@ export class FaunaAccountClient {
    * Retrieves the session information from the Fauna account API.
    *
    * @param {string} accessToken - The access token for the session.
-   * @returns {Promise<{account_key: string, refresh_token: string}>} - The session information.
+   * @returns {Promise<{accountKey: string, refreshToken: string}>} - The session information.
    * @throws {Error} - Throws an error if there is an issue during session retrieval.
    */
-  async getSession(accessToken) {
+  static async getSession(accessToken) {
     try {
-      const response = await makeAccountRequest({
-        method: "POST",
-        path: "/session",
-        secret: accessToken,
-      });
-      const session = await response.json();
-      return session;
+      const { account_key: accountKey, refresh_token: refreshToken } =
+        await makeAccountRequest({
+          method: "POST",
+          path: "/session",
+          secret: accessToken,
+        });
+      return { accountKey, refreshToken };
     } catch (err) {
-      err.message = "Failure to get session with Fauna: " + err.message;
+      err.message = `Failure to get session with Fauna: ${err.message}`;
       throw err;
     }
+  }
+
+  static async refreshSession(refreshToken) {
+    return await makeAccountRequest({
+      method: "POST",
+      path: "/session/refresh",
+      secret: refreshToken,
+    });
   }
 
   /**
@@ -166,7 +187,7 @@ export class FaunaAccountClient {
    * @returns {Promise<Object[]>} - The list of databases.
    * @throws {Error} - Throws an error if there is an issue during the request.
    */
-  async listDatabases(accountKey) {
+  static async listDatabases(accountKey) {
     try {
       const response = await makeAccountRequest({
         method: "GET",
@@ -175,7 +196,7 @@ export class FaunaAccountClient {
       });
       return await response.json();
     } catch (err) {
-      err.message = "Failure to list databases: " + err.message;
+      err.message = `Failure to list databases: ${err.message}`;
       throw err;
     }
   }
@@ -190,13 +211,13 @@ export class FaunaAccountClient {
    * @returns {Promise<Object>} - A promise that resolves when the key is created.
    * @throws {Error} - Throws an error if there is an issue during key creation.
    */
-  async createKey({ accountKey, path, role = "admin" }) {
+  static async createKey({ accountKey, path, role = "admin" }) {
+    // TODO: specify a ttl
     return await makeAccountRequest({
       method: "POST",
       path: "/databases/keys",
       body: JSON.stringify({
         path,
-        regionGroup: "us-std",
         role,
       }),
       secret: accountKey,

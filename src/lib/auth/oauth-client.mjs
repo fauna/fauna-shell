@@ -1,5 +1,5 @@
+import { createHash, randomBytes } from "crypto";
 import http from "http";
-import { randomBytes, createHash } from "crypto";
 import url from "url";
 
 // Default to prod client id and secret
@@ -14,22 +14,22 @@ const REDIRECT_URI = `http://127.0.0.1`;
 class OAuthClient {
   constructor() {
     this.server = http.createServer(this._handleRequest.bind(this));
-    this.code_verifier = Buffer.from(randomBytes(20)).toString("base64url");
-    this.code_challenge = createHash("sha256")
-      .update(this.code_verifier)
+    this.codeVerifier = Buffer.from(randomBytes(20)).toString("base64url");
+    this.codeChallenge = createHash("sha256")
+      .update(this.codeVerifier)
       .digest("base64url");
     this.port = 0;
-    this.auth_code = "";
+    this.authCode = "";
     this.state = this._generateCSRFToken();
   }
 
   getOAuthParams() {
     return {
-      client_id: clientId,
-      redirect_uri: `${REDIRECT_URI}:${this.port}`,
-      code_challenge: this.code_challenge,
-      code_challenge_method: "S256",
-      response_type: "code",
+      clientId: clientId,
+      redirectUri: `${REDIRECT_URI}:${this.port}`,
+      codeChallenge: this.codeChallenge,
+      codeChallengeMethod: "S256",
+      responseType: "code",
       scope: "create_session",
       state: this.state,
     };
@@ -39,13 +39,13 @@ class OAuthClient {
     return {
       clientId,
       clientSecret,
-      authCode: this.auth_code,
+      authCode: this.authCode,
       redirectURI: `${REDIRECT_URI}:${this.port}`,
-      codeVerifier: this.code_verifier,
+      codeVerifier: this.codeVerifier,
     };
   }
 
-  _generateCSRFToken() {
+  static _generateCSRFToken() {
     return Buffer.from(randomBytes(20)).toString("base64url");
   }
 
@@ -94,7 +94,7 @@ class OAuthClient {
           errorMessage = "Invalid authorization code received";
           this.server.close();
         } else {
-          this.auth_code = authCode;
+          this.authCode = authCode;
           if (query.state !== this.state) {
             errorMessage = "Invalid state received";
             this.closeServer();
@@ -109,6 +109,7 @@ class OAuthClient {
       this.closeServer();
     }
     if (errorMessage) {
+      // eslint-disable-next-line no-console
       console.error("Error during authentication:", errorMessage);
     }
   }
@@ -123,6 +124,7 @@ class OAuthClient {
         this.server.listen(0);
       }
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error("Error starting loopback server:", e.message);
     }
   }
