@@ -1,3 +1,5 @@
+//@ts-check
+
 import { container } from "../cli.mjs";
 import { getAccountKey, getDBKey } from "../lib/auth/authNZ.mjs";
 

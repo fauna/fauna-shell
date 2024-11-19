@@ -1,3 +1,5 @@
+//@ts-check
+
 import * as awilix from "awilix";
 import { expect } from "chai";
 import sinon from "sinon";
