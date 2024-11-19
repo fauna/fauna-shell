@@ -1,12 +1,11 @@
 import { expect } from "chai";
-import sinon from "sinon";
 import chalk from "chalk";
-
-import { commonFetchParams, f } from "../helpers.mjs";
+import sinon from "sinon";
 import tryToCatch from "try-to-catch";
 
-import { run, builtYargs } from "../../src/cli.mjs";
+import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { buildUrl, commonFetchParams, f } from "../helpers.mjs";
 
 describe("schema commit", function () {
   const textDiff =
@@ -41,11 +40,11 @@ describe("schema commit", function () {
     await run(`schema commit --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/status?diff=true&color=ansi",
+      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/commit?version=1728684450440000",
+      buildUrl("/schema/1/staged/commit", { version: "1728684450440000" }),
       { ...commonFetchParams, method: "POST" },
     );
     expect(logger.stdout).to.have.been.calledWith("Schema has been committed");
@@ -55,14 +54,14 @@ describe("schema commit", function () {
     );
   });
 
-  it("can force commit a schema change", async function () {
+  it("can commit a schema change without user input", async function () {
     fetch.onCall(0).resolves(f({ version: 1728684456180000 }));
 
-    await run(`schema commit --secret "secret" --force`, container);
+    await run(`schema commit --secret "secret" --no-input`, container);
 
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/commit?force=true",
+      buildUrl("/schema/1/staged/commit", { force: "true" }),
       { ...commonFetchParams, method: "POST" },
     );
     expect(logger.stdout).to.have.been.calledWith("Schema has been committed");
@@ -80,7 +79,7 @@ describe("schema commit", function () {
     expect(error).to.have.property("code", 1);
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/status?diff=true&color=ansi",
+      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(logger.stdout).to.not.have.been.called;
@@ -102,7 +101,7 @@ describe("schema commit", function () {
     expect(error).to.have.property("code", 1);
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/status?diff=true&color=ansi",
+      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(logger.stdout).to.have.been.calledWith(diff);
@@ -131,7 +130,7 @@ describe("schema commit", function () {
 
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/status?diff=true&color=ansi",
+      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(logger.stdout).to.have.been.calledWith("Commit cancelled");

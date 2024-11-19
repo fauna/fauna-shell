@@ -1,22 +1,22 @@
 //@ts-check
 
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { container } from "../../cli.mjs";
+import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 
 async function doCommit(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
 
-  if (argv.force) {
+  if (!argv.input) {
     const params = new URLSearchParams({
       force: "true", // Just commit, don't pass a schema version through.
     });
 
     await makeFaunaRequest({
-      baseUrl: argv.url,
-      path: `/schema/1/staged/commit?${params}`,
-      secret: argv.secret,
+      argv,
+      path: "/schema/1/staged/commit",
+      params,
       method: "POST",
     });
 
@@ -24,12 +24,11 @@ async function doCommit(argv) {
   } else {
     // Show status to confirm.
     const params = new URLSearchParams({ diff: "true" });
-    if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({
-      baseUrl: argv.url,
-      path: `/schema/1/staged/status?${params}`,
-      secret: argv.secret,
+      argv,
+      path: "/schema/1/staged/status",
+      params,
       method: "GET",
     });
 
@@ -50,9 +49,9 @@ async function doCommit(argv) {
       const params = new URLSearchParams({ version: response.version });
 
       await makeFaunaRequest({
-        baseUrl: argv.url,
-        path: `/schema/1/staged/commit?${params}`,
-        secret: argv.secret,
+        argv,
+        path: "/schema/1/staged/commit",
+        params,
         method: "POST",
       });
 
@@ -66,10 +65,10 @@ async function doCommit(argv) {
 function buildCommitCommand(yargs) {
   return yargs
     .options({
-      force: {
-        description: "Push the change without a diff or schema version check",
+      input: {
+        description: "Prompt for user input (e.g., confirmations)",
+        default: true,
         type: "boolean",
-        default: false,
       },
       ...commonQueryOptions,
     })

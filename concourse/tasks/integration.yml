@@ -29,4 +29,4 @@ services:
       - |
         apk add curl
         concourse/scripts/wait-for-it.sh http://core:8443/ping
-        yarn install && yarn run test
+        npm ci && npm run test

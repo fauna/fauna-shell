@@ -1,16 +1,17 @@
+import * as awilix from "awilix";
 import { expect } from "chai";
+import { spy, stub } from "sinon";
+
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import * as awilix from "awilix";
-import { stub, spy } from "sinon";
 import { AccountKey } from "../src/lib/file-util.mjs";
 
 describe("login", function () {
   let container;
   let fs;
   const sessionCreds = {
-    account_key: "account-key",
-    refresh_token: "refresh-token",
+    accountKey: "account-key",
+    refreshToken: "refresh-token",
   };
   const mockOAuth = () => {
     let handlers = {};
@@ -54,7 +55,7 @@ describe("login", function () {
       startOAuthRequest: stub().resolves("dashboard-url"),
       listDatabases: stub().resolves("test databases"),
       getSession: stub().resolves(sessionCreds),
-      getToken: stub().resolves({ access_token: "access-token" }),
+      getToken: stub().resolves({ accessToken: "access-token" }),
     };
   };
   beforeEach(() => {
@@ -75,9 +76,9 @@ describe("login", function () {
     const logger = container.resolve("logger");
     const accountCreds = container.resolve("accountCreds");
     const existingCreds = {
-      test_profile: {
-        account_key: "test",
-        refresh_token: "test",
+      testProfile: {
+        accountKey: "test",
+        refreshToken: "test",
       },
     };
     const expectedCreds = {
@@ -108,18 +109,18 @@ describe("login", function () {
 
   it("overwrites credentials on login", async function () {
     const existingCreds = {
-      test_profile: {
-        account_key: "oldkey",
-        refresh_token: "oldtoken",
+      testProfile: {
+        accountKey: "oldkey",
+        refreshToken: "oldtoken",
       },
     };
     const expectedCreds = {
-      test_profile: {
-        account_key: "account-key",
-        refresh_token: "refresh-token",
+      testProfile: {
+        accountKey: "account-key",
+        refreshToken: "refresh-token",
       },
     };
-    await run(`login --profile test_profile`, container);
+    await run(`login --profile testProfile`, container);
     const accountCreds = container.resolve("accountCreds");
     const oauthClient = container.resolve("oauthClient");
     const logger = container.resolve("logger");

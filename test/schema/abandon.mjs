@@ -1,12 +1,11 @@
 import { expect } from "chai";
+import chalk from "chalk";
 import sinon from "sinon";
 import tryToCatch from "try-to-catch";
-import chalk from "chalk";
 
-import { f, commonFetchParams } from "../helpers.mjs";
-
-import { run, builtYargs } from "../../src/cli.mjs";
+import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { buildUrl, commonFetchParams, f } from "../helpers.mjs";
 
 describe("schema abandon", function () {
   let diff =
@@ -22,7 +21,7 @@ describe("schema abandon", function () {
     confirm = container.resolve("confirm");
   });
 
-  it("can force abandon a staged schema change", async function () {
+  it("can abandon a staged schema change without user input", async function () {
     fetch.onCall(0).resolves(
       f({
         version: 1728677726190000,
@@ -33,11 +32,11 @@ describe("schema abandon", function () {
       }),
     );
 
-    await run(`schema abandon --secret "secret" --force`, container);
+    await run(`schema abandon --secret "secret" --no-input`, container);
 
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/abandon?force=true",
+      buildUrl("/schema/1/staged/abandon", { force: "true" }),
       { ...commonFetchParams, method: "POST" },
     );
     expect(logger.stdout).to.have.been.calledWith("Schema has been abandoned");
@@ -64,11 +63,11 @@ describe("schema abandon", function () {
     await run(`schema abandon --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/status?diff=true&color=ansi",
+      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/abandon?version=1728677726190000",
+      buildUrl("/schema/1/staged/abandon", { version: "1728677726190000" }),
       { ...commonFetchParams, method: "POST" },
     );
     expect(logger.stdout).to.have.been.calledWith("Schema has been abandoned");
@@ -94,7 +93,7 @@ describe("schema abandon", function () {
     expect(logger.stderr).to.have.been.calledWith(message);
 
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/status?diff=true&color=ansi",
+      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
   });
@@ -118,7 +117,7 @@ describe("schema abandon", function () {
 
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      "https://db.fauna.com/schema/1/staged/status?diff=true&color=ansi",
+      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(logger.stdout).to.have.been.calledWith("Abandon cancelled");

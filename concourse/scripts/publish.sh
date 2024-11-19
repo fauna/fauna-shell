@@ -4,8 +4,8 @@ set -eou
 
 cd ./fauna-shell-repository
 
-yarn install
-yarn build
+npm ci
+npm run build
 
 PACKAGE_VERSION=$(node -p -e "require('./package.json').version")
 NPM_LATEST_VERSION=$(npm view fauna-shell version)

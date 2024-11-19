@@ -1,15 +1,15 @@
 // @ts-check
 
-import yargs from "yargs";
 import chalk from "chalk";
+import yargs from "yargs";
 
+import databaseCommand from "./commands/database.mjs";
 import evalCommand from "./commands/eval.mjs";
+import keyCommand from "./commands/key.mjs";
 import loginCommand from "./commands/login.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
-import databaseCommand from "./commands/database.mjs";
-import keyCommand from "./commands/key.mjs";
-import { logArgv, fixPaths } from "./lib/middleware.mjs";
 import { authNZMiddleware } from "./lib/auth/authNZ.mjs";
+import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
 
@@ -62,7 +62,7 @@ function buildYargs(argvInput) {
 
   return yargsInstance
     .scriptName("fauna")
-    .middleware([logArgv], true)
+    .middleware([checkForUpdates, logArgv], true)
     .middleware([fixPaths, authNZMiddleware], false)
     .command("eval", "evaluate a query", evalCommand)
     .command("login", "login via website", loginCommand)

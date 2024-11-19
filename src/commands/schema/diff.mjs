@@ -6,33 +6,102 @@ import { container } from "../../cli.mjs";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 
+/**
+ * @returns string[]
+ */
+function parseTarget(argv) {
+  if (!argv.active && !argv.staged) {
+    return ["staged", "local"];
+  }
+
+  if (argv.active && argv.staged) {
+    throw new Error("Cannot specify both --active and --staged");
+  }
+
+  if (argv.active) {
+    return ["active", "local"];
+  } else if (argv.staged) {
+    return ["active", "staged"];
+  } else {
+    throw new Error("Invalid target. Expected: active or staged");
+  }
+}
+
+function buildStatusParams(argv) {
+  const params = new URLSearchParams({});
+  const [, target] = parseTarget(argv);
+  const diffKind = argv.text ? "textual" : "semantic";
+
+  if (target === "staged") params.set("diff", diffKind);
+
+  return params;
+}
+
+function buildValidateParams(argv, version) {
+  const [source] = parseTarget(argv);
+  const diffKind = argv.text ? "textual" : "semantic";
+  const params = new URLSearchParams({
+    diff: diffKind,
+    staged: String(source === "staged"),
+  });
+  if (version) {
+    params.set("version", version);
+  } else {
+    params.set("force", "true");
+  }
+
+  return params;
+}
+
 async function doDiff(argv) {
+  const [source, target] = parseTarget(argv);
+
   const gatherFSL = container.resolve("gatherFSL");
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
   const files = reformatFSL(await gatherFSL(argv.dir));
 
-  const params = new URLSearchParams({ force: "true" });
-  if (argv.color) params.set("color", "ansi");
-  params.set("staged", argv.staged);
-
-  const response = await makeFaunaRequest({
-    baseUrl: argv.url,
-    path: new URL(`/schema/1/validate?${params}`, argv.url).href,
-    secret: argv.secret,
-    body: files,
-    method: "POST",
+  const { version, status, diff } = await makeFaunaRequest({
+    argv,
+    path: "/schema/1/staged/status",
+    params: buildStatusParams(argv),
+    method: "GET",
   });
 
-  const bold = argv.color ? chalk.bold : (str) => str;
-  const description = argv.staged ? "remote, staged" : "remote, active";
-  logger.stdout(
-    `Differences between the ${bold("local")} schema and the ${bold(
-      description,
-    )} schema:`,
-  );
-  logger.stdout(response.diff ? response.diff : "No schema differences");
+  if (target === "staged") {
+    logger.stdout(
+      `Differences from the ${chalk.bold("remote, active")} schema to the ${chalk.bold("remote, staged")} schema:`,
+    );
+    if (status === "none") {
+      logger.stdout("There is no staged schema present.");
+    } else {
+      logger.stdout(diff ? diff : "No schema differences.");
+    }
+  } else {
+    const { diff } = await makeFaunaRequest({
+      argv,
+      path: "/schema/1/validate",
+      params: buildValidateParams(argv, version),
+      body: files,
+      method: "POST",
+    });
+
+    if (status === "none") {
+      logger.stdout(
+        `Differences from the ${chalk.bold("remote")} schema to the ${chalk.bold("local")} schema:`,
+      );
+    } else if (source === "active") {
+      logger.stdout(
+        `Differences from the ${chalk.bold("remote, active")} schema to the ${chalk.bold("local")} schema:`,
+      );
+    } else {
+      logger.stdout(
+        `Differences from the ${chalk.bold("remote, staged")} schema to the ${chalk.bold("local")} schema:`,
+      );
+    }
+    logger.stdout(diff ? diff : "No schema differences.");
+  }
 }
 
 function buildDiffCommand(yargs) {
@@ -40,13 +109,29 @@ function buildDiffCommand(yargs) {
     .options({
       staged: {
         description:
-          "Compare the local schema to the staged schema instead of the active schema.",
+          "Show the diff between the active and staged schema, instead of the local schema.",
+        default: false,
+        type: "boolean",
+      },
+      text: {
+        description: "Display the text diff instead of the semantic diff.",
+        default: false,
+        type: "boolean",
+      },
+      active: {
+        description:
+          "Show the diff against the active schema instead of the staged schema.",
         default: false,
         type: "boolean",
       },
       ...commonQueryOptions,
     })
-    .example([["$0 schema diff"], ["$0 schema diff --dir schemas/myschema"]])
+    .example([
+      ["$0 schema diff"],
+      ["$0 schema diff --dir schemas/myschema"],
+      ["$0 schema diff --staged"],
+      ["$0 schema diff --active --text"],
+    ])
     .version(false)
     .help("help", "show help");
 }

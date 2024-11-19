@@ -1,9 +1,10 @@
 //@ts-check
 
 import * as path from "path";
-import { dirExists, dirIsWriteable } from "./file-util.mjs";
+
 import { container } from "../cli.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
+import { dirExists, dirIsWriteable } from "./file-util.mjs";
 
 /**
  * @param {string} dir - The directory path to check for existence and write access
@@ -33,7 +34,7 @@ function read(dir, relpaths) {
   // database file size limit: 8mb
   const FILESIZE_LIMIT_BYTES = 8 * 1024 * 1024;
   const curr = [];
-  var totalsize = 0;
+  let totalsize = 0;
   for (const relp of relpaths) {
     const fp = path.join(dir, relp);
     const content = fs.readFileSync(fp);
@@ -165,16 +166,20 @@ export async function writeSchemaFiles(dir, filenameToContentsDict) {
 
 /**
  * @param {string[]} filenames - A list of schema file names to fetch
- * @param {Omit<fetchParameters, "path"|"method">} overrides
+ * @param {object} argv
  * @returns {Promise<Record<string, string>>} A map of schema file names to their contents.
  */
-export async function getAllSchemaFileContents(filenames, { ...overrides }) {
+export async function getAllSchemaFileContents(filenames, argv) {
   const promises = [];
   /** @type Record<string, string> */
   const fileContentCollection = {};
   for (const filename of filenames) {
     promises.push(
-      getSchemaFile(filename, overrides).then(({ content }) => {
+      makeFaunaRequest({
+        argv,
+        path: `/schema/1/files/${encodeURIComponent(filename)}`,
+        method: "GET",
+      }).then(({ content }) => {
         fileContentCollection[filename] = content;
       }),
     );
@@ -183,44 +188,4 @@ export async function getAllSchemaFileContents(filenames, { ...overrides }) {
   await Promise.all(promises);
 
   return fileContentCollection;
-}
-
-/**
- * @param {Omit<fetchParameters, "path"|"method">} overrides
- */
-export async function getSchemaFiles({ ...overrides }) {
-  /** @type {fetchParameters} */
-  const args = {
-    ...overrides,
-    path: "/schema/1/files",
-    method: "GET",
-  };
-  return makeFaunaRequest({ ...args });
-}
-
-/**
- * @param {string} filename
- * @param {Omit<fetchParameters, "path"|"method">} overrides
- */
-export async function getSchemaFile(filename, { ...overrides }) {
-  /** @type {fetchParameters} */
-  const args = {
-    ...overrides,
-    path: `/schema/1/files/${encodeURIComponent(filename)}`,
-    method: "GET",
-  };
-  return makeFaunaRequest({ ...args });
-}
-
-/**
- * @param {Omit<fetchParameters, "path"|"method">} overrides
- */
-export async function getStagedSchemaStatus({ ...overrides }) {
-  /** @type {fetchParameters} */
-  const args = {
-    ...overrides,
-    path: "/schema/1/staged/status",
-    method: "GET",
-  };
-  return makeFaunaRequest({ ...args });
 }

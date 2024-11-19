@@ -11,17 +11,19 @@ async function doPush(argv) {
   const gatherFSL = container.resolve("gatherFSL");
   const fsl = reformatFSL(await gatherFSL(argv.dir));
 
-  if (argv.force) {
+  const isStagedPush = !argv.active;
+
+  if (!argv.input) {
     const params = new URLSearchParams({
-      force: argv.force,
-      staged: argv.staged ? "true" : "false",
+      force: "true",
+      staged: argv.active ? "false" : "true",
     });
 
     await makeFaunaRequest({
-      baseUrl: argv.url,
-      path: `/schema/1/update?${params}`,
+      argv,
+      path: "/schema/1/update",
+      params,
       body: fsl,
-      secret: argv.secret,
       method: "POST",
     });
   } else {
@@ -29,25 +31,28 @@ async function doPush(argv) {
     // need to pass the last known schema version through.
     const params = new URLSearchParams({
       force: "true",
-      staged: argv.staged ? "true" : "false",
+      staged: argv.active ? "false" : "true",
     });
-    if (argv.color) params.set("color", "ansi");
 
     const response = await makeFaunaRequest({
-      baseUrl: argv.url,
-      path: `/schema/1/validate?${params}`,
+      argv,
+      path: "/schema/1/validate",
+      params,
       body: fsl,
-      secret: argv.secret,
       method: "POST",
     });
 
-    let message = "Accept and push changes?";
+    let message = isStagedPush
+      ? "Stage the above changes?"
+      : "Push the above changes?";
     if (response.diff) {
       logger.stdout(`Proposed diff:\n`);
       logger.stdout(response.diff);
     } else {
       logger.stdout("No logical changes.");
-      message = "Push file contents anyway?";
+      message = isStagedPush
+        ? "Stage the file contents anyway?"
+        : "Push the file contents anyway?";
     }
     const confirm = container.resolve("confirm");
     const confirmed = await confirm({
@@ -58,14 +63,14 @@ async function doPush(argv) {
     if (confirmed) {
       const params = new URLSearchParams({
         version: response.version,
-        staged: argv.staged ? "true" : "false",
+        staged: argv.active ? "false" : "true",
       });
 
       await makeFaunaRequest({
-        baseUrl: argv.url,
-        path: `/schema/1/update?${params}`,
+        argv,
+        path: "/schema/1/update",
+        params,
         body: fsl,
-        secret: argv.secret,
         method: "POST",
       });
     } else {
@@ -77,14 +82,14 @@ async function doPush(argv) {
 function buildPushCommand(yargs) {
   return yargs
     .options({
-      force: {
-        description: "Push the change without a diff or schema version check",
+      input: {
+        description: "Prompt for user input (e.g., confirmations)",
+        default: true,
         type: "boolean",
-        default: false,
       },
-      staged: {
+      active: {
         description:
-          "Stages the schema change instead of applying it immediately",
+          "Immediately applies the schema change instead of staging it",
         type: "boolean",
         default: false,
       },
@@ -93,7 +98,7 @@ function buildPushCommand(yargs) {
     .example([
       ["$0 schema push"],
       ["$0 schema push --dir schemas/myschema"],
-      ["$0 schema push --staged"],
+      ["$0 schema push --active"],
     ])
     .version(false)
     .help("help", "show help");

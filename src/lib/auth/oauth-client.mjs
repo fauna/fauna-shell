@@ -1,6 +1,8 @@
+import { createHash, randomBytes } from "crypto";
 import http from "http";
-import { randomBytes, createHash } from "crypto";
 import url from "url";
+
+import { container } from "../../cli.mjs";
 
 // Default to prod client id and secret
 const clientId = process.env.FAUNA_CLIENT_ID ?? "-_vEB3FKRoWbJdFpMg72Mx0UVAA";
@@ -14,22 +16,22 @@ const REDIRECT_URI = `http://127.0.0.1`;
 class OAuthClient {
   constructor() {
     this.server = http.createServer(this._handleRequest.bind(this));
-    this.code_verifier = Buffer.from(randomBytes(20)).toString("base64url");
-    this.code_challenge = createHash("sha256")
-      .update(this.code_verifier)
+    this.codeVerifier = Buffer.from(randomBytes(20)).toString("base64url");
+    this.codeChallenge = createHash("sha256")
+      .update(this.codeVerifier)
       .digest("base64url");
     this.port = 0;
-    this.auth_code = "";
-    this.state = this._generateCSRFToken();
+    this.authCode = "";
+    this.state = OAuthClient._generateCSRFToken();
   }
 
   getOAuthParams() {
     return {
-      client_id: clientId,
-      redirect_uri: `${REDIRECT_URI}:${this.port}`,
-      code_challenge: this.code_challenge,
-      code_challenge_method: "S256",
-      response_type: "code",
+      client_id: clientId, // eslint-disable-line camelcase
+      redirect_uri: `${REDIRECT_URI}:${this.port}`, // eslint-disable-line camelcase
+      code_challenge: this.codeChallenge, // eslint-disable-line camelcase
+      code_challenge_method: "S256", // eslint-disable-line camelcase
+      response_type: "code", // eslint-disable-line camelcase
       scope: "create_session",
       state: this.state,
     };
@@ -39,18 +41,19 @@ class OAuthClient {
     return {
       clientId,
       clientSecret,
-      authCode: this.auth_code,
+      authCode: this.authCode,
       redirectURI: `${REDIRECT_URI}:${this.port}`,
-      codeVerifier: this.code_verifier,
+      codeVerifier: this.codeVerifier,
     };
   }
 
-  _generateCSRFToken() {
+  static _generateCSRFToken() {
     return Buffer.from(randomBytes(20)).toString("base64url");
   }
 
   // req: IncomingMessage, res: ServerResponse
   _handleRequest(req, res) {
+    const logger = container.resolve("logger");
     const allowedOrigins = [
       "http://localhost:3005",
       "http://127.0.0.1:3005",
@@ -94,7 +97,7 @@ class OAuthClient {
           errorMessage = "Invalid authorization code received";
           this.server.close();
         } else {
-          this.auth_code = authCode;
+          this.authCode = authCode;
           if (query.state !== this.state) {
             errorMessage = "Invalid state received";
             this.closeServer();
@@ -109,11 +112,12 @@ class OAuthClient {
       this.closeServer();
     }
     if (errorMessage) {
-      console.error("Error during authentication:", errorMessage);
+      logger.stderr(`Error during authentication: ${errorMessage}`);
     }
   }
 
   async start() {
+    const logger = container.resolve("logger");
     try {
       if (!this.server.listening) {
         this.server.on("listening", () => {
@@ -123,7 +127,7 @@ class OAuthClient {
         this.server.listen(0);
       }
     } catch (e) {
-      console.error("Error starting loopback server:", e.message);
+      logger.stderr(`Error starting loopback server: ${e.message}`);
     }
   }
 

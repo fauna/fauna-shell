@@ -2,14 +2,14 @@ import fs from "node:fs";
 import { normalize } from "node:path";
 
 import * as awilix from "awilix";
-import { setupCommonContainer, injectables } from "./setup-container.mjs";
+import { spy, stub } from "sinon";
+
 import { f } from "../../test/helpers.mjs";
-import { makeFaunaRequest } from "../lib/db.mjs";
-
-import { stub, spy } from "sinon";
 import { parseYargs } from "../cli.mjs";
-
+import { makeAccountRequest } from "../lib/account.mjs";
+import { makeFaunaRequest } from "../lib/db.mjs";
 import logger from "../lib/logger.mjs";
+import { injectables, setupCommonContainer } from "./setup-container.mjs";
 
 // Mocks all _functions_ declared on the injectables export from setup-container.mjs
 function automock(container) {
@@ -49,6 +49,7 @@ export function setupTestContainer() {
       unlink: stub(),
       writeFile: stub(),
     }),
+    updateNotifier: awilix.asValue(stub().returns({ notify: stub() })),
     logger: awilix.asValue({
       // use these for making dev, support tickets easier.
       // they're not mocked because we shouldn't test them
@@ -83,6 +84,7 @@ export function setupTestContainer() {
     fetch: awilix.asValue(stub().resolves(f({}))),
     gatherFSL: awilix.asValue(stub().resolves([])),
     makeFaunaRequest: awilix.asValue(spy(makeFaunaRequest)),
+    makeAccountRequest: awilix.asValue(spy(makeAccountRequest)),
   };
 
   confirmManualMocks(manualMocks, thingsToManuallyMock);

@@ -1,21 +1,30 @@
 import { container } from "../cli.mjs";
-import {
-  authNZMiddleware,
-  getAccountKey,
-  getDBKey,
-} from "../lib/auth/authNZ.mjs";
+import { getAccountKey, getDBKey } from "../lib/auth/authNZ.mjs";
 
+// TODO: this function should just spit out the secret that was created.
+//  consider an optional flag that will save this secret to the creds file, overwriting
+//  the existing secret if it exists at key/path/role
 async function createKey(argv) {
-  const { database, profile, role, url, local } = argv;
+  const { database, profile, role, url } = argv;
   const logger = container.resolve("logger");
-  const accountClient = container.resolve("accountClient");
   const accountKey = await getAccountKey(profile);
-  const key = await accountClient.createKey({
+  // TODO: after logging in, should we list the top level databases and create db keys for them?
+  //  depending on how many top level dbs....
+  // Have to list DBs on login so we know which databases are top-level and require frontdoor calls
+
+  // TODO: we should create the key with fauna unless it's a top level key
+  // in which case we should create it with the account client
+
+  // TODO: when using fauna to create a key at the specified database path, we should
+  //  getDBKey(parent path).
+  const dbSecret = getDBKey({
     accountKey,
     path: database,
     role,
+    url,
   });
-  logger.stdout(`Key created:\n${JSON.stringify(key, null, 2)}`);
+  logger.stdout("got account key", accountKey);
+  logger.stdout("got db secret", dbSecret);
 }
 
 function buildKeyCommand(yargs) {
@@ -48,15 +57,17 @@ function buildKeyCommand(yargs) {
 
 function keyHandler(argv) {
   const method = argv.method;
+  const logger = container.resolve("logger");
+
   switch (method) {
     case "create":
       createKey(argv);
       break;
     case "delete":
-      console.log("Deleting key...");
+      logger.stdout("Deleting key...");
       break;
     case "list":
-      console.log("Listing keys...");
+      logger.stdout("Listing keys...");
       break;
     default:
       break;

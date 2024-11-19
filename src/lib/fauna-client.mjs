@@ -47,7 +47,9 @@ export default class FaunaClient {
       headers: {
         authorization: `Bearer ${secret ?? this.secret}`,
         "x-fauna-source": "Fauna Shell",
-        ...(typecheck !== undefined && { "x-typecheck": typecheck.toString() }),
+        ...(typecheck !== undefined && {
+          "x-typecheck": typecheck.toString(),
+        }),
         ...(format !== undefined && { "x-format": format }),
         ...((this.timeout && {
           "x-query-timeout-ms": this.timeout.toString(10),
@@ -83,6 +85,7 @@ export default class FaunaClient {
    * In order to allow commands to just close their client without having to worry about which
    * client they received, adding this noop method here.
    */
+  // eslint-disable-next-line class-methods-use-this
   async close() {
     return undefined;
   }

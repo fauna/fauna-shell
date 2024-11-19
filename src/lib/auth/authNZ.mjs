@@ -52,7 +52,7 @@ export function cleanupSecretsFile() {
   const accountKeys = accountCreds.get();
   const secretKeys = secretCreds.get();
   const accountKeysList = Object.values(accountKeys).map(
-    ({ account_key }) => account_key,
+    ({ accountKey }) => accountKey,
   );
   Object.keys(secretKeys).forEach((accountKey) => {
     if (!accountKeysList.includes(accountKey)) {
@@ -62,7 +62,7 @@ export function cleanupSecretsFile() {
 }
 
 // TODO: account for env var for account key. if profile isn't defined.
-export async function setAccountKey(profile) {
+async function setAccountKey(profile) {
   // Don't leave hanging db secrets that don't match up to stored account keys
   cleanupSecretsFile();
   const accountCreds = container.resolve("accountCreds");
@@ -97,7 +97,7 @@ export function getAccountKey(profile) {
   }
 }
 
-export async function checkAccountKeyRemote(accountKey) {
+async function checkAccountKeyRemote(accountKey) {
   const accountClient = container.resolve("accountClient");
   // If account key is invalid or expired, this will throw InvalidCredsError
   try {
@@ -111,22 +111,22 @@ export async function checkAccountKeyRemote(accountKey) {
   }
 }
 
-export async function refreshSession(profile) {
+async function refreshSession(profile) {
   const accountClient = container.resolve("accountClient");
   const accountCreds = container.resolve("accountCreds");
   const creds = accountCreds.get({ key: profile });
-  const { refresh_token } = creds;
-  if (!refresh_token) {
+  const { refreshToken } = creds;
+  if (!refreshToken) {
     throw new Error(
-      "Invalid access_keys file configuration for profile: " + profile,
+      `Invalid access_keys file configuration for profile: ${profile}`,
     );
   }
   // If refresh token expired, this will throw InvalidCredsError
-  const newCreds = await accountClient.refreshSession(refresh_token);
+  const newCreds = await accountClient.refreshSession(refreshToken);
   return newCreds;
 }
 
-export async function setDBKey({ accountKey, path, role, url }) {
+async function setDBKey({ accountKey, path, role, url }) {
   const secretCreds = container.resolve("secretCreds");
   const accountClient = container.resolve("accountClient");
   const existingSecret = getDBKey({ accountKey, path, role });
@@ -179,10 +179,10 @@ export async function checkDBKeyRemote(dbKey, url) {
     endpoint: url,
   });
   const result = await client.query("0");
-  if (result.status == 200) {
+  if (result.status === 200) {
     return result;
   }
-  if (result.status == 401) {
+  if (result.status === 401) {
     return null;
   } else {
     throw new Error(
