@@ -14,3 +14,4 @@ experiments
 .log
 coverage
 test-results.xml
+.history
