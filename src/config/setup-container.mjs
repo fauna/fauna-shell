@@ -12,6 +12,7 @@ import updateNotifier from "update-notifier";
 
 import { parseYargs } from "../cli.mjs";
 import { performQuery } from "../commands/eval.mjs";
+import { makeAccountRequest } from "../lib/account.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { getSimpleClient } from "../lib/command-helpers.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
@@ -72,6 +73,7 @@ export const injectables = {
     lifetime: Lifetime.SCOPED,
   }),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
+  makeAccountRequest: awilix.asValue(makeAccountRequest),
   makeFaunaRequest: awilix.asValue(makeFaunaRequest),
   accountCreds: awilix.asClass(AccountKey, { lifetime: Lifetime.SCOPED }),
   secretCreds: awilix.asClass(SecretKey, { lifetime: Lifetime.SCOPED }),

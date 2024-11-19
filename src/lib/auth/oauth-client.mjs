@@ -2,6 +2,8 @@ import { createHash, randomBytes } from "crypto";
 import http from "http";
 import url from "url";
 
+import { container } from "../../cli.mjs";
+
 // Default to prod client id and secret
 const clientId = process.env.FAUNA_CLIENT_ID ?? "-_vEB3FKRoWbJdFpMg72Mx0UVAA";
 // Native public clients are not confidential. The client secret is not used beyond
@@ -20,16 +22,16 @@ class OAuthClient {
       .digest("base64url");
     this.port = 0;
     this.authCode = "";
-    this.state = this._generateCSRFToken();
+    this.state = OAuthClient._generateCSRFToken();
   }
 
   getOAuthParams() {
     return {
-      clientId: clientId,
-      redirectUri: `${REDIRECT_URI}:${this.port}`,
-      codeChallenge: this.codeChallenge,
-      codeChallengeMethod: "S256",
-      responseType: "code",
+      client_id: clientId, // eslint-disable-line camelcase
+      redirect_uri: `${REDIRECT_URI}:${this.port}`, // eslint-disable-line camelcase
+      code_challenge: this.codeChallenge, // eslint-disable-line camelcase
+      code_challenge_method: "S256", // eslint-disable-line camelcase
+      response_type: "code", // eslint-disable-line camelcase
       scope: "create_session",
       state: this.state,
     };
@@ -51,6 +53,7 @@ class OAuthClient {
 
   // req: IncomingMessage, res: ServerResponse
   _handleRequest(req, res) {
+    const logger = container.resolve("logger");
     const allowedOrigins = [
       "http://localhost:3005",
       "http://127.0.0.1:3005",
@@ -109,12 +112,12 @@ class OAuthClient {
       this.closeServer();
     }
     if (errorMessage) {
-      // eslint-disable-next-line no-console
-      console.error("Error during authentication:", errorMessage);
+      logger.stderr(`Error during authentication: ${errorMessage}`);
     }
   }
 
   async start() {
+    const logger = container.resolve("logger");
     try {
       if (!this.server.listening) {
         this.server.on("listening", () => {
@@ -124,8 +127,7 @@ class OAuthClient {
         this.server.listen(0);
       }
     } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error("Error starting loopback server:", e.message);
+      logger.stderr(`Error starting loopback server: ${e.message}`);
     }
   }
 

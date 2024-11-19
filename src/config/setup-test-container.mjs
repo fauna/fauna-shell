@@ -6,6 +6,7 @@ import { spy, stub } from "sinon";
 
 import { f } from "../../test/helpers.mjs";
 import { parseYargs } from "../cli.mjs";
+import { makeAccountRequest } from "../lib/account.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
 import logger from "../lib/logger.mjs";
 import { injectables, setupCommonContainer } from "./setup-container.mjs";
@@ -83,6 +84,7 @@ export function setupTestContainer() {
     fetch: awilix.asValue(stub().resolves(f({}))),
     gatherFSL: awilix.asValue(stub().resolves([])),
     makeFaunaRequest: awilix.asValue(spy(makeFaunaRequest)),
+    makeAccountRequest: awilix.asValue(spy(makeAccountRequest)),
   };
 
   confirmManualMocks(manualMocks, thingsToManuallyMock);
