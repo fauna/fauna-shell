@@ -17,12 +17,12 @@ const { runQuery } = misc;
 /**
  * Write json encoded output
  *
- * @param {String} file Target filename
+ * @param {String | undefined} file Target filename
  * @param {any}    data Data to encode
  */
 async function writeFormattedJson(file, data) {
   let str = JSON.stringify(data);
-  if (file === null) {
+  if (file === undefined) {
     return str;
   } else {
     // await writeFile(file, str);
@@ -260,7 +260,7 @@ function buildEvalCommand(yargs) {
       output: {
         type: "string",
         description: "file to write output to",
-        default: null,
+        default: undefined,
       },
       format: {
         type: "string",

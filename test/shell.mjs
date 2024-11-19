@@ -1,12 +1,23 @@
 //@ts-check
 
 import { EOL } from "node:os";
-import util from "node:util";
 
 import { expect } from "chai";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+
+// this is defined up here so the indentation doesn't make it harder to use :(
+const objectOne = `{
+  data: [
+    {
+      name: "v4-test",
+      coll: Database,
+      ts: Time("2024-07-16T19:16:15.980Z"),
+      global_id: "asd7zi8pharfn",
+    },
+  ],
+}`;
 
 describe("shell", function () {
   let container;
@@ -34,16 +45,7 @@ describe("shell", function () {
 
   describe("v10", function () {
     it("can open a shell and run a query", async function () {
-      container.resolve("performQuery").resolves({
-        data: [
-          {
-            name: "v4-test",
-            coll: "Database",
-            ts: 'Time("2024-07-16T19:16:15.980Z")',
-            global_id: "asd7zi8pharfn",
-          },
-        ],
-      });
+      container.resolve("performQuery").resolves(objectOne);
 
       const stdin = container.resolve("stdinStream");
       const logger = container.resolve("logger");
@@ -53,19 +55,8 @@ describe("shell", function () {
       stdin.push(null);
 
       await runPromise;
-      const stringifiedObj = util.inspect({
-        data: [
-          {
-            name: "v4-test",
-            coll: "Database",
-            ts: 'Time("2024-07-16T19:16:15.980Z")',
-            global_id: "asd7zi8pharfn",
-          },
-        ],
-      });
-
       expect(container.resolve("stdoutStream").getWritten()).to.equal(
-        `Type Ctrl+D or .exit to exit the shell${prompt}Database.all()\r${EOL}${stringifiedObj}${prompt}`,
+        `Type Ctrl+D or .exit to exit the shell${prompt}Database.all()\r${EOL}${objectOne}${prompt}`,
       );
       expect(logger.stderr).to.not.be.called;
     });
