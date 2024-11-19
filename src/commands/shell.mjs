@@ -25,7 +25,7 @@ async function doShell(argv) {
     completer: argv.version === "10" ? () => [] : undefined,
     output: container.resolve("stdoutStream"),
     input: container.resolve("stdinStream"),
-    eval: await customEval(argv),
+    eval: await buildCustomEval(argv),
     terminal: true,
   };
 
@@ -58,7 +58,8 @@ async function doShell(argv) {
   return completionPromise;
 }
 
-async function customEval(argv) {
+// caches the logger, client, and performQuery for subsequent shell calls
+async function buildCustomEval(argv) {
   const logger = container.resolve("logger");
   const client = await getSimpleClient(argv);
   const performQuery = container.resolve("performQuery");
