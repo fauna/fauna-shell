@@ -58,7 +58,8 @@ async function writeFormattedOutput(file, data, format) {
   if (format === "json") {
     return writeFormattedJson(file, data);
   } else if (format === "shell") {
-    return writeFormattedShell(file, util.inspect(data, { depth: null }));
+    const fmtd = util.inspect(data, { depth: null, compact: false });
+    return writeFormattedShell(file, fmtd);
   } else {
     throw new Error(`Unrecognized format ${format}.`);
   }
@@ -125,7 +126,12 @@ export async function performV4Query(client, fqlQuery, outputFile, flags) {
 
   try {
     const response = await runQuery(fqlQuery, client);
-    return await writeFormattedOutput(outputFile, response, flags.format);
+    const formatted = await writeFormattedOutput(
+      outputFile,
+      response,
+      flags.format,
+    );
+    return formatted;
   } catch (error) {
     if (error.faunaError === undefined) {
       // this happens when wrapQueries fails during the runInContext step
@@ -160,6 +166,9 @@ export async function performV4Query(client, fqlQuery, outputFile, flags) {
  * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
  */
 export async function performQuery(client, fqlQuery, outputFile, flags) {
+  const performV4Query = container.resolve("performV4Query");
+  const performV10Query = container.resolve("performV10Query");
+
   if (flags.version === "4") {
     return performV4Query(client, fqlQuery, outputFile, flags);
   } else {
@@ -213,8 +222,6 @@ async function doEval(argv) {
   }
 
   const format = argv.format ?? (process.stdout.isTTY ? "shell" : "json");
-
-  const performQuery = container.resolve("performQuery");
 
   const result = await performQuery(
     client,

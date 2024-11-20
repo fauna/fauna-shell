@@ -31,7 +31,7 @@ describe("eval", function () {
   describe("v10", function () {
     it("can eval a query", async function () {
       const logger = container.resolve("logger");
-      container.resolve("performQuery").resolves({
+      container.resolve("performV10Query").resolves({
         data: [
           {
             name: "v4-test",
