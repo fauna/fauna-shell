@@ -33,7 +33,6 @@ describe("authNZMiddleware", function () {
       accountClient: awilix.asFunction(mockAccountClient).scoped(),
     });
     fetch = container.resolve("fetch");
-    logger = container.resolve("logger");
   });
 
   it("should pass through if authRequired is false", async function () {
