@@ -14,7 +14,10 @@ describe("authNZMiddleware", function () {
   let container;
   let fetch;
   let logger;
-
+  const validAccessKeyFile =
+    '{"test-profile": { "accountKey": "valid-account-key", "refreshToken": "valid-refresh-token"}}';
+  const validSecretKeyFile =
+    '{"valid-account-key": { "test-db": {"admin": "valid-db-key"}}}';
   const mockAccountClient = () => {
     return {
       whoAmI: stub().resolves(true),
@@ -44,18 +47,21 @@ describe("authNZMiddleware", function () {
 
   it("should prompt login if InvalidCredsError is thrown", async function () {
     const scope = container.createScope();
-    scope.register({
-      accountCreds: awilix
-        .asFunction(() => ({
-          get: () => {
-            throw new InvalidCredsError();
-          },
-        }))
-        .scoped(),
-    });
+    // scope.register({
+    //   accountCreds: awilix
+    //     .asFunction(() => ({
+    //       get: () => {
+    //         throw new InvalidCredsError();
+    //       },
+    //     }))
+    //     .scoped(),
+    // });
     const argv = { authRequired: true, profile: "test-profile" };
     await run("db list", scope);
     const exit = scope.resolve("exit");
+    const accountCreds = scope.resolve("accountCreds");
+
+    accountCreds.get.throws(new InvalidCredsError());
 
     await authNZMiddleware(argv);
     expect(logger.stderr.args[0][0]).to.include("not signed in or has expired");
@@ -65,28 +71,34 @@ describe("authNZMiddleware", function () {
     expect(exit.calledOnce).to.be.true;
   });
 
-  it("should refresh session if account key is invalid", async function () {
+  it.only("should refresh session if account key is invalid", async function () {
     const argv = { authRequired: true, profile: "test-profile" };
     const scope = container.createScope();
-    scope.register({
-      accountCreds: awilix
-        .asFunction(() => ({
-          get: () => ({
-            account_key: "invalid-key",
-            refresh_token: "valid-token",
-          }),
-          save: stub(),
-        }))
-        .scoped(),
-      secretCreds: awilix
-        .asFunction(() => ({
-          get: () => ({}),
-        }))
-        .scoped(),
-      accountClient: awilix.asFunction(mockAccountClient).scoped(),
-    });
+    // scope.register({
+    //   accountCreds: awilix
+    //     .asFunction(() => ({
+    //       get: () => ({
+    //         account_key: "invalid-key",
+    //         refresh_token: "valid-token",
+    //       }),
+    //       save: stub(),
+    //     }))
+    //     .scoped(),
+    //   secretCreds: awilix
+    //     .asFunction(() => ({
+    //       get: () => ({}),
+    //     }))
+    //     .scoped(),
+    //   accountClient: awilix.asFunction(mockAccountClient).scoped(),
+    // });
     await run("db list", scope);
     const accountCreds = scope.resolve("accountCreds");
+    accountCreds.save = stub();
+    const fs = scope.resolve("fs");
+    fs.readFileSync.withArgs(sinon.match(/secret_keys/)).returns("{}");
+    fs.readFileSync
+      .withArgs(sinon.match(/access_keys/))
+      .returns(validAccessKeyFile);
     const accountClient = scope.resolve("accountClient");
     accountClient.whoAmI.onFirstCall().throws(new InvalidCredsError());
 
@@ -102,10 +114,7 @@ describe("authNZMiddleware", function () {
   describe("Short term DB Keys", () => {
     let scope;
     let fs;
-    let validAccessKeyFile =
-      '{"test-profile": { "accountKey": "valid-account-key", "refreshToken": "valid-refresh-token"}}';
-    let validSecretKeyFile =
-      '{"valid-account-key": { "test-db": {"admin": "valid-db-key"}}}';
+
     const argv = {
       authRequired: true,
       profile: "test-profile",
