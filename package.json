@@ -63,7 +63,6 @@
   "main": "./src/user-entrypoint.mjs",
   "repository": "fauna/fauna-shell",
   "scripts": {
-    "pretest": "npm run format && npm run lint",
     "lint": "eslint . --fix",
     "test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter spec --reporter mocha-junit-reporter",
     "test:local": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
