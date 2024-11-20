@@ -44,7 +44,7 @@ const v4Object2 = `{
 
 describe("shell", function () {
   let container, stdin, stdout, logger;
-  let prompt = `${EOL}> `;
+  let prompt = `${EOL}\x1B[1G\x1B[0J> \x1B[3G`;
 
   beforeEach(() => {
     container = setupContainer();
@@ -72,17 +72,18 @@ describe("shell", function () {
   describe("v10", function () {
     it("can open a shell and run several queries", async function () {
       container.resolve("performV10Query").resolves(v10Object1);
+      let query = "Database.all().take(1)";
 
       // start the shell
       const runPromise = run(`shell --secret "secret"`, container);
 
       // send our first command
-      stdin.push("Database.all().take(1)\n");
+      stdin.push(`${query}\n`);
       await stdout.waitForWritten();
 
       // validate
       expect(stdout.getWritten()).to.equal(
-        `Type Ctrl+D or .exit to exit the shell${prompt}${v10Object1}\n> `,
+        `Type Ctrl+D or .exit to exit the shell${prompt}${query}\r\n${v10Object1}${prompt}`,
       );
       expect(logger.stderr).to.not.be.called;
 
@@ -91,12 +92,15 @@ describe("shell", function () {
       container.resolve("performV10Query").resolves(v10Object2);
 
       // send our second command
-      stdin.push(`Database.all().drop(1).take(1)`);
+      query = "Database.all().take(1)";
+      stdin.push(`${query}\n`);
       stdin.push(null); // terminate the shell
       await stdout.waitForWritten();
 
       // validate second object
-      expect(stdout.getWritten()).to.equal(`${v10Object2}${prompt}`);
+      expect(stdout.getWritten()).to.equal(
+        `${query}\r\n${v10Object2}${prompt}`,
+      );
       expect(logger.stderr).to.not.be.called;
 
       return runPromise;
@@ -108,17 +112,18 @@ describe("shell", function () {
   describe("v4", function () {
     it("can open a shell and run a query", async function () {
       container.resolve("performV4Query").resolves(v4Object1);
+      let query = "Select(0, Paginate(Databases()))";
 
       // start the shell
       const runPromise = run(`shell --secret "secret" --version 4`, container);
 
       // send our first command
-      stdin.push("Database.all().take(1)\n");
+      stdin.push(`${query}\n`);
       await stdout.waitForWritten();
 
       // validate
       expect(stdout.getWritten()).to.equal(
-        `Type Ctrl+D or .exit to exit the shell${prompt}${v4Object1}\n> `,
+        `Type Ctrl+D or .exit to exit the shell${prompt}${query}\r\n${v4Object1}${prompt}`,
       );
       expect(logger.stderr).to.not.be.called;
 
@@ -127,12 +132,13 @@ describe("shell", function () {
       container.resolve("performV4Query").resolves(v4Object2);
 
       // send our second command
-      stdin.push(`Database.all().drop(1).take(1)`);
+      query = "Select(1, Paginate(Databases()))";
+      stdin.push(`${query}\n`);
       stdin.push(null); // terminate the shell
       await stdout.waitForWritten();
 
       // validate second object
-      expect(stdout.getWritten()).to.equal(`${v4Object2}${prompt}`);
+      expect(stdout.getWritten()).to.equal(`${query}\r\n${v4Object2}${prompt}`);
       expect(logger.stderr).to.not.be.called;
 
       return runPromise;
