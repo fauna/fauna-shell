@@ -51,14 +51,20 @@ export function logStringBytes(str1, str2) {
  * `Type Ctrl+D or .exit to exit the shell${prompt}Database.all()\r${EOL}${stringifiedObj}${prompt}`,
  * );
  */
-export function logDifferentStringBytes(str1, str2) {
+export function logDifferentStringBytes(str1, str2, stringRepr = false) {
   let max = Math.max(str1.length, str2.length);
   for (let i = 0; i < max; i++) {
     const charCode1 = str1.charCodeAt(i);
     const charCode2 = str2.charCodeAt(i);
-    if (charCode1 !== charCode2)
-      // eslint-disable-next-line no-console
-      console.log(`Byte ${i}: ${charCode1}, ${charCode2}`);
+    if (charCode1 !== charCode2) {
+      if (stringRepr) {
+        // eslint-disable-next-line no-console
+        console.log(`Byte ${i}: ${str1[i]}, ${str2[i]}`);
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(`Byte ${i}: ${charCode1}, ${charCode2}`);
+      }
+    }
   }
 }
 
@@ -70,16 +76,33 @@ export function logDifferentStringBytes(str1, str2) {
 export class InMemoryWritableStream extends Writable {
   /**
    * Create an in-memory writable stream.
-   * @param {import('node:stream').WritableOptions} options
    */
-  constructor(options) {
-    super(options);
+  constructor() {
+    super();
     this.written = "";
   }
 
   _write(chunk, encoding, callback) {
-    this.written += chunk.toString("utf8");
-    callback();
+    try {
+      this.written += chunk.toString("utf8");
+      callback();
+    } catch (e) {
+      callback(e);
+    }
+  }
+
+  async waitForWritten() {
+    function recurse(cb) {
+      if (this.written.length > 0 && this.writableLength === 0) {
+        cb();
+      } else {
+        setTimeout(recurse.bind(this, cb), 100);
+      }
+    }
+
+    return new Promise((resolve) => {
+      recurse.bind(this, resolve)();
+    });
   }
 
   getWritten(clear = false) {

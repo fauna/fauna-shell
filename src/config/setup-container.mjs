@@ -11,7 +11,7 @@ import open from "open";
 import updateNotifier from "update-notifier";
 
 import { parseYargs } from "../cli.mjs";
-import { performQuery } from "../commands/eval.mjs";
+import { performV4Query, performV10Query } from "../commands/eval.mjs";
 import { makeAccountRequest } from "../lib/account.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { getSimpleClient } from "../lib/command-helpers.mjs";
@@ -72,7 +72,8 @@ export const injectables = {
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
   logger: awilix.asFunction(buildLogger),
-  performQuery: awilix.asValue(performQuery),
+  performV4Query: awilix.asValue(performV4Query),
+  performV10Query: awilix.asValue(performV10Query),
   getSimpleClient: awilix.asValue(getSimpleClient),
   accountClient: awilix.asClass(FaunaAccountClient, {
     lifetime: Lifetime.SCOPED,

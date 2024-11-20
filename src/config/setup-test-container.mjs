@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { normalize } from "node:path";
-import { Readable } from "node:stream";
+import { PassThrough } from "node:stream";
 
 import * as awilix from "awilix";
 import { spy, stub } from "sinon";
@@ -43,9 +43,9 @@ export function setupTestContainer() {
 
   const manualMocks = {
     // process specifics
-    stdinStream: awilix.asValue(Readable.from("")),
-    stdoutStream: awilix.asValue(new InMemoryWritableStream()),
-    stderrStream: awilix.asValue(new InMemoryWritableStream()),
+    stdinStream: awilix.asValue(new PassThrough()),
+    stdoutStream: awilix.asClass(InMemoryWritableStream).singleton(),
+    stderrStream: awilix.asClass(InMemoryWritableStream).singleton(),
 
     // wrap it in a spy so we can record calls, but use the
     // real implementation

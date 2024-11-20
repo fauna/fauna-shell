@@ -6,8 +6,8 @@ import { container } from "../cli.mjs";
 import {
   // ensureDbScopeClient,
   commonConfigurableQueryOptions,
-  getSimpleClient,
 } from "../lib/command-helpers.mjs";
+import { performQuery } from "./eval.mjs";
 
 async function doShell(argv) {
   const logger = container.resolve("logger");
@@ -30,6 +30,7 @@ async function doShell(argv) {
   };
 
   const shell = repl.start(replArgs);
+  shell.on("error", console.error);
 
   completionPromise = new Promise((resolve) => {
     shell.on("exit", resolve);
@@ -60,12 +61,12 @@ async function doShell(argv) {
 
 // caches the logger, client, and performQuery for subsequent shell calls
 async function buildCustomEval(argv) {
-  const logger = container.resolve("logger");
-  const client = await getSimpleClient(argv);
-  const performQuery = container.resolve("performQuery");
+  const client = await container.resolve("getSimpleClient")(argv);
 
   return async (cmd, ctx, filename, cb) => {
     try {
+      const logger = container.resolve("logger");
+
       if (cmd.trim() === "") return cb();
 
       let res;
