@@ -66,7 +66,7 @@
     "pretest": "npm run format && npm run lint",
     "lint": "eslint . --fix",
     "test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter spec --reporter mocha-junit-reporter",
-    "test:local": "mocha --recursive ./test/authNZ.mjs --require ./test/mocha-root-hooks.mjs",
+    "test:local": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
     "build": "npm run build:app && npm run build:sea",
     "build:app": "esbuild --bundle ./src/user-entrypoint.mjs --platform=node --outfile=./dist/cli.cjs --format=cjs --inject:./sea/import-meta-url.js --define:import.meta.url=importMetaUrl",
     "build:sea": "node ./sea/build.cjs",

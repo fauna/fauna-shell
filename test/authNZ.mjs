@@ -6,7 +6,6 @@ import sinon, { stub } from "sinon";
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import { authNZMiddleware, setAccountKey } from "../src/lib/auth/authNZ.mjs";
-import { AccountKey, SecretKey } from "../src/lib/file-util.mjs";
 import { InvalidCredsError } from "../src/lib/misc.mjs";
 import { f } from "./helpers.mjs";
 
@@ -33,8 +32,6 @@ describe("authNZMiddleware", function () {
     container = setupContainer();
     container.register({
       accountClient: awilix.asFunction(mockAccountClient).scoped(),
-      accountCreds: awilix.asClass(AccountKey).scoped(),
-      secretCreds: awilix.asClass(SecretKey).scoped(),
     });
     fetch = container.resolve("fetch");
     logger = container.resolve("logger");
@@ -53,14 +50,19 @@ describe("authNZMiddleware", function () {
     await run("db list", scope);
     const exit = scope.resolve("exit");
     const accountCreds = scope.resolve("accountCreds");
+    const stdout = container.resolve("stdoutStream");
+    const stderr = container.resolve("stderrStream");
 
     accountCreds.get = stub().throws(new InvalidCredsError());
 
     await authNZMiddleware(argv);
-    expect(logger.stderr.args[0][0]).to.include("not signed in or has expired");
-    expect(logger.stdout.args[0][0]).to.include(
+    expect(stdout.getWritten()).to.contain(
       "To sign in, run:\n\nfauna login --profile test-profile\n",
     );
+    expect(stderr.getWritten()).to.contain(
+      'The requested profile "test-profile" is not signed in or has expired.\nPlease re-authenticate',
+    );
+
     expect(exit.calledOnce).to.be.true;
   });
 
@@ -84,9 +86,12 @@ describe("authNZMiddleware", function () {
     await authNZMiddleware(argv);
     expect(accountClient.refreshSession.calledOnce).to.be.true;
     expect(accountCreds.save.calledOnce).to.be.true;
-    expect(accountCreds.save.args[0][0].creds).to.deep.equal({
-      account_key: "new-account-key",
-      refresh_token: "new-refresh-token",
+    expect(accountCreds.save).to.have.been.calledWith({
+      creds: {
+        account_key: "new-account-key",
+        refresh_token: "new-refresh-token",
+      },
+      key: "test-profile",
     });
   });
 
@@ -136,11 +141,13 @@ describe("authNZMiddleware", function () {
       await authNZMiddleware(argv);
       // Check that setDBKey was called and secrets were saved
       expect(secretCreds.save.called).to.be.true;
-      expect(secretCreds.save.args[0][0].key).to.equal("valid-account-key");
-      expect(secretCreds.save.args[0][0].creds).to.deep.equal({
-        path: "test-db",
-        role: "admin",
-        secret: "new-db-key",
+      expect(secretCreds.save).to.have.been.calledWith({
+        creds: {
+          path: "test-db",
+          role: "admin",
+          secret: "new-db-key",
+        },
+        key: "valid-account-key",
       });
     });
 
@@ -157,7 +164,7 @@ describe("authNZMiddleware", function () {
 
       // Verify the cleanup secrets logic
       expect(secretCreds.delete.calledOnce).to.be.true;
-      expect(secretCreds.delete.args[0][0]).to.equal("old-account-key");
+      expect(secretCreds.delete).to.have.been.calledWith("old-account-key");
     });
   });
 });

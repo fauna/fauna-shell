@@ -1,7 +1,6 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { InvalidCredsError, UnauthorizedError } from "./misc.mjs";
 
 /**
  * Class representing a client for interacting with the Fauna account API.
