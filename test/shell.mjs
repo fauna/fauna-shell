@@ -55,11 +55,32 @@ describe("shell", function () {
   });
 
   describe("common", function () {
+    it('outputs results in "shell" format by default', async function () {
+      container.resolve("performV10Query").resolves(v10Object1);
+      let query = "Database.all().take(1)";
+
+      // start the shell
+      const runPromise = run(`shell --secret "secret" --typecheck`, container);
+
+      // send one command
+      stdin.push(`${query}\n`);
+      stdin.push(null);
+      await stdout.waitForWritten();
+      await runPromise;
+
+      expect(container.resolve("performV10Query")).to.have.been.calledWith(
+        sinon.match.any,
+        sinon.match(query),
+        undefined,
+        // the "shell" CLI format gets renamed by performV10Query to "decorated"
+        // before being sent to the API
+        sinon.match({ version: "10", format: "shell" }),
+      );
+    });
+
     it.skip('can output results in "json" format', async function () {});
 
     it.skip('can output results in "json-tagged" format', async function () {});
-
-    it.skip('can output results in "shell" format', async function () {});
 
     it.skip("can output results to a file", async function () {});
 
@@ -130,7 +151,7 @@ describe("shell", function () {
   });
 
   describe("v4", function () {
-    it("can open a shell and run a query", async function () {
+    it("can open a shell and run several queries", async function () {
       container.resolve("performV4Query").resolves(v4Object1);
       let query = "Select(0, Paginate(Databases()))";
 
