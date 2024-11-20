@@ -1,0 +1,29 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Lint
+
+on:
+  # temporarily "v3"; change to "main" after merge
+  push:
+    branches: ["v3"]
+  pull_request:
+    branches: ["v3"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint (nodeJS 22.x)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "npm"
+      - run: npm run lint
+        env:
+          TERM: xterm-256color
+          # Set to the correct color level; 2 is 256 colors
+          # https://github.com/chalk/chalk?tab=readme-ov-file#supportscolor
+          FORCE_COLOR: 2
