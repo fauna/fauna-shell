@@ -30,6 +30,7 @@ async function doShell(argv) {
   };
 
   const shell = repl.start(replArgs);
+  // eslint-disable-next-line no-console
   shell.on("error", console.error);
 
   completionPromise = new Promise((resolve) => {
