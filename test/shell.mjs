@@ -3,6 +3,7 @@
 import { EOL } from "node:os";
 
 import { expect } from "chai";
+import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
@@ -106,7 +107,26 @@ describe("shell", function () {
       return runPromise;
     });
 
-    it.skip("can eval a query with typechecking enabled", async function () {});
+    it("can eval a query with typechecking enabled", async function () {
+      container.resolve("performV10Query").resolves(v10Object1);
+      let query = "Database.all().take(1)";
+
+      // start the shell
+      const runPromise = run(`shell --secret "secret" --typecheck`, container);
+
+      // send one command
+      stdin.push(`${query}\n`);
+      stdin.push(null);
+      await stdout.waitForWritten();
+      await runPromise;
+
+      expect(container.resolve("performV10Query")).to.have.been.calledWith(
+        sinon.match.any,
+        sinon.match(query),
+        undefined,
+        sinon.match({ version: "10", typecheck: true }),
+      );
+    });
   });
 
   describe("v4", function () {

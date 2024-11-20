@@ -160,19 +160,20 @@ export async function performV4Query(client, fqlQuery, outputFile, flags) {
  * @param {Object} client - An instance of the client used to execute the query.
  * @param {string} fqlQuery - The FQL v4 query to be executed.
  * @param {string | undefined} outputFile - Target filename
- * @param {Object} flags - Options for the query execution.
- * @param {("4" | "10")} flags.version - FQL version number
- * @param {("json" | "json-tagged" | "shell")} flags.format - Result format
- * @param {boolean} [flags.typecheck] - (Optional) Flag to enable typechecking
+ *
+ * @param {Object} argv - Options for the query execution.
+ * @param {("4" | "10")} argv.version - FQL version number
+ * @param {("json" | "json-tagged" | "shell")} argv.format - Result format
+ * @param {boolean} [argv.typecheck] - (Optional) Flag to enable typechecking
  */
-export async function performQuery(client, fqlQuery, outputFile, flags) {
+export async function performQuery(client, fqlQuery, outputFile, argv) {
   const performV4Query = container.resolve("performV4Query");
   const performV10Query = container.resolve("performV10Query");
 
-  if (flags.version === "4") {
-    return performV4Query(client, fqlQuery, outputFile, flags);
+  if (argv.version === "4") {
+    return performV4Query(client, fqlQuery, outputFile, argv);
   } else {
-    return performV10Query(client, fqlQuery, outputFile, flags);
+    return performV10Query(client, fqlQuery, outputFile, argv);
   }
 }
 
