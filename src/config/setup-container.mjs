@@ -11,7 +11,7 @@ import open from "open";
 import updateNotifier from "update-notifier";
 
 import { parseYargs } from "../cli.mjs";
-import { performQuery } from "../commands/eval.mjs";
+import { performV4Query, performV10Query } from "../commands/eval.mjs";
 import { makeAccountRequest } from "../lib/account.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { getSimpleClient } from "../lib/command-helpers.mjs";
@@ -19,7 +19,7 @@ import { makeFaunaRequest } from "../lib/db.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import { AccountKey, SecretKey } from "../lib/file-util.mjs";
-import logger from "../lib/logger.mjs";
+import buildLogger from "../lib/logger.mjs";
 import {
   deleteUnusedSchemaFiles,
   gatherFSL,
@@ -51,6 +51,11 @@ export function setupCommonContainer() {
 /** @typedef {Resolvers<injectables>} modifiedInjectables */
 
 export const injectables = {
+  // process specifics
+  stdinStream: awilix.asValue(process.stdin),
+  stdoutStream: awilix.asValue(process.stdout),
+  stderrStream: awilix.asValue(process.stderr),
+
   // node libraries
   exit: awilix.asValue(exit),
   fetch: awilix.asValue(fetchWrapper),
@@ -66,8 +71,9 @@ export const injectables = {
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
-  logger: awilix.asValue(logger),
-  performQuery: awilix.asValue(performQuery),
+  logger: awilix.asFunction(buildLogger),
+  performV4Query: awilix.asValue(performV4Query),
+  performV10Query: awilix.asValue(performV10Query),
   getSimpleClient: awilix.asValue(getSimpleClient),
   accountClient: awilix.asClass(FaunaAccountClient, {
     lifetime: Lifetime.SCOPED,

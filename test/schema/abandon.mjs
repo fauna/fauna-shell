@@ -1,3 +1,5 @@
+//@ts-check
+
 import { expect } from "chai";
 import chalk from "chalk";
 import sinon from "sinon";

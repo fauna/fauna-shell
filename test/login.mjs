@@ -1,3 +1,5 @@
+//@ts-check
+
 import * as awilix from "awilix";
 import { expect } from "chai";
 import { spy, stub } from "sinon";
@@ -90,16 +92,14 @@ describe("login", function () {
     expect(oauthClient.start.called).to.be.true;
     // We open auth url in the browser and prompt user
     expect(container.resolve("open").calledWith("dashboard-url"));
-    expect(
-      logger.stdout.calledWith(
-        "To login, open your browser to:\n dashboard-url",
-      ),
+    expect(logger.stdout).to.have.been.calledWith(
+      "To login, open your browser to:\n dashboard-url",
     );
     accountCreds.get = stub().returns(existingCreds);
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
     // Show login success message
-    expect(logger.stdout.args.flat()).to.include("Login Success!\n");
+    expect(logger.stdout).to.have.been.calledWith("Login Success!\n");
     // We save the session credentials alongside existing credential contents
     expect(accountCreds.filepath).to.include(".fauna/credentials/access_keys");
     expect(JSON.parse(fs.writeFileSync.args[0][1])).to.deep.equal(
@@ -129,7 +129,7 @@ describe("login", function () {
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
     // Show login success message
-    expect(logger.stdout.args.flat()).to.include("Login Success!\n");
+    expect(logger.stdout).to.have.been.calledWith("Login Success!\n");
     // We save the session credentials and overwrite the profile of the same name locally
     expect(JSON.parse(fs.writeFileSync.args[0][1])).to.deep.equal(
       expectedCreds,

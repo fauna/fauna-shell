@@ -24,6 +24,9 @@ jobs:
           - runner: windows-latest
             os: windows
             arch: x64
+          # github-hosted (free) linux arm64 runner is planned by end of 2024
+          # it's currently available on team/enterprise github plans:
+          # https://github.blog/news-insights/product-news/arm64-on-github-actions-powering-faster-more-efficient-build-systems/
 
     runs-on: ${{ matrix.runner }}
     steps:
