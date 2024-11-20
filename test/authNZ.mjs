@@ -103,10 +103,6 @@ describe("authNZMiddleware", function () {
     };
     beforeEach(() => {
       scope = container.createScope();
-      scope.register({
-        accountCreds: awilix.asClass(AccountKey).scoped(),
-        secretCreds: awilix.asClass(SecretKey).scoped(),
-      });
       fs = scope.resolve("fs");
       fs.readFileSync.callsFake((path) => {
         if (path.includes("access_keys")) {
@@ -161,6 +157,7 @@ describe("authNZMiddleware", function () {
 
       // Verify the cleanup secrets logic
       expect(secretCreds.delete.calledOnce).to.be.true;
+      expect(secretCreds.delete.args[0][0]).to.equal("old-account-key");
     });
   });
 });

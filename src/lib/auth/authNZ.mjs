@@ -17,6 +17,8 @@ export async function authNZMiddleware(argv) {
   // Make sure required keys are there so handlers have no issue accesssing/using.
   const { profile, database, role, url } = argv;
   // TODO: for any args that aren't passed in, get them from configuration files
+
+  // TODO: will the account key and DB key be ping'd every time a command is run?
   try {
     const accountKey = await setAccountKey(profile);
     if (database) {
