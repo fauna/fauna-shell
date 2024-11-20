@@ -12,7 +12,6 @@ import { f } from "./helpers.mjs";
 describe("authNZMiddleware", function () {
   let container;
   let fetch;
-  let logger;
   const validAccessKeyFile =
     '{"test-profile": { "accountKey": "valid-account-key", "refreshToken": "valid-refresh-token"}}';
   const validSecretKeyFile =
