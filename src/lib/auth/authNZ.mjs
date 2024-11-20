@@ -115,7 +115,7 @@ async function refreshSession(profile) {
   const accountClient = container.resolve("accountClient");
   const accountCreds = container.resolve("accountCreds");
   const creds = accountCreds.get({ key: profile });
-  const { refresh_token: refreshToken } = creds;
+  const { refreshToken } = creds;
   if (!refreshToken) {
     throw new Error(
       `Invalid access_keys file configuration for profile: ${profile}`,
