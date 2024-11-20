@@ -1,39 +1,39 @@
-import { expect } from "chai";
-import {
-  authNZMiddleware,
-  setAccountKey,
-  getAccountKey,
-  cleanupSecretsFile,
-} from "../src/lib/auth/authNZ.mjs";
-import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import * as awilix from "awilix";
-import { stub, spy } from "sinon";
+import { expect } from "chai";
+import { beforeEach } from "mocha";
+import sinon, { stub } from "sinon";
+
+import { run } from "../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { authNZMiddleware, setAccountKey } from "../src/lib/auth/authNZ.mjs";
+import { AccountKey, SecretKey } from "../src/lib/file-util.mjs";
 import { InvalidCredsError } from "../src/lib/misc.mjs";
-import {
-  AccountKey,
-  SecretKey,
-  CredsNotFoundError,
-} from "../src/lib/file-util.mjs";
+import { f } from "./helpers.mjs";
 
 describe("authNZMiddleware", function () {
   let container;
-
-  beforeEach(() => {
-    container = setupContainer();
-    fetch = container.resolve("fetch");
-    logger = container.resolve("logger");
-  });
+  let fetch;
+  let logger;
 
   const mockAccountClient = () => {
     return {
       whoAmI: stub().resolves(true),
-      createKey: stub().resolves({ secret: "new-secret" }),
+      createKey: stub().resolves({ secret: "new-db-key" }),
       refreshSession: stub().resolves({
         account_key: "new-account-key",
         refresh_token: "new-refresh-token",
       }),
     };
   };
+
+  beforeEach(() => {
+    container = setupContainer();
+    container.register({
+      accountClient: awilix.asFunction(mockAccountClient).scoped(),
+    });
+    fetch = container.resolve("fetch");
+    logger = container.resolve("logger");
+  });
 
   it("should pass through if authRequired is false", async function () {
     const argv = { authRequired: false };
@@ -43,67 +43,136 @@ describe("authNZMiddleware", function () {
   });
 
   it("should prompt login if InvalidCredsError is thrown", async function () {
+    const scope = container.createScope();
+    scope.register({
+      accountCreds: awilix
+        .asFunction(() => ({
+          get: () => {
+            throw new InvalidCredsError();
+          },
+        }))
+        .scoped(),
+    });
     const argv = { authRequired: true, profile: "test-profile" };
-    const accountCreds = container.resolve("accountCreds");
-    const logger = container.resolve("logger");
-    const exit = container.resolve("exit");
+    await run("db list", scope);
+    const exit = scope.resolve("exit");
 
-    stub(accountCreds, "get").throws(new InvalidCredsError());
-
-    try {
-      await authNZMiddleware(argv);
-    } catch (e) {
-      // We expect an exit here
-      expect(logger.stderr.args[0][0]).to.include(
-        "not signed in or has expired",
-      );
-      expect(exit.calledOnce).to.be.true;
-    }
+    await authNZMiddleware(argv);
+    expect(logger.stderr.args[0][0]).to.include("not signed in or has expired");
+    expect(logger.stdout.args[0][0]).to.include(
+      "To sign in, run:\n\nfauna login --profile test-profile\n",
+    );
+    expect(exit.calledOnce).to.be.true;
   });
 
   it("should refresh session if account key is invalid", async function () {
     const argv = { authRequired: true, profile: "test-profile" };
-    const accountCreds = container.resolve("accountCreds");
-    const accountClient = container.resolve("accountClient");
-
-    stub(accountCreds, "get").returns({
-      account_key: "invalid-key",
-      refresh_token: "valid-token",
+    const scope = container.createScope();
+    scope.register({
+      accountCreds: awilix
+        .asFunction(() => ({
+          get: () => ({
+            account_key: "invalid-key",
+            refresh_token: "valid-token",
+          }),
+          save: stub(),
+        }))
+        .scoped(),
+      secretCreds: awilix
+        .asFunction(() => ({
+          get: () => ({}),
+        }))
+        .scoped(),
+      accountClient: awilix.asFunction(mockAccountClient).scoped(),
     });
-    stub(accountClient, "whoAmI").throws(new InvalidCredsError());
+    await run("db list", scope);
+    const accountCreds = scope.resolve("accountCreds");
+    const accountClient = scope.resolve("accountClient");
+    accountClient.whoAmI.onFirstCall().throws(new InvalidCredsError());
 
     await authNZMiddleware(argv);
     expect(accountClient.refreshSession.calledOnce).to.be.true;
     expect(accountCreds.save.calledOnce).to.be.true;
+    expect(accountCreds.save.args[0][0].creds).to.deep.equal({
+      account_key: "new-account-key",
+      refresh_token: "new-refresh-token",
+    });
   });
 
-  it("should call setDBKey if database is provided", async function () {
+  describe("Short term DB Keys", () => {
+    let scope;
+    let fs;
+    let validAccessKeyFile =
+      '{"test-profile": { "accountKey": "valid-account-key", "refreshToken": "valid-refresh-token"}}';
+    let validSecretKeyFile =
+      '{"valid-account-key": { "test-db": {"admin": "valid-db-key"}}}';
     const argv = {
       authRequired: true,
       profile: "test-profile",
       database: "test-db",
-      role: "admin",
       url: "http://localhost",
+      role: "admin",
     };
+    beforeEach(() => {
+      scope = container.createScope();
+      scope.register({
+        accountCreds: awilix.asClass(AccountKey).scoped(),
+        secretCreds: awilix.asClass(SecretKey).scoped(),
+      });
+      fs = scope.resolve("fs");
+      fs.readFileSync.callsFake((path) => {
+        if (path.includes("access_keys")) {
+          return validAccessKeyFile;
+        } else {
+          return validSecretKeyFile;
+        }
+      });
+    });
+    it("returns existing db key if it's valid", async function () {
+      await run("db list", scope);
 
-    const accountCreds = container.resolve("accountCreds");
-    stub(accountCreds, "get").returns({ account_key: "valid-key" });
-    const result = await authNZMiddleware(argv);
+      const fetch = scope.resolve("fetch");
+      const secretCreds = scope.resolve("secretCreds");
+      fetch.resolves(f(true));
+      secretCreds.save = stub();
 
-    // Check that setDBKey was called and secrets were saved
-    const secretCreds = container.resolve("secretCreds");
-    expect(secretCreds.save.calledOnce).to.be.true;
-  });
+      await authNZMiddleware(argv);
+      // Check that setDBKey was called and secrets were saved
+      expect(secretCreds.save.called).to.be.false;
+    });
 
-  it("should clean up secrets file during setAccountKey", async function () {
-    const accountCreds = container.resolve("accountCreds");
-    const secretCreds = container.resolve("secretCreds");
-    stub(accountCreds, "get").returns({ account_key: "valid-key" });
-    stub(secretCreds, "get").returns({});
+    it("creates a new db key if one doesn't exist", async function () {
+      await run("db list", scope);
 
-    await setAccountKey("test-profile");
+      const secretCreds = scope.resolve("secretCreds");
+      fs.readFileSync.withArgs(sinon.match(/secret_keys/)).returns("{}");
 
-    // Verify the cleanup secrets logic
-    expect(secretCreds.delete.calledOnce).to.be.true;
+      secretCreds.save = stub();
+
+      await authNZMiddleware(argv);
+      // Check that setDBKey was called and secrets were saved
+      expect(secretCreds.save.called).to.be.true;
+      expect(secretCreds.save.args[0][0].key).to.equal("valid-account-key");
+      expect(secretCreds.save.args[0][0].creds).to.deep.equal({
+        path: "test-db",
+        role: "admin",
+        secret: "new-db-key",
+      });
+    });
+
+    it("should clean up secrets file during setAccountKey", async function () {
+      await run("db list", scope);
+
+      const secretCreds = scope.resolve("secretCreds");
+      secretCreds.delete = stub();
+      fs.readFileSync
+        .withArgs(sinon.match(/secret_keys/))
+        .returns('{"old-account-key": {"admin": "old-db-key"}}');
+
+      await setAccountKey("test-profile");
+
+      // Verify the cleanup secrets logic
+      expect(secretCreds.delete.calledOnce).to.be.true;
+    });
   });
 });

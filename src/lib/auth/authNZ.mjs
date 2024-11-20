@@ -62,7 +62,7 @@ export function cleanupSecretsFile() {
 }
 
 // TODO: account for env var for account key. if profile isn't defined.
-async function setAccountKey(profile) {
+export async function setAccountKey(profile) {
   // Don't leave hanging db secrets that don't match up to stored account keys
   cleanupSecretsFile();
   const accountCreds = container.resolve("accountCreds");
@@ -86,7 +86,7 @@ export function getAccountKey(profile) {
   const accountCreds = container.resolve("accountCreds");
   try {
     const creds = accountCreds.get({ key: profile });
-    return creds.account_key;
+    return creds.accountKey;
   } catch (e) {
     if (e instanceof CredsNotFoundError) {
       // Throw InvalidCredsError back up to middleware entrypoint to prompt login
@@ -115,7 +115,7 @@ async function refreshSession(profile) {
   const accountClient = container.resolve("accountClient");
   const accountCreds = container.resolve("accountCreds");
   const creds = accountCreds.get({ key: profile });
-  const { refreshToken } = creds;
+  const { refresh_token: refreshToken } = creds;
   if (!refreshToken) {
     throw new Error(
       `Invalid access_keys file configuration for profile: ${profile}`,
@@ -185,8 +185,7 @@ export async function checkDBKeyRemote(dbKey, url) {
   if (result.status === 401) {
     return null;
   } else {
-    throw new Error(
-      `Error contacting fauna [${result.status}]: ${result.error.code}`,
-    );
+    const errorCode = result.body?.error?.code || "internal_error";
+    throw new Error(`Error contacting fauna [${result.status}]: ${errorCode}`);
   }
 }

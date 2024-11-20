@@ -94,7 +94,12 @@ function buildYargs(argvInput) {
         alias: "d",
         type: "string",
         description: "a database path, including region",
-        // required: true,
+      },
+      role: {
+        alias: "r",
+        type: "string",
+        description: "a role",
+        default: "admin",
       },
       color: {
         description:
