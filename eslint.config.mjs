@@ -8,6 +8,7 @@ export default [
     languageOptions: {
       globals: {
         ...globals.mocha,
+        ...globals.nodeBuiltin,
 
         // cjs globals
         require: "readonly",

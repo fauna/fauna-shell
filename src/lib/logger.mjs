@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 import chalk from "chalk";
 import { Console } from "console";
 import yargs from "yargs";
