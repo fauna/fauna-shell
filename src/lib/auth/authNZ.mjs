@@ -17,6 +17,8 @@ export async function authNZMiddleware(argv) {
   // Make sure required keys are there so handlers have no issue accesssing/using.
   const { profile, database, role, url } = argv;
   // TODO: for any args that aren't passed in, get them from configuration files
+
+  // TODO: will the account key and DB key be ping'd every time a command is run?
   try {
     const accountKey = await setAccountKey(profile);
     if (database) {
@@ -62,7 +64,7 @@ export function cleanupSecretsFile() {
 }
 
 // TODO: account for env var for account key. if profile isn't defined.
-async function setAccountKey(profile) {
+export async function setAccountKey(profile) {
   // Don't leave hanging db secrets that don't match up to stored account keys
   cleanupSecretsFile();
   const accountCreds = container.resolve("accountCreds");
@@ -86,7 +88,7 @@ export function getAccountKey(profile) {
   const accountCreds = container.resolve("accountCreds");
   try {
     const creds = accountCreds.get({ key: profile });
-    return creds.account_key;
+    return creds.accountKey;
   } catch (e) {
     if (e instanceof CredsNotFoundError) {
       // Throw InvalidCredsError back up to middleware entrypoint to prompt login
@@ -185,8 +187,7 @@ export async function checkDBKeyRemote(dbKey, url) {
   if (result.status === 401) {
     return null;
   } else {
-    throw new Error(
-      `Error contacting fauna [${result.status}]: ${result.error.code}`,
-    );
+    const errorCode = result.body?.error?.code || "internal_error";
+    throw new Error(`Error contacting fauna [${result.status}]: ${errorCode}`);
   }
 }

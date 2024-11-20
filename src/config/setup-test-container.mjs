@@ -9,6 +9,7 @@ import { f, InMemoryWritableStream } from "../../test/helpers.mjs";
 import { parseYargs } from "../cli.mjs";
 import { makeAccountRequest } from "../lib/account.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
+import { AccountKey, SecretKey } from "../lib/file-util.mjs";
 import buildLogger from "../lib/logger.mjs";
 import { injectables, setupCommonContainer } from "./setup-container.mjs";
 
@@ -62,8 +63,8 @@ export function setupTestContainer() {
     ),
     accountClient: awilix.asFunction(stub()),
     oauthClient: awilix.asFunction(stub()),
-    accountCreds: awilix.asFunction(stub()),
-    secretCreds: awilix.asFunction(stub()),
+    accountCreds: awilix.asClass(AccountKey).scoped(),
+    secretCreds: awilix.asClass(SecretKey).scoped(),
     // in tests, let's exit by throwing
     errorHandler: awilix.asValue((error, exitCode) => {
       error.code = exitCode;
