@@ -27,6 +27,9 @@ export async function run(argvInput, _container) {
   container = _container;
   const logger = container.resolve("logger");
   const parseYargs = container.resolve("parseYargs");
+  if (process.env.NODE_ENV === "production") {
+    process.removeAllListeners("warning");
+  }
 
   try {
     builtYargs = buildYargs(argvInput);
@@ -80,6 +83,12 @@ function buildYargs(argvInput) {
     .command("reject", false, {
       handler: async () => {
         throw new Error("this is a rejected promise");
+      },
+      builder: {},
+    })
+    .command("warn", false, {
+      handler: async () => {
+        process.emitWarning("this is a warning emited on the node process");
       },
       builder: {},
     })
