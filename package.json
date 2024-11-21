@@ -15,6 +15,7 @@
     "eslint": "^9.12.0",
     "faunadb": "^4.5.4",
     "inquirer": "^12.0.0",
+    "mocha-multi-reporters": "^1.5.1",
     "open": "10.1.0",
     "update-notifier": "^7.3.1",
     "yargs": "^17.7.2"
@@ -64,8 +65,10 @@
   "repository": "fauna/fauna-shell",
   "scripts": {
     "lint": "eslint . --fix",
-    "test": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter spec --reporter mocha-junit-reporter",
-    "test:local": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs",
+    "test": "npm run test:local",
+    "test:local": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter mocha-multi-reporters --reporter-options configFile=./test/config/reporter.json",
+    "pretest:ci": "npm run build:app",
+    "test:ci": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter mocha-multi-reporters --reporter-options configFile=./test/config/reporter.json",
     "build": "npm run build:app && npm run build:sea",
     "build:app": "esbuild --bundle ./src/user-entrypoint.mjs --platform=node --outfile=./dist/cli.cjs --format=cjs --inject:./sea/import-meta-url.js --define:import.meta.url=importMetaUrl",
     "build:sea": "node ./sea/build.cjs",
