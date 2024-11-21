@@ -15,7 +15,6 @@
     "eslint": "^9.12.0",
     "faunadb": "^4.5.4",
     "inquirer": "^12.0.0",
-    "mocha-multi-reporters": "^1.5.1",
     "open": "10.1.0",
     "update-notifier": "^7.3.1",
     "yargs": "^17.7.2"
@@ -37,6 +36,7 @@
     "husky": "^9.1.6",
     "mocha": "^10.7.3",
     "mocha-junit-reporter": "^2.2.1",
+    "mocha-multi-reporters": "^1.5.1",
     "postject": "^1.0.0-alpha.6",
     "prettier": "^3.3.3",
     "sinon": "^19.0.2",
