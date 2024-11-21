@@ -127,14 +127,21 @@ describe("cli operations", function () {
     expect(notify).to.have.been.called;
   });
 
+  it("does not expose debug commands in production", async function () {
+    const cliPath = path.resolve(__dirname, "../dist/cli.cjs");
+    const { stderr } = spawnSync(cliPath, ["throw"], {
+      encoding: "utf8",
+      timeout: 5000,
+    });
+
+    expect(stderr).to.include("Unknown argument: throw");
+  });
+
   it("enables nodeJS warnings from the dev entrypoint", async function () {
     const cliPath = path.resolve(__dirname, "../src/user-entrypoint.mjs");
     let cli = spawnSync(cliPath, ["warn"], {
       encoding: "utf8",
-      // input: "",
       timeout: 5000,
-      // stdio: ["inherit", "pipe", "pipe"],
-      // shell: true,
     });
     if (cli.error) throw cli.error;
     let stderr = cli.stderr;
@@ -149,10 +156,11 @@ describe("cli operations", function () {
     const cliPath = path.resolve(__dirname, "../dist/cli.cjs");
     let cli = spawnSync(cliPath, ["warn"], {
       encoding: "utf8",
-      // input: "",
       timeout: 5000,
-      // stdio: ["inherit", "pipe", "pipe"],
-      // shell: true,
+      env: {
+        ...process.env,
+        DEBUG_COMMANDS: "true",
+      },
     });
     if (cli.error) throw cli.error;
 
