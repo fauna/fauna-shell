@@ -39,7 +39,7 @@ describe("cli operations", function () {
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
-  it("should exit with a helpful message if a non-existant flag is not provided", async function () {
+  it("should exit with a helpful message if a non-existent flag is provided", async function () {
     const logger = container.resolve("logger");
 
     // the halflight flag doesn't exist
