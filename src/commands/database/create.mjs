@@ -2,7 +2,7 @@
 
 import { container } from "../../cli.mjs";
 
-async function createDatabase(argv) {
+async function createDatabase() {
   const logger = container.resolve("logger");
   logger.stdout(`TBD`);
 }
