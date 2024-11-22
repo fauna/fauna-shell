@@ -14,9 +14,8 @@ npm run build
 If you change code and want to see how it behaves from a customer-perspective:
 
 ```
-./src/user-entrypoint.mjs <command> <subcommand> --options
+./src/user-entrypoint.mjs <command> <subcommand> [--option ...]
 ```
-
 
 ### Application versions
 
