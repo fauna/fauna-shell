@@ -39,6 +39,22 @@ describe("cli operations", function () {
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
+  it("should exit with a helpful message if a non-existant flag is not provided", async function () {
+    const logger = container.resolve("logger");
+
+    // the halflight flag doesn't exist
+    try {
+      await run(`schema pull --secret "secret" --halflight`, container);
+    } catch (e) {}
+
+    expect(logger.stdout).to.not.be.called;
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
+      "Unknown argument: halflight",
+    )}`;
+    expect(logger.stderr).to.have.been.calledWith(message);
+    expect(container.resolve("parseYargs")).to.have.been.calledOnce;
+  });
+
   // TODO: this doesn't work because turning on strict mode breaks parsing sub-commands. why?
   it("should exit with a helpful message if a non-existent command is provided", async function () {
     const logger = container.resolve("logger");
