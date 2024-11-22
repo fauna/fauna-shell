@@ -4,7 +4,7 @@ import { container } from "../../cli.mjs";
 
 async function createDatabase(argv) {
   const logger = container.resolve("logger");
-  logger.stdout(`TBD dog`);
+  logger.stdout(`TBD`);
 }
 
 function buildCreateCommand(yargs) {
