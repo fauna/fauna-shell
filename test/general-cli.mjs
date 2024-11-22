@@ -56,7 +56,7 @@ describe("cli operations", function () {
   });
 
   // TODO: this doesn't work because turning on strict mode breaks parsing sub-commands. why?
-  it("should exit with a helpful message if a non-existant command is provided", async function () {
+  it("should exit with a helpful message if a non-existent command is provided", async function () {
     const logger = container.resolve("logger");
 
     // this command does not exist
@@ -67,6 +67,22 @@ describe("cli operations", function () {
     expect(logger.stdout).to.not.be.called;
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
       "Unknown argument: inland-empire",
+    )}`;
+    expect(logger.stderr).to.have.been.calledWith(message);
+    expect(container.resolve("parseYargs")).to.have.been.calledOnce;
+  });
+
+  it("should exit with a helpful message if no command is provided", async function () {
+    const logger = container.resolve("logger");
+
+    // no input
+    try {
+      await run("", container);
+    } catch (e) {}
+
+    expect(logger.stdout).to.not.be.called;
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.reset(
+      "Use 'fauna <command> --help' for more information about a command.",
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
