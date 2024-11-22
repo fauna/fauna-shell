@@ -73,6 +73,7 @@ function buildYargs(argvInput) {
     yargsInstance
       .command("throw", false, {
         handler: () => {
+          container.resolve("logger").message("throwing a test error");
           throw new Error("this is a test error");
         },
         builder: {},
@@ -127,6 +128,11 @@ function buildYargs(argvInput) {
         type: "boolean",
         // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
         default: chalk.level > 0,
+      },
+      quiet: {
+        description: "only emit the output of the command and suppress all other messaging",
+        type: "boolean",
+        default: false,
       },
       verbosity: {
         description: "the lowest level diagnostic logs to emit",

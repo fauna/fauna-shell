@@ -68,6 +68,7 @@ describe("cli operations", function () {
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
       "this is a test error",
     )}`;
+    expect(logger.message).to.have.been.calledWith("throwing a test error");
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
@@ -167,6 +168,18 @@ describe("cli operations", function () {
     let stderr = cli.stderr;
     // the prod one should not
     expect(stderr).to.equal("");
+  });
+
+  it("should suppress all logger.message output if the quiet flag is provided", async function () {
+    const cliPath = path.resolve(__dirname, "../src/user-entrypoint.mjs");
+    let cli = spawnSync(cliPath, ["throw", "--quiet"], {
+      encoding: "utf8",
+      timeout: 5000,
+    });
+    if (cli.error) throw cli.error;
+    let stderr = cli.stderr;
+
+    expect(stderr).to.not.contain("throwing a test error");
   });
 
   it.skip("should detect color support if the user does not specify", async function () {

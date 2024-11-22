@@ -163,6 +163,32 @@ function fatal(customConsole, text, component, argv) {
   });
 }
 
+/**
+ * Send text to a stream if quiet mode is not enabled.
+ *
+ * @function
+ * @param {any} stream - The stream to send the text to.
+ * @param {any} text - The text to send to the stream.
+ * @param {argv} [argv] - The parsed yargs argv. Used to determine if quiet mode is enabled.
+ */
+function quietableStream(stream, text, argv) {
+  // Get the argv object if it is not provided. Is there a better way to do this?
+  if (!argv) {
+    argv = yargs(hideBin(process.argv))
+      .options({
+        quiet: {
+          type: "boolean",
+          default: false,
+        },
+      })
+      .version(false).argv;
+  }
+
+  if (!argv.quiet) {
+    stream(text);
+  }
+}
+
 function buildLogger({ stderrStream, stdoutStream }) {
   const customConsole = new Console({
     stderr: stderrStream,
@@ -177,9 +203,12 @@ function buildLogger({ stderrStream, stdoutStream }) {
     error: error.bind(null, customConsole),
     fatal: fatal.bind(null, customConsole),
 
-    // use these for communicating with customers
+    // for direct access to stderr and stdout, use these
     stdout: customConsole.log,
     stderr: customConsole.error,
+
+    // if you're trying to display helpful messages to the user, use this:
+    message: quietableStream.bind(null, customConsole.error),
   };
 }
 
