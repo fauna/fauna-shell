@@ -9,6 +9,7 @@ export class FaunaAccountClient {
   constructor() {
     this.makeAccountRequest = container.resolve("makeAccountRequest");
   }
+
   /**
    * Starts an OAuth request to the Fauna account API.
    *
@@ -119,12 +120,11 @@ export class FaunaAccountClient {
    */
   async listDatabases(accountKey) {
     try {
-      const response = await this.makeAccountRequest({
+      return this.makeAccountRequest({
         method: "GET",
         path: "/databases",
         secret: accountKey,
       });
-      return await response.json();
     } catch (err) {
       err.message = `Failure to list databases: ${err.message}`;
       throw err;
