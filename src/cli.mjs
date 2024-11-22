@@ -36,9 +36,12 @@ export async function run(argvInput, _container) {
     builtYargs = buildYargs(argvInput);
     await parseYargs(builtYargs);
   } catch (e) {
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      e.message,
-    )}`;
+    let subMessage = chalk.reset("Use 'fauna <command> --help' for more information about a command.");
+    
+    if (argvInput.length > 0) {
+      subMessage = chalk.red(e.message);
+    }
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${subMessage}`;
     logger.stderr(message);
     logger.fatal(e.stack, "error");
     const exitCode = e.exitCode !== undefined ? e.exitCode : 1;
