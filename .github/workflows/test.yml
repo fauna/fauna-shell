@@ -13,6 +13,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
 
     strategy:
       matrix:
@@ -27,7 +28,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
       - run: npm ci
-      - run: npm test
+      - run: npm run test:ci
         env:
           TERM: xterm-256color
           # Set to the correct color level; 2 is 256 colors

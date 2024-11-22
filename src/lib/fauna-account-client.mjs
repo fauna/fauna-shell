@@ -150,12 +150,11 @@ export class FaunaAccountClient {
    */
   async listDatabases() {
     try {
-      const response = await this.makeAccountRequest({
+      return this.makeAccountRequest({
         method: "GET",
         path: "/databases",
         secret: this.accountKey,
       });
-      return await response;
     } catch (err) {
       err.message = `Failure to list databases: ${err.message}`;
       throw err;

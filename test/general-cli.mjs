@@ -1,5 +1,6 @@
 //@ts-check
 
+import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +13,8 @@ import { stub } from "sinon";
 import { builtYargs, run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import { f } from "./helpers.mjs";
+
+const __dirname = import.meta.dirname;
 
 describe("cli operations", function () {
   let container;
@@ -37,7 +40,7 @@ describe("cli operations", function () {
   });
 
   // TODO: this doesn't work because turning on strict mode breaks parsing sub-commands. why?
-  it("should exit with a helpful message if a non-existant command is provided", async function () {
+  it("should exit with a helpful message if a non-existent command is provided", async function () {
     const logger = container.resolve("logger");
 
     // this command does not exist
@@ -48,6 +51,22 @@ describe("cli operations", function () {
     expect(logger.stdout).to.not.be.called;
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
       "Unknown argument: inland-empire",
+    )}`;
+    expect(logger.stderr).to.have.been.calledWith(message);
+    expect(container.resolve("parseYargs")).to.have.been.calledOnce;
+  });
+
+  it("should exit with a helpful message if no command is provided", async function () {
+    const logger = container.resolve("logger");
+
+    // no input
+    try {
+      await run("", container);
+    } catch (e) {}
+
+    expect(logger.stdout).to.not.be.called;
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.reset(
+      "Use 'fauna <command> --help' for more information about a command.",
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
@@ -122,6 +141,48 @@ describe("cli operations", function () {
       updateCheckInterval: 1000 * 60 * 60 * 24 * 7, // 1 week
     });
     expect(notify).to.have.been.called;
+  });
+
+  it("does not expose debug commands in production", async function () {
+    const cliPath = path.resolve(__dirname, "../dist/cli.cjs");
+    const { stderr } = spawnSync(cliPath, ["throw"], {
+      encoding: "utf8",
+      timeout: 5000,
+    });
+
+    expect(stderr).to.include("Unknown argument: throw");
+  });
+
+  it("enables nodeJS warnings from the dev entrypoint", async function () {
+    const cliPath = path.resolve(__dirname, "../src/user-entrypoint.mjs");
+    let cli = spawnSync(cliPath, ["warn"], {
+      encoding: "utf8",
+      timeout: 5000,
+    });
+    if (cli.error) throw cli.error;
+    let stderr = cli.stderr;
+
+    // the dev script should emit warnings
+    expect(stderr).to.include(
+      "Warning: this is a warning emited on the node process",
+    );
+  });
+
+  it("suppresses nodeJS warnings from the prod entrypoint", async function () {
+    const cliPath = path.resolve(__dirname, "../dist/cli.cjs");
+    let cli = spawnSync(cliPath, ["warn"], {
+      encoding: "utf8",
+      timeout: 5000,
+      env: {
+        ...process.env,
+        DEBUG_COMMANDS: "true",
+      },
+    });
+    if (cli.error) throw cli.error;
+
+    let stderr = cli.stderr;
+    // the prod one should not
+    expect(stderr).to.equal("");
   });
 
   it.skip("should detect color support if the user does not specify", async function () {

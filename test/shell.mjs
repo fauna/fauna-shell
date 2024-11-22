@@ -148,6 +148,16 @@ describe("shell", function () {
         sinon.match({ version: "10", typecheck: true }),
       );
     });
+
+    describe("error handling", function () {
+      it.skip("can handle a client-side query syntax error", async function () {});
+      it.skip("can handle a server-side query syntax error", async function () {});
+      it.skip("can handle a UDF abort", async function () {});
+      it.skip("can handle a query limit exceeded error", async function () {});
+      it.skip("can handle a query rate limit error", async function () {});
+      it.skip("can handle a server-side query timeout", async function () {});
+      it.skip("can handle a client-side query timeout", async function () {});
+    });
   });
 
   describe("v4", function () {
@@ -183,6 +193,16 @@ describe("shell", function () {
       expect(logger.stderr).to.not.be.called;
 
       return runPromise;
+    });
+
+    describe("error handling", function () {
+      it.skip("can handle a client-side query syntax error", async function () {});
+      it.skip("can handle a server-side query syntax error", async function () {});
+      it.skip("can handle a UDF abort", async function () {});
+      it.skip("can handle a query limit exceeded error", async function () {});
+      it.skip("can handle a query rate limit error", async function () {});
+      it.skip("can handle a server-side query timeout", async function () {});
+      it.skip("can handle a client-side query timeout", async function () {});
     });
   });
 });

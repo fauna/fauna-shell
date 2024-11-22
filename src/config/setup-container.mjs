@@ -71,7 +71,7 @@ export const injectables = {
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
-  logger: awilix.asFunction(buildLogger).singleton(),
+  logger: awilix.asFunction(buildLogger, { lifetime: Lifetime.SINGLETON }),
   performV4Query: awilix.asValue(performV4Query),
   performV10Query: awilix.asValue(performV10Query),
   getSimpleClient: awilix.asValue(getSimpleClient),

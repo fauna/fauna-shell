@@ -3,14 +3,14 @@
 import chalk from "chalk";
 import yargs from "yargs";
 
-import databaseCommand from "./commands/database.mjs";
+import databaseCommand from "./commands/database/database.mjs";
 import evalCommand from "./commands/eval.mjs";
 import keyCommand from "./commands/key.mjs";
 import loginCommand from "./commands/login.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
-import { cleanupSecretsFile } from "./lib/auth/authNZ.mjs";
 import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
+import { cleanupSecretsFile } from "./lib/auth/authNZ.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
 
@@ -27,14 +27,22 @@ export async function run(argvInput, _container) {
   container = _container;
   const logger = container.resolve("logger");
   const parseYargs = container.resolve("parseYargs");
+  if (process.env.NODE_ENV === "production") {
+    process.removeAllListeners("warning");
+  }
 
   try {
     builtYargs = buildYargs(argvInput);
     await parseYargs(builtYargs);
   } catch (e) {
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      e.message,
-    )}`;
+    let subMessage = chalk.reset(
+      "Use 'fauna <command> --help' for more information about a command.",
+    );
+
+    if (argvInput.length > 0) {
+      subMessage = chalk.red(e.message);
+    }
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${subMessage}`;
     logger.stderr(message);
     logger.fatal(e.stack, "error");
     const exitCode = e.exitCode !== undefined ? e.exitCode : 1;
@@ -61,6 +69,32 @@ function buildYargs(argvInput) {
   // https://github.com/yargs/yargs/blob/main/docs/typescript.md?plain=1#L124
   const yargsInstance = yargs(argvInput);
 
+  // these debug commands are used by the tests in environments where they can't mock out the command handler
+  if (
+    process.env.NODE_ENV !== "production" ||
+    process.env.DEBUG_COMMANDS === "true"
+  ) {
+    yargsInstance
+      .command("throw", false, {
+        handler: () => {
+          throw new Error("this is a test error");
+        },
+        builder: {},
+      })
+      .command("reject", false, {
+        handler: async () => {
+          throw new Error("this is a rejected promise");
+        },
+        builder: {},
+      })
+      .command("warn", false, {
+        handler: async () => {
+          process.emitWarning("this is a warning emited on the node process");
+        },
+        builder: {},
+      });
+  }
+
   return yargsInstance
     .scriptName("fauna")
     .middleware([checkForUpdates, logArgv], true)
@@ -71,18 +105,6 @@ function buildYargs(argvInput) {
     .command(keyCommand)
     .command(schemaCommand)
     .command(databaseCommand)
-    .command("throw", false, {
-      handler: () => {
-        throw new Error("this is a test error");
-      },
-      builder: {},
-    })
-    .command("reject", false, {
-      handler: async () => {
-        throw new Error("this is a rejected promise");
-      },
-      builder: {},
-    })
     .demandCommand()
     .strict(true)
     .options({
