@@ -3,12 +3,13 @@
 import chalk from "chalk";
 import yargs from "yargs";
 
-import databaseCommand from "./commands/database.mjs";
-import evalCommand from "./commands/eval.mjs";
 import keyCommand from "./commands/key.mjs";
+import evalCommand from "./commands/eval.mjs";
+import shellCommand from "./commands/shell.mjs";
 import loginCommand from "./commands/login.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
-import shellCommand from "./commands/shell.mjs";
+import databaseCommand from "./commands/database/database.mjs";
+
 import { authNZMiddleware } from "./lib/auth/authNZ.mjs";
 import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
