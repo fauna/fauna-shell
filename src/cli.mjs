@@ -9,8 +9,10 @@ import keyCommand from "./commands/key.mjs";
 import loginCommand from "./commands/login.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
+
 import { authNZMiddleware } from "./lib/auth/authNZ.mjs";
 import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
+import { configParser } from "./lib/config/config.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables> } cliContainer */
 
@@ -97,6 +99,8 @@ function buildYargs(argvInput) {
 
   return yargsInstance
     .scriptName("fauna")
+    .env("FAUNA")
+    .config("config", configParser)
     .middleware([checkForUpdates, logArgv], true)
     .middleware([fixPaths, authNZMiddleware], false)
     .command("eval", "evaluate a query", evalCommand)
@@ -108,8 +112,19 @@ function buildYargs(argvInput) {
     .demandCommand()
     .strict(true)
     .options({
+      config: {
+        type: "string",
+        description: "a config file to use",
+      },
       profile: {
         alias: "p",
+        type: "string",
+        description:
+          "the profile in your config file to fetch CLI settings from",
+        default: "default",
+      },
+      user: {
+        alias: "u",
         type: "string",
         description: "a user profile",
         default: "default",
@@ -142,7 +157,7 @@ function buildYargs(argvInput) {
           "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
         type: "array",
         default: [],
-        choices: ["fetch", "error", "argv"],
+        choices: ["fetch", "error", "config", "argv"],
       },
       // Whether authNZ middleware should run. Better way of doing this?
       authRequired: {
