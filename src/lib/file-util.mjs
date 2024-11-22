@@ -103,7 +103,6 @@ export class Credentials {
    * @param {string} [filename=""] - The name of the credentials file.
    */
   constructor(filename = "") {
-    this.logger = container.resolve("logger");
     this.filename = filename;
     this.credsDir = `${os.homedir()}/.fauna/credentials`;
     if (!dirExists(this.credsDir)) {
@@ -183,7 +182,7 @@ export class SecretKey extends Credentials {
      * @param {Object} opts
      * @param {string} opts.key - The key to retrieve from the credentials file.
       // TODO smarter overwrite
-     * @param {boolean} opts.overwrite - Whether to overwrite existing file contents.
+     * @param {boolean} [opts.overwrite=false] - Whether to overwrite existing file contents.
      * @param {Object} opts.creds - The credentials to save.
      * @param {string} opts.creds.secret - The secret to save.
      * @param {string} opts.creds.path - The path to save the secret under.

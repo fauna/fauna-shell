@@ -61,7 +61,7 @@ export function setupTestContainer() {
     getSimpleClient: awilix.asValue(
       stub().returns({ close: () => Promise.resolve() }),
     ),
-    accountClient: awilix.asFunction(stub()),
+    AccountClient: awilix.asValue(stub()),
     oauthClient: awilix.asFunction(stub()),
     accountCreds: awilix.asClass(AccountKey).scoped(),
     secretCreds: awilix.asClass(SecretKey).scoped(),

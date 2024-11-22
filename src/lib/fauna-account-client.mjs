@@ -1,14 +1,55 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
+import { getAccountKey, promptLogin, refreshSession } from "./auth/authNZ.mjs";
+import { InvalidCredsError } from "./misc.mjs";
 
 /**
  * Class representing a client for interacting with the Fauna account API.
  */
 export class FaunaAccountClient {
-  constructor() {
-    this.makeAccountRequest = container.resolve("makeAccountRequest");
+  constructor(profile, url) {
+    const { accountKey, refreshToken } = getAccountKey(profile);
+    this.accountKey = accountKey;
+    this.refreshToken = refreshToken;
+    this.profile = profile;
+    this.url = url;
+    this.makeAccountRequest = async (args) => {
+      const original = container.resolve("makeAccountRequest");
+      const logger = container.resolve("logger");
+      let result;
+      try {
+        result = await original(args);
+      } catch (e) {
+        if (e instanceof InvalidCredsError) {
+          logger.debug("401 in account api, attempting to refresh session");
+          try {
+            const { accountKey: newAccountKey, refreshToken: newRefreshToken } =
+              await refreshSession(this.profile);
+            this.accountKey = newAccountKey;
+            this.refreshToken = newRefreshToken;
+            return await original({
+              ...args,
+              secret: this.accountKey,
+            });
+          } catch (e) {
+            if (e instanceof InvalidCredsError) {
+              logger.debug(
+                "Failed to refresh session, expired or missing refresh token",
+              );
+              promptLogin();
+            } else {
+              throw e;
+            }
+          }
+        } else {
+          throw e;
+        }
+      }
+      return result;
+    };
   }
+
   /**
    * Starts an OAuth request to the Fauna account API.
    *
@@ -36,11 +77,11 @@ export class FaunaAccountClient {
     return dashboardOAuthURL;
   }
 
-  async whoAmI(accountKey) {
+  async whoAmI() {
     return await this.makeAccountRequest({
       method: "GET",
       path: "/whoami",
-      secret: accountKey,
+      secret: this.accountKey,
     });
   }
 
@@ -101,30 +142,20 @@ export class FaunaAccountClient {
       throw err;
     }
   }
-
-  async refreshSession(refreshToken) {
-    return await this.makeAccountRequest({
-      method: "POST",
-      path: "/session/refresh",
-      secret: refreshToken,
-    });
-  }
-
   /**
    * Lists databases associated with the given account key.
    *
-   * @param {string} accountKey - The account key to list databases for.
    * @returns {Promise<Object[]>} - The list of databases.
    * @throws {Error} - Throws an error if there is an issue during the request.
    */
-  async listDatabases(accountKey) {
+  async listDatabases() {
     try {
       const response = await this.makeAccountRequest({
         method: "GET",
         path: "/databases",
-        secret: accountKey,
+        secret: this.accountKey,
       });
-      return await response.json();
+      return await response;
     } catch (err) {
       err.message = `Failure to list databases: ${err.message}`;
       throw err;
@@ -135,13 +166,12 @@ export class FaunaAccountClient {
    * Creates a new key for a specified database.
    *
    * @param {Object} params - The parameters for creating the key.
-   * @param {string} params.accountKey - The account key for authentication.
    * @param {string} params.path - The path of the database, including region group
    * @param {string} [params.role] - The builtin role for the key. Default admin.
    * @returns {Promise<Object>} - A promise that resolves when the key is created.
    * @throws {Error} - Throws an error if there is an issue during key creation.
    */
-  async createKey({ accountKey, path, role = "admin" }) {
+  async createKey({ path, role = "admin" }) {
     // TODO: specify a ttl
     return await this.makeAccountRequest({
       method: "POST",
@@ -150,7 +180,7 @@ export class FaunaAccountClient {
         path,
         role,
       }),
-      secret: accountKey,
+      secret: this.accountKey,
     });
   }
 }

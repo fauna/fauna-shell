@@ -71,13 +71,11 @@ export const injectables = {
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
-  logger: awilix.asFunction(buildLogger),
+  logger: awilix.asFunction(buildLogger).singleton(),
   performV4Query: awilix.asValue(performV4Query),
   performV10Query: awilix.asValue(performV10Query),
   getSimpleClient: awilix.asValue(getSimpleClient),
-  accountClient: awilix.asClass(FaunaAccountClient, {
-    lifetime: Lifetime.SCOPED,
-  }),
+  AccountClient: awilix.asValue(FaunaAccountClient),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
   makeAccountRequest: awilix.asValue(makeAccountRequest),
   makeFaunaRequest: awilix.asValue(makeFaunaRequest),

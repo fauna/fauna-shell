@@ -64,7 +64,7 @@ describe("login", function () {
     container = setupContainer();
     container.register({
       oauthClient: awilix.asFunction(mockOAuth).scoped(),
-      accountClient: awilix.asFunction(mockAccountClient).scoped(),
+      AccountClient: awilix.asValue(mockAccountClient),
       accountCreds: awilix.asClass(AccountKey).scoped(),
     });
     fs = container.resolve("fs");

@@ -169,7 +169,6 @@ export async function performV4Query(client, fqlQuery, outputFile, flags) {
 export async function performQuery(client, fqlQuery, outputFile, argv) {
   const performV4Query = container.resolve("performV4Query");
   const performV10Query = container.resolve("performV10Query");
-
   if (argv.version === "4") {
     return performV4Query(client, fqlQuery, outputFile, argv);
   } else {

@@ -1,20 +1,73 @@
 //@ts-check
 
+import { container } from "../cli.mjs";
+import { getAccountKey, getDBKey, refreshDBKey } from "./auth/authNZ.mjs";
+
+// TODO: update for yargs
 function buildHeaders() {
   const headers = {
     "X-Fauna-Source": "Fauna Shell",
   };
-  if (!["ShellCommand", "EvalCommand"].includes(constructor.name)) {
-    headers["x-fauna-shell-builtin"] = "true";
-  }
+  // if (!["ShellCommand", "EvalCommand"].includes(constructor.name)) {
+  //   headers["x-fauna-shell-builtin"] = "true";
+  // }
   return headers;
 }
 
 export async function getSimpleClient(argv) {
+  const logger = container.resolve("logger");
+  const { profile, database: path, role, secret } = argv;
+  const accountKey = getAccountKey(profile).accountKey;
+  if (secret) {
+    logger.debug("Using Database secret from command line flag");
+  } else if (process.env.FAUNA_SECRET) {
+    logger.debug(
+      "Using Database secret from FAUNA_SECRET environment variable",
+    );
+  }
+  const secretSource = secret ? "command line flag" : "environment variable";
+  const secretToUse = secret || process.env.FAUNA_SECRET;
+
+  let client;
+  if (secretToUse) {
+    client = await buildClient(argv);
+    const originalQuery = client.query.bind(client);
+    client.query = async function (...args) {
+      return originalQuery(...args).then(async (result) => {
+        // If we fail on a user-provided secret, we should throw an error and not
+        // attempt to refresh the secret
+        if (result.status === 401) {
+          throw new Error(
+            `Secret provided by ${secretSource} is invalid. Please provide a different value`,
+          );
+        }
+        return result;
+      });
+    };
+  } else {
+    logger.debug(
+      "No secret provided, checking for stored secret in credentials file",
+    );
+    const existingSecret = getDBKey({ accountKey, path, role })?.secret;
+    if (existingSecret) {
+      logger.debug("Found stored secret in credentials file");
+      client = await clientFromStoredSecret({
+        argv,
+        storedSecret: existingSecret,
+      });
+    } else {
+      logger.debug("No stored secret found, minting new secret");
+      client = await clientFromNewSecret({ argv });
+    }
+  }
+  return client;
+}
+
+async function buildClient(argv) {
   let client;
   if (argv.version === "4") {
     const faunadb = (await import("faunadb")).default;
-    const { Client, query: q } = faunadb;
+    const { Client } = faunadb;
     const { hostname, port, protocol } = new URL(argv.url);
     const scheme = protocol?.replace(/:$/, "");
     client = new Client({
@@ -28,9 +81,6 @@ export async function getSimpleClient(argv) {
 
       headers: buildHeaders(),
     });
-
-    // validate the client settings
-    await client.query(q.Now());
   } else {
     const FaunaClient = (await import("./fauna-client.mjs")).default;
     client = new FaunaClient({
@@ -38,11 +88,40 @@ export async function getSimpleClient(argv) {
       secret: argv.secret,
       timeout: argv.timeout,
     });
-
-    // validate the client settings
-    await client.query("0");
   }
+  return client;
+}
 
+async function clientFromStoredSecret({ argv, storedSecret }) {
+  const logger = container.resolve("logger");
+  let client = await buildClient({
+    ...argv,
+    secret: storedSecret,
+  });
+  const originalQuery = client.query.bind(client);
+  client.query = async function (...args) {
+    return originalQuery(...args).then(async (result) => {
+      if (result.status === 401) {
+        logger.debug("stored secret is invalid, refreshing");
+        // TODO: this refreshes the db key and stores in local storage, but the client instance
+        // is not updated with the new secret.
+        const newSecret = await refreshDBKey(argv);
+        const newArgs = [args[0], { ...args[1], secret: newSecret.secret }];
+        const result = await originalQuery(...newArgs);
+        return result;
+      }
+      return result;
+    });
+  };
+  return client;
+}
+
+async function clientFromNewSecret({ argv }) {
+  const newSecret = await refreshDBKey(argv);
+  const client = await buildClient({
+    ...argv,
+    secret: newSecret.secret,
+  });
   return client;
 }
 

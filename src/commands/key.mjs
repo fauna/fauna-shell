@@ -7,7 +7,7 @@ import { getAccountKey, getDBKey } from "../lib/auth/authNZ.mjs";
 //  consider an optional flag that will save this secret to the creds file, overwriting
 //  the existing secret if it exists at key/path/role
 async function createKey(argv) {
-  const { database, profile, role, url } = argv;
+  const { database, profile, role } = argv;
   const logger = container.resolve("logger");
   const accountKey = await getAccountKey(profile);
   // TODO: after logging in, should we list the top level databases and create db keys for them?
@@ -23,7 +23,6 @@ async function createKey(argv) {
     accountKey,
     path: database,
     role,
-    url,
   });
   logger.stdout("got account key", accountKey);
   logger.stdout("got db secret", dbSecret);

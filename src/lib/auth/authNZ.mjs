@@ -1,3 +1,5 @@
+//@ts-check
+
 /**
  * AuthNZ helper functions and middleware
  * This should be easily extractable for usage in its own repository so it can be shared with VS
@@ -7,44 +9,57 @@
 import { container } from "../../cli.mjs";
 import FaunaClient from "../fauna-client.mjs";
 import { CredsNotFoundError } from "../file-util.mjs";
-import { InvalidCredsError } from "../misc.mjs";
 
-export async function authNZMiddleware(argv) {
-  if (!argv.authRequired) {
-    return argv;
-  }
-  // Use flags to get/validate/refresh/create account and db secrets. Cleanup creds files.
-  // Make sure required keys are there so handlers have no issue accesssing/using.
-  const { profile, database, role, url } = argv;
-  // TODO: for any args that aren't passed in, get them from configuration files
-
-  // TODO: will the account key and DB key be ping'd every time a command is run?
-  try {
-    const accountKey = await setAccountKey(profile);
-    if (database) {
-      await setDBKey({ accountKey, path: database, role, url });
-    }
-  } catch (e) {
-    // Should prompt login when
-    // 1. Account key is not found in creds file
-    // 2. Account key is found but it and refresh token are invalid/expired
-    if (e instanceof InvalidCredsError) {
-      promptLogin(profile);
-    } else {
-      e.message = `Error in authNZMiddleware: ${e.message}`;
-      throw e;
-    }
-  }
-  return argv;
+export async function refreshDBKey({ profile, database, role }) {
+  // DB key doesn't exist locally, or it's invalid. Create a new one, overwriting the old
+  const secretCreds = container.resolve("secretCreds");
+  const AccountClient = new (container.resolve("AccountClient"))(profile);
+  const newSecret = await AccountClient.createKey({ path: database, role });
+  secretCreds.save({
+    creds: {
+      path: database,
+      role,
+      secret: newSecret.secret,
+    },
+    key: getAccountKey(profile).accountKey,
+  });
+  return newSecret;
 }
 
-function promptLogin(profile) {
+export async function refreshSession(profile) {
+  const makeAccountRequest = container.resolve("makeAccountRequest");
+  const accountCreds = container.resolve("accountCreds");
+  let { accountKey, refreshToken } = accountCreds.get({ key: profile });
+  if (!refreshToken) {
+    throw new Error(
+      `Invalid access_keys file configuration for profile: ${profile}`,
+    );
+  }
+  const newCreds = await makeAccountRequest({
+    method: "POST",
+    path: "/session/refresh",
+    secret: refreshToken,
+  });
+  // If refresh token expired, this will throw InvalidCredsError
+  accountKey = newCreds.account_key;
+  refreshToken = newCreds.refresh_token;
+  accountCreds.save({
+    creds: {
+      accountKey,
+      refreshToken,
+    },
+    key: profile,
+  });
+  return { accountKey, refreshToken };
+}
+
+export function promptLogin(profile) {
   const logger = container.resolve("logger");
   const exit = container.resolve("exit");
   logger.stderr(
-    `The requested profile "${profile}" is not signed in or has expired.\nPlease re-authenticate`,
+    `The requested profile ${profile || ""} is not signed in or has expired.\nPlease re-authenticate`,
   );
-  logger.stdout(`To sign in, run:\n\nfauna login --profile ${profile}\n`);
+  logger.stdout(`To sign in, run:\n\nfauna login\n`);
   exit(1);
 }
 
@@ -63,97 +78,20 @@ export function cleanupSecretsFile() {
   });
 }
 
-// TODO: account for env var for account key. if profile isn't defined.
-export async function setAccountKey(profile) {
-  // Don't leave hanging db secrets that don't match up to stored account keys
-  cleanupSecretsFile();
-  const accountCreds = container.resolve("accountCreds");
-  // If account key is not found, this will throw InvalidCredsError and prompt login
-  const existingKey = getAccountKey(profile);
-  // If account key is invalid, this will throw InvalidCredsError
-  const accountKeyValid = await checkAccountKeyRemote(existingKey);
-  if (accountKeyValid) {
-    return existingKey;
-  } else {
-    const newAccountKey = await refreshSession(profile);
-    accountCreds.save({
-      creds: newAccountKey,
-      key: profile,
-    });
-    return newAccountKey.account_key;
-  }
-}
-
 export function getAccountKey(profile) {
   const accountCreds = container.resolve("accountCreds");
   try {
     const creds = accountCreds.get({ key: profile });
-    return creds.accountKey;
+    return creds;
   } catch (e) {
     if (e instanceof CredsNotFoundError) {
+      promptLogin(profile);
       // Throw InvalidCredsError back up to middleware entrypoint to prompt login
-      throw new InvalidCredsError();
+      // throw new InvalidCredsError();
     }
     e.message = `Error getting account key for ${profile}: ${e.message}`;
     throw e;
   }
-}
-
-async function checkAccountKeyRemote(accountKey) {
-  const accountClient = container.resolve("accountClient");
-  // If account key is invalid or expired, this will throw InvalidCredsError
-  try {
-    return await accountClient.whoAmI(accountKey);
-  } catch (e) {
-    if (e instanceof InvalidCredsError) {
-      // Return null to indicate account key is invalid and we will try to refresh it
-      return null;
-    }
-    throw e;
-  }
-}
-
-async function refreshSession(profile) {
-  const accountClient = container.resolve("accountClient");
-  const accountCreds = container.resolve("accountCreds");
-  const creds = accountCreds.get({ key: profile });
-  const { refreshToken } = creds;
-  if (!refreshToken) {
-    throw new Error(
-      `Invalid access_keys file configuration for profile: ${profile}`,
-    );
-  }
-  // If refresh token expired, this will throw InvalidCredsError
-  const newCreds = await accountClient.refreshSession(refreshToken);
-  return newCreds;
-}
-
-async function setDBKey({ accountKey, path, role, url }) {
-  const secretCreds = container.resolve("secretCreds");
-  const accountClient = container.resolve("accountClient");
-  const existingSecret = getDBKey({ accountKey, path, role });
-  if (existingSecret) {
-    // If this throws an error, user
-    const dbKeyIsValid = await checkDBKeyRemote(existingSecret.secret, url);
-    if (dbKeyIsValid) {
-      return existingSecret;
-    }
-  }
-  // DB key doesn't exist locally, or it's invalid. Create a new one, overwriting the old
-  const newSecret = await accountClient.createKey({
-    accountKey,
-    path,
-    role,
-  });
-  secretCreds.save({
-    creds: {
-      path,
-      role,
-      secret: newSecret.secret,
-    },
-    key: accountKey,
-  });
-  return newSecret;
 }
 
 export function getDBKey({ accountKey, path, role }) {
