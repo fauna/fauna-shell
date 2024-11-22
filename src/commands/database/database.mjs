@@ -11,10 +11,6 @@ function buildDatabase(yargs) {
         description: "a user profile",
         default: "default",
       },
-      secret: {
-        type: "string",
-        description: "a secret key",
-      },
     })
     .command(createCommand)
     .command(listCommand)
@@ -25,6 +21,7 @@ function buildDatabase(yargs) {
 
 export default {
   command: "database",
+  aliases: ["db"],
   describe: "Interact with your databases",
   builder: buildDatabase,
   // eslint-disable-next-line no-empty-function
