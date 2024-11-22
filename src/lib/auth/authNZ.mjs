@@ -15,13 +15,14 @@ export async function refreshDBKey({ profile, database, role }) {
   const secretCreds = container.resolve("secretCreds");
   const AccountClient = new (container.resolve("AccountClient"))(profile);
   const newSecret = await AccountClient.createKey({ path: database, role });
+  const accountKey = getAccountKey(profile).accountKey;
   secretCreds.save({
     creds: {
       path: database,
       role,
       secret: newSecret.secret,
     },
-    key: getAccountKey(profile).accountKey,
+    key: accountKey,
   });
   return newSecret;
 }

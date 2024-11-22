@@ -14,9 +14,21 @@ function buildHeaders() {
   return headers;
 }
 
+/**
+ * This function will return a v4 or v10 client based on the version provided in the argv.
+ * The client will be configured with a secret provided via:
+ *  - command line flag
+ *  - environment variable
+ *  - stored in the credentials file
+ * If provided via command line flag or env var, 401s from the client will show an error to the user.
+ * If the secret is stored in the credentials file, the client will attempt to refresh the secret
+ *  and retry the query.
+ * @param {*} argv
+ * @returns
+ */
 export async function getSimpleClient(argv) {
   const logger = container.resolve("logger");
-  const { profile, database: path, role, secret } = argv;
+  const { profile, secret } = argv;
   const accountKey = getAccountKey(profile).accountKey;
   if (secret) {
     logger.debug("Using Database secret from command line flag");
@@ -48,21 +60,53 @@ export async function getSimpleClient(argv) {
     logger.debug(
       "No secret provided, checking for stored secret in credentials file",
     );
-    const existingSecret = getDBKey({ accountKey, path, role })?.secret;
-    if (existingSecret) {
-      logger.debug("Found stored secret in credentials file");
-      client = await clientFromStoredSecret({
-        argv,
-        storedSecret: existingSecret,
-      });
-    } else {
-      logger.debug("No stored secret found, minting new secret");
-      client = await clientFromNewSecret({ argv });
-    }
+    client = await clientFromStoredSecret({
+      argv,
+      accountKey,
+    });
   }
   return client;
 }
 
+/**
+ * Build a client where the secret isn't provided as a class argument, but is instead
+ *  fetched from the credentials file during client.query
+ * @param {*} param0
+ * @returns
+ */
+async function clientFromStoredSecret({ argv, accountKey }) {
+  const logger = container.resolve("logger");
+  const { database: path, role } = argv;
+  let client = await buildClient({
+    ...argv,
+    // client.query will handle getting/refreshing the secret
+    secret: undefined,
+  });
+  const originalQuery = client.query.bind(client);
+  client.query = async function (...args) {
+    // Get latest stored secret for the requested path
+    const existingSecret = getDBKey({ accountKey, path, role })?.secret;
+    const newArgs = [args[0], { ...args[1], secret: existingSecret }];
+    return originalQuery(...newArgs).then(async (result) => {
+      if (result.status === 401) {
+        logger.debug("stored secret is invalid, refreshing");
+        // Refresh the secret, store it, and use it to try again
+        const newSecret = await refreshDBKey(argv);
+        const newArgs = [args[0], { ...args[1], secret: newSecret.secret }];
+        const result = await originalQuery(...newArgs);
+        return result;
+      }
+      return result;
+    });
+  };
+  return client;
+}
+
+/**
+ * Build a client based on the command line options provided
+ * @param {*} argv
+ * @returns
+ */
 async function buildClient(argv) {
   let client;
   if (argv.version === "4") {
@@ -89,39 +133,6 @@ async function buildClient(argv) {
       timeout: argv.timeout,
     });
   }
-  return client;
-}
-
-async function clientFromStoredSecret({ argv, storedSecret }) {
-  const logger = container.resolve("logger");
-  let client = await buildClient({
-    ...argv,
-    secret: storedSecret,
-  });
-  const originalQuery = client.query.bind(client);
-  client.query = async function (...args) {
-    return originalQuery(...args).then(async (result) => {
-      if (result.status === 401) {
-        logger.debug("stored secret is invalid, refreshing");
-        // TODO: this refreshes the db key and stores in local storage, but the client instance
-        // is not updated with the new secret.
-        const newSecret = await refreshDBKey(argv);
-        const newArgs = [args[0], { ...args[1], secret: newSecret.secret }];
-        const result = await originalQuery(...newArgs);
-        return result;
-      }
-      return result;
-    });
-  };
-  return client;
-}
-
-async function clientFromNewSecret({ argv }) {
-  const newSecret = await refreshDBKey(argv);
-  const client = await buildClient({
-    ...argv,
-    secret: newSecret.secret,
-  });
   return client;
 }
 

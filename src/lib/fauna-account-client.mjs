@@ -171,6 +171,8 @@ export class FaunaAccountClient {
    * @throws {Error} - Throws an error if there is an issue during key creation.
    */
   async createKey({ path, role = "admin" }) {
+    // TODO: improve key lifecycle management, incl tracking expiration in filesystem
+    const TTL_DEFAULT_MS = 1000 * 60 * 15; // 15 minutes
     // TODO: specify a ttl
     return await this.makeAccountRequest({
       method: "POST",
@@ -178,6 +180,8 @@ export class FaunaAccountClient {
       body: JSON.stringify({
         path,
         role,
+        name: "System generated shell key",
+        ttl: new Date(Date.now() + TTL_DEFAULT_MS).toISOString(),
       }),
       secret: this.accountKey,
     });

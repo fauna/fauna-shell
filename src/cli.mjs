@@ -9,8 +9,8 @@ import keyCommand from "./commands/key.mjs";
 import loginCommand from "./commands/login.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
-import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 import { cleanupSecretsFile } from "./lib/auth/authNZ.mjs";
+import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
 
