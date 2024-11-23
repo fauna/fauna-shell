@@ -2,19 +2,20 @@
 
 import { fql } from "fauna";
 import { container } from "../../cli.mjs";
-import { runV10Query } from "../../lib/fauna.mjs";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 
 async function createDatabase(argv) {
   const logger = container.resolve("logger");
+  const runV10Query = container.resolve("runV10Query");
 
   await runV10Query({
     url: argv.url,
     secret: argv.secret,
     query: fql`Database.create({
       name: ${argv.name},
-      protected: ${argv.protected ?? false},
-      typechecked: ${argv.typechecked ?? false}
+      protected: ${argv.protected ?? null},
+      typechecked: ${argv.typechecked ?? null},
+      priority: ${argv.priority ?? null},
     })`,
   });
 
