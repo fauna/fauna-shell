@@ -31,10 +31,11 @@ export async function getSimpleClient(argv) {
   const { profile, secret } = argv;
   const accountKey = getAccountKey(profile).accountKey;
   if (secret) {
-    logger.debug("Using Database secret from command line flag");
+    logger.debug("Using Database secret from command line flag", "client");
   } else if (process.env.FAUNA_SECRET) {
     logger.debug(
       "Using Database secret from FAUNA_SECRET environment variable",
+      "client",
     );
   }
   const secretSource = secret ? "command line flag" : "environment variable";
@@ -59,6 +60,7 @@ export async function getSimpleClient(argv) {
   } else {
     logger.debug(
       "No secret provided, checking for stored secret in credentials file",
+      "client",
     );
     client = await clientFromStoredSecret({
       argv,
@@ -89,7 +91,7 @@ async function clientFromStoredSecret({ argv, accountKey }) {
     const newArgs = [args[0], { ...args[1], secret: existingSecret }];
     return originalQuery(...newArgs).then(async (result) => {
       if (result.status === 401) {
-        logger.debug("stored secret is invalid, refreshing");
+        logger.debug("stored secret is invalid, refreshing", "client");
         // Refresh the secret, store it, and use it to try again
         const newSecret = await refreshDBKey(argv);
         const newArgs = [args[0], { ...args[1], secret: newSecret.secret }];

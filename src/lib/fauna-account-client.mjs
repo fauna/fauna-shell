@@ -22,7 +22,10 @@ export class FaunaAccountClient {
         result = await original(args);
       } catch (e) {
         if (e instanceof InvalidCredsError) {
-          logger.debug("401 in account api, attempting to refresh session");
+          logger.debug(
+            "401 in account api, attempting to refresh session",
+            "client",
+          );
           try {
             const { accountKey: newAccountKey, refreshToken: newRefreshToken } =
               await refreshSession(this.profile);
@@ -36,6 +39,7 @@ export class FaunaAccountClient {
             if (e instanceof InvalidCredsError) {
               logger.debug(
                 "Failed to refresh session, expired or missing refresh token",
+                "client",
               );
               promptLogin();
             } else {

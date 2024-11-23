@@ -142,7 +142,7 @@ function buildYargs(argvInput) {
           "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
         type: "array",
         default: [],
-        choices: ["fetch", "error", "argv"],
+        choices: ["fetch", "error", "argv", "client"],
       },
       // Whether authNZ middleware should run. Better way of doing this?
       authRequired: {
