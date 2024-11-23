@@ -12,7 +12,7 @@ import shellCommand from "./commands/shell.mjs";
 import { cleanupSecretsFile } from "./lib/auth/authNZ.mjs";
 import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
-/** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
+/** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables> } cliContainer */
 
 /** @type {cliContainer} */
 export let container;
