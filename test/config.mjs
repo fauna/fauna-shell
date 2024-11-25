@@ -50,7 +50,7 @@ const databaseObject = `{
   ],
 }`;
 
-describe.only("configuration file", function () {
+describe("configuration file", function () {
   let container, stderr, stdout, fs;
 
   beforeEach(() => {
