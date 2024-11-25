@@ -36,7 +36,6 @@ async function createDatabase(argv) {
 function buildCreateCommand(yargs) {
   return yargs
     .options({
-      ...commonQueryOptions,
       name: {
         type: "string",
         description: "the name of the database to create",
@@ -53,6 +52,7 @@ function buildCreateCommand(yargs) {
         type: "number",
         description: "user-defined priority assigned to the child database",
       },
+      ...commonQueryOptions,
     })
     .demandOption("name")
     .version(false)

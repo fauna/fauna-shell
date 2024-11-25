@@ -54,17 +54,19 @@ describe("database create", () => {
       expected: { name: "testdb", secret: "secret", priority: 10 },
     },
   ].forEach(({ args, expected }) => {
-    it(`calls runV10Query with correct arguments: ${args}`, async () => {
-      await run(`database create ${args}`, container);
-      expect(runV10Query).to.have.been.calledOnceWith({
-        url: sinon.match.string,
-        secret: expected.secret,
-        query: fql`Database.create({
-          name: ${expected.name},
-          protected: ${expected.protected ?? null},
-          typechecked: ${expected.typechecked ?? null},
-          priority: ${expected.priority ?? null},
-        })`,
+    describe("calls fauna with the user specified arguments", () => {
+      it(`${args}`, async () => {
+        await run(`database create ${args}`, container);
+        expect(runV10Query).to.have.been.calledOnceWith({
+          url: sinon.match.string,
+          secret: expected.secret,
+          query: fql`Database.create({
+            name: ${expected.name},
+            protected: ${expected.protected ?? null},
+            typechecked: ${expected.typechecked ?? null},
+            priority: ${expected.priority ?? null},
+          })`,
+        });
       });
     });
   });
@@ -85,7 +87,7 @@ describe("database create", () => {
         "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'",
     },
   ].forEach(({ error, expectedMessage }) => {
-    it(`handles fauna errors: ${error.code}`, async () => {
+    it(`handles ${error.code} errors when calling fauna`, async () => {
       const runV10QueryStub = sinon.stub().rejects(error);
       container.register({
         runV10Query: awilix.asValue(runV10QueryStub),
