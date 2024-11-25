@@ -9,10 +9,9 @@ import keyCommand from "./commands/key.mjs";
 import loginCommand from "./commands/login.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
-
 import { authNZMiddleware } from "./lib/auth/authNZ.mjs";
-import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 import { configParser } from "./lib/config/config.mjs";
+import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables> } cliContainer */
 
@@ -21,12 +20,15 @@ export let container;
 /** @type {import('yargs').Argv} */
 export let builtYargs;
 
+export let argvInput;
+
 /**
- * @param {string|string[]} argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
+ * @param {string|string[]} _argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
  * @param {cliContainer} _container - A built and ready for use awilix container with registered injectables.
  */
-export async function run(argvInput, _container) {
+export async function run(_argvInput, _container) {
   container = _container;
+  argvInput = _argvInput;
   const logger = container.resolve("logger");
   const parseYargs = container.resolve("parseYargs");
   if (process.env.NODE_ENV === "production") {
