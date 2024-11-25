@@ -1,4 +1,5 @@
 //@ts-check
+import node_fs from "node:fs";
 import path from "node:path";
 
 import * as awilix from "awilix";
@@ -72,6 +73,7 @@ describe("login", function () {
       accountClient: awilix.asFunction(mockAccountClient).scoped(),
       accountCreds: awilix.asClass(AccountKey).scoped(),
       homedir: awilix.asFunction(() => homedir).scoped(),
+      fs: awilix.asValue(stub(node_fs)),
     });
     fs = container.resolve("fs");
   });

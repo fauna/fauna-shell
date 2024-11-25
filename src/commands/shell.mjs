@@ -1,5 +1,6 @@
 //@ts-check
 
+import path from "node:path";
 import repl from "node:repl";
 
 import { container } from "../cli.mjs";
@@ -7,14 +8,27 @@ import {
   // ensureDbScopeClient,
   commonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
+import { dirExists, fileExists } from "../lib/file-util.mjs";
 import { performQuery } from "./eval.mjs";
 
 async function doShell(argv) {
+  const fs = container.resolve("fs");
   const logger = container.resolve("logger");
   let completionPromise;
 
   if (argv.dbPath) logger.stdout(`Starting shell for database ${argv.dbPath}`);
   logger.stdout("Type Ctrl+D or .exit to exit the shell");
+
+  // Setup history file
+  const homedir = container.resolve("homedir");
+  const historyDir = path.join(homedir.toString(), ".fauna");
+  if (!dirExists(historyDir)) {
+    fs.mkdirSync(historyDir, { recursive: true });
+  }
+  const historyFile = path.join(historyDir, "history");
+  if (!fileExists(historyFile)) {
+    fs.writeFileSync(historyFile, "{}");
+  }
 
   /** @type {import('node:repl').ReplOptions} */
   const replArgs = {
@@ -27,9 +41,18 @@ async function doShell(argv) {
     input: container.resolve("stdinStream"),
     eval: await buildCustomEval(argv),
     terminal: true,
+    historySize: 1000
   };
 
   const shell = repl.start(replArgs);
+
+  // Setup history
+  shell.setupHistory(historyFile, (err) => {
+    if (err) {
+      logger.stderr(`Error setting up history: ${err.message}`);
+    }
+  });
+
   // eslint-disable-next-line no-console
   shell.on("error", console.error);
 
@@ -55,6 +78,25 @@ async function doShell(argv) {
         shell.prompt();
       },
     },
+    {
+      cmd: "clearhistory",
+      help: "Clear command history",
+      action: async () => {
+        try {
+          await fs.writeFileSync(historyFile, '');
+          logger.stdout('History cleared');
+          // Reinitialize history
+          shell.setupHistory(historyFile, (err) => {
+            if (err) {
+              logger.stderr(`Error reinitializing history: ${err.message}`);
+            }
+          });
+        } catch (err) {
+          logger.stderr(`Error clearing history: ${err.message}`);
+        }
+        shell.prompt();
+      },
+    }
   ].forEach(({ cmd, ...cmdOptions }) => shell.defineCommand(cmd, cmdOptions));
 
   return completionPromise;

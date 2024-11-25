@@ -41,7 +41,7 @@ export function setupTestContainer() {
   const container = setupCommonContainer();
 
   const thingsToManuallyMock = automock(container);
-  const customfs = stub(fs);
+  const customfs = stub({...fs});
   // this is a mock used by the default profile behavior
   customfs.readdirSync.withArgs(process.cwd()).returns([]);
 
