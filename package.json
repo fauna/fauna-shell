@@ -39,6 +39,7 @@
     "mocha": "^10.7.3",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",
+    "not-allowed": "^1.0.1",
     "postject": "^1.0.0-alpha.6",
     "prettier": "^3.3.3",
     "sinon": "^19.0.2",
