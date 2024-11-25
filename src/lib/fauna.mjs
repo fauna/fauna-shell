@@ -100,6 +100,7 @@ export const runV10Query = async ({
  * @param {(e: ServiceError) => string} [handlers.onLimitExceeded] - Handler for rate/resource limit errors
  * @param {(e: ServiceError) => string} [handlers.onTimeOut] - Handler for timeout errors
  * @param {(e: ServiceError) => string} [handlers.onInternalError] - Handler for internal server errors
+ * @param {(e: ServiceError) => string} [handlers.onDocumentNotFound] - Handler for document not found errors
  * @param {(e: ClientError) => string} [handlers.onClientError] - Handler for general client errors
  * @param {(e: ClientClosedError) => string} [handlers.onClientClosedError] - Handler for closed client errors
  * @param {(e: NetworkError) => string} [handlers.onNetworkError] - Handler for network-related errors
@@ -121,7 +122,7 @@ export const throwForV10Error = (e, handlers = {}) => {
       case "unauthorized":
         throw new Error(
           handlers.onUnauthorized?.(e) ??
-            "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'",
+            "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.",
         );
       case "forbidden":
         throw new Error(handlers.onForbidden?.(e) ?? e.message);
@@ -133,6 +134,8 @@ export const throwForV10Error = (e, handlers = {}) => {
         throw new Error(handlers.onTimeOut?.(e) ?? e.message);
       case "internal_error":
         throw new Error(handlers.onInternalError?.(e) ?? e.message);
+      case "document_not_found":
+        throw new Error(handlers.onDocumentNotFound?.(e) ?? e.message);
       default:
         throw e;
     }
