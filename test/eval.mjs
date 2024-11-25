@@ -6,10 +6,11 @@ import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 
 describe("eval", function () {
-  let container;
+  let container, logger;
 
   beforeEach(() => {
     container = setupContainer();
+    logger = container.resolve("logger");
   });
 
   describe("common", function () {
@@ -30,7 +31,6 @@ describe("eval", function () {
 
   describe("v10", function () {
     it("can eval a query", async function () {
-      const logger = container.resolve("logger");
       container.resolve("performV10Query").resolves({
         data: [
           {

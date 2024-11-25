@@ -55,8 +55,7 @@ describe("cli operations", function () {
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
-  // TODO: this doesn't work because turning on strict mode breaks parsing sub-commands. why?
-  it("should exit with a helpful message if a non-existent command is provided", async function () {
+  it("should exit with a helpful message if a non-existant command is provided", async function () {
     const logger = container.resolve("logger");
 
     // this command does not exist
