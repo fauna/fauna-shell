@@ -3,7 +3,7 @@
 import chalk from "chalk";
 import yargs from "yargs";
 
-import databaseCommand from "./commands/database.mjs";
+import databaseCommand from "./commands/database/database.mjs";
 import evalCommand from "./commands/eval.mjs";
 import keyCommand from "./commands/key.mjs";
 import loginCommand from "./commands/login.mjs";
@@ -12,7 +12,7 @@ import shellCommand from "./commands/shell.mjs";
 import { authNZMiddleware } from "./lib/auth/authNZ.mjs";
 import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
-/** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables>} cliContainer */
+/** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables> } cliContainer */
 
 /** @type {cliContainer} */
 export let container;
@@ -35,9 +35,14 @@ export async function run(argvInput, _container) {
     builtYargs = buildYargs(argvInput);
     await parseYargs(builtYargs);
   } catch (e) {
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      e.message,
-    )}`;
+    let subMessage = chalk.reset(
+      "Use 'fauna <command> --help' for more information about a command.",
+    );
+
+    if (argvInput.length > 0) {
+      subMessage = chalk.red(e.message);
+    }
+    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${subMessage}`;
     logger.stderr(message);
     logger.fatal(e.stack, "error");
     const exitCode = e.exitCode !== undefined ? e.exitCode : 1;

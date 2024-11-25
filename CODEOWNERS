@@ -1,0 +1,4 @@
+# @fauna/developer-experience are the default owners for everything in this repo.
+# Later matches will take precedence over earlier matches.
+# see https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
+* @fauna/developer-experience 

@@ -1,3 +1,13 @@
+### Quick Start
+
+```
+npm install
+npm run build
+./src/user-entrypoint.mjs
+```
+
+
+
 ### Application versions
 
 This project has 3 runnable entrypoints (a raw ESM one, a built CJS one, and an SEA one). You can read more about them [here](./sea/README.md).

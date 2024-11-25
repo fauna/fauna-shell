@@ -28,12 +28,6 @@ import {
   writeSchemaFiles,
 } from "../lib/schema.mjs";
 
-// import { findUpSync } from 'find-up'
-// import fs from 'node:fs'
-// const __dirname = import.meta.dirname;
-// export const configPath = findUpSync(['dice.json'], { cwd: __dirname })
-// export const config = configPath ? JSON.parse(fs.readFileSync(configPath)) : {}
-
 export function setupCommonContainer() {
   const container = awilix.createContainer({
     injectionMode: awilix.InjectionMode.PROXY,
@@ -44,11 +38,8 @@ export function setupCommonContainer() {
 }
 
 /**
- * @template T
- * @typedef {{ [P in keyof T[P]]: ReturnType<T[P]['resolve']> }} Resolvers<T>
+ * @typedef {{ [Property in keyof injectables]: ReturnType<injectables[Property]["resolve"]> }} modifiedInjectables
  */
-
-/** @typedef {Resolvers<injectables>} modifiedInjectables */
 
 export const injectables = {
   // process specifics
