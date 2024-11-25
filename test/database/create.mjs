@@ -2,7 +2,8 @@
 
 import { expect } from "chai";
 import chalk from "chalk";
-import { fql } from "fauna";
+import * as awilix from "awilix";
+import { fql, ServiceError } from "fauna";
 import sinon from "sinon";
 
 import { builtYargs, run } from "../../src/cli.mjs";
@@ -12,6 +13,7 @@ describe("database create", () => {
   let container, logger, runV10Query;
 
   beforeEach(() => {
+    // reset the container before each test
     container = setupContainer();
     logger = container.resolve("logger");
     runV10Query = container.resolve("runV10Query");
@@ -64,6 +66,40 @@ describe("database create", () => {
           priority: ${expected.priority ?? null},
         })`,
       });
+    });
+  });
+
+  [
+    {
+      error: new ServiceError({
+        error: { code: "constraint_failure", message: "whatever" },
+      }),
+      expectedMessage:
+        "Constraint failure: The database 'testdb' may already exists or one of the provided options may be invalid.",
+    },
+    {
+      error: new ServiceError({
+        error: { code: "unauthorized", message: "whatever" },
+      }),
+      expectedMessage:
+        "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'",
+    },
+  ].forEach(({ error, expectedMessage }) => {
+    it(`handles fauna errors: ${error.code}`, async () => {
+      const runV10QueryStub = sinon.stub().rejects(error);
+      container.register({
+        runV10Query: awilix.asValue(runV10QueryStub),
+      });
+
+      try {
+        await run(
+          `database create --name 'testdb' --secret 'secret'`,
+          container,
+        );
+      } catch (e) {}
+
+      const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(expectedMessage)}`;
+      expect(logger.stderr).to.have.been.calledWith(message);
     });
   });
 });
