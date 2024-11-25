@@ -32,11 +32,11 @@ function buildDeleteCommand(yargs) {
     .options({
       name: {
         type: "string",
+        required: true,
         description: "the name of the database to delete",
       },
       ...commonQueryOptions,
     })
-    .demandOption("name")
     .version(false)
     .help("help", "show help");
 }
