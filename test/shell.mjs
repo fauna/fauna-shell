@@ -1,8 +1,10 @@
 
 //@ts-check
-
+import node_fs from "node:fs";
 import { EOL } from "node:os";
+import path from "node:path";
 
+import * as awilix from "awilix";
 import { expect } from "chai";
 import sinon from "sinon";
 
@@ -53,10 +55,16 @@ const v4Object2 = createV4QuerySuccess({
 
 describe("shell", function () {
   let container, stdin, stdout, logger, runQueryFromString;
-  let prompt = `${EOL}\x1B[1G\x1B[0J> \x1B[3G`;
+
+  const promptReset = "\x1B[1G\x1B[0J> ";
+  const prompt = `${EOL}${promptReset}\x1B[3G`;
+  const getHistoryPrompt = (text) => `${promptReset}${text}\u001b[${3 + text.length}G`
 
   beforeEach(() => {
     container = setupContainer();
+    container.register({
+      fs: awilix.asValue(node_fs)
+    });
     stdin = container.resolve("stdinStream");
     stdout = container.resolve("stdoutStream");
     logger = container.resolve("logger");
@@ -71,6 +79,50 @@ describe("shell", function () {
     it.skip("can read input from a file", async function () {});
 
     it.skip("can set a connection timeout", async function () {});
+
+    const upArrow = "\x1b[A";
+    const downArrow = "\x1b[B";
+
+    it("can keep track of history", async function () {
+      // start the shell
+      const runPromise = run(`shell --secret "secret" --typecheck`, container);
+
+      // send our first command
+      stdin.push(`1\n2\n3\n`);
+      await stdout.waitForWritten();
+
+      // navigate up through history
+      stdout.clear();
+      stdin.push(upArrow);
+      await stdout.waitForWritten();
+      expect(stdout.getWritten()).to.equal(getHistoryPrompt("3"));
+      stdout.clear();
+      stdin.push(upArrow);
+      await stdout.waitForWritten();
+      expect(stdout.getWritten()).to.equal(getHistoryPrompt("2"));
+      stdout.clear();
+      stdin.push(upArrow);
+      await stdout.waitForWritten();
+      expect(stdout.getWritten()).to.equal(getHistoryPrompt("1"));
+      stdout.clear();
+      stdin.push(downArrow);
+      await stdout.waitForWritten();
+      expect(stdout.getWritten()).to.equal(getHistoryPrompt("2"));
+      stdout.clear();
+      stdin.push(downArrow);
+      await stdout.waitForWritten();
+      expect(stdout.getWritten()).to.equal(getHistoryPrompt("3"));
+
+      expect(container.resolve("stderrStream").getWritten()).to.equal("");
+
+      stdin.push(null);
+
+      return runPromise;
+    });
+
+    it.skip("can clear history", async function () {});
+
+    it.skip("can save history between sessions", async function () {});
   });
 
   describe("v10", function () {

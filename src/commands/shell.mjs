@@ -1,5 +1,6 @@
 //@ts-check
 
+import path from "node:path";
 import repl from "node:repl";
 
 import { container } from "../cli.mjs";
@@ -8,15 +9,28 @@ import {
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
 import { getSecret } from "../lib/fauna-client.mjs";
+import { dirExists, fileExists } from "../lib/file-util.mjs";
 
 async function shellCommand(argv) {
   validateDatabaseOrSecret(argv);
 
+  const fs = container.resolve("fs");
   const logger = container.resolve("logger");
   let completionPromise;
 
   if (argv.dbPath) logger.stdout(`Starting shell for database ${argv.dbPath}`);
   logger.stdout("Type Ctrl+D or .exit to exit the shell");
+
+  // Setup history file
+  const homedir = container.resolve("homedir")();
+  const historyDir = path.join(homedir, ".fauna");
+  if (!dirExists(historyDir)) {
+    fs.mkdirSync(historyDir, { recursive: true });
+  }
+  const historyFile = path.join(historyDir, "history");
+  if (!fileExists(historyFile)) {
+    fs.writeFileSync(historyFile, "{}");
+  }
 
   /** @type {import('node:repl').ReplOptions} */
   const replArgs = {
@@ -29,9 +43,18 @@ async function shellCommand(argv) {
     input: container.resolve("stdinStream"),
     eval: await buildCustomEval(argv),
     terminal: true,
+    historySize: 1000,
   };
 
   const shell = repl.start(replArgs);
+
+  // Setup history
+  shell.setupHistory(historyFile, (err) => {
+    if (err) {
+      logger.stderr(`Error setting up history: ${err.message}`);
+    }
+  });
+
   // eslint-disable-next-line no-console
   shell.on("error", console.error);
 
@@ -46,6 +69,25 @@ async function shellCommand(argv) {
       action: () => {
         // eslint-disable-next-line no-console
         console.clear();
+        shell.prompt();
+      },
+    },
+    {
+      cmd: "clearhistory",
+      help: "Clear command history",
+      action: async () => {
+        try {
+          await fs.writeFileSync(historyFile, "");
+          logger.stdout("History cleared");
+          // Reinitialize history
+          shell.setupHistory(historyFile, (err) => {
+            if (err) {
+              logger.stderr(`Error reinitializing history: ${err.message}`);
+            }
+          });
+        } catch (err) {
+          logger.stderr(`Error clearing history: ${err.message}`);
+        }
         shell.prompt();
       },
     },
@@ -106,7 +148,9 @@ async function buildCustomEval(argv) {
       }
 
       // If extra is on, return the full response. Otherwise, return just the data.
-      logger.stdout(formatQueryResponse(res, { apiVersion, extra, json: false }));
+      logger.stdout(
+        formatQueryResponse(res, { apiVersion, extra, json: false }),
+      );
 
       return cb(null);
     } catch (e) {
@@ -117,7 +161,10 @@ async function buildCustomEval(argv) {
 
 function buildShellCommand(yargs) {
   return yargsWithCommonConfigurableQueryOptions(yargs)
-    .example([["$0 shell"], ["$0 shell --database us-std/example --role admin"]])
+    .example([
+      ["$0 shell"],
+      ["$0 shell --database us-std/example --role admin"],
+    ])
     .version(false)
     .help("help", "show help");
 }

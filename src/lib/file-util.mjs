@@ -1,6 +1,4 @@
 //@ts-check
-
-import fs from "node:fs";
 import path from "node:path";
 
 import { container } from "../cli.mjs";
@@ -12,7 +10,7 @@ import { container } from "../cli.mjs";
  */
 export function fixPath(path) {
   const normalize = container.resolve("normalize");
-  const homedir = container.resolve("homedir");
+  const homedir = container.resolve("homedir")();
   return normalize(path.replace(/^~/, homedir));
 }
 
@@ -22,15 +20,8 @@ export function fixPath(path) {
  * @returns {boolean}
  */
 export function dirExists(path) {
-  const stat = fs.statSync(fixPath(path), {
-    // returns undefined instead of throwing if the file doesn't exist
-    throwIfNoEntry: false,
-  });
-  if (stat === undefined || !stat.isDirectory()) {
-    return false;
-  } else {
-    return true;
-  }
+  const fs = container.resolve("fs");
+  return fs.existsSync(fixPath(path));
 }
 
 /**
@@ -39,6 +30,7 @@ export function dirExists(path) {
  * @returns {boolean}
  */
 export function dirIsWriteable(path) {
+  const fs = container.resolve("fs");
   try {
     fs.accessSync(fixPath(path), fs.constants.W_OK);
   } catch (e) {
@@ -54,7 +46,8 @@ export function dirIsWriteable(path) {
  * @param {string} path - The path to the file.
  * @returns {boolean} - Returns true if the file exists, otherwise false.
  */
-function fileExists(path) {
+export function fileExists(path) {
+  const fs = container.resolve("fs");
   try {
     fs.readFileSync(fixPath(path));
     return true;
@@ -69,6 +62,7 @@ function fileExists(path) {
  * @returns {Object.<string, any>} - The parsed JSON content of the file.
  */
 function getJSONFileContents(path) {
+  const fs = container.resolve("fs");
   // Open file for reading and writing without truncating
   try {
     const fileContent = fs.readFileSync(path, { flag: "r+" })?.toString();
@@ -109,6 +103,8 @@ export class CredentialsStorage {
    * @param {string} [filename=""] - The name of the credentials file.
    */
   constructor(filename = "") {
+    const fs = container.resolve("fs");
+    
     this.filename = filename;
 
     const homedir = container.resolve("homedir")();
@@ -128,6 +124,7 @@ export class CredentialsStorage {
   }
 
   setFile(contents) {
+    const fs = container.resolve("fs");
     fs.writeFileSync(this.filepath, JSON.stringify(contents, null, 2));
   }
 
