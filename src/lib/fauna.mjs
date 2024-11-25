@@ -1,5 +1,9 @@
 //@ts-check
 
+/**
+ * @fileoverview Fauna V10 client utilities for query execution and error handling.
+ */
+
 import {
   Client,
   FaunaError,
@@ -11,6 +15,8 @@ import {
 } from "fauna";
 
 /**
+ * Default options for V10 Fauna queries.
+ *
  * @type {import("fauna").QueryOptions}
  */
 export const defaultV10QueryOptions = {
@@ -19,14 +25,14 @@ export const defaultV10QueryOptions = {
 };
 
 /**
- * Creates a V10 Fauna client.
+ * Creates a V10 Client instance.
  *
  * @param {object} opts
  * @param {string} opts.url
  * @param {string} opts.secret
- * @returns {Promise<Client>}
+ * @returns {Client}
  */
-export const getV10Client = async ({ url, secret }) => {
+export const getV10Client = ({ url, secret }) => {
   // Check for required arguments.
   if (!url || !secret) {
     throw new Error("A url and secret are required.");
@@ -44,7 +50,7 @@ export const getV10Client = async ({ url, secret }) => {
  * @param {string} [opts.url]
  * @param {string} [opts.secret]
  * @param {Client} [opts.client]
- * @param {object} [opts.options]
+ * @param {import("fauna").QueryOptions} [opts.options]
  * @returns {Promise<import("fauna").QuerySuccess<any>>}
  */
 export const runV10Query = async ({
@@ -64,10 +70,10 @@ export const runV10Query = async ({
   // Create the client if one wasn't provided.
   let _client =
     client ??
-    (await getV10Client({
+    getV10Client({
       url: /** @type {string} */ (url), // We know this is a string because we check for !url above.
       secret: /** @type {string} */ (secret), // We know this is a string because we check for !secret above.
-    }));
+    });
 
   // Run the query.
   return _client
@@ -81,7 +87,7 @@ export const runV10Query = async ({
 /**
  * Error handler for errors thrown by the V10 driver. Custom handlers
  * can be provided for different types of errors, and a default error
- * message is thrown if no handlers are provided.
+ * message is thrown if no handler is provided.
  *
  * @param {FaunaError} e - The Fauna error to handle
  * @param {object} [handlers] - Optional error handlers
