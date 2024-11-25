@@ -16,6 +16,7 @@ import { makeAccountRequest } from "../lib/account.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { getSimpleClient } from "../lib/command-helpers.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
+import { getV10Client,runV10Query } from "../lib/fauna.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import { AccountKey, SecretKey } from "../lib/file-util.mjs";
@@ -75,6 +76,10 @@ export const injectables = {
   accountCreds: awilix.asClass(AccountKey, { lifetime: Lifetime.SCOPED }),
   secretCreds: awilix.asClass(SecretKey, { lifetime: Lifetime.SCOPED }),
   errorHandler: awilix.asValue((error, exitCode) => exit(exitCode)),
+
+  // utilities for interacting with Fauna
+  runV10Query: awilix.asValue(runV10Query),
+  getV10Client: awilix.asValue(getV10Client),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),
