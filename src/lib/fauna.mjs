@@ -6,12 +6,11 @@
 
 import {
   Client,
-  FaunaError,
-  ServiceError,
-  ClientError,
   ClientClosedError,
+  ClientError,
   NetworkError,
   ProtocolError,
+  ServiceError,
 } from "fauna";
 
 /**
@@ -89,7 +88,7 @@ export const runV10Query = async ({
  * can be provided for different types of errors, and a default error
  * message is thrown if no handler is provided.
  *
- * @param {FaunaError} e - The Fauna error to handle
+ * @param {import("fauna").FaunaError} e - The Fauna error to handle
  * @param {object} [handlers] - Optional error handlers
  * @param {(e: ServiceError) => string} [handlers.onInvalidQuery] - Handler for invalid query errors
  * @param {(e: ServiceError) => string} [handlers.onInvalidRequest] - Handler for invalid request errors

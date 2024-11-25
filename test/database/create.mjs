@@ -1,8 +1,8 @@
 //@ts-check
 
+import * as awilix from "awilix";
 import { expect } from "chai";
 import chalk from "chalk";
-import * as awilix from "awilix";
 import { fql, ServiceError } from "fauna";
 import sinon from "sinon";
 
