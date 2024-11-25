@@ -117,6 +117,7 @@ function buildYargs(argvInput) {
       config: {
         type: "string",
         description: "a config file to use",
+        default: ".",
       },
       profile: {
         alias: "p",

@@ -100,7 +100,6 @@ export const commonQueryOptions = {
   secret: {
     type: "string",
     description: "the secret to use when calling Fauna",
-    required: true,
   },
 };
 

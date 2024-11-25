@@ -11,6 +11,7 @@ import { builtYargs, run } from "../src/cli.mjs";
 import { performQuery, performV10Query } from "../src/commands/eval.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import chalk from "chalk";
+import { validDefaultConfigNames } from "../src/lib/config/config.mjs";
 
 const __dirname = import.meta.dirname;
 
@@ -62,14 +63,16 @@ describe.only("configuration file", function () {
     stderr = container.resolve("stderrStream");
     stdout = container.resolve("stdoutStream");
     fs = container.resolve("fs");
+    delete process.env.FAUNA_CONFIG;
+    delete process.env.FAUNA_SECRET;
   });
 
   /**
    * @param {object} args
    * @prop {string} cmd
-   * @prop {any} pathMatcher
+   * @prop {any} [pathMatcher]
    * @prop {any} clientMatcher
-   * @prop {string} configToReturn
+   * @prop {string} [configToReturn]
    * @prop {object} objectToReturn
    * @prop {Record<string, string>} [env]
    */
@@ -81,10 +84,11 @@ describe.only("configuration file", function () {
     objectToReturn,
     env = undefined,
   }) {
-    fs.readFileSync
-      .callsFake(notAllowed)
-      .withArgs(pathMatcher)
-      .returns(configToReturn);
+    if (pathMatcher)
+      fs.readFileSync
+        .callsFake(notAllowed)
+        .withArgs(pathMatcher)
+        .returns(configToReturn);
 
     // confirm that the default profile flags are used
     container
@@ -98,21 +102,13 @@ describe.only("configuration file", function () {
         close: () => {},
       });
 
-    let backupEnv;
     if (env) {
-      backupEnv = process.env;
       for (const [key, value] of Object.entries(env)) {
         process.env[key] = value;
       }
     }
 
     await run(cmd, container);
-
-    if (env && backupEnv) {
-      for (const key of Object.keys(env)) {
-        process.env[key] = backupEnv[key];
-      }
-    }
 
     expect(stdout.getWritten()).to.equal(`${objectToReturn}\n`);
     expect(stderr.getWritten()).to.equal("");
@@ -164,10 +160,81 @@ describe.only("configuration file", function () {
       });
     });
 
-    it.skip("defaults to looking for ./.fauna[.yaml|.json|.yml]", async function () {});
-    it.skip("does not exit with an error if the config file is not in the default location", async function () {});
-    it.skip("exits with an error if multiple default files exist", async function () {});
-    it.skip("does exit with an error if the config file is not in a user-specified location", async function () {});
+    it("defaults to looking for ./[.]fauna.config<.yaml|.yml|.json>", async function () {
+      fs.readdirSync.withArgs(process.cwd()).returns([
+        // files with the wrong names aren't considered default named configs
+        { name: "not-config.yaml", isFile: () => true },
+        { name: "also-not-config.json", isFile: () => true },
+        // directories aren't considered default named configs
+        { name: validDefaultConfigNames[0], isFile: () => false },
+        // this is a valid default config!
+        { name: validDefaultConfigNames[1], isFile: () => true },
+      ]);
+
+      await runBasicTest({
+        cmd: `eval --query "Database.all()"`,
+        clientMatcher: sinon.match({
+          secret: "very-secret",
+        }),
+        pathMatcher: validDefaultConfigNames[1],
+        configToReturn: jsonConfig,
+        objectToReturn: databaseObject,
+      });
+    });
+
+    it("does not exit with an error if the config file is not in the default location", async function () {
+      fs.readdirSync.withArgs(process.cwd()).returns([]);
+      await runBasicTest({
+        cmd: `eval --query "Database.all()" --secret "no-config"`,
+        clientMatcher: sinon.match({
+          secret: "no-config",
+          url: "https://db.fauna.com:443",
+        }),
+        objectToReturn: databaseObject,
+      });
+    });
+
+    it("exits with an error if multiple default files exist", async function () {
+      fs.readdirSync
+        .withArgs(process.cwd())
+        .returns(
+          validDefaultConfigNames.map((name) => ({ name, isFile: () => true })),
+        );
+
+      try {
+        await run(`eval --query "Database.all()"`, container);
+      } catch (e) {}
+
+      const errorText = `Multiple config files found with valid default names (${validDefaultConfigNames.join(", ")}). Either specify one with "--config FILENAME" or delete the unused config files.`;
+      const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(errorText)}\n`;
+      expect(stdout.getWritten()).to.equal("");
+      expect(stderr.getWritten()).to.equal(message);
+    });
+
+    it("exits with an error if the config file is not in a user-specified location", async function () {
+      const configPath = path.join(__dirname, "../dev.yaml");
+      const fakeFSError = new Error(
+        `no such file or directory, open ${configPath}`,
+      );
+      // @ts-ignore
+      fakeFSError.code = "ENOENT";
+      fs.readFileSync
+        .callsFake(notAllowed)
+        .withArgs(configPath)
+        .throws(fakeFSError);
+
+      try {
+        await run(
+          `eval --config ./dev.yaml --query "Database.all()"`,
+          container,
+        );
+      } catch (e) {}
+
+      const errorText = `Config file not found at path ${configPath}.`;
+      const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(errorText)}\n`;
+      expect(stdout.getWritten()).to.equal("");
+      expect(stderr.getWritten()).to.equal(message);
+    });
   });
 
   describe("parsing", function () {
@@ -279,6 +346,17 @@ describe.only("configuration file", function () {
       });
     });
 
-    it.skip("selects values from the correct profile", async function () {});
+    it("selects values from the correct profile", async function () {
+      await runBasicTest({
+        cmd: `eval --profile dev --config ./dev.yaml --query "Database.all()"`,
+        pathMatcher: sinon.match.any,
+        clientMatcher: sinon.match({
+          secret: "super-secret",
+          url: "https://localhost:9999",
+        }),
+        objectToReturn: databaseObject,
+        configToReturn: jsonConfig,
+      });
+    });
   });
 });
