@@ -41,6 +41,9 @@ export function setupTestContainer() {
   const container = setupCommonContainer();
 
   const thingsToManuallyMock = automock(container);
+  const customfs = stub(fs);
+  // this is a mock used by the default profile behavior
+  customfs.readdirSync.withArgs(process.cwd()).returns([]);
 
   const manualMocks = {
     // process specifics
@@ -51,7 +54,7 @@ export function setupTestContainer() {
     // wrap it in a spy so we can record calls, but use the
     // real implementation
     parseYargs: awilix.asValue(spy(parseYargs)),
-    fs: awilix.asValue(stub(fs)),
+    fs: awilix.asValue(customfs),
     fsp: awilix.asValue({
       unlink: stub(),
       writeFile: stub(),

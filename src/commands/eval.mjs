@@ -255,6 +255,7 @@ function buildEvalCommand(yargs) {
       query: {
         type: "string",
         description: "the query to run",
+        required: true,
       },
       dbname: {
         type: "string",
