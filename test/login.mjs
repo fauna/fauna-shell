@@ -1,4 +1,6 @@
 //@ts-check
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import * as awilix from "awilix";
 import { expect } from "chai";
@@ -60,12 +62,18 @@ describe("login", function () {
       getToken: stub().resolves({ accessToken: "access-token" }),
     };
   };
+
   beforeEach(() => {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const homedir = path.join(__dirname, "../../test/test-homedir");
+
     container = setupContainer();
     container.register({
       oauthClient: awilix.asFunction(mockOAuth).scoped(),
       accountClient: awilix.asFunction(mockAccountClient).scoped(),
       accountCreds: awilix.asClass(AccountKey).scoped(),
+      homedir: awilix.asFunction(() => homedir).scoped(),
     });
     fs = container.resolve("fs");
   });

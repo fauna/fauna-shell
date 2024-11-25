@@ -1,3 +1,7 @@
+//@ts-check
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import * as awilix from "awilix";
 import { expect } from "chai";
 import { beforeEach } from "mocha";
@@ -28,9 +32,14 @@ describe("authNZMiddleware", function () {
   };
 
   beforeEach(() => {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const homedir = path.join(__dirname, "../../test/test-homedir");
+
     container = setupContainer();
     container.register({
       accountClient: awilix.asFunction(mockAccountClient).scoped(),
+      homedir: awilix.asFunction(() => homedir).scoped(),
     });
     fetch = container.resolve("fetch");
   });
