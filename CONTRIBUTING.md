@@ -1,12 +1,21 @@
 ### Quick Start
 
+Sanity check your local setup:
+
 ```
+# Install dependencies
 npm install
-npm run build
+# Run the local code
 ./src/user-entrypoint.mjs
+# Make sure you can build
+npm run build
 ```
 
+If you change code and want to see how it behaves from a customer-perspective:
 
+```
+./src/user-entrypoint.mjs <command> <subcommand> [--option ...]
+```
 
 ### Application versions
 
