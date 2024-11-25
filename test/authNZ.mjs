@@ -32,7 +32,7 @@ describe.skip("authNZMiddleware", function () {
 
   beforeEach(() => {
     const __dirname = import.meta.dirname;
-    const homedir = path.join(__dirname, "../../test/test-homedir");
+    const homedir = path.join(__dirname, "./test-homedir");
 
     container = setupContainer();
     container.register({
