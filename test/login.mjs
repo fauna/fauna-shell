@@ -1,5 +1,5 @@
 //@ts-check
-import node_fs from "node:fs";
+
 import path from "node:path";
 
 import * as awilix from "awilix";
@@ -64,16 +64,11 @@ describe("login", function () {
   };
 
   beforeEach(() => {
-    const __dirname = import.meta.dirname;
-    const homedir = path.join(__dirname, "./test-homedir");
-
     container = setupContainer();
     container.register({
       oauthClient: awilix.asFunction(mockOAuth).scoped(),
       accountClient: awilix.asFunction(mockAccountClient).scoped(),
       accountCreds: awilix.asClass(AccountKey).scoped(),
-      homedir: awilix.asFunction(() => homedir).scoped(),
-      fs: awilix.asValue(stub(node_fs)),
     });
     fs = container.resolve("fs");
   });

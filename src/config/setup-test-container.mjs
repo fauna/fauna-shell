@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { normalize } from "node:path";
+import path from "node:path";
 import { PassThrough } from "node:stream";
 
 import * as awilix from "awilix";
@@ -38,6 +38,8 @@ function confirmManualMocks(manualMocks, thingsToManuallyMock) {
 }
 
 export function setupTestContainer() {
+  const __dirname = import.meta.dirname;
+
   const container = setupCommonContainer();
 
   const thingsToManuallyMock = automock(container);
@@ -50,6 +52,11 @@ export function setupTestContainer() {
     stdinStream: awilix.asValue(new PassThrough()),
     stdoutStream: awilix.asClass(InMemoryWritableStream).singleton(),
     stderrStream: awilix.asClass(InMemoryWritableStream).singleton(),
+
+    // test home directory
+    homedir: awilix
+      .asFunction(() => path.join(__dirname, "../../test/test-homedir"))
+      .scoped(),
 
     // wrap it in a spy so we can record calls, but use the
     // real implementation
@@ -73,7 +80,7 @@ export function setupTestContainer() {
       error.code = exitCode;
       throw error;
     }),
-    normalize: awilix.asValue(spy(normalize)),
+    normalize: awilix.asValue(spy(path.normalize)),
     fetch: awilix.asValue(stub().resolves(f({}))),
     gatherFSL: awilix.asValue(stub().resolves([])),
     makeFaunaRequest: awilix.asValue(spy(makeFaunaRequest)),

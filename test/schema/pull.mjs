@@ -1,5 +1,4 @@
 //@ts-check
-import node_fs from "node:fs";
 
 import * as awilix from "awilix";
 import { expect } from "chai";
@@ -31,7 +30,6 @@ describe("schema pull", function () {
       deleteUnusedSchemaFiles: awilix.asValue(
         sinon.spy(deleteUnusedSchemaFiles),
       ),
-      fs: awilix.asValue(sinon.stub(node_fs)),
     });
     logger = container.resolve("logger");
     fetch = container.resolve("fetch");

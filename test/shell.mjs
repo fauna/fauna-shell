@@ -1,5 +1,6 @@
 //@ts-check
 
+import node_fs from "node:fs";
 import { EOL } from "node:os";
 import path from "node:path";
 
@@ -72,6 +73,9 @@ describe("shell", function () {
     container = setupContainer();
 
     registerHomedir(container);
+    container.register({
+      fs: awilix.asValue(node_fs),
+    })
 
     stdin = container.resolve("stdinStream");
     stdout = container.resolve("stdoutStream");

@@ -148,11 +148,10 @@ describe("schema diff", function () {
 
   it("can parse home directory paths", async function () {
     const homedir = container.resolve("homedir");
-    homedir.returns("/Users/test-user");
 
     await run(`schema diff --secret "secret" --dir ~`, container);
 
-    expect(gatherFSL).to.have.been.calledWith("/Users/test-user");
+    expect(gatherFSL).to.have.been.calledWith(homedir);
   });
 
   it.skip("errors if user provides both --staged and --active flags");

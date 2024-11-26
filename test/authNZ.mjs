@@ -31,13 +31,9 @@ describe.skip("authNZMiddleware", function () {
   };
 
   beforeEach(() => {
-    const __dirname = import.meta.dirname;
-    const homedir = path.join(__dirname, "./test-homedir");
-
     container = setupContainer();
     container.register({
       accountClient: awilix.asFunction(mockAccountClient).scoped(),
-      homedir: awilix.asFunction(() => homedir).scoped(),
     });
     fetch = container.resolve("fetch");
   });
