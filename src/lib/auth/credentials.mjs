@@ -3,8 +3,8 @@ import { asValue, Lifetime } from "awilix";
 import { container } from "../../cli.mjs";
 import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { cleanupSecretsFile } from "../file-util.mjs";
-import { AccountCreds } from "./accountCreds.mjs";
-import { DatabaseCreds } from "./databaseCreds.mjs";
+import { AccountKeys } from "./accountKeys.mjs";
+import { DatabaseKeys } from "./databaseKeys.mjs";
 
 const validateCredentialArgs = (argv) => {
   if (argv.database && argv.secret) {
@@ -14,22 +14,37 @@ const validateCredentialArgs = (argv) => {
   }
 };
 
+export class Credentials {
+  constructor(argv) {
+    // Get rid of orphaned database keys in the local storage
+    cleanupSecretsFile();
+    // Make sure auth-related arguments from users are legal
+    validateCredentialArgs(argv);
+
+    this.accountKeys = new AccountKeys(argv);
+    this.databaseKeys = new DatabaseKeys(argv, this.accountKeys.key);
+  }
+
+  async login(accessToken) {
+    const { accountKey, refreshToken } =
+      await FaunaAccountClient.getSession(accessToken);
+    this.accountKeys.keyStore.save({
+      accountKey,
+      refreshToken,
+      // TODO: set expiration
+    });
+    this.accountKeys.key = accountKey;
+  }
+}
+
 /**
- * Build singletons for the command helpers to use.
- * These keep track of the correct account and database keys to use
+ * Build the singleton credentials class with the built out yargs arguments.
+ * Within credentials class are the account and database key classes
  * @param {*} argv
  */
 export function buildCredentials(argv) {
-  // Get rid of orphaned database keys in the local storage
-  cleanupSecretsFile();
-  // Make sure auth-related arguments from users are legal
-  validateCredentialArgs(argv);
-  const accountCreds = new AccountCreds(argv);
-  const databaseCreds = new DatabaseCreds(argv, accountCreds.accountKey);
-  const accountClient = new FaunaAccountClient(accountCreds);
+  const credentials = new Credentials(argv);
   container.register({
-    accountClient: asValue(accountClient, { lifetime: Lifetime.SINGLETON }),
-    accountCreds: asValue(accountCreds, { lifetime: Lifetime.SINGLETON }),
-    databaseCreds: asValue(databaseCreds, { lifetime: Lifetime.SINGLETON }),
+    credentials: asValue(credentials, { lifetime: Lifetime.SINGLETON }),
   });
 }

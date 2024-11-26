@@ -1,10 +1,11 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
+import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 
 async function createKey(argv) {
   const logger = container.resolve("logger");
-  const AccountClient = container.resolve("accountClient");
+  const AccountClient = new FaunaAccountClient();
   const { database, role, ttl } = argv;
   const databaseKey = await AccountClient.createKey({
     path: database,

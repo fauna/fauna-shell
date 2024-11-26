@@ -13,12 +13,10 @@ import updateNotifier from "update-notifier";
 import { parseYargs } from "../cli.mjs";
 import { performV4Query, performV10Query } from "../commands/eval.mjs";
 import { makeAccountRequest } from "../lib/account.mjs";
-import { AccountCreds } from "../lib/auth/accountCreds.mjs";
-import { DatabaseCreds } from "../lib/auth/databaseCreds.mjs";
+import { Credentials } from "../lib/auth/credentials.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { getSimpleClient } from "../lib/command-helpers.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
-import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import buildLogger from "../lib/logger.mjs";
 import {
@@ -67,7 +65,6 @@ export const injectables = {
   performV4Query: awilix.asValue(performV4Query),
   performV10Query: awilix.asValue(performV10Query),
   getSimpleClient: awilix.asValue(getSimpleClient),
-  AccountClient: awilix.asValue(FaunaAccountClient),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
   makeAccountRequest: awilix.asValue(makeAccountRequest),
   makeFaunaRequest: awilix.asValue(makeFaunaRequest),
@@ -75,13 +72,7 @@ export const injectables = {
 
   // While we inject the class instance before this in middleware,
   //  we need to register it here to resolve types.
-  accountClient: awilix.asClass(FaunaAccountClient, {
-    lifetime: Lifetime.SINGLETON,
-  }),
-  accountCreds: awilix.asClass(AccountCreds, {
-    lifetime: Lifetime.SINGLETON,
-  }),
-  databaseCreds: awilix.asClass(DatabaseCreds, {
+  credentials: awilix.asClass(Credentials, {
     lifetime: Lifetime.SINGLETON,
   }),
 

@@ -15,13 +15,13 @@ function buildHeaders() {
 
 /**
  * This function will return a v4 or v10 client based on the version provided in the argv.
- *   onInvalidFaunaCreds decides whether or not we retry or ask the user to re-enter their secret.
+ *   onInvalidCreds decides whether or not we retry or ask the user to re-enter their secret.
  * @param {*} argv
  * @returns { Promise<any> } - A Fauna client
  */
 export async function getSimpleClient(argv) {
   const logger = container.resolve("logger");
-  const databaseCreds = container.resolve("databaseCreds");
+  const credentials = container.resolve("credentials");
   let client = await buildClient(argv);
   const originalQuery = client.query.bind(client);
 
@@ -29,7 +29,7 @@ export async function getSimpleClient(argv) {
     const queryValue = originalArgs[0];
     const queryOptions = {
       ...originalArgs[1],
-      secret: await databaseCreds.getOrRefreshDBKey(),
+      secret: await credentials.databaseKeys.getOrRefreshKey(),
     };
     return [queryValue, queryOptions];
   };
@@ -43,7 +43,7 @@ export async function getSimpleClient(argv) {
           "Invalid credentials for Fauna API Call, attempting to refresh",
           "creds",
         );
-        await databaseCreds.onInvalidFaunaCreds();
+        await credentials.databaseKeys.onInvalidCreds();
         const updatedArgs = await queryArgs(args);
         return await originalQuery(...updatedArgs);
       }
@@ -141,7 +141,7 @@ export const commonQueryOptions = {
   secret: {
     type: "string",
     description: "the secret to use when calling Fauna",
-    required: true,
+    required: false,
   },
 };
 
