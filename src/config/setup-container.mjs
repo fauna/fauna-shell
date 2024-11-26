@@ -77,6 +77,9 @@ export const injectables = {
   credentials: awilix.asClass(Credentials, {
     lifetime: Lifetime.SINGLETON,
   }),
+  accountClient: awilix.asClass(FaunaAccountClient, {
+    lifetime: Lifetime.SINGLETON,
+  }),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),

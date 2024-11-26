@@ -2,12 +2,9 @@
 
 import { container } from "../cli.mjs";
 
-// TODO: this function should just spit out the secret that was created.
-//  consider an optional flag that will save this secret to the creds file, overwriting
-//  the existing secret if it exists at key/path/role
 async function createKey(argv) {
-  const { database, profile, role } = argv;
   const logger = container.resolve("logger");
+  const AccountClient = container.resolve("accountClient");
   // const accountKey = await getAccountKey(profile);
   // TODO: after logging in, should we list the top level databases and create db keys for them?
   //  depending on how many top level dbs....

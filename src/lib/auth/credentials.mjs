@@ -109,11 +109,6 @@ export class Credentials {
     );
   }
 
-  // AccountClient depends on an instance of Credentials. Initialize it here to avoid circular dependencies.
-  init() {
-    this.accountClient = new (container.resolve("AccountClient"))(this.profile);
-  }
-
   async login(accessToken) {
     const { accountKey, refreshToken } =
       await FaunaAccountClient.getSession(accessToken);
@@ -191,6 +186,7 @@ export class Credentials {
     this.logger.debug(`Creating new db key for ${this.dbKeyName}`, "creds");
     const [path, role] = this.dbKeyName.split(":");
     const expiration = this.getKeyExpiration();
+    const accountClient = container.resolve("accountClient");
     const newSecret = await this.accountClient.createKey({
       path,
       role,
@@ -255,6 +251,11 @@ export class Credentials {
       }
     }
   }
+
+  // AccountClient depends on an instance of Credentials. Initialize it here to avoid circular dependencies.
+  // init() {
+  //   this.accountClient = new (container.resolve("AccountClient"))(this.profile);
+  // }
 }
 
 /**
@@ -264,8 +265,9 @@ export class Credentials {
  */
 export function buildCredentials(argv) {
   const credentials = new Credentials(argv);
+  const accountClient = new FaunaAccountClient(credentials.profile);
   container.register({
     credentials: asValue(credentials, { lifetime: Lifetime.SINGLETON }),
+    accountClient: asValue(accountClient, { lifetime: Lifetime.SINGLETON }),
   });
-  credentials.init();
 }
