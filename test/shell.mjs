@@ -73,6 +73,11 @@ describe("shell", function () {
       fs: awilix.asValue(node_fs)
     });
 
+    // we need to use the actual node fs, not the mock
+    container.register({
+      fs: awilix.asValue(node_fs),
+    });
+
     stdin = container.resolve("stdinStream");
     stdout = container.resolve("stdoutStream");
     logger = container.resolve("logger");
@@ -100,13 +105,6 @@ describe("shell", function () {
           homedir: awilix.asFunction(() => homedir).scoped(),
         });
       };
-
-      this.beforeEach(() => {
-        // we need to use the actual node fs, not the mock
-        container.register({
-          fs: awilix.asValue(node_fs),
-        });
-      });
 
       it("can be navigated through", async function () {
         registerHomedir(container, "track-history");
