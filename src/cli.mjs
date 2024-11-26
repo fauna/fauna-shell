@@ -132,17 +132,6 @@ function buildYargs(argvInput) {
         description: "a user profile",
         default: "default",
       },
-      database: {
-        alias: "d",
-        type: "string",
-        description: "a database path, including region",
-      },
-      role: {
-        alias: "r",
-        type: "string",
-        description: "a role",
-        default: "admin",
-      },
       color: {
         description:
           "whether or not to emit escape codes for multi-color terminal output.",

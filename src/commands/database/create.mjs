@@ -52,7 +52,6 @@ function buildCreateCommand(yargs) {
         type: "number",
         description: "user-defined priority assigned to the child database",
       },
-      ...commonQueryOptions,
     })
     .version(false)
     .help("help", "show help");
