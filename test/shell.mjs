@@ -103,6 +103,8 @@ describe("shell", function () {
     const downArrow = "\x1b[B";
 
     it("can keep track of history", async function () {
+      registerHomedir(container, "track-history");
+
       // start the shell
       const runPromise = run(`shell --secret "secret" --typecheck`, container);
 
@@ -140,6 +142,8 @@ describe("shell", function () {
     });
 
     it("can clear history", async function () {
+      registerHomedir(container, "clear-history");
+
       // start the shell
       const runPromise = run(`shell --secret "secret" --typecheck`, container);
 
