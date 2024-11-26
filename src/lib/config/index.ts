@@ -8,6 +8,7 @@ const ini = require("ini");
 import { Secret } from "../secret";
 import { Environment, ProjectConfig } from "./project-config";
 import { Endpoint, RootConfig } from "./root-config";
+import { container } from "../../cli.mjs";
 
 export { Endpoint, Environment, ProjectConfig, RootConfig };
 
@@ -381,7 +382,8 @@ const readFile = (fileName: string) => {
 };
 
 export const getRootConfigPath = () => {
-  return path.join(os.homedir(), ".fauna-shell");
+  const homedir = container.resolve("homedir");
+  return path.join(homedir.toString(), ".fauna-shell");
 };
 
 export const getProjectConfigPath = (start?: string): string | undefined => {
