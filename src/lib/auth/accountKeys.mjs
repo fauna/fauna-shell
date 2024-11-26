@@ -13,6 +13,7 @@ import { InvalidCredsError } from "../misc.mjs";
  */
 export class AccountKeys {
   constructor(argv) {
+    this.logger = container.resolve("logger");
     this.profile = argv.profile;
     this.keyStore = new AccountKeyStorage(this.profile);
     const storedKey = this.keyStore.get()?.accountKey;

@@ -143,6 +143,21 @@ export const commonQueryOptions = {
     description: "the secret to use when calling Fauna",
     required: false,
   },
+  accountUrl: {
+    type: "string",
+    description: "the Fauna account URL to query",
+    default: "https://account.fauna.com",
+  },
+  clientId: {
+    type: "string",
+    description: "the client id to use when calling Fauna",
+    required: false,
+  },
+  clientSecret: {
+    type: "string",
+    description: "the client secret to use when calling Fauna",
+    required: false,
+  },
 };
 
 // used for queries customers can configure

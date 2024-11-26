@@ -105,8 +105,8 @@ export class CredentialsStorage {
   constructor(filename = "") {
     this.filename = filename;
 
-    const homedir = container.resolve("homedir");
-    this.credsDir = path.join(homedir.toString(),".fauna/credentials");
+    const homedir = container.resolve("homedir")();
+    this.credsDir = path.join(homedir.toString(), ".fauna/credentials");
 
     if (!dirExists(this.credsDir)) {
       fs.mkdirSync(this.credsDir, { recursive: true });
