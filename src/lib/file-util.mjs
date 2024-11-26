@@ -70,7 +70,7 @@ function fileExists(path) {
  */
 function getJSONFileContents(path) {
   // Open file for reading and writing without truncating
-  const fileContent = fs.readFileSync(path, { flag: "r+" }).toString();
+  const fileContent = fs.readFileSync(path, { flag: "r+" })?.toString();
   if (!fileContent) {
     return {};
   }
