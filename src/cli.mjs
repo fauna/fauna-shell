@@ -10,6 +10,7 @@ import queryCommand from "./commands/query.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
 import { buildCredentials } from "./lib/auth/credentials.mjs";
+import { getDbCompletions, getProfileCompletions } from "./lib/completions.mjs";
 import { configParser } from "./lib/config/config.mjs";
 import { handleParseYargsError } from "./lib/errors.mjs";
 import {
@@ -112,6 +113,50 @@ function buildYargs(argvInput) {
     .command(localCommand)
     .demandCommand()
     .strictCommands(true)
+    .completion(
+      "completion",
+      "Output bash/zsh script to enable shell completions. See command output for installation instructions.",
+    )
+    .completion(
+      "completion",
+      async function (currentWord, argv, defaultCompletions, done) {
+        // this is pretty hard to debug - if you need to, run
+        // `fauna --get-yargs-completions <command> <flag> <string to match>`
+        // for example: `fauna --get-yargs-completions --profile he`
+        // note that you need to have empty quotes to get all matches:
+        // `fauna --get-yargs-completions --profile ""`
+
+        // then, call the done callback with an array of strings for debugging, like:
+        // done(
+        //   [
+        //     `currentWord: ${currentWord}, currentWordFlag: ${currentWordFlag}, argv: ${JSON.stringify(argv)}`,
+        //   ],
+        // );
+        const previousWord = process.argv.slice(-2, -1)[0].replace(/-/g, "");
+        const currentWordFlag = Object.keys(argv)
+          .filter((key) => previousWord === key)
+          .pop();
+
+        // TODO: this doesn't handle aliasing, and it needs to
+        if (
+          currentWord === "--profile" ||
+          currentWordFlag === "profile" ||
+          currentWord === "-p" ||
+          currentWordFlag === "p"
+        ) {
+          done(getProfileCompletions(currentWord, argv));
+        } else if (
+          currentWord === "--database" ||
+          currentWordFlag === "database" ||
+          currentWord === "-d" ||
+          currentWordFlag === "d"
+        ) {
+          done(await getDbCompletions(currentWord, argv));
+        } else {
+          defaultCompletions();
+        }
+      },
+    )
     .options({
       color: {
         description:
@@ -153,7 +198,7 @@ function buildYargs(argvInput) {
           "Components to emit diagnostic logs for. Takes precedence over the `--verbosity` flag. Pass components as a space-separated list, such as `--verboseComponent fetch error`, or as separate flags, such as `--verboseComponent fetch --verboseComponent error`.",
         type: "array",
         default: [],
-        choices: ["fetch", "error", "config", "argv", "creds"],
+        choices: ["fetch", "error", "config", "argv", "creds", "completion"],
         group: "Debug:",
       },
       verbosity: {
@@ -169,9 +214,5 @@ function buildYargs(argvInput) {
     .alias("help", "h")
     .fail(false)
     .exitProcess(false)
-    .version()
-    .completion(
-      "completion",
-      "Output bash/zsh script to enable shell completions. See command output for installation instructions.",
-    );
+    .version();
 }
