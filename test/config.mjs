@@ -3,6 +3,7 @@
 import path from "node:path";
 
 import { expect } from "chai";
+import chalk from "chalk";
 import notAllowed from "not-allowed";
 import sinon from "sinon";
 import stripAnsi from "strip-ansi";
