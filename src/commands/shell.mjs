@@ -29,7 +29,7 @@ async function shellCommand(argv) {
   }
   const historyFile = path.join(historyDir, "history");
   if (!fileExists(historyFile)) {
-    fs.writeFileSync(historyFile, "{}");
+    fs.writeFileSync(historyFile, "");
   }
 
   /** @type {import('node:repl').ReplOptions} */
@@ -75,9 +75,9 @@ async function shellCommand(argv) {
     {
       cmd: "clearhistory",
       help: "Clear command history",
-      action: async () => {
+      action: () => {
         try {
-          await fs.writeFileSync(historyFile, "");
+          fs.writeFileSync(historyFile, "");
           logger.stdout("History cleared");
           // Reinitialize history
           shell.setupHistory(historyFile, (err) => {
