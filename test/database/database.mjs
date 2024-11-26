@@ -1,18 +1,18 @@
 // @ts-check
 
-import chalk from "chalk";
 import { expect } from "chai";
+import chalk from "chalk";
+
 import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
 describe("database create", () => {
-  let container, logger, runV10Query;
+  let container, logger;
 
   beforeEach(() => {
     // reset the container before each test
     container = setupContainer();
     logger = container.resolve("logger");
-    runV10Query = container.resolve("runV10Query");
   });
 
   [

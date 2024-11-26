@@ -1,10 +1,11 @@
 //@ts-check
 
-import chalk from "chalk";
-import sinon from "sinon";
-import { expect } from "chai";
 import * as awilix from "awilix";
+import { expect } from "chai";
+import chalk from "chalk";
 import { fql, ServiceError } from "fauna";
+import sinon from "sinon";
+
 import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 

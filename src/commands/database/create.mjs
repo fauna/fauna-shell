@@ -3,7 +3,6 @@
 import { FaunaError, fql } from "fauna";
 import { container } from "../../cli.mjs";
 import { throwForV10Error } from "../../lib/fauna.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 
 async function createDatabase(argv) {
   const logger = container.resolve("logger");
