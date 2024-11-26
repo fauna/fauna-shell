@@ -7,6 +7,7 @@ import { expect } from "chai";
 import chalk from "chalk";
 import notAllowed from "not-allowed";
 import sinon from "sinon";
+import stripAnsi from "strip-ansi";
 
 import { builtYargs, run } from "../src/cli.mjs";
 import { performQuery, performV10Query } from "../src/commands/eval.mjs";
@@ -206,9 +207,9 @@ describe("configuration file", function () {
       } catch (e) {}
 
       const errorText = `Multiple config files found with valid default names (${validDefaultConfigNames.join(", ")}). Either specify one with "--config FILENAME" or delete the unused config files.`;
-      const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(errorText)}\n`;
+      const message = `${await builtYargs.getHelp()}\n\n${errorText}\n`;
       expect(stdout.getWritten()).to.equal("");
-      expect(stderr.getWritten()).to.equal(message);
+      expect(stripAnsi(stderr.getWritten())).to.equal(message);
     });
 
     it("exits with an error if the config file is not in a user-specified location", async function () {
@@ -231,9 +232,9 @@ describe("configuration file", function () {
       } catch (e) {}
 
       const errorText = `Config file not found at path ${configPath}.`;
-      const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(errorText)}\n`;
+      const message = `${await builtYargs.getHelp()}\n\n${errorText}\n`;
       expect(stdout.getWritten()).to.equal("");
-      expect(stderr.getWritten()).to.equal(message);
+      expect(stripAnsi(stderr.getWritten())).to.equal(message);
     });
   });
 
@@ -287,9 +288,9 @@ describe("configuration file", function () {
         });
       } catch (e) {}
       const errorText = `No "default" profile found in config file at ${path.join(__dirname, "../dev.yaml")}. Either specify a profile with "--profile NAME" or add a "default" profile.`;
-      const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(errorText)}\n`;
+      const message = `${await builtYargs.getHelp()}\n\n${errorText}\n`;
       expect(stdout.getWritten()).to.equal("");
-      expect(stderr.getWritten()).to.equal(message);
+      expect(stripAnsi(stderr.getWritten())).to.equal(message);
     });
 
     it("exits with an error if a profile is specified and the config does not have that key", async function () {
@@ -306,10 +307,11 @@ describe("configuration file", function () {
       } catch (e) {}
 
       const errorText = `Could not find profile "nonexistent" in config file at ${path.join(__dirname, "../prod.yaml")}.`;
-      const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(errorText)}\n`;
+      const message = `${await builtYargs.getHelp()}\n\n${errorText}\n`;
       expect(stdout.getWritten()).to.equal("");
-      expect(stderr.getWritten()).to.equal(message);
+      expect(stripAnsi(stderr.getWritten())).to.equal(message);
     });
+
     it.skip("preserves comments in the config file", async function () {});
   });
 
