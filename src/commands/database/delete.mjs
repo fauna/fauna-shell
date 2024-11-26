@@ -3,7 +3,6 @@
 import { FaunaError, fql } from "fauna";
 import { container } from "../../cli.mjs";
 import { throwForV10Error } from "../../lib/fauna.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 
 async function deleteDatabase(argv) {
   const logger = container.resolve("logger");
@@ -35,7 +34,6 @@ function buildDeleteCommand(yargs) {
         required: true,
         description: "the name of the database to delete",
       },
-      ...commonQueryOptions,
     })
     .version(false)
     .help("help", "show help");
