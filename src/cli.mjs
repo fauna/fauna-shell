@@ -118,14 +118,17 @@ function buildYargs(argvInput) {
       "completion",
       function (currentWord, argv, completionFilter, done) {
         const previousWord = process.argv.slice(-2, -1)[0].replace(/-/g, "");
-        const matchKey = Object.keys(argv)
+        const currentWordFlag = Object.keys(argv)
           .filter((key) => previousWord === key)
           .pop();
-        const matchValue = matchKey ? argv[matchKey] : undefined;
+        // console.log("currentWord", currentWord);
+        // console.log("previousWord", previousWord);
+        // console.log("argv", JSON.stringify(argv, null, 2));
+        // console.log("currentWordFlag", currentWordFlag);
 
         // TODO: this doesn't handle aliasing, and it needs to
-        if (currentWord === "--dir" || matchKey === "dir") {
-          getDirCompletions(currentWord, matchValue, done);
+        if (currentWord === "--dir" || currentWordFlag === "dir") {
+          getDirCompletions(currentWord, done);
         } else {
           completionFilter();
         }
