@@ -26,7 +26,7 @@ describe("cli operations", function () {
   it("should exit with a helpful message if a flag is not provided", async function () {
     const logger = container.resolve("logger");
 
-    // this is missing the --secret flag
+    // this is missing the --name flag
     try {
       await run(`database create`, container);
     } catch (e) {}
