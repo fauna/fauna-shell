@@ -4,13 +4,13 @@ import path from "node:path";
 
 import * as awilix from "awilix";
 import { expect } from "chai";
+import chalk from "chalk";
 import notAllowed from "not-allowed";
 import sinon from "sinon";
 
 import { builtYargs, run } from "../src/cli.mjs";
 import { performQuery, performV10Query } from "../src/commands/eval.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import chalk from "chalk";
 import { validDefaultConfigNames } from "../src/lib/config/config.mjs";
 
 const __dirname = import.meta.dirname;
