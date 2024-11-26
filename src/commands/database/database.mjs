@@ -1,8 +1,8 @@
 //@ts-check
 
-import listCommand from "./list.mjs";
 import createCommand from "./create.mjs";
 import deleteCommand from "./delete.mjs";
+import listCommand from "./list.mjs";
 
 function buildDatabase(yargs) {
   return yargs
