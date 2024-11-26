@@ -7,17 +7,19 @@ import { exit } from "node:process";
 import { confirm } from "@inquirer/prompts";
 import * as awilix from "awilix";
 import { Lifetime } from "awilix";
+import fauna from "fauna";
+import faunadb from "faunadb";
 import open from "open";
 import updateNotifier from "update-notifier";
 
 import { parseYargs } from "../cli.mjs";
-import { performV4Query, performV10Query } from "../commands/eval.mjs";
 import { makeAccountRequest } from "../lib/account.mjs";
 import { Credentials } from "../lib/auth/credentials.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
-import { getSimpleClient } from "../lib/command-helpers.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
 import { getV10Client, runV10Query } from "../lib/fauna.mjs";
+import { formatError, formatQueryResponse, runQueryFromString } from "../lib/fauna-client.mjs";
+import { getV4Client, runV4Query } from "../lib/faunadb.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import buildLogger from "../lib/logger.mjs";
 import {
@@ -52,6 +54,7 @@ export const injectables = {
   fetch: awilix.asValue(fetchWrapper),
   fs: awilix.asValue(fs),
   fsp: awilix.asValue(fsp),
+  dirname: awilix.asValue(path.dirname),
   normalize: awilix.asValue(path.normalize),
   homedir: awilix.asValue(os.homedir),
 
@@ -59,13 +62,12 @@ export const injectables = {
   confirm: awilix.asValue(confirm),
   open: awilix.asValue(open),
   updateNotifier: awilix.asValue(updateNotifier),
+  fauna: awilix.asValue(fauna),
+  faunadb: awilix.asValue(faunadb),
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
   logger: awilix.asFunction(buildLogger, { lifetime: Lifetime.SINGLETON }),
-  performV4Query: awilix.asValue(performV4Query),
-  performV10Query: awilix.asValue(performV10Query),
-  getSimpleClient: awilix.asValue(getSimpleClient),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
   makeAccountRequest: awilix.asValue(makeAccountRequest),
   makeFaunaRequest: awilix.asValue(makeFaunaRequest),
@@ -77,8 +79,13 @@ export const injectables = {
     lifetime: Lifetime.SINGLETON,
   }),
   // utilities for interacting with Fauna
-  runV10Query: awilix.asValue(runV10Query),
+  runQueryFromString: awilix.asValue(runQueryFromString),
+  formatError: awilix.asValue(formatError),
+  formatQueryResponse: awilix.asValue(formatQueryResponse),
   getV10Client: awilix.asValue(getV10Client),
+  runV10Query: awilix.asValue(runV10Query),
+  getV4Client: awilix.asValue(getV4Client),
+  runV4Query: awilix.asValue(runV4Query),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),

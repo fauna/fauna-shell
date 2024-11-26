@@ -2,6 +2,8 @@
 
 // export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
 import { container } from "../cli.mjs";
+import { formatV10Error, formatV10QueryResponse, runV10QueryFromString } from "./fauna.mjs";
+import { formatV4Error, formatV4QueryResponse, runV4QueryFromString } from "./faunadb.mjs";
 
 // export type QuerySuccess<T> = {
 //   status: 200;
@@ -90,3 +92,29 @@ export default class FaunaClient {
     return undefined;
   }
 }
+
+export const runQueryFromString = (expression, argv) => {
+  if (argv.apiVersion === "4") {
+    const { secret, url, timeout } = argv;
+    return runV4QueryFromString({ expression, secret, url, client: undefined, options: { timeout }});
+  } else {
+    const { secret, url, timeout,...rest } = argv;
+    return runV10QueryFromString({ expression, secret, url, client: undefined, options: { query_timeout_ms: timeout, ...rest }});
+  }
+};  
+
+export const formatError = (err, { apiVersion, extra }) => {
+  if (apiVersion === "4") {
+    return formatV4Error(err, { extra });
+  } else {
+    return formatV10Error(err, { extra }); 
+  }
+};
+
+export const formatQueryResponse = (res, { apiVersion, extra, json }) => {
+  if (apiVersion === "4") {
+    return formatV4QueryResponse(res, { extra, json });
+  } else {  
+    return formatV10QueryResponse(res, { extra, json });
+  }
+};

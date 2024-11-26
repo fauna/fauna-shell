@@ -128,7 +128,7 @@ export const commonQueryOptions = {
 export const commonConfigurableQueryOptions = {
   ...commonQueryOptions,
   // TODO: is this unused? i think it might be
-  version: {
+  apiVersion: {
     description: "which FQL version to use",
     type: "string",
     alias: "v",

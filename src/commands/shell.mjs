@@ -7,7 +7,7 @@ import {
   // ensureDbScopeClient,
   commonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { performQuery } from "./eval.mjs";
+import { formatError, formatQueryResponse } from "../lib/fauna-client.mjs";
 
 async function doShell(argv) {
   const logger = container.resolve("logger");
@@ -20,9 +20,9 @@ async function doShell(argv) {
   const replArgs = {
     prompt: `${argv.db_path || ""}> `,
     ignoreUndefined: true,
-    preview: argv.version !== "10",
+    preview: argv.apiVersion !== "10",
     // TODO: integrate with fql-analyzer for completions
-    completer: argv.version === "10" ? () => [] : undefined,
+    completer: argv.apiVersion === "10" ? () => [] : undefined,
     output: container.resolve("stdoutStream"),
     input: container.resolve("stdinStream"),
     eval: await buildCustomEval(argv),
@@ -48,10 +48,21 @@ async function doShell(argv) {
       },
     },
     {
-      cmd: "last_error",
+      cmd: "lastError",
       help: "Display the last error",
       action: () => {
         logger.stdout(shell.context.lastError);
+        shell.prompt();
+      },
+    },
+    {
+      cmd: "toggleExtra",
+      help: "Toggle full API response in shell; off by default",
+      action: () => {
+        shell.context.extra = !shell.context.extra;
+        logger.stderr(
+          `Full Fauna API response in shell is ${shell.context.extra ? "on" : "off"}`,
+        );
         shell.prompt();
       },
     },
@@ -62,7 +73,7 @@ async function doShell(argv) {
 
 // caches the logger, client, and performQuery for subsequent shell calls
 async function buildCustomEval(argv) {
-  const client = await container.resolve("getSimpleClient")(argv);
+  const runQueryFromString = container.resolve("runQueryFromString");
 
   return async (cmd, ctx, filename, cb) => {
     try {
@@ -72,21 +83,16 @@ async function buildCustomEval(argv) {
 
       let res;
       try {
-        res = await performQuery(client, cmd, undefined, {
+        res = await runQueryFromString(cmd, {
           ...argv,
-          format: "shell",
         });
       } catch (err) {
-        let errString = "";
-        if (err.code) {
-          errString = errString.concat(`${err.code}\n`);
-        }
-        errString = errString.concat(err.message);
-        logger.stderr(errString);
+        logger.stderr(formatError(err, { apiVersion: argv.apiVersion, extra: ctx.extra }));
         return cb(null);
       }
 
-      logger.stdout(res);
+      // If extra is on, return the full response. Otherwise, return just the data.
+      logger.stdout(formatQueryResponse(res, { apiVersion: argv.apiVersion, extra: ctx.extra, json: false }));
 
       return cb(null);
     } catch (e) {
