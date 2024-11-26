@@ -4,7 +4,6 @@ import path from "node:path";
 
 import * as awilix from "awilix";
 import { expect } from "chai";
-import chalk from "chalk";
 import notAllowed from "not-allowed";
 import sinon from "sinon";
 import stripAnsi from "strip-ansi";

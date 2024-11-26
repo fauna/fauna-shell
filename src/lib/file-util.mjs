@@ -316,24 +316,6 @@ export class AccountKeyStorage extends CredentialsStorage {
 }
 
 /**
- * Steps through account keys in local filesystem and if they are not found in the secrets file,
- *   delete the stale entries on the secrets file.
- */
-export function cleanupSecretsFile() {
-  const accountKeyData = new CredentialsStorage("access_keys").getFile();
-  const accountKeys = Object.values(accountKeyData).map(
-    (value) => value.accountKey,
-  );
-  const secretKeyData = new CredentialsStorage("secret_keys").getFile();
-  Object.keys(secretKeyData).forEach((accountKey) => {
-    if (!accountKeys.includes(accountKey)) {
-      const secretKeyStorage = new SecretKeyStorage(accountKey);
-      secretKeyStorage.deleteAllDBKeysForAccount();
-    }
-  });
-}
-
-/**
  * Checks if a value is a valid JSON string.
  *
  * @param {string} value - The value to check.

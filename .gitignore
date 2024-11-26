@@ -15,6 +15,7 @@ experiments
 coverage
 test-results.xml
 .history
+.fauna
 
 # default fauna config file names
 fauna.config.yaml,

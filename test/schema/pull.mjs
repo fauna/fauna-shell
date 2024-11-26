@@ -194,7 +194,8 @@ describe("schema pull", function () {
     expect(logger.stdout).to.have.been.calledWith("Change cancelled");
     expect(fs.writeFile).to.have.not.been.called;
     expect(fsp.unlink).to.have.not.been.called;
-    expect(fs.mkdirSync).to.have.not.been.called;
+    // Called twice during Credentials initialization, but not called during the pull command
+    expect(fs.mkdirSync).to.have.been.calledTwice;
   });
 
   it("can delete extraneous FSL files", async function () {
