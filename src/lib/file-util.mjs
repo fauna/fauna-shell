@@ -21,7 +21,15 @@ export function fixPath(path) {
  */
 export function dirExists(path) {
   const fs = container.resolve("fs");
-  return fs.existsSync(fixPath(path));
+  const stat = fs.statSync(fixPath(path), {
+    // returns undefined instead of throwing if the file doesn't exist
+    throwIfNoEntry: false,
+  });
+  if (stat === undefined || !stat.isDirectory()) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 /**
