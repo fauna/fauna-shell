@@ -16,7 +16,7 @@ import { makeAccountRequest } from "../lib/account.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { getSimpleClient } from "../lib/command-helpers.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
-import { getV10Client,runV10Query } from "../lib/fauna.mjs";
+import { getV10Client, runV10Query } from "../lib/fauna.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import { AccountKey, SecretKey } from "../lib/file-util.mjs";

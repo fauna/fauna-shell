@@ -1,5 +1,4 @@
 //@ts-check
-import path from "node:path";
 
 import * as awilix from "awilix";
 import { expect } from "chai";
