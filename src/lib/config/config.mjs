@@ -1,6 +1,5 @@
 import yaml from "yaml";
 import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
 
 import { argvInput, container } from "../../cli.mjs";
 
@@ -80,7 +79,7 @@ export function configParser(path) {
 
   logger.debug(`Reading config from ${path}.`, "config");
   const config = getConfig(path);
-  const argv = yargs(hideBin(argvInput)).options({
+  const argv = yargs(argvInput).options({
     profile: {
       default: "default",
       type: "string",
