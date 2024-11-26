@@ -10,12 +10,12 @@ function validate(argv) {
   const { existsSync, accessSync, constants } = container.resolve("fs");
   const dirname = container.resolve("dirname");
 
-  if (argv.input && argv.query) {
-    throw new Error("Cannot specify both --input and --query");
+  if (argv.input && argv.fql) {
+    throw new Error("Cannot specify both --input and <fql>");
   }
 
-  if (!argv.input && !argv.query) {
-    throw new Error("No query specified. Pass <query> or --input.");
+  if (!argv.input && !argv.fql) {
+    throw new Error("No query specified. Pass <fql> or --input.");
   }
 
   if (argv.input && !existsSync(argv.input)) {
@@ -41,13 +41,13 @@ const resolveInput = (argv) => {
     return readFileSync(argv.input, "utf8");
   }
 
-  if (argv.query === "-") {
+  if (argv.fql === "-") {
     logger.debug("reading query from stdin", "argv");
     return readFileSync(process.stdin.fd, "utf8");
   }
 
-  logger.debug("no --input specified, using <query>", "argv");
-  return argv.query;
+  logger.debug("no --input specified, using <fql>", "argv");
+  return argv.fql;
 }
 
 async function query(argv) {
@@ -77,11 +77,11 @@ async function query(argv) {
 
 function buildQueryCommand(yargs) {
   return yargs
-    .positional("query", {
+    .positional("fql", {
       type: "string",
       description: "the query to run; use - to read from stdin",
     })
-    .nargs('query', 1)
+    .nargs('fql', 1)
     .options({
       input: {
         alias: "i",
@@ -113,7 +113,7 @@ function buildQueryCommand(yargs) {
 }
 
 export default {
-  command: "query <query>",
+  command: "query [fql]",
   aliases: ["eval"],
   describe: "execute a query",
   builder: buildQueryCommand,
