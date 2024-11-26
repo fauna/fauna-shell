@@ -10,6 +10,7 @@ import queryCommand from "./commands/query.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
 import { buildCredentials } from "./lib/auth/credentials.mjs";
+import { getDirCompletions } from "./lib/completions.mjs";
 import { configParser } from "./lib/config/config.mjs";
 import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
@@ -113,6 +114,23 @@ function buildYargs(argvInput) {
     .command(databaseCommand)
     .demandCommand()
     .strict(true)
+    .completion(
+      "completion",
+      function (currentWord, argv, completionFilter, done) {
+        const previousWord = process.argv.slice(-2, -1)[0].replace(/-/g, "");
+        const matchKey = Object.keys(argv)
+          .filter((key) => previousWord === key)
+          .pop();
+        const matchValue = matchKey ? argv[matchKey] : undefined;
+
+        // TODO: this doesn't handle aliasing, and it needs to
+        if (currentWord === "--dir" || matchKey === "dir") {
+          getDirCompletions(currentWord, matchValue, done);
+        } else {
+          completionFilter();
+        }
+      },
+    )
     .options({
       config: {
         type: "string",
