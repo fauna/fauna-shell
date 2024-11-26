@@ -70,15 +70,21 @@ function fileExists(path) {
  */
 function getJSONFileContents(path) {
   // Open file for reading and writing without truncating
-  const fileContent = fs.readFileSync(path, { flag: "r+" })?.toString();
-  if (!fileContent) {
+  try {
+    const fileContent = fs.readFileSync(path, { flag: "r+" })?.toString();
+    if (!fileContent) {
+      return {};
+    }
+    if (!isJSON(fileContent)) {
+      throw new Error(
+        `Credentials file at ${path} contains invalid formatting.`,
+      );
+    }
+    const parsed = JSON.parse(fileContent);
+    return parsed;
+  } catch (error) {
     return {};
   }
-  if (!isJSON(fileContent)) {
-    throw new Error(`Credentials file at ${path} contains invalid formatting.`);
-  }
-  const parsed = JSON.parse(fileContent);
-  return parsed;
 }
 
 export class CredsNotFoundError extends Error {
@@ -105,8 +111,8 @@ export class CredentialsStorage {
   constructor(filename = "") {
     this.filename = filename;
 
-    const homedir = container.resolve("homedir")();
-    this.credsDir = path.join(homedir.toString(), ".fauna/credentials");
+    const homedir = container.resolve("homedir")() || "./";
+    this.credsDir = path.join(homedir, ".fauna/credentials");
 
     if (!dirExists(this.credsDir)) {
       fs.mkdirSync(this.credsDir, { recursive: true });
