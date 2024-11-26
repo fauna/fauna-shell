@@ -1,10 +1,9 @@
 //@ts-check
 
 import { FaunaError, fql } from "fauna";
-
 import { container } from "../../cli.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { throwForV10Error } from "../../lib/fauna.mjs";
+import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 
 async function createDatabase(argv) {
   const logger = container.resolve("logger");
@@ -21,7 +20,7 @@ async function createDatabase(argv) {
         priority: ${argv.priority ?? null},
       })`,
     });
-    logger.stdout(`Database ${argv.name} created`);
+    logger.stdout(`Database '${argv.name}' was successfully created.`);
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForV10Error(e, {
@@ -38,6 +37,7 @@ function buildCreateCommand(yargs) {
     .options({
       name: {
         type: "string",
+        required: true,
         description: "the name of the database to create",
       },
       typechecked: {
@@ -54,7 +54,6 @@ function buildCreateCommand(yargs) {
       },
       ...commonQueryOptions,
     })
-    .demandOption("name")
     .version(false)
     .help("help", "show help");
 }

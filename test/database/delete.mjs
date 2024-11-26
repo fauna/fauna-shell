@@ -1,14 +1,14 @@
 //@ts-check
 
-import sinon from "sinon";
 import chalk from "chalk";
+import sinon from "sinon";
 import { expect } from "chai";
 import * as awilix from "awilix";
 import { fql, ServiceError } from "fauna";
 import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
-describe("database create", () => {
+describe("database delete", () => {
   let container, logger, runV10Query;
 
   beforeEach(() => {
@@ -19,8 +19,8 @@ describe("database create", () => {
   });
 
   [
-    { missing: "name", command: "database create --secret 'secret'" },
-    { missing: "secret", command: "database create --name 'name'" },
+    { missing: "name", command: "database delete --secret 'secret'" },
+    { missing: "secret", command: "database delete --name 'name'" },
   ].forEach(({ missing, command }) => {
     it(`requires a ${missing}`, async () => {
       try {
@@ -40,18 +40,6 @@ describe("database create", () => {
       args: "--name 'testdb' --secret 'secret'",
       expected: { name: "testdb", secret: "secret" },
     },
-    {
-      args: "--name 'testdb' --secret 'secret' --typechecked",
-      expected: { name: "testdb", secret: "secret", typechecked: true },
-    },
-    {
-      args: "--name 'testdb' --secret 'secret' --protected",
-      expected: { name: "testdb", secret: "secret", protected: true },
-    },
-    {
-      args: "--name 'testdb' --secret 'secret' --priority 10",
-      expected: { name: "testdb", secret: "secret", priority: 10 },
-    },
   ].forEach(({ args, expected }) => {
     describe("calls fauna with the user specified arguments", () => {
       it(`${args}`, async () => {
@@ -59,12 +47,7 @@ describe("database create", () => {
         expect(runV10Query).to.have.been.calledOnceWith({
           url: sinon.match.string,
           secret: expected.secret,
-          query: fql`Database.create({
-            name: ${expected.name},
-            protected: ${expected.protected ?? null},
-            typechecked: ${expected.typechecked ?? null},
-            priority: ${expected.priority ?? null},
-          })`,
+          query: fql`Database.byName(${expected.name}).delete()`,
         });
       });
     });
@@ -73,17 +56,17 @@ describe("database create", () => {
   [
     {
       error: new ServiceError({
-        error: { code: "constraint_failure", message: "whatever" },
-      }),
-      expectedMessage:
-        "Constraint failure: The database 'testdb' may already exists or one of the provided options may be invalid.",
-    },
-    {
-      error: new ServiceError({
         error: { code: "unauthorized", message: "whatever" },
       }),
       expectedMessage:
         "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.",
+    },
+    {
+      error: new ServiceError({
+        error: { code: "document_not_found", message: "whatever" },
+      }),
+      expectedMessage:
+        "Not found: Database 'testdb' not found. Please check the database name and try again.",
     },
   ].forEach(({ error, expectedMessage }) => {
     it(`handles ${error.code} errors when calling fauna`, async () => {
@@ -94,7 +77,7 @@ describe("database create", () => {
 
       try {
         await run(
-          `database create --name 'testdb' --secret 'secret'`,
+          `database delete --name 'testdb' --secret 'secret'`,
           container,
         );
       } catch (e) {}
