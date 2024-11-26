@@ -5,7 +5,6 @@ import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import { authNZMiddleware } from "../src/lib/auth/authNZ.mjs";
 import { InvalidCredsError } from "../src/lib/misc.mjs";
 import { f } from "./helpers.mjs";
 

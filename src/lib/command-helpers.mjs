@@ -1,7 +1,6 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { getAccountKey, getDBKey, refreshDBKey } from "./auth/authNZ.mjs";
 
 // TODO: update for yargs
 function buildHeaders() {
@@ -16,112 +15,64 @@ function buildHeaders() {
 
 /**
  * This function will return a v4 or v10 client based on the version provided in the argv.
- * The client will be configured with a secret provided via:
- *  - command line flag
- *  - environment variable
- *  - stored in the credentials file
- * If provided via command line flag or env var, 401s from the client will show an error to the user.
- * If the secret is stored in the credentials file, the client will attempt to refresh the secret
- *  and retry the query.
+ *   onInvalidFaunaCreds decides whether or not we retry or ask the user to re-enter their secret.
  * @param {*} argv
- * @returns
+ * @returns { Promise<any> } - A Fauna client
  */
 export async function getSimpleClient(argv) {
   const logger = container.resolve("logger");
-  const { profile, secret } = argv;
-  const accountKey = getAccountKey(profile).accountKey;
-  if (secret) {
-    logger.debug("Using Database secret from command line flag", "client");
-  } else if (process.env.FAUNA_SECRET) {
-    logger.debug(
-      "Using Database secret from FAUNA_SECRET environment variable",
-      "client",
-    );
-  }
-  const secretSource = secret ? "command line flag" : "environment variable";
-  const secretToUse = secret || process.env.FAUNA_SECRET;
-
-  let client;
-  if (secretToUse) {
-    client = await buildClient(argv);
-    const originalQuery = client.query.bind(client);
-    client.query = async function (...args) {
-      return originalQuery(...args).then(async (result) => {
-        // If we fail on a user-provided secret, we should throw an error and not
-        // attempt to refresh the secret
-        if (result.status === 401) {
-          throw new Error(
-            `Secret provided by ${secretSource} is invalid. Please provide a different value`,
-          );
-        }
-        return result;
-      });
-    };
-  } else {
-    logger.debug(
-      "No secret provided, checking for stored secret in credentials file",
-      "client",
-    );
-    client = await clientFromStoredSecret({
-      argv,
-      accountKey,
-    });
-  }
-  return client;
-}
-
-/**
- * Build a client where the secret isn't provided as a class argument, but is instead
- *  fetched from the credentials file during client.query
- * @param {*} param0
- * @returns
- */
-async function clientFromStoredSecret({ argv, accountKey }) {
-  const logger = container.resolve("logger");
-  const { database: path, role } = argv;
-  let client = await buildClient({
-    ...argv,
-    // client.query will handle getting/refreshing the secret
-    secret: undefined,
-  });
+  const credentials = container.resolve("credentials");
+  let client = await buildClient(argv);
   const originalQuery = client.query.bind(client);
+
+  const queryArgs = async (originalArgs) => {
+    const queryValue = originalArgs[0];
+    const queryOptions = {
+      ...originalArgs[1],
+      secret: await credentials.getOrRefreshDBKey(),
+    };
+    return [queryValue, queryOptions];
+  };
+
   client.query = async function (...args) {
-    // Get latest stored secret for the requested path
-    const existingSecret = getDBKey({ accountKey, path, role })?.secret;
-    const newArgs = [args[0], { ...args[1], secret: existingSecret }];
-    return originalQuery(...newArgs).then(async (result) => {
+    const updatedArgs = await queryArgs(args);
+    return originalQuery(...updatedArgs).then(async (result) => {
+      // If we fail on a user-provided secret, we should throw an error and not
+      // attempt to refresh the secret
       if (result.status === 401) {
-        logger.debug("stored secret is invalid, refreshing", "client");
-        // Refresh the secret, store it, and use it to try again
-        const newSecret = await refreshDBKey(argv);
-        const newArgs = [args[0], { ...args[1], secret: newSecret.secret }];
-        const result = await originalQuery(...newArgs);
-        return result;
+        // Either refresh the db key in credentials singleton, or throw an error
+        logger.debug(
+          "Invalid credentials for Fauna API Call, attempting to refresh",
+          "creds",
+        );
+        await credentials.onInvalidFaunaCreds();
+        const updatedArgs = await queryArgs(args);
+        return await originalQuery(...updatedArgs);
       }
       return result;
     });
   };
+
   return client;
 }
-
 /**
  * Build a client based on the command line options provided
- * @param {*} argv
+ * @param {*} options - Options for building a driver or fetch client
  * @returns
  */
-async function buildClient(argv) {
+async function buildClient(options) {
   let client;
-  if (argv.version === "4") {
+  if (options.version === "4") {
     const faunadb = (await import("faunadb")).default;
     const { Client } = faunadb;
-    const { hostname, port, protocol } = new URL(argv.url);
+    const { hostname, port, protocol } = new URL(options.url);
     const scheme = protocol?.replace(/:$/, "");
     client = new Client({
       domain: hostname,
       port: Number(port),
       scheme: /** @type {('http'|'https')} */ (scheme),
-      secret: argv.secret,
-      timeout: argv.timeout,
+      secret: options.secret,
+      timeout: options.timeout,
 
       fetch: fetch,
 
@@ -130,9 +81,9 @@ async function buildClient(argv) {
   } else {
     const FaunaClient = (await import("./fauna-client.mjs")).default;
     client = new FaunaClient({
-      endpoint: argv.url,
-      secret: argv.secret,
-      timeout: argv.timeout,
+      endpoint: options.url,
+      secret: options.secret,
+      timeout: options.timeout,
     });
   }
   return client;
