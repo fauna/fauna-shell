@@ -54,15 +54,6 @@ const v4Object2 = createV4QuerySuccess({
   }
 });
 
-const registerHomedir = (container, subdir = "") => {
-  const __dirname = import.meta.dirname;
-  const homedir = path.join(__dirname, "../test/test-homedir", subdir);
-
-  container.register({
-    homedir: awilix.asFunction(() => homedir).scoped(),
-  });
-};
-
 const sleep = async (ms) =>
   await new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -80,11 +71,6 @@ describe("shell", function () {
     container = setupContainer();
     container.register({
       fs: awilix.asValue(node_fs)
-    });
-
-    registerHomedir(container);
-    container.register({
-      fs: awilix.asValue(node_fs),
     });
 
     stdin = container.resolve("stdinStream");
@@ -105,6 +91,22 @@ describe("shell", function () {
     describe("history", function () {
       const upArrow = "\x1b[A";
       const downArrow = "\x1b[B";
+
+      const registerHomedir = (container, subdir = "") => {
+        const __dirname = import.meta.dirname;
+        const homedir = path.join(__dirname, "../test/test-homedir", subdir);
+
+        container.register({
+          homedir: awilix.asFunction(() => homedir).scoped(),
+        });
+      };
+
+      this.beforeEach(() => {
+        // we need to use the actual node fs, not the mock
+        container.register({
+          fs: awilix.asValue(node_fs),
+        });
+      });
 
       it("can be navigated through", async function () {
         registerHomedir(container, "track-history");
