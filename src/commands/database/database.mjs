@@ -1,10 +1,10 @@
 //@ts-check
 
-import listCommand from "./list.mjs";
-import createCommand from "./create.mjs";
-import deleteCommand from "./delete.mjs";
 import { container } from "../../cli.mjs";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import createCommand from "./create.mjs";
+import deleteCommand from "./delete.mjs";
+import listCommand from "./list.mjs";
 
 function validateArgs(argv) {
   const logger = container.resolve("logger");

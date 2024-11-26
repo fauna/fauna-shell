@@ -11,7 +11,6 @@ import stripAnsi from "strip-ansi";
 import { builtYargs, run } from "../src/cli.mjs";
 import { performQuery, performV10Query } from "../src/commands/eval.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import chalk from "chalk";
 import { validDefaultConfigNames } from "../src/lib/config/config.mjs";
 
 const __dirname = import.meta.dirname;
