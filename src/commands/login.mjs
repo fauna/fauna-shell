@@ -6,7 +6,7 @@ import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 async function doLogin() {
   const logger = container.resolve("logger");
   const open = container.resolve("open");
-  const credentials = container.resolve("credentials");
+  const accountCreds = container.resolve("accountCreds");
   const oAuth = container.resolve("oauthClient");
   oAuth.server.on("ready", async () => {
     const authCodeParams = oAuth.getOAuthParams();
@@ -19,7 +19,7 @@ async function doLogin() {
     try {
       const tokenParams = oAuth.getTokenParams();
       const accessToken = await FaunaAccountClient.getToken(tokenParams);
-      await credentials.login(accessToken);
+      await accountCreds.login(accessToken);
       logger.stdout(`Login Success!\n`);
     } catch (err) {
       logger.stderr(err);

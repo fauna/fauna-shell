@@ -21,7 +21,7 @@ function buildHeaders() {
  */
 export async function getSimpleClient(argv) {
   const logger = container.resolve("logger");
-  const credentials = container.resolve("credentials");
+  const databaseCreds = container.resolve("databaseCreds");
   let client = await buildClient(argv);
   const originalQuery = client.query.bind(client);
 
@@ -29,7 +29,7 @@ export async function getSimpleClient(argv) {
     const queryValue = originalArgs[0];
     const queryOptions = {
       ...originalArgs[1],
-      secret: await credentials.getOrRefreshDBKey(),
+      secret: await databaseCreds.getOrRefreshDBKey(),
     };
     return [queryValue, queryOptions];
   };
@@ -37,15 +37,13 @@ export async function getSimpleClient(argv) {
   client.query = async function (...args) {
     const updatedArgs = await queryArgs(args);
     return originalQuery(...updatedArgs).then(async (result) => {
-      // If we fail on a user-provided secret, we should throw an error and not
-      // attempt to refresh the secret
       if (result.status === 401) {
-        // Either refresh the db key in credentials singleton, or throw an error
+        // Either refresh the db key or tell the user their provided key was bad
         logger.debug(
           "Invalid credentials for Fauna API Call, attempting to refresh",
           "creds",
         );
-        await credentials.onInvalidFaunaCreds();
+        await databaseCreds.onInvalidFaunaCreds();
         const updatedArgs = await queryArgs(args);
         return await originalQuery(...updatedArgs);
       }

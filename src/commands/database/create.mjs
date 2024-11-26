@@ -6,9 +6,7 @@ import { performQuery } from "../eval.mjs";
 
 async function createDatabase(argv) {
   const client = await container.resolve("getSimpleClient")(argv);
-  const credentials = await container.resolve("credentials");
   const logger = container.resolve("logger");
-  logger.info("credentials", credentials);
   const result = await performQuery(client, "1 + 1", undefined, {
     ...argv,
     format: "json-tagged",

@@ -7,21 +7,16 @@ import { InvalidCredsError } from "./misc.mjs";
  * Class representing a client for interacting with the Fauna account API.
  */
 export class FaunaAccountClient {
-  constructor() {
-    this.credentials = container.resolve("credentials");
+  constructor(accountCreds) {
+    this.accountCreds = accountCreds;
+
     // For requests where we want to retry on 401s, wrap up the original makeAccountRequest
-    const getRequestArgs = (args) => {
-      return {
-        ...args,
-        secret: this.credentials.getOrRefreshAccountKey(),
-      };
-    };
     this.retryableAccountRequest = async (args) => {
       const original = container.resolve("makeAccountRequest");
       const logger = container.resolve("logger");
       let result;
       try {
-        result = await original(getRequestArgs(args));
+        result = await original(await this.getRequestArgs(args));
       } catch (e) {
         if (e instanceof InvalidCredsError) {
           try {
@@ -29,16 +24,16 @@ export class FaunaAccountClient {
               "401 in account api, attempting to refresh session",
               "creds",
             );
-            await this.credentials.onInvalidAccountCreds();
+            await this.accountCreds.onInvalidAccountCreds();
             // onInvalidAccountCreds will refresh the account key
-            return await original(getRequestArgs(args));
+            return await original(await this.getRequestArgs(args));
           } catch (e) {
             if (e instanceof InvalidCredsError) {
               logger.debug(
                 "Failed to refresh session, expired or missing refresh token",
                 "creds",
               );
-              this.credentials.promptLogin();
+              this.accountCreds.promptLogin();
             } else {
               throw e;
             }
@@ -48,6 +43,16 @@ export class FaunaAccountClient {
         }
       }
       return result;
+    };
+  }
+
+  // By the time we are inside the retryableAccountRequest,
+  //  the account key will have been refreshed. Use the latest value
+  async getRequestArgs(args) {
+    const updatedKey = await this.accountCreds.getOrRefreshAccountKey();
+    return {
+      ...args,
+      secret: updatedKey,
     };
   }
 
@@ -164,7 +169,7 @@ export class FaunaAccountClient {
       return this.retryableAccountRequest({
         method: "GET",
         path: "/databases",
-        secret: this.credentials.accountKey,
+        secret: this.accountCreds.accountKey,
       });
     } catch (err) {
       err.message = `Failure to list databases: ${err.message}`;
@@ -183,16 +188,17 @@ export class FaunaAccountClient {
    * @throws {Error} - Throws an error if there is an issue during key creation.
    */
   async createKey({ path, role = "admin", ttl }) {
+    const TTL_DEFAULT_MS = 1000 * 60 * 60 * 24;
     return await this.retryableAccountRequest({
       method: "POST",
       path: "/databases/keys",
       body: JSON.stringify({
         path,
         role,
-        ttl,
+        ttl: ttl || new Date(Date.now() + TTL_DEFAULT_MS).toISOString(),
         name: "System generated shell key",
       }),
-      secret: this.credentials.accountKey,
+      secret: this.accountCreds.accountKey,
     });
   }
 }
