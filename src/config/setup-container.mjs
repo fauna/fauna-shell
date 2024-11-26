@@ -17,6 +17,7 @@ import { Credentials } from "../lib/auth/credentials.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { getSimpleClient } from "../lib/command-helpers.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
+import { getV10Client, runV10Query } from "../lib/fauna.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import buildLogger from "../lib/logger.mjs";
 import {
@@ -75,6 +76,9 @@ export const injectables = {
   credentials: awilix.asClass(Credentials, {
     lifetime: Lifetime.SINGLETON,
   }),
+  // utilities for interacting with Fauna
+  runV10Query: awilix.asValue(runV10Query),
+  getV10Client: awilix.asValue(getV10Client),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),

@@ -1,4 +1,5 @@
 //@ts-check
+import path from "node:path";
 
 import * as awilix from "awilix";
 import { expect } from "chai";
@@ -60,12 +61,17 @@ describe("login", function () {
       getToken: stub().resolves({ accessToken: "access-token" }),
     };
   };
+
   beforeEach(() => {
+    const __dirname = import.meta.dirname;
+    const homedir = path.join(__dirname, "./test-homedir");
+
     container = setupContainer();
     container.register({
       oauthClient: awilix.asFunction(mockOAuth).scoped(),
       AccountClient: awilix.asValue(mockAccountClient),
       accountCreds: awilix.asClass(AccountKey).scoped(),
+      homedir: awilix.asFunction(() => homedir).scoped(),
     });
     fs = container.resolve("fs");
   });
