@@ -54,12 +54,6 @@ function getDirInfo(possiblePath) {
 }
 
 export function getDirCompletions(currentWord, done) {
-  // console.log("currentWord", currentWord);
-  // console.log("previousWord", previousWord);
-  // console.log("argv", JSON.stringify(argv, null, 2));
-  // console.log("matchKey", matchKey);
-  // console.log("matchValue", matchValue);
-  // console.log("dirs", dirs);
   done(
     getFSCompletions({
       currentWord,

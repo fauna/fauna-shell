@@ -116,21 +116,22 @@ function buildYargs(argvInput) {
     .strict(true)
     .completion(
       "completion",
-      function (currentWord, argv, completionFilter, done) {
+      function (currentWord, argv, defaultCompletions, done) {
+        const logger = container.resolve("logger");
         const previousWord = process.argv.slice(-2, -1)[0].replace(/-/g, "");
         const currentWordFlag = Object.keys(argv)
           .filter((key) => previousWord === key)
           .pop();
-        // console.log("currentWord", currentWord);
-        // console.log("previousWord", previousWord);
-        // console.log("argv", JSON.stringify(argv, null, 2));
-        // console.log("currentWordFlag", currentWordFlag);
+        logger.debug(
+          `Parsing completions with current word ${currentWord} (for flag ${currentWordFlag}) and previous word ${previousWord}.`,
+          "completion",
+        );
 
         // TODO: this doesn't handle aliasing, and it needs to
         if (currentWord === "--dir" || currentWordFlag === "dir") {
           getDirCompletions(currentWord, done);
         } else {
-          completionFilter();
+          defaultCompletions();
         }
       },
     )
@@ -180,7 +181,7 @@ function buildYargs(argvInput) {
           "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
         type: "array",
         default: [],
-        choices: ["fetch", "error", "config", "argv", "creds"],
+        choices: ["fetch", "error", "config", "argv", "creds", "completion"],
       },
     })
     .wrap(yargsInstance.terminalWidth())
