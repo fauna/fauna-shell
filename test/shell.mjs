@@ -83,6 +83,9 @@ describe("shell", function () {
     });
 
     registerHomedir(container);
+    container.register({
+      fs: awilix.asValue(node_fs),
+    })
 
     stdin = container.resolve("stdinStream");
     stdout = container.resolve("stdoutStream");
