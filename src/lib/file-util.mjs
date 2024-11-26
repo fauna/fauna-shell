@@ -1,7 +1,7 @@
 //@ts-check
 
 import fs from "node:fs";
-import os from "node:os";
+import path from "node:path";
 
 import { container } from "../cli.mjs";
 
@@ -105,7 +105,10 @@ export class Credentials {
   constructor(filename = "") {
     this.logger = container.resolve("logger");
     this.filename = filename;
-    this.credsDir = `${os.homedir()}/.fauna/credentials`;
+
+    const homedir = container.resolve("homedir");
+    this.credsDir = path.join(homedir.toString(),".fauna/credentials");
+
     if (!dirExists(this.credsDir)) {
       fs.mkdirSync(this.credsDir, { recursive: true });
     }
