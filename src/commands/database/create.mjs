@@ -3,7 +3,6 @@
 import { FaunaError, fql } from "fauna";
 
 import { container } from "../../cli.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { throwForV10Error } from "../../lib/fauna.mjs";
 
 async function createDatabase(argv) {
@@ -53,7 +52,6 @@ function buildCreateCommand(yargs) {
         type: "number",
         description: "user-defined priority assigned to the child database",
       },
-      ...commonQueryOptions,
     })
     .version(false)
     .help("help", "show help");

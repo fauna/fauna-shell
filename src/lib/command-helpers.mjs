@@ -87,50 +87,6 @@ async function buildClient(options) {
   return client;
 }
 
-// export async function ensureDbScopeClient({ scope, version, argv }) {
-//   const path = scope.split("/");
-
-//   const { connectionOptions } = await getClient({ version: "4", argv });
-//   const { hostname, port, protocol } = new URL(connectionOptions.url);
-
-//   if (!connectionOptions.secret.allowDatabase) {
-//     throw new Error(
-//       "Cannot specify database with a secret that contains a database"
-//     );
-//   }
-
-//   for (let i = 0; i < path.length; i++) {
-//     const client = new Client({
-//       domain: hostname,
-//       port,
-//       scheme: protocol?.replace(/:$/, ""),
-//       secret: connectionOptions.secret.buildSecret(),
-
-//       // See getClient.
-//       fetch: fetch,
-
-//       headers: _getHeaders(),
-//     });
-//     const exists = await client.query(q.Exists(q.Database(path[i])));
-//     await client.close();
-
-//     if (!exists) {
-//       const fullPath = [
-//         ...connectionOptions.secret.databaseScope,
-//         ...path.slice(0, i + 1),
-//       ];
-//       throw new Error(`Database '${fullPath.join("/")}' doesn't exist`);
-//     }
-
-//     connectionOptions.secret.appendScope(path[i]);
-//   }
-
-//   return getClient({
-//     dbScope: scope,
-//     version,
-//   });
-// }
-
 // used for queries customers can't configure that are made on their behalf
 export const commonQueryOptions = {
   url: {
@@ -157,6 +113,15 @@ export const commonQueryOptions = {
     type: "string",
     description: "the client secret to use when calling Fauna",
     required: false,
+  },
+  database: {
+    type: "string",
+    description: "a database path, including region",
+  },
+  role: {
+    type: "string",
+    description: "a role",
+    default: "admin",
   },
 };
 

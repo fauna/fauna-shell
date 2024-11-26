@@ -19,22 +19,21 @@ describe("database create", () => {
     runV10Query = container.resolve("runV10Query");
   });
 
-  [
-    { missing: "name", command: "database create --secret 'secret'" },
-    { missing: "secret", command: "database create --name 'name'" },
-  ].forEach(({ missing, command }) => {
-    it(`requires a ${missing}`, async () => {
-      try {
-        await run(command, container);
-      } catch (e) {}
+  [{ missing: "name", command: "database create --secret 'secret'" }].forEach(
+    ({ missing, command }) => {
+      it(`requires a ${missing}`, async () => {
+        try {
+          await run(command, container);
+        } catch (e) {}
 
-      const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-        `Missing required argument: ${missing}`,
-      )}`;
-      expect(logger.stderr).to.have.been.calledWith(message);
-      expect(container.resolve("parseYargs")).to.have.been.calledOnce;
-    });
-  });
+        const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
+          `Missing required argument: ${missing}`,
+        )}`;
+        expect(logger.stderr).to.have.been.calledWith(message);
+        expect(container.resolve("parseYargs")).to.have.been.calledOnce;
+      });
+    },
+  );
 
   [
     {

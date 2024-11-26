@@ -26,14 +26,14 @@ describe("cli operations", function () {
   it("should exit with a helpful message if a flag is not provided", async function () {
     const logger = container.resolve("logger");
 
-    // this is missing the --secret flag
+    // this is missing the --name flag
     try {
-      await run(`schema pull`, container);
+      await run(`database create`, container);
     } catch (e) {}
 
     expect(logger.stdout).to.not.be.called;
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "Missing required argument: secret",
+      "Missing required argument: name",
     )}`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
