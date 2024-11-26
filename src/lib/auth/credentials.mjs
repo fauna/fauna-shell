@@ -15,12 +15,14 @@ const validateCredentialArgs = (argv) => {
 };
 
 /**
- * Build a credentials singleton based on the command line options provided
+ * Build singletons for the command helpers to use.
+ * These keep track of the correct account and database keys to use
  * @param {*} argv
- * @returns {Credentials}
  */
 export function buildCredentials(argv) {
+  // Get rid of orphaned database keys in the local storage
   cleanupSecretsFile();
+  // Make sure auth-related arguments from users are legal
   validateCredentialArgs(argv);
   const accountCreds = new AccountCreds(argv);
   const databaseCreds = new DatabaseCreds(argv, accountCreds.accountKey);
