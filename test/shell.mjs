@@ -1,4 +1,5 @@
 //@ts-check
+
 import { EOL } from "node:os";
 import path from "node:path";
 
@@ -8,6 +9,7 @@ import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { dirExists } from "../src/lib/file-util.mjs";
 
 // this is defined up here so the indentation doesn't make it harder to use :(
 const v10Object1 = `{
@@ -44,21 +46,33 @@ const v4Object2 = `{
   ]
 }`;
 
+const registerHomedir = (container, subdir = "") => {
+  const __dirname = import.meta.dirname;
+  const homedir = path.join(__dirname, "../test/test-homedir", subdir);
+
+  container.register({
+    homedir: awilix.asFunction(() => homedir).scoped(),
+  });
+};
+
+const sleep = async (ms) =>
+  await new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
 describe("shell", function () {
   let container, stdin, stdout, logger;
 
   const promptReset = "\x1B[1G\x1B[0J> ";
   const prompt = `${EOL}${promptReset}\x1B[3G`;
-  const getHistoryPrompt = (text) => `${promptReset}${text}\u001b[${3 + text.length}G`
+  const getHistoryPrompt = (text) =>
+    `${promptReset}${text}\u001b[${3 + text.length}G`;
 
   beforeEach(() => {
-    const __dirname = import.meta.dirname;
-    const homedir = path.join(__dirname, "../test/test-homedir");
-
     container = setupContainer();
-    container.register({
-      homedir: awilix.asFunction(() => homedir).scoped(),
-    });
+
+    registerHomedir(container);
+
     stdin = container.resolve("stdinStream");
     stdout = container.resolve("stdoutStream");
     logger = container.resolve("logger");
@@ -140,9 +154,76 @@ describe("shell", function () {
       return runPromise;
     });
 
-    it.skip("can clear history", async function () {});
+    it("can clear history", async function () {
+      // start the shell
+      const runPromise = run(`shell --secret "secret" --typecheck`, container);
 
-    it.skip("can save history between sessions", async function () {});
+      // send our first command
+      stdin.push("4\n5\n6\n");
+      await stdout.waitForWritten();
+
+      const command = ".clearhistory";
+      const expected = `${command}\r\nHistory cleared${prompt}`;
+
+      // confirm feedback that .clearhistory command was run
+      stdout.clear();
+      stdin.push(`${command}\n`);
+      await stdout.waitForWritten();
+      expect(stdout.getWritten()).to.equal(expected);
+
+      // sleep to allow time for history to be cleared
+      await sleep(100);
+
+      // Confirm that history is indeed cleared
+      // When there is no history to flip thorugh, stdout will not be written
+      // to. Allow some time for stdout to change to catch issues where stdout
+      // is written to.
+      stdin.push(upArrow);
+      await Promise.any([stdout.waitForWritten(), sleep(100)]);
+      expect(stdout.getWritten()).to.equal(expected);
+
+      expect(container.resolve("stderrStream").getWritten()).to.equal("");
+
+      stdin.push(null);
+
+      return runPromise;
+    });
+
+    it("can save history between sessions", async function () {
+      registerHomedir(container, "persist-history");
+
+      // create history file
+      const fs = container.resolve("fs");
+      const homedir = container.resolve("homedir");
+      if (!dirExists(path.join(homedir, ".fauna"))) {
+        fs.mkdirSync(path.join(homedir, ".fauna"), { recursive: true });
+      }
+      fs.writeFileSync(path.join(homedir, ".fauna/history"), "9\n8\n7\n");
+
+      // start the shell
+      const runPromise = run(`shell --secret "secret" --typecheck`, container);
+
+      // navigate up through history
+      await stdout.waitForWritten();
+      stdout.clear();
+      stdin.push(upArrow);
+      await stdout.waitForWritten();
+      expect(stdout.getWritten()).to.equal(getHistoryPrompt("9"));
+      stdout.clear();
+      stdin.push(upArrow);
+      await stdout.waitForWritten();
+      expect(stdout.getWritten()).to.equal(getHistoryPrompt("8"));
+      stdout.clear();
+      stdin.push(upArrow);
+      await stdout.waitForWritten();
+      expect(stdout.getWritten()).to.equal(getHistoryPrompt("7"));
+
+      expect(container.resolve("stderrStream").getWritten()).to.equal("");
+
+      stdin.push(null);
+
+      return runPromise;
+    });
   });
 
   describe("v10", function () {
