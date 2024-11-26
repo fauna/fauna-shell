@@ -1,6 +1,7 @@
 //@ts-check
 
 import { FaunaError, fql } from "fauna";
+
 import { container } from "../../cli.mjs";
 import { throwForV10Error } from "../../lib/fauna.mjs";
 
