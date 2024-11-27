@@ -9,7 +9,6 @@ import { f, InMemoryWritableStream } from "../../test/helpers.mjs";
 import { parseYargs } from "../cli.mjs";
 import { makeAccountRequest } from "../lib/account.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
-import { AccountKey, SecretKey } from "../lib/file-util.mjs";
 import buildLogger from "../lib/logger.mjs";
 import { injectables, setupCommonContainer } from "./setup-container.mjs";
 
@@ -55,6 +54,7 @@ export function setupTestContainer() {
     // real implementation
     parseYargs: awilix.asValue(spy(parseYargs)),
     fs: awilix.asValue(customfs),
+    homedir: awilix.asValue(stub().returns("/home/user")),
     fsp: awilix.asValue({
       unlink: stub(),
       writeFile: stub(),
@@ -64,11 +64,13 @@ export function setupTestContainer() {
     getSimpleClient: awilix.asValue(
       stub().returns({ close: () => Promise.resolve() }),
     ),
-    accountClient: awilix.asFunction(stub()),
+    AccountClient: awilix.asValue(() => ({
+      startOAuthRequest: stub(),
+      getToken: stub(),
+      getSession: stub(),
+    })),
     oauthClient: awilix.asFunction(stub()),
-    accountCreds: awilix.asClass(AccountKey).scoped(),
-    secretCreds: awilix.asClass(SecretKey).scoped(),
-    // in tests, let's exit by throwing
+    credentials: awilix.asClass(stub()).singleton(),
     errorHandler: awilix.asValue((error, exitCode) => {
       error.code = exitCode;
       throw error;

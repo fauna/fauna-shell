@@ -9,7 +9,7 @@ import keyCommand from "./commands/key.mjs";
 import loginCommand from "./commands/login.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
-import { authNZMiddleware } from "./lib/auth/authNZ.mjs";
+import { buildCredentials } from "./lib/auth/credentials.mjs";
 import { configParser } from "./lib/config/config.mjs";
 import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
@@ -104,7 +104,7 @@ function buildYargs(argvInput) {
     .env("FAUNA")
     .config("config", configParser)
     .middleware([checkForUpdates, logArgv], true)
-    .middleware([fixPaths, authNZMiddleware], false)
+    .middleware([fixPaths, buildCredentials], false)
     .command("eval", "evaluate a query", evalCommand)
     .command("shell", "start an interactive shell", shellCommand)
     .command("login", "login via website", loginCommand)
@@ -149,12 +149,7 @@ function buildYargs(argvInput) {
           "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
         type: "array",
         default: [],
-        choices: ["fetch", "error", "config", "argv"],
-      },
-      // Whether authNZ middleware should run. Better way of doing this?
-      authRequired: {
-        hidden: true,
-        default: false,
+        choices: ["fetch", "error", "config", "argv", "creds"],
       },
     })
     .wrap(yargsInstance.terminalWidth())

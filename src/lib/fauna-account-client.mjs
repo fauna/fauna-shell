@@ -1,13 +1,59 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
+import { InvalidCredsError } from "./misc.mjs";
 
 /**
  * Class representing a client for interacting with the Fauna account API.
  */
 export class FaunaAccountClient {
   constructor() {
-    this.makeAccountRequest = container.resolve("makeAccountRequest");
+    this.accountKeys = container.resolve("credentials").accountKeys;
+
+    // For requests where we want to retry on 401s, wrap up the original makeAccountRequest
+    this.retryableAccountRequest = async (args) => {
+      const original = container.resolve("makeAccountRequest");
+      const logger = container.resolve("logger");
+      let result;
+      try {
+        result = await original(await this.getRequestArgs(args));
+      } catch (e) {
+        if (e instanceof InvalidCredsError) {
+          try {
+            logger.debug(
+              "401 in account api, attempting to refresh session",
+              "creds",
+            );
+            await this.accountKeys.onInvalidCreds();
+            // onInvalidCreds will refresh the account key
+            return await original(await this.getRequestArgs(args));
+          } catch (e) {
+            if (e instanceof InvalidCredsError) {
+              logger.debug(
+                "Failed to refresh session, expired or missing refresh token",
+                "creds",
+              );
+              this.accountKeys.promptLogin();
+            } else {
+              throw e;
+            }
+          }
+        } else {
+          throw e;
+        }
+      }
+      return result;
+    };
+  }
+
+  // By the time we are inside the retryableAccountRequest,
+  //  the account key will have been refreshed. Use the latest value
+  async getRequestArgs(args) {
+    const updatedKey = await this.accountKeys.getOrRereshKey();
+    return {
+      ...args,
+      secret: updatedKey,
+    };
   }
 
   /**
@@ -17,8 +63,9 @@ export class FaunaAccountClient {
    * @returns {Promise<string>} - The URL to the Fauna dashboard for OAuth authorization.
    * @throws {Error} - Throws an error if there is an issue during login.
    */
-  async startOAuthRequest(authCodeParams) {
-    const oauthRedirect = await this.makeAccountRequest({
+  static async startOAuthRequest(authCodeParams) {
+    const makeAccountRequest = container.resolve("makeAccountRequest");
+    const oauthRedirect = await makeAccountRequest({
       path: "/oauth/authorize",
       method: "GET",
       params: authCodeParams,
@@ -37,14 +84,6 @@ export class FaunaAccountClient {
     return dashboardOAuthURL;
   }
 
-  async whoAmI(accountKey) {
-    return await this.makeAccountRequest({
-      method: "GET",
-      path: "/whoami",
-      secret: accountKey,
-    });
-  }
-
   /**
    * Retrieves an access token from the Fauna account API.
    *
@@ -57,7 +96,8 @@ export class FaunaAccountClient {
    * @returns {Promise<string>} - The access token.
    * @throws {Error} - Throws an error if there is an issue during token retrieval.
    */
-  async getToken(opts) {
+  static async getToken(opts) {
+    const makeAccountRequest = container.resolve("makeAccountRequest");
     const params = {
       grant_type: "authorization_code", // eslint-disable-line camelcase
       client_id: opts.clientId, // eslint-disable-line camelcase
@@ -67,7 +107,7 @@ export class FaunaAccountClient {
       code_verifier: opts.codeVerifier, // eslint-disable-line camelcase
     };
     try {
-      const response = await this.makeAccountRequest({
+      const response = await makeAccountRequest({
         method: "POST",
         contentType: "application/x-www-form-urlencoded",
         body: new URLSearchParams(params).toString(),
@@ -88,10 +128,13 @@ export class FaunaAccountClient {
    * @returns {Promise<{accountKey: string, refreshToken: string}>} - The session information.
    * @throws {Error} - Throws an error if there is an issue during session retrieval.
    */
-  async getSession(accessToken) {
+
+  // TODO: get/set expiration details
+  static async getSession(accessToken) {
+    const makeAccountRequest = container.resolve("makeAccountRequest");
     try {
       const { account_key: accountKey, refresh_token: refreshToken } =
-        await this.makeAccountRequest({
+        await makeAccountRequest({
           method: "POST",
           path: "/session",
           secret: accessToken,
@@ -103,27 +146,35 @@ export class FaunaAccountClient {
     }
   }
 
-  async refreshSession(refreshToken) {
-    return await this.makeAccountRequest({
-      method: "POST",
-      path: "/session/refresh",
-      secret: refreshToken,
-    });
+  // TODO: get/set expiration details
+  /**
+   * Uses refreshToken to get a new accountKey and refreshToken.
+   * @param {*} refreshToken
+   * @returns {Promise<{accountKey: string, refreshToken: string}>} - The new session information.
+   */
+  static async refreshSession(refreshToken) {
+    const makeAccountRequest = container.resolve("makeAccountRequest");
+    const { account_key: newAccountKey, refresh_token: newRefreshToken } =
+      await makeAccountRequest({
+        method: "POST",
+        path: "/session/refresh",
+        secret: refreshToken,
+      });
+    return { accountKey: newAccountKey, refreshToken: newRefreshToken };
   }
 
   /**
    * Lists databases associated with the given account key.
    *
-   * @param {string} accountKey - The account key to list databases for.
    * @returns {Promise<Object[]>} - The list of databases.
    * @throws {Error} - Throws an error if there is an issue during the request.
    */
-  async listDatabases(accountKey) {
+  async listDatabases() {
     try {
-      return this.makeAccountRequest({
+      return this.retryableAccountRequest({
         method: "GET",
         path: "/databases",
-        secret: accountKey,
+        secret: this.accountKeys.key,
       });
     } catch (err) {
       err.message = `Failure to list databases: ${err.message}`;
@@ -135,22 +186,24 @@ export class FaunaAccountClient {
    * Creates a new key for a specified database.
    *
    * @param {Object} params - The parameters for creating the key.
-   * @param {string} params.accountKey - The account key for authentication.
    * @param {string} params.path - The path of the database, including region group
    * @param {string} [params.role] - The builtin role for the key. Default admin.
+   * @param {string} params.ttl - ISO String for the key's expiration time
    * @returns {Promise<Object>} - A promise that resolves when the key is created.
    * @throws {Error} - Throws an error if there is an issue during key creation.
    */
-  async createKey({ accountKey, path, role = "admin" }) {
-    // TODO: specify a ttl
-    return await this.makeAccountRequest({
+  async createKey({ path, role = "admin", ttl }) {
+    const TTL_DEFAULT_MS = 1000 * 60 * 60 * 24;
+    return await this.retryableAccountRequest({
       method: "POST",
       path: "/databases/keys",
       body: JSON.stringify({
         path,
         role,
+        ttl: ttl || new Date(Date.now() + TTL_DEFAULT_MS).toISOString(),
+        name: "System generated shell key",
       }),
-      secret: accountKey,
+      secret: this.accountKeys.key,
     });
   }
 }

@@ -1,19 +1,42 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
+import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
+import { performQuery } from "../eval.mjs";
 
 async function listDatabases(argv) {
-  const profile = argv.profile;
   const logger = container.resolve("logger");
-  const accountClient = container.resolve("accountClient");
-  const accountCreds = container.resolve("accountCreds");
-  const accountKey = accountCreds.get({ key: profile }).accountKey;
-  const databases = await accountClient.listDatabases(accountKey);
+
+  // query the account api
+  const accountClient = new FaunaAccountClient();
+  const databases = await accountClient.listDatabases();
   logger.stdout(databases);
+
+  // query the fauna api
+  const dbClient = await container.resolve("getSimpleClient")(argv);
+  const result = await performQuery(dbClient, "Database.all()", undefined, {
+    ...argv,
+    format: "json",
+  });
+  logger.stdout(result);
+
+  // see what credentials are being used
+  const credentials = container.resolve("credentials");
+  logger.debug(
+    `
+    Account Key: ${credentials.accountKeys.key}\n
+    Database Key: ${credentials.databaseKeys.key}`,
+    "creds",
+  );
 }
 
 function buildListCommand(yargs) {
-  return yargs.version(false).help("help", "show help");
+  return yargs
+    .options({
+      ...commonQueryOptions,
+    })
+    .help("help", "show help");
 }
 
 export default {

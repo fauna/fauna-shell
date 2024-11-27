@@ -98,7 +98,8 @@ describe("shell", function () {
 
       // start the shell
       const runPromise = run(`shell --secret "secret"`, container);
-
+      // Wait for the shell to start (print ">")
+      await stdout.waitForWritten();
       // send our first command
       stdin.push(`${query}\n`);
       await stdout.waitForWritten();
@@ -167,7 +168,8 @@ describe("shell", function () {
 
       // start the shell
       const runPromise = run(`shell --secret "secret" --version 4`, container);
-
+      // Wait for the shell to start (print ">")
+      await stdout.waitForWritten();
       // send our first command
       stdin.push(`${query}\n`);
       await stdout.waitForWritten();
