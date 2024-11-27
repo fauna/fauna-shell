@@ -4,7 +4,6 @@ import repl from "node:repl";
 
 import { container } from "../cli.mjs";
 import {
-  // ensureDbScopeClient,
   commonConfigurableQueryOptions,
   validateDatabaseOrSecret,
 } from "../lib/command-helpers.mjs";
@@ -121,7 +120,7 @@ function buildShellCommand(yargs) {
     .options({
       ...commonConfigurableQueryOptions,
     })
-    .example([["$0 shell"], ["$0 shell root_db/child_db"]])
+    .example([["$0 shell"], ["$0 shell --database us-std/example --role admin"]])
     .version(false)
     .help("help", "show help");
 }

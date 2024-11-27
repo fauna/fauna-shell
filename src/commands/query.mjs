@@ -116,11 +116,11 @@ function buildQueryCommand(yargs) {
       ...commonConfigurableQueryOptions,
     })
     .example([
-      ['$0 query "Collection.all()"', "run the query and write to stdout "],
-      ["$0 query -i /path/to/queries.fql", "run the query from a file"],
-      ['echo "1 + 1" | $0 query -', "run the query from stdin"],
-      ['$0 query -i /path/to/queries.fql -o /tmp/result.json', "run the query and write to a file"],
-      ['$0 query -i /path/to/queries.fql -o /tmp/result.json --extra', "run the query and write full API response to a file"],
+      ['$0 query "Collection.all()" --database us-std/example --role admin', "run the query and write to stdout "],
+      ["$0 query -i /path/to/queries.fql --database us-std/example --role admin", "run the query from a file"],
+      ['echo "1 + 1" | $0 query - --database us-std/example --role admin', "run the query from stdin"],
+      ['$0 query -i /path/to/queries.fql -o /tmp/result.json --database us-std/example --role admin', "run the query and write to a file"],
+      ['$0 query -i /path/to/queries.fql -o /tmp/result.json --extra --database us-std/example --role admin', "run the query and write full API response to a file"],
     ])
     .version(false)
     .help("help", "show help");
