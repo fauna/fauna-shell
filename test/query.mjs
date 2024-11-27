@@ -7,6 +7,7 @@ import sinon from "sinon";
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import { createV4QueryFailure, createV4QuerySuccess,createV10QueryFailure, createV10QuerySuccess } from "./helpers.mjs";
+import { isReadable } from "node:stream";
 
 describe("query", function () {
   let container, logger, runQueryFromString;

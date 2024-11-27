@@ -71,9 +71,6 @@ export function setupTestContainer() {
       Client: stub(),
     }),
     logger: awilix.asFunction((cradle) => spy(buildLogger(cradle))).singleton(),
-    getSimpleClient: awilix.asValue(
-      stub().returns({ close: () => Promise.resolve() }),
-    ),
     AccountClient: awilix.asValue(() => ({
       startOAuthRequest: stub(),
       getToken: stub(),
