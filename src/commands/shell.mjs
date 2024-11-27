@@ -6,10 +6,13 @@ import { container } from "../cli.mjs";
 import {
   // ensureDbScopeClient,
   commonConfigurableQueryOptions,
+  validateDatabaseOrSecret,
 } from "../lib/command-helpers.mjs";
 import { getSecret } from "../lib/fauna-client.mjs";
 
-async function doShell(argv) {
+async function shellCommand(argv) {
+  validateDatabaseOrSecret(argv);
+
   const logger = container.resolve("logger");
   let completionPromise;
 
@@ -77,7 +80,7 @@ async function buildCustomEval(argv) {
   const formatError = container.resolve("formatError");
   const formatQueryResponse = container.resolve("formatQueryResponse");
 
-  return async (cmd, ctx, filename, cb) => {
+  return async (cmd, ctx, _filename, cb) => {
     try {
       const logger = container.resolve("logger");
 
@@ -125,5 +128,5 @@ function buildShellCommand(yargs) {
 
 export default {
   builder: buildShellCommand,
-  handler: doShell,
+  handler: shellCommand,
 };

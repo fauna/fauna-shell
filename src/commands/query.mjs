@@ -3,6 +3,7 @@
 import { container } from "../cli.mjs";
 import {
   commonConfigurableQueryOptions,
+  validateDatabaseOrSecret,
 } from "../lib/command-helpers.mjs";
 import { formatError, formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 
@@ -50,12 +51,9 @@ const resolveInput = (argv) => {
   return argv.fql;
 }
 
-async function query(argv) {
-  if (!argv.database && !argv.secret) {
-    throw new Error("No database or secret specified. Pass --database or --secret.");
-  }
-
+async function queryCommand(argv) {
   // validate the arguments and throw if they are invalid
+  validateDatabaseOrSecret(argv);
   validate(argv);
 
   // resolve the input
@@ -133,5 +131,5 @@ export default {
   aliases: ["eval"],
   describe: "execute a query",
   builder: buildQueryCommand,
-  handler: query,
+  handler: queryCommand,
 };

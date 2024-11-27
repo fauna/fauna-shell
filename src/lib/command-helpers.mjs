@@ -64,3 +64,17 @@ export const commonConfigurableQueryOptions = {
     default: 5000,
   }
 };
+
+/**
+ * Validate that the user has specified either a database or a secret.
+ * This check is not required for commands that can operate at a
+ * "root" level.
+ * @param {object} argv 
+ * @param {string} argv.database - The database to use
+ * @param {string} argv.secret - The secret to use
+ */
+export const validateDatabaseOrSecret = (argv) => {
+  if (!argv.database && !argv.secret) {
+    throw new Error("No database or secret specified. Pass --database or --secret.");
+  }
+}
