@@ -125,8 +125,7 @@ export const commonQueryOptions = {
   role: {
     alias: "r",
     type: "string",
-    description: "a role",
-    default: "admin",
+    description: "a role"
   },
 };
 

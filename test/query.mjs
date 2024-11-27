@@ -20,7 +20,7 @@ describe("query", function () {
   describe("common", function () {
     it("requires --input or [fql]", async function () {
       try {
-        await run(`query`, container);
+        await run(`query --secret=foo`, container);
       } catch (e) {}
 
       expect(logger.stderr).to.have.been.calledWith(sinon.match("No query specified. Pass [fql] or --input."));
@@ -28,7 +28,7 @@ describe("query", function () {
 
     it("does not allow both --input and [fql]", async function () {
       try {
-        await run(`query --input "test.fql" "Database.all()"`, container);
+        await run(`query --secret=foo --input "test.fql" "Database.all()"`, container);
       } catch (e) {}
 
       expect(logger.stderr).to.have.been.calledWith(sinon.match("Cannot specify both --input and [fql]"));
@@ -36,7 +36,7 @@ describe("query", function () {
 
     it("requires a file passed to --input to exist", async function () {
       try {
-        await run(`query --input "nonexistent.fql"`, container);
+        await run(`query --secret=foo --input "nonexistent.fql"`, container);
       } catch (e) {}
 
       expect(logger.stderr).to.have.been.calledWith(sinon.match("File passed to --input does not exist: nonexistent.fql"));
@@ -47,7 +47,7 @@ describe("query", function () {
       container.resolve("dirname").returns("/var/nonexistent");
 
       try {
-        await run(`query --output "/var/nonexistent/result.json" "Database.all()"`, container);
+        await run(`query --secret=foo --output "/var/nonexistent/result.json" "Database.all()"`, container);
       } catch (e) {}
 
       expect(logger.stderr).to.have.been.calledWith(sinon.match("Unable to write to output directory: /var/nonexistent"));
@@ -57,7 +57,7 @@ describe("query", function () {
       const { readFileSync } = container.resolve("fs");
       readFileSync.returns("Database.all()");
 
-      await run(`query -`, container);
+      await run(`query - --secret=foo`, container);
 
       expect(readFileSync).to.have.been.calledWith(process.stdin.fd, "utf8");
       expect(runQueryFromString).to.have.been.calledWith("Database.all()");
@@ -68,7 +68,7 @@ describe("query", function () {
       readFileSync.returns("Database.all()");
       existsSync.returns(true);
 
-      await run(`query --input "test.fql"`, container);
+      await run(`query --secret=foo --input "test.fql"`, container);
 
       expect(existsSync).to.have.been.calledWith("test.fql");
       expect(readFileSync).to.have.been.calledWith("test.fql", "utf8");
@@ -86,20 +86,20 @@ describe("query", function () {
       const testResponse = createV10QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
-      await run(`query --output "result.json" "Database.all()"`, container);
+      await run(`query --secret=foo --output "result.json" "Database.all()"`, container);
 
       expect(writeFileSync).to.have.been.calledWith("result.json", JSON.stringify(testData, null, 2));
     });
 
     it("can provide a timeout option", async function () {
-      await run(`query "Database.all()" --timeout 9000`, container);
+      await run(`query "Database.all()" --secret=foo --timeout 9000`, container);
       expect(runQueryFromString).to.have.been.calledWith("\"Database.all()\"", sinon.match({
         timeout: 9000
       }));
     });
 
     it("uses 10 for the default apiVersion", async function () {
-      await run(`query "Database.all()"`, container);
+      await run(`query "Database.all()" --secret=foo`, container);
       expect(runQueryFromString).to.have.been.calledWith(sinon.match.string, sinon.match({
         apiVersion: '10'
       }));
@@ -111,7 +111,7 @@ describe("query", function () {
       runQueryFromString.rejects(new Error('test error'));
       
       try {
-        await run(`query "Database.all()" --quiet`, container);
+        await run(`query "Database.all()" --quiet --secret=foo`, container);
       } catch (e) {}
 
       expect(logger.stdout).to.not.be.called;
@@ -131,7 +131,7 @@ describe("query", function () {
       const testResponse = createV10QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
-      await run(`query "Database.all()"`, container);
+      await run(`query "Database.all()" --secret=foo`, container);
 
       expect(runQueryFromString).to.have.been.calledWith("\"Database.all()\"", sinon.match({
         apiVersion: '10'
@@ -150,7 +150,7 @@ describe("query", function () {
       const testResponse = createV10QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
-      await run(`query "Database.all()" --extra`, container);
+      await run(`query "Database.all()" --extra --secret=foo`, container);
 
       expect(logger.stdout).to.have.been.calledWith(JSON.stringify(testResponse, null, 2));
       expect(logger.stderr).to.not.be.called;
@@ -161,7 +161,7 @@ describe("query", function () {
       runQueryFromString.rejects(new ServiceError(testSummary));
       
       try {
-        await run(`query "Database.all()"`, container);
+        await run(`query "Database.all()" --secret=foo`, container);
       } catch (e) {}
 
       expect(logger.stdout).to.not.be.called;
@@ -175,7 +175,7 @@ describe("query", function () {
       runQueryFromString.rejects(error);
       
       try {
-        await run(`query "Database.all()" --extra`, container);
+        await run(`query "Database.all()" --extra --secret=foo`, container);
       } catch (e) {}
 
       expect(logger.stdout).to.not.be.called;
@@ -183,7 +183,7 @@ describe("query", function () {
     });
 
     it("can set the typecheck option to true", async function () {
-      await run(`query "Database.all()" --typecheck`, container);
+      await run(`query "Database.all()" --typecheck --secret=foo`, container);
       expect(runQueryFromString).to.have.been.calledWith("\"Database.all()\"", sinon.match({
         typecheck: true
       }));
@@ -205,7 +205,7 @@ describe("query", function () {
       const testResponse = createV4QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
-      await run(`query "Collection('test')" --apiVersion 4`, container);
+      await run(`query "Collection('test')" --apiVersion 4 --secret=foo`, container);
 
       expect(runQueryFromString).to.have.been.calledWith("\"Collection('test')\"", sinon.match({
         apiVersion: '4'
@@ -228,7 +228,7 @@ describe("query", function () {
       const testResponse = createV4QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
-      await run(`query "Collection('test')" --extra --apiVersion 4`, container);
+      await run(`query "Collection('test')" --extra --apiVersion 4 --secret=foo`, container);
 
       expect(logger.stdout).to.have.been.calledWith(JSON.stringify(testResponse, null, 2));
       expect(logger.stderr).to.not.be.called;
@@ -245,7 +245,7 @@ describe("query", function () {
       runQueryFromString.rejects(testError);
   
       try {
-        await run(`query "Paginate(Collection('x'))" --apiVersion 4`, container);
+        await run(`query "Paginate(Collection('x'))" --apiVersion 4 --secret=foo`, container);
       } catch (e) {}
 
       expect(logger.stdout).to.not.be.called;
@@ -264,7 +264,7 @@ describe("query", function () {
       runQueryFromString.rejects(testError);
   
       try {
-        await run(`query "Paginate(Collection('x'))" --apiVersion 4 --extra`, container);
+        await run(`query "Paginate(Collection('x'))" --apiVersion 4 --extra --secret=foo`, container);
       } catch (e) {}
 
       expect(logger.stdout).to.not.be.called;
