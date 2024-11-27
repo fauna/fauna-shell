@@ -4,7 +4,7 @@ import { container } from "../../cli.mjs";
 import { commonQueryOptions } from "../../lib/command-helpers.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 
-async function listDatabases(argv) {
+async function listDatabases() {
   const logger = container.resolve("logger");
 
   // query the account api

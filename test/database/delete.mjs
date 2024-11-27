@@ -1,6 +1,5 @@
 //@ts-check
 
-import * as awilix from "awilix";
 import { expect } from "chai";
 import chalk from "chalk";
 import { fql, ServiceError } from "fauna";

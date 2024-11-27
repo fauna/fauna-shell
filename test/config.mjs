@@ -2,7 +2,6 @@
 
 import path from "node:path";
 
-import * as awilix from "awilix";
 import { expect } from "chai";
 import notAllowed from "not-allowed";
 import sinon from "sinon";
