@@ -23,7 +23,7 @@ import { hideBin } from "yargs/helpers";
  * @param {argv} [args.argv] - The parsed yargs argv. Used to determine the current verbosity and if any components are included in verboseComponents.
  */
 export function log({
-  text,
+  text = "",
   verbosity,
   stream,
   component = "unknown",

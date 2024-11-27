@@ -10,13 +10,13 @@ import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
 describe("database delete", () => {
-  let container, logger, runV10Query;
+  let container, logger, runQuery;
 
   beforeEach(() => {
     // reset the container before each test
     container = setupContainer();
     logger = container.resolve("logger");
-    runV10Query = container.resolve("runV10Query");
+    runQuery = container.resolve("faunaClientV10").runQuery;
   });
 
   [{ missing: "name", command: "database delete --secret 'secret'" }].forEach(
@@ -44,7 +44,7 @@ describe("database delete", () => {
     describe("calls fauna with the user specified arguments", () => {
       it(`${args}`, async () => {
         await run(`database create ${args}`, container);
-        expect(runV10Query).to.have.been.calledOnceWith({
+        expect(runQuery).to.have.been.calledOnceWith({
           url: sinon.match.string,
           secret: expected.secret,
           query: fql`Database.byName(${expected.name}).delete()`,
@@ -70,10 +70,7 @@ describe("database delete", () => {
     },
   ].forEach(({ error, expectedMessage }) => {
     it(`handles ${error.code} errors when calling fauna`, async () => {
-      const runV10QueryStub = sinon.stub().rejects(error);
-      container.register({
-        runV10Query: awilix.asValue(runV10QueryStub),
-      });
+      runQuery.rejects(error);
 
       try {
         await run(
@@ -82,8 +79,7 @@ describe("database delete", () => {
         );
       } catch (e) {}
 
-      const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(expectedMessage)}`;
-      expect(logger.stderr).to.have.been.calledWith(message);
+      expect(logger.stderr).to.have.been.calledWith(sinon.match(expectedMessage));
     });
   });
 });

@@ -9,9 +9,9 @@ import sinon from "sinon";
 import stripAnsi from "strip-ansi";
 
 import { builtYargs, run } from "../src/cli.mjs";
-import { performQuery, performV10Query } from "../src/commands/eval.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import { validDefaultConfigNames } from "../src/lib/config/config.mjs";
+import { createV10QuerySuccess } from "./helpers.mjs";
 
 const __dirname = import.meta.dirname;
 
@@ -42,7 +42,7 @@ const jsonConfig = `
 const databaseObject = `{
   data: [
     {
-      name: "v4-test",
+      name: "test",
       coll: Database,
       ts: Time("2024-07-16T19:16:15.980Z"),
       global_id: "asd7zi8pharfn",
@@ -55,10 +55,6 @@ describe("configuration file", function () {
 
   beforeEach(() => {
     container = setupContainer();
-    container.register({
-      performV10Query: awilix.asValue(performV10Query),
-      performQuery: awilix.asValue(performQuery),
-    });
 
     stderr = container.resolve("stderrStream");
     stdout = container.resolve("stdoutStream");
@@ -71,7 +67,7 @@ describe("configuration file", function () {
    * @param {object} args
    * @prop {string} cmd
    * @prop {any} [pathMatcher]
-   * @prop {any} clientMatcher
+   * @prop {any} argvMatcher
    * @prop {string} [configToReturn]
    * @prop {object} objectToReturn
    * @prop {Record<string, string>} [env]
@@ -79,7 +75,7 @@ describe("configuration file", function () {
   async function runBasicTest({
     cmd,
     pathMatcher,
-    clientMatcher,
+    argvMatcher,
     configToReturn,
     objectToReturn,
     env = undefined,
@@ -90,17 +86,10 @@ describe("configuration file", function () {
         .withArgs(pathMatcher)
         .returns(configToReturn);
 
-    // confirm that the default profile flags are used
     container
-      .resolve("getSimpleClient")
-      .callsFake(notAllowed)
-      .withArgs(clientMatcher)
-      .resolves({
-        query: sinon
-          .stub()
-          .resolves({ status: 200, body: { data: objectToReturn } }),
-        close: () => {},
-      });
+      .resolve("runQueryFromString")
+      .withArgs(sinon.match.string, argvMatcher)
+      .resolves(createV10QuerySuccess(objectToReturn));
 
     if (env) {
       for (const [key, value] of Object.entries(env)) {
@@ -110,7 +99,7 @@ describe("configuration file", function () {
 
     await run(cmd, container);
 
-    expect(stdout.getWritten()).to.equal(`${objectToReturn}\n`);
+    expect(stdout.getWritten()).to.equal(`${JSON.stringify(objectToReturn, null, 2)}\n`);
     expect(stderr.getWritten()).to.equal("");
   }
 
@@ -121,11 +110,14 @@ describe("configuration file", function () {
   describe("location", function () {
     it("can be specified by setting a flag", async function () {
       await runBasicTest({
-        cmd: `eval --config ./prod.yaml --query "Database.all()"`,
+        cmd: `eval --config ./prod.yaml "Database.all()"`,
         pathMatcher: path.join(__dirname, "../prod.yaml"),
-        clientMatcher: sinon.match({
+        argvMatcher: sinon.match({
+          apiVersion: "10",
           secret: "very-secret",
           url: "https://db.fauna.com:443",
+          timeout: 5000,
+          typecheck: undefined,
         }),
         objectToReturn: databaseObject,
         configToReturn: yamlConfig,
@@ -134,12 +126,15 @@ describe("configuration file", function () {
 
     it("can be specified by setting an env variable", async function () {
       await runBasicTest({
-        cmd: `eval --query "Database.all()"`,
+        cmd: `eval "Database.all()"`,
         env: { FAUNA_CONFIG: path.join(__dirname, "../prod.yaml") },
         pathMatcher: path.join(__dirname, "../prod.yaml"),
-        clientMatcher: sinon.match({
+        argvMatcher: sinon.match({
+          apiVersion: "10",
           secret: "very-secret",
           url: "https://db.fauna.com:443",
+          timeout: 5000,
+          typecheck: undefined,
         }),
         objectToReturn: databaseObject,
         configToReturn: yamlConfig,
@@ -148,12 +143,15 @@ describe("configuration file", function () {
 
     it("a flag location is prioritized over an env var location", async function () {
       await runBasicTest({
-        cmd: `eval --config ./dev.yaml --query "Database.all()"`,
+        cmd: `eval --config ./dev.yaml "Database.all()"`,
         env: { FAUNA_CONFIG: "./prod.yaml" },
         pathMatcher: path.join(__dirname, "../dev.yaml"),
-        clientMatcher: sinon.match({
+        argvMatcher: sinon.match({
+          apiVersion: "10",
           secret: "very-secret",
           url: "https://db.fauna.com:443",
+          timeout: 5000,
+          typecheck: undefined,
         }),
         objectToReturn: databaseObject,
         configToReturn: yamlConfig,
@@ -172,9 +170,13 @@ describe("configuration file", function () {
       ]);
 
       await runBasicTest({
-        cmd: `eval --query "Database.all()"`,
-        clientMatcher: sinon.match({
+        cmd: `eval "Database.all()"`,
+        argvMatcher: sinon.match({
+          apiVersion: "10",
           secret: "very-secret",
+          url: "https://db.fauna.com:443",
+          timeout: 5000,
+          typecheck: undefined,
         }),
         pathMatcher: validDefaultConfigNames[1],
         configToReturn: jsonConfig,
@@ -185,10 +187,13 @@ describe("configuration file", function () {
     it("does not exit with an error if the config file is not in the default location", async function () {
       fs.readdirSync.withArgs(process.cwd()).returns([]);
       await runBasicTest({
-        cmd: `eval --query "Database.all()" --secret "no-config"`,
-        clientMatcher: sinon.match({
+        cmd: `eval "Database.all()" --secret "no-config"`,
+        argvMatcher: sinon.match({
+          apiVersion: "10",
           secret: "no-config",
           url: "https://db.fauna.com:443",
+          timeout: 5000,
+          typecheck: undefined,
         }),
         objectToReturn: databaseObject,
       });
@@ -202,7 +207,7 @@ describe("configuration file", function () {
         );
 
       try {
-        await run(`eval --query "Database.all()"`, container);
+        await run(`eval "Database.all()"`, container);
       } catch (e) {}
 
       const errorText = `Multiple config files found with valid default names (${validDefaultConfigNames.join(", ")}). Either specify one with "--config FILENAME" or delete the unused config files.`;
@@ -225,7 +230,7 @@ describe("configuration file", function () {
 
       try {
         await run(
-          `eval --config ./dev.yaml --query "Database.all()"`,
+          `eval --config ./dev.yaml "Database.all()"`,
           container,
         );
       } catch (e) {}
@@ -240,11 +245,14 @@ describe("configuration file", function () {
   describe("parsing", function () {
     it("can parse YAML", async function () {
       await runBasicTest({
-        cmd: `eval --config ./dev.yaml --query "Database.all()"`,
+        cmd: `eval --config ./dev.yaml "Database.all()"`,
         pathMatcher: path.join(__dirname, "../dev.yaml"),
-        clientMatcher: sinon.match({
+        argvMatcher: sinon.match({
+          apiVersion: "10",
           secret: "very-secret",
           url: "https://db.fauna.com:443",
+          timeout: 5000,
+          typecheck: undefined,
         }),
         objectToReturn: databaseObject,
         configToReturn: yamlConfig,
@@ -253,11 +261,14 @@ describe("configuration file", function () {
 
     it("can parse JSON", async function () {
       await runBasicTest({
-        cmd: `eval --config ./dev.yaml --query "Database.all()"`,
+        cmd: `eval --config ./dev.yaml "Database.all()"`,
         pathMatcher: path.join(__dirname, "../dev.yaml"),
-        clientMatcher: sinon.match({
+        argvMatcher: sinon.match({
+          apiVersion: "10",
           secret: "very-secret",
           url: "https://db.fauna.com:443",
+          timeout: 5000,
+          typecheck: undefined,
         }),
         objectToReturn: databaseObject,
         configToReturn: jsonConfig,
@@ -276,11 +287,14 @@ describe("configuration file", function () {
 
       try {
         await runBasicTest({
-          cmd: `eval --config ./dev.yaml --query "Database.all()"`,
+          cmd: `eval --config ./dev.yaml "Database.all()"`,
           pathMatcher: path.join(__dirname, "../dev.yaml"),
-          clientMatcher: sinon.match({
+          argvMatcher: sinon.match({
+            apiVersion: "10",
             secret: "very-secret",
             url: "https://db.fauna.com:443",
+            timeout: 5000,
+            typecheck: undefined,
           }),
           objectToReturn: databaseObject,
           configToReturn: noDefaultConfig,
@@ -300,7 +314,7 @@ describe("configuration file", function () {
 
       try {
         await run(
-          `eval --config ./prod.yaml --query "Database.all()" --profile nonexistent`,
+          `eval --config ./prod.yaml "Database.all()" --profile nonexistent`,
           container,
         );
       } catch (e) {}
@@ -319,13 +333,15 @@ describe("configuration file", function () {
 
     it("prioritizes flags over env variables", async function () {
       await runBasicTest({
-        cmd: `eval --secret whispered --config ./dev.yaml --query "Database.all()"`,
+        cmd: `eval --secret whispered --config ./dev.yaml "Database.all()"`,
         env: { FAUNA_SECRET: "not-so-secret" },
         pathMatcher: path.join(__dirname, "../dev.yaml"),
-        clientMatcher: sinon.match({
-          query: "Database.all()",
+        argvMatcher: sinon.match({
+          apiVersion: "10",
           secret: "whispered",
           url: "https://db.fauna.com:443",
+          timeout: 5000,
+          typecheck: undefined,
         }),
         objectToReturn: databaseObject,
         configToReturn: jsonConfig,
@@ -334,13 +350,15 @@ describe("configuration file", function () {
 
     it("prioritizes env variables over config entries", async function () {
       await runBasicTest({
-        cmd: `eval --config ./dev.yaml --query "Database.all()"`,
+        cmd: `eval --config ./dev.yaml "Database.all()"`,
         env: { FAUNA_SECRET: "not-so-secret" },
         pathMatcher: path.join(__dirname, "../dev.yaml"),
-        clientMatcher: sinon.match({
-          query: "Database.all()",
+        argvMatcher: sinon.match({
+          apiVersion: "10",
           secret: "not-so-secret",
           url: "https://db.fauna.com:443",
+          timeout: 5000,
+          typecheck: undefined,
         }),
         objectToReturn: databaseObject,
         configToReturn: jsonConfig,
@@ -349,11 +367,14 @@ describe("configuration file", function () {
 
     it("selects values from the correct profile", async function () {
       await runBasicTest({
-        cmd: `eval --profile dev --config ./dev.yaml --query "Database.all()"`,
+        cmd: `eval --profile dev --config ./dev.yaml "Database.all()"`,
         pathMatcher: sinon.match.any,
-        clientMatcher: sinon.match({
+        argvMatcher: sinon.match({
+          apiVersion: "10",
           secret: "super-secret",
           url: "https://localhost:9999",
+          timeout: 5000,
+          typecheck: undefined,
         }),
         objectToReturn: databaseObject,
         configToReturn: jsonConfig,

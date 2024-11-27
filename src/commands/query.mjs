@@ -11,11 +11,11 @@ function validate(argv) {
   const dirname = container.resolve("dirname");
 
   if (argv.input && argv.fql) {
-    throw new Error("Cannot specify both --input and <fql>");
+    throw new Error("Cannot specify both --input and [fql]");
   }
 
   if (!argv.input && !argv.fql) {
-    throw new Error("No query specified. Pass <fql> or --input.");
+    throw new Error("No query specified. Pass [fql] or --input.");
   }
 
   if (argv.input && !existsSync(argv.input)) {
@@ -46,7 +46,7 @@ const resolveInput = (argv) => {
     return readFileSync(process.stdin.fd, "utf8");
   }
 
-  logger.debug("no --input specified, using <fql>", "argv");
+  logger.debug("no --input specified, using [fql]", "argv");
   return argv.fql;
 }
 
@@ -59,8 +59,19 @@ async function query(argv) {
 
   // get the query handler and run the query
   try {
-    const results = await container.resolve("runQueryFromString")(expression, argv);
-    const output = formatQueryResponse(results, argv);
+    const { secret, url, timeout, typecheck, extra, json, apiVersion } = argv
+    const results = await container.resolve("runQueryFromString")(expression, {
+      apiVersion,
+      secret,
+      url,
+      timeout,
+      typecheck,
+    });
+    const output = formatQueryResponse(results, {
+      apiVersion,
+      extra,
+      json,
+    });
 
     if (argv.output) {
      container.resolve("fs").writeFileSync(argv.output, output);

@@ -7,7 +7,6 @@ import {
   // ensureDbScopeClient,
   commonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { formatError, formatQueryResponse } from "../lib/fauna-client.mjs";
 
 async function doShell(argv) {
   const logger = container.resolve("logger");
@@ -74,6 +73,8 @@ async function doShell(argv) {
 // caches the logger, client, and performQuery for subsequent shell calls
 async function buildCustomEval(argv) {
   const runQueryFromString = container.resolve("runQueryFromString");
+  const formatError = container.resolve("formatError");
+  const formatQueryResponse = container.resolve("formatQueryResponse");
 
   return async (cmd, ctx, filename, cb) => {
     try {
@@ -81,18 +82,26 @@ async function buildCustomEval(argv) {
 
       if (cmd.trim() === "") return cb();
 
+      // These are options used for querying and formatting the response
+      const { apiVersion, extra } = argv;
+
       let res;
       try {
+        const { secret, url, timeout, typecheck } = argv;
         res = await runQueryFromString(cmd, {
-          ...argv,
+          apiVersion,
+          secret,
+          url,
+          timeout,
+          typecheck,
         });
       } catch (err) {
-        logger.stderr(formatError(err, { apiVersion: argv.apiVersion, extra: ctx.extra }));
+        logger.stderr(formatError(err, { apiVersion, extra }));
         return cb(null);
       }
 
       // If extra is on, return the full response. Otherwise, return just the data.
-      logger.stdout(formatQueryResponse(res, { apiVersion: argv.apiVersion, extra: ctx.extra, json: false }));
+      logger.stdout(formatQueryResponse(res, { apiVersion, extra, json: false }));
 
       return cb(null);
     } catch (e) {

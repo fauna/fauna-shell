@@ -1,8 +1,8 @@
 // @ts-check
-import util from "node:util";
 import { createContext, runInContext } from "node:vm";
 
 import { container } from "../cli.mjs";
+import { formatFullErrorForShell, formatObjectForShell } from "./misc.mjs";
 
 /**
  * Creates a V4 Fauna client.
@@ -12,7 +12,7 @@ import { container } from "../cli.mjs";
  * @param {number} [argv.timeout]
  * @returns {Promise<import("faunadb").Client>}
  */
-export const getV4Client = async (argv) => {
+export const getClient = async (argv) => {
   const { Client } = container.resolve("faunadb");
   const { hostname, port, protocol } = new URL(argv.url);
   const scheme = protocol?.replace(/:$/, "");
@@ -61,7 +61,7 @@ const validateQueryParams = ({ query, client, url, secret }) => {
  * @param {import("faunadb").QueryOptions} [opts.options]
  * @returns {Promise<any>}
  */
-export const runV4Query = async ({
+export const runQuery = async ({
   query,
   url = "",
   secret = "",
@@ -69,7 +69,7 @@ export const runV4Query = async ({
   options = {},
 }) => {
   validateQueryParams({ query, client, url, secret });
-  let _client = client ?? await getV4Client({ url, secret });
+  let _client = client ?? await getClient({ url, secret });
  
   try {
     return await _client.queryWithMetrics(query, options);
@@ -82,22 +82,27 @@ export const runV4Query = async ({
 
 /**
  * Formats a V4 Fauna error for display.
- * @param {import("faunadb").errors.FaunaError} err - The Fauna error to format
+ * @param {any} err - An error to format
  * @param {object} [opts]
  * @param {boolean} [opts.extra] - Whether to include extra information
  * @returns {string} The formatted error message
  */
-export const formatV4Error = (err, opts = {}) => {
+export const formatError = (err, opts = {}) => {
   const { extra } = opts;
-  const { errors } = container.resolve("faunadb");
 
-  if (err instanceof errors.FaunaHTTPError) {
+  // By doing this we can avoid requiring a faunadb direct dependency
+  if (
+    err 
+    && typeof err.requestResult === 'object' 
+    && typeof err.requestResult.responseContent === 'object'
+    && Array.isArray(err.requestResult.responseContent.errors)
+  ) {
     // If extra is on, return the full error.
     if (extra) {
-      return util.inspect(err, { depth: null, compact: false });
+      return formatFullErrorForShell(err);
     }
     
-    const { errors } = JSON.parse(err.requestResult.responseRaw)
+    const { errors } = err.requestResult.responseContent;
     if (!errors) {
       return err.message;
     }
@@ -121,14 +126,14 @@ export const formatV4Error = (err, opts = {}) => {
  * @param {boolean} [opts.json] - Whether to return the response as a JSON string
  * @returns {string} The formatted response
  */
-export const formatV4QueryResponse = (res, opts = {}) => {
+export const formatQueryResponse = (res, opts = {}) => {
   const { extra, json } = opts;
   const data = extra ? res : res.value;
   if (json) {
     return JSON.stringify(data);
   }
 
-  return JSON.stringify(data, null, 2);
+  return formatObjectForShell(data);
 }
 
 /**
@@ -141,7 +146,7 @@ export const formatV4QueryResponse = (res, opts = {}) => {
  * @param {import("faunadb").QueryOptions} [opts.options]
  * @returns {Promise<any>}
  */
-export const runV4QueryFromString = async ({
+export const runQueryFromString = async ({
   expression,
   url,
   secret,
@@ -149,5 +154,5 @@ export const runV4QueryFromString = async ({
   options = {},
 }) => {
   const query = await stringExpressionToQuery(expression);
-  return runV4Query({ query, url, secret, client, options });
+  return runQuery({ query, url, secret, client, options });
 };

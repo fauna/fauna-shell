@@ -17,9 +17,9 @@ import { makeAccountRequest } from "../lib/account.mjs";
 import { Credentials } from "../lib/auth/credentials.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
-import { getV10Client, runV10Query } from "../lib/fauna.mjs";
+import * as faunaV10 from "../lib/fauna.mjs";
 import { formatError, formatQueryResponse, runQueryFromString } from "../lib/fauna-client.mjs";
-import { getV4Client, runV4Query } from "../lib/faunadb.mjs";
+import * as faunaV4 from "../lib/faunadb.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import buildLogger from "../lib/logger.mjs";
 import {
@@ -82,10 +82,8 @@ export const injectables = {
   runQueryFromString: awilix.asValue(runQueryFromString),
   formatError: awilix.asValue(formatError),
   formatQueryResponse: awilix.asValue(formatQueryResponse),
-  getV10Client: awilix.asValue(getV10Client),
-  runV10Query: awilix.asValue(runV10Query),
-  getV4Client: awilix.asValue(getV4Client),
-  runV4Query: awilix.asValue(runV4Query),
+  faunaClientV10: awilix.asValue(faunaV10),
+  faunaClientV4: awilix.asValue(faunaV4),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),
