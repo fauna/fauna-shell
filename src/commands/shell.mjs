@@ -7,6 +7,7 @@ import {
   // ensureDbScopeClient,
   commonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
+import { getSecret } from "../lib/fauna-client.mjs";
 
 async function doShell(argv) {
   const logger = container.resolve("logger");
@@ -56,11 +57,11 @@ async function doShell(argv) {
     },
     {
       cmd: "toggleExtra",
-      help: "Toggle full API response in shell; off by default",
+      help: "Toggle additional information in shell; off by default",
       action: () => {
         shell.context.extra = !shell.context.extra;
         logger.stderr(
-          `Full Fauna API response in shell is ${shell.context.extra ? "on" : "off"}`,
+          `Additional information in shell: ${shell.context.extra ? "on" : "off"}`,
         );
         shell.prompt();
       },
@@ -83,11 +84,13 @@ async function buildCustomEval(argv) {
       if (cmd.trim() === "") return cb();
 
       // These are options used for querying and formatting the response
-      const { apiVersion, extra } = argv;
+      const { apiVersion } = argv;
+      const { extra } = ctx;
 
       let res;
       try {
-        const { secret, url, timeout, typecheck } = argv;
+        const secret = await getSecret();
+        const { url, timeout, typecheck } = argv;
         res = await runQueryFromString(cmd, {
           apiVersion,
           secret,

@@ -4,7 +4,7 @@ import { container } from "../cli.mjs";
 import {
   commonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { formatError, formatQueryResponse } from "../lib/fauna-client.mjs";
+import { formatError, formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 
 function validate(argv) {
   const { existsSync, accessSync, constants } = container.resolve("fs");
@@ -51,6 +51,10 @@ const resolveInput = (argv) => {
 }
 
 async function query(argv) {
+  if (!argv.database && !argv.secret) {
+    throw new Error("No database or secret specified. Pass --database or --secret.");
+  }
+
   // validate the arguments and throw if they are invalid
   validate(argv);
 
@@ -59,7 +63,8 @@ async function query(argv) {
 
   // get the query handler and run the query
   try {
-    const { secret, url, timeout, typecheck, extra, json, apiVersion } = argv
+    const secret = await getSecret();
+    const { url, timeout, typecheck, extra, json, apiVersion } = argv
     const results = await container.resolve("runQueryFromString")(expression, {
       apiVersion,
       secret,
@@ -74,7 +79,7 @@ async function query(argv) {
     });
 
     if (argv.output) {
-     container.resolve("fs").writeFileSync(argv.output, output);
+      container.resolve("fs").writeFileSync(argv.output, output);
     } else {
       container.resolve("logger").stdout(output);
     }
@@ -107,7 +112,7 @@ function buildQueryCommand(yargs) {
       },
       extra: {
         type: "boolean",
-        description: "include full API response in the output, including stats",
+        description: "include additional information in the output, including stats",
         default: false,
       },
       ...commonConfigurableQueryOptions,

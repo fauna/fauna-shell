@@ -71,6 +71,32 @@ export default class FaunaClient {
   }
 }
 
+export const getSecret = async () => {
+  const credentials = container.resolve("credentials");
+  if (!credentials.databaseKeys.key) {
+    return await credentials.databaseKeys.getOrRefreshKey();
+  }
+  return credentials.databaseKeys.key;
+}
+
+export const retryInvalidCredsOnce = async (initialSecret, fn) => {
+  try {
+    return await fn(initialSecret);
+  } catch (err) {
+    // If it's a 401, we need to refresh the secret. Let's just do type narrowing here
+    // vs doing another v4 vs v10 check.
+    if (err && (err.httpStatus === 401 || err.requestResult?.statusCode === 401)) {
+      const credentials = container.resolve("credentials");
+
+      await credentials.databaseKeys.onInvalidCreds();
+      const refreshedSecret = await credentials.databaseKeys.getOrRefreshKey();
+
+      return fn(refreshedSecret);
+    }
+    throw err;
+  }
+}
+
 /**
  * Runs a query from a string expression.
  * @param {string} expression - The FQL expression to interpret
@@ -83,13 +109,13 @@ export const runQueryFromString = (expression, argv) => {
 
   if (argv.apiVersion === "4") {
     const { secret, url, timeout } = argv;
-    return faunaV4.runQueryFromString({ expression, secret, url, client: undefined, options: { queryTimeout: timeout } });
+    return retryInvalidCredsOnce(secret, (secret) => faunaV4.runQueryFromString({ expression, secret, url, client: undefined, options: { queryTimeout: timeout } }));
   } else {
     const { secret, url, timeout,...rest } = argv;
     // eslint-disable-next-line camelcase
-    return faunaV10.runQueryFromString({ expression, secret, url, client: undefined, options: { query_timeout_ms: timeout, ...rest } });
+    return retryInvalidCredsOnce(secret, (secret) => faunaV10.runQueryFromString({ expression, secret, url, client: undefined, options: { query_timeout_ms: timeout, ...rest } }));
   }
-};  
+};
 
 /**
  * Formats an error.

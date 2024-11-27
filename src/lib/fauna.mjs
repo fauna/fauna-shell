@@ -45,11 +45,11 @@ export const getClient = ({ url, secret }) => {
   const Client = container.resolve("fauna").Client;
 
   // Check for required arguments.
-  if (!url || !secret) {
-    throw new Error("A url and secret are required.");
+  if (!secret) {
+    throw new Error("No secret provided. Pass --secret or --database.");
   }
   // Create the client.
-  return new Client({ secret, endpoint: new URL(url) });
+  return new Client({ secret, endpoint: url ? new URL(url) : undefined });
 };
 
 /**
@@ -74,8 +74,6 @@ export const runQuery = async ({
   // Check for required arguments.
   if (!query) {
     throw new Error("A query is required.");
-  } else if (!client && (!url || !secret)) {
-    throw new Error("A client or url and secret are required.");
   }
 
   // Create the client if one wasn't provided.

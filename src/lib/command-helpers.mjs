@@ -103,24 +103,30 @@ export const commonQueryOptions = {
     type: "string",
     description: "the Fauna account URL to query",
     default: "https://account.fauna.com",
+    hidden: true,
   },
   clientId: {
     type: "string",
     description: "the client id to use when calling Fauna",
     required: false,
+    hidden: true,
   },
   clientSecret: {
     type: "string",
     description: "the client secret to use when calling Fauna",
     required: false,
+    hidden: true,
   },
   database: {
+    alias: "d",
     type: "string",
     description: "a database path, including region",
   },
   role: {
+    alias: "r",
     type: "string",
     description: "a role",
+    default: "admin",
   },
 };
 
@@ -145,6 +151,11 @@ export const commonConfigurableQueryOptions = {
     type: "number",
     description: "connection timeout in milliseconds",
     default: 5000,
+  },
+  includeHints: {
+    type: "boolean",
+    description: "include performance hints in the output",
+    default: false,
   },
   // format: {
   //   type: "string",
