@@ -3,6 +3,7 @@ import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { SecretKeyStorage } from "../file-util.mjs";
 
 const TTL_DEFAULT_MS = 1000 * 60 * 15; // 15 minutes
+const DEFAULT_ROLE = "admin";
 
 /**
  * Class representing the database key(s) available to the user.
@@ -24,6 +25,12 @@ export class DatabaseKeys {
     this.key = key;
     this.keySource = keySource;
     this.logger = container.resolve("logger");
+    if (this.keySource !== "credentials-file") {
+      // Provided secret carries a role assignment already
+      this.role = undefined;
+    } else {
+      this.role = role || DEFAULT_ROLE;
+    }
 
     if (!key && keySource !== "credentials-file") {
       throw new Error(

@@ -54,6 +54,7 @@ export function setupTestContainer() {
     // real implementation
     parseYargs: awilix.asValue(spy(parseYargs)),
     fs: awilix.asValue(customfs),
+    homedir: awilix.asValue(stub().returns("/home/user")),
     fsp: awilix.asValue({
       unlink: stub(),
       writeFile: stub(),

@@ -33,7 +33,6 @@ function buildKeyCommand(yargs) {
       role: {
         alias: "r",
         type: "string",
-        default: "admin",
         describe: "The role to assign to the key",
       },
     })

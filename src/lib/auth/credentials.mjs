@@ -6,7 +6,6 @@ import { AccountKeys } from "./accountKeys.mjs";
 import { DatabaseKeys } from "./databaseKeys.mjs";
 
 const validateCredentialArgs = (argv) => {
-  const logger = container.resolve("logger");
   if (argv.database && argv.secret) {
     throw new Error(
       "Cannot use both the '--secret' and '--database' options together. Please specify only one.",
@@ -14,7 +13,7 @@ const validateCredentialArgs = (argv) => {
   } else if (argv.role && argv.secret) {
     // The '--role' option is not supported when using a secret. Secrets have an
     // implicit role.
-    logger.warn(
+    throw new Error(
       "The '--role' option is not supported when using a secret. It will be ignored.",
     );
   }

@@ -111,7 +111,7 @@ export class CredentialsStorage {
   constructor(filename = "") {
     this.filename = filename;
 
-    const homedir = container.resolve("homedir")() || "./";
+    const homedir = container.resolve("homedir")();
     this.credsDir = path.join(homedir, ".fauna/credentials");
 
     if (!dirExists(this.credsDir)) {
