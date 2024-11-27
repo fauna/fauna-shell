@@ -55,12 +55,11 @@ export class AccountKeys {
    * Prompt re-authentication and exit the program;
    */
   promptLogin() {
-    const exit = container.resolve("exit");
-    this.logger.stderr(
-      `The requested profile ${this.profile || ""} is not signed in or has expired.\nPlease re-authenticate`,
+    throw new Error(
+      `The requested profile ${this.profile || ""} is not signed in or has expired.\nPlease re-authenticate\n\n
+      To sign in, run:\n\nfauna login\n
+      `,
     );
-    this.logger.stdout(`To sign in, run:\n\nfauna login\n`);
-    exit(1);
   }
 
   /**
