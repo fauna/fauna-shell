@@ -4,12 +4,14 @@ import repl from "node:repl";
 
 import { container } from "../cli.mjs";
 import {
-  // ensureDbScopeClient,
   commonConfigurableQueryOptions,
+  validateDatabaseOrSecret,
 } from "../lib/command-helpers.mjs";
-import { performQuery } from "./eval.mjs";
+import { getSecret } from "../lib/fauna-client.mjs";
 
-async function doShell(argv) {
+async function shellCommand(argv) {
+  validateDatabaseOrSecret(argv);
+
   const logger = container.resolve("logger");
   let completionPromise;
 
@@ -20,9 +22,9 @@ async function doShell(argv) {
   const replArgs = {
     prompt: `${argv.db_path || ""}> `,
     ignoreUndefined: true,
-    preview: argv.version !== "10",
+    preview: argv.apiVersion !== "10",
     // TODO: integrate with fql-analyzer for completions
-    completer: argv.version === "10" ? () => [] : undefined,
+    completer: argv.apiVersion === "10" ? () => [] : undefined,
     output: container.resolve("stdoutStream"),
     input: container.resolve("stdinStream"),
     eval: await buildCustomEval(argv),
@@ -48,10 +50,21 @@ async function doShell(argv) {
       },
     },
     {
-      cmd: "last_error",
+      cmd: "lastError",
       help: "Display the last error",
       action: () => {
         logger.stdout(shell.context.lastError);
+        shell.prompt();
+      },
+    },
+    {
+      cmd: "toggleExtra",
+      help: "Toggle additional information in shell; off by default",
+      action: () => {
+        shell.context.extra = !shell.context.extra;
+        logger.stderr(
+          `Additional information in shell: ${shell.context.extra ? "on" : "off"}`,
+        );
         shell.prompt();
       },
     },
@@ -62,31 +75,38 @@ async function doShell(argv) {
 
 // caches the logger, client, and performQuery for subsequent shell calls
 async function buildCustomEval(argv) {
-  const client = await container.resolve("getSimpleClient")(argv);
+  const runQueryFromString = container.resolve("runQueryFromString");
+  const formatError = container.resolve("formatError");
+  const formatQueryResponse = container.resolve("formatQueryResponse");
 
-  return async (cmd, ctx, filename, cb) => {
+  return async (cmd, ctx, _filename, cb) => {
     try {
       const logger = container.resolve("logger");
 
       if (cmd.trim() === "") return cb();
 
+      // These are options used for querying and formatting the response
+      const { apiVersion } = argv;
+      const { extra } = ctx;
+
       let res;
       try {
-        res = await performQuery(client, cmd, undefined, {
-          ...argv,
-          format: "shell",
+        const secret = await getSecret();
+        const { url, timeout, typecheck } = argv;
+        res = await runQueryFromString(cmd, {
+          apiVersion,
+          secret,
+          url,
+          timeout,
+          typecheck,
         });
       } catch (err) {
-        let errString = "";
-        if (err.code) {
-          errString = errString.concat(`${err.code}\n`);
-        }
-        errString = errString.concat(err.message);
-        logger.stderr(errString);
+        logger.stderr(formatError(err, { apiVersion, extra }));
         return cb(null);
       }
 
-      logger.stdout(res);
+      // If extra is on, return the full response. Otherwise, return just the data.
+      logger.stdout(formatQueryResponse(res, { apiVersion, extra, json: false }));
 
       return cb(null);
     } catch (e) {
@@ -100,12 +120,12 @@ function buildShellCommand(yargs) {
     .options({
       ...commonConfigurableQueryOptions,
     })
-    .example([["$0 shell"], ["$0 shell root_db/child_db"]])
+    .example([["$0 shell"], ["$0 shell --database us-std/example --role admin"]])
     .version(false)
     .help("help", "show help");
 }
 
 export default {
   builder: buildShellCommand,
-  handler: doShell,
+  handler: shellCommand,
 };

@@ -3,6 +3,7 @@ import { normalize } from "node:path";
 import { PassThrough } from "node:stream";
 
 import * as awilix from "awilix";
+import { fql } from "fauna";
 import os from "os";
 import { spy, stub } from "sinon";
 
@@ -10,6 +11,8 @@ import { f, InMemoryWritableStream } from "../../test/helpers.mjs";
 import { parseYargs } from "../cli.mjs";
 import { makeAccountRequest } from "../lib/account.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
+import * as faunaClientV10 from "../lib/fauna.mjs";
+import * as faunaClientV4 from "../lib/faunadb.mjs";
 import buildLogger from "../lib/logger.mjs";
 import { injectables, setupCommonContainer } from "./setup-container.mjs";
 
@@ -61,10 +64,14 @@ export function setupTestContainer() {
       writeFile: stub(),
     }),
     updateNotifier: awilix.asValue(stub().returns({ notify: stub() })),
+    fauna: awilix.asValue({
+      fql: fql,
+      Client: stub(),
+    }),
+    faunadb: awilix.asValue({
+      Client: stub(),
+    }),
     logger: awilix.asFunction((cradle) => spy(buildLogger(cradle))).singleton(),
-    getSimpleClient: awilix.asValue(
-      stub().returns({ close: () => Promise.resolve() }),
-    ),
     AccountClient: awilix.asValue(() => ({
       startOAuthRequest: stub(),
       getToken: stub(),
@@ -81,6 +88,23 @@ export function setupTestContainer() {
     gatherFSL: awilix.asValue(stub().resolves([])),
     makeFaunaRequest: awilix.asValue(spy(makeFaunaRequest)),
     makeAccountRequest: awilix.asValue(spy(makeAccountRequest)),
+    runQueryFromString: awilix.asValue(stub().resolves({})),
+    formatError: awilix.asValue(stub()),
+    formatQueryResponse: awilix.asValue(stub()),
+    faunaClientV10: awilix.asValue({
+      getClient: stub(),
+      runQuery: stub(),
+      runQueryFromString: stub(),
+      formatQueryResponse: faunaClientV10.formatQueryResponse,
+      formatError: faunaClientV10.formatError,
+    }),
+    faunaClientV4: awilix.asValue({
+      getClient: stub(),
+      runQuery: stub(),
+      runQueryFromString: stub(),
+      formatQueryResponse: faunaClientV4.formatQueryResponse,
+      formatError: faunaClientV4.formatError,
+    }),
   };
 
   confirmManualMocks(manualMocks, thingsToManuallyMock);

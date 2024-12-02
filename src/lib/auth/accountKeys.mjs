@@ -5,8 +5,8 @@ import { InvalidCredsError } from "../misc.mjs";
 
 /**
  * Class representing the account key(s) available to the user.
- * This class is scoped to a specific profile, as each command invocation will correlate
- * 1:1 with a profile. The profile determines how we access the local credentials file.
+ * This class is scoped to a specific user, as each command invocation will correlate
+ * 1:1 with a user. The user determines how we access the local credentials file.
  *
  * Keeps track of local keys in this.keyStore, used for getting and saving to/from the filesystem.
  * this.key is the currently active account key, it stays updated after refreshes
@@ -14,8 +14,8 @@ import { InvalidCredsError } from "../misc.mjs";
 export class AccountKeys {
   constructor(argv) {
     this.logger = container.resolve("logger");
-    this.profile = argv.profile;
-    this.keyStore = new AccountKeyStorage(this.profile);
+    this.user = argv.user;
+    this.keyStore = new AccountKeyStorage(this.user);
     const storedKey = this.keyStore.get()?.accountKey;
     const { key, keySource } = AccountKeys.resolveKeySources(argv, storedKey);
     this.key = key;
@@ -56,7 +56,7 @@ export class AccountKeys {
    */
   promptLogin() {
     throw new Error(
-      `The requested profile ${this.profile || ""} is not signed in or has expired.\nPlease re-authenticate\n\n
+      `The requested user ${this.user || ""} is not signed in or has expired.\nPlease re-authenticate\n\n
       To sign in, run:\n\nfauna login\n
       `,
     );

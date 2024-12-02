@@ -1,16 +1,17 @@
 //@ts-check
 
-import { FaunaError, fql } from "fauna";
+import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
-import { throwForV10Error } from "../../lib/fauna.mjs";
+import { throwForError } from "../../lib/fauna.mjs";
 
 async function deleteDatabase(argv) {
+  const { fql } = container.resolve("fauna");
   const logger = container.resolve("logger");
-  const runV10Query = container.resolve("runV10Query");
+  const { runQuery } = container.resolve("faunaClientV10");
 
   try {
-    await runV10Query({
+    await runQuery({
       url: argv.url,
       secret: argv.secret,
       query: fql`Database.byName(${argv.name}).delete()`,
@@ -18,7 +19,7 @@ async function deleteDatabase(argv) {
     logger.stdout(`Database '${argv.name}' was successfully deleted.`);
   } catch (e) {
     if (e instanceof FaunaError) {
-      throwForV10Error(e, {
+      throwForError(e, {
         onDocumentNotFound: () =>
           `Not found: Database '${argv.name}' not found. Please check the database name and try again.`,
       });

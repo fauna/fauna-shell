@@ -1,17 +1,27 @@
 //@ts-check
-
 /**
  * @fileoverview Fauna V10 client utilities for query execution and error handling.
  */
-
 import {
-  Client,
   ClientClosedError,
   ClientError,
   NetworkError,
   ProtocolError,
   ServiceError,
 } from "fauna";
+
+import { container } from "../cli.mjs";
+import { formatFullErrorForShell, formatObjectForShell } from "./misc.mjs";
+
+/**
+ * Interprets a string as a FQL expression and returns a query.
+ * @param {string} expression - The FQL expression to interpret
+ * @returns {Promise<import("fauna").Query<any>>} The resulting query
+ */
+export async function stringExpressionToQuery(expression) {
+  const { fql } = container.resolve("fauna");
+  return fql([expression]);
+}
 
 /**
  * Default options for V10 Fauna queries.
@@ -29,15 +39,17 @@ export const defaultV10QueryOptions = {
  * @param {object} opts
  * @param {string} opts.url
  * @param {string} opts.secret
- * @returns {Client}
+ * @returns {import("fauna").Client}
  */
-export const getV10Client = ({ url, secret }) => {
+export const getClient = ({ url, secret }) => {
+  const Client = container.resolve("fauna").Client;
+
   // Check for required arguments.
-  if (!url || !secret) {
-    throw new Error("A url and secret are required.");
+  if (!secret) {
+    throw new Error("No secret provided. Pass --secret or --database.");
   }
   // Create the client.
-  return new Client({ secret, endpoint: new URL(url) });
+  return new Client({ secret, endpoint: url ? new URL(url) : undefined });
 };
 
 /**
@@ -48,11 +60,11 @@ export const getV10Client = ({ url, secret }) => {
  * @param {import("fauna").Query<any>} opts.query
  * @param {string} [opts.url]
  * @param {string} [opts.secret]
- * @param {Client} [opts.client]
+ * @param {import("fauna").Client} [opts.client]
  * @param {import("fauna").QueryOptions} [opts.options]
  * @returns {Promise<import("fauna").QuerySuccess<any>>}
  */
-export const runV10Query = async ({
+export const runQuery = async ({
   query,
   url,
   secret,
@@ -62,18 +74,15 @@ export const runV10Query = async ({
   // Check for required arguments.
   if (!query) {
     throw new Error("A query is required.");
-  } else if (!client && (!url || !secret)) {
-    throw new Error("A client or url and secret are required.");
   }
 
   // Create the client if one wasn't provided.
   let _client =
     client ??
-    getV10Client({
+    getClient({
       url: /** @type {string} */ (url), // We know this is a string because we check for !url above.
       secret: /** @type {string} */ (secret), // We know this is a string because we check for !secret above.
     });
-
   // Run the query.
   return _client
     .query(query, { ...defaultV10QueryOptions, ...options })
@@ -82,6 +91,81 @@ export const runV10Query = async ({
       if (!client && _client) _client.close();
     });
 };
+
+/**
+ * Runs a V10 Fauna query from a string expression.
+ *
+ * @param {object} opts
+ * @param {string} opts.expression - The FQL expression to interpret
+ * @param {string} [opts.url]
+ * @param {string} [opts.secret]
+ * @param {import("fauna").Client} [opts.client]
+ * @param {import("fauna").QueryOptions} [opts.options]
+ * @returns {Promise<import("fauna").QuerySuccess<any>>}
+ */
+export const runQueryFromString = async ({
+  expression,
+  url,
+  secret,
+  client,
+  options = {},
+}) => {
+  const query = await stringExpressionToQuery(expression);
+  return runQuery({ query, url, secret, client, options });
+};
+
+/**
+ * Formats a V10 Fauna error for display.
+ *
+ * @param {any} err - An error to format
+ * @param {object} [opts]
+ * @param {boolean} [opts.extra] - Whether to include extra information
+ * @returns {string} The formatted error message
+ */
+export const formatError = (err, opts = {}) => {
+  const { extra } = opts;
+
+  // If the error has a queryInfo object with a summary property, we can format it.
+  // Doing this check allows this code to avoid a fauna direct dependency.
+  if (
+    err
+    && typeof err.queryInfo === 'object'
+    && typeof err.queryInfo.summary === 'string'
+  ) {
+    // If you want extra information, use util.inspect to get the full error object.
+    if (extra) {
+      return formatFullErrorForShell(err);
+    }
+
+    // Otherwise, return the summary and fall back to the message.
+    return err.queryInfo?.summary ?? err.message;
+  } else {
+    return err.message;
+  }
+}
+
+/**
+ * Formats a V10 Fauna query response.
+ * @par [ am {import("fauna").QuerySuccess<any>} res 
+ * @param {object} [opts]
+ * @param {boolean} [opts.extra] - Whether to include extra information
+ * @param {boolean} [opts.json] - Whether to return the response as a JSON string
+ * @returns {string} The formatted response
+ */
+export const formatQueryResponse = (res, opts = {}) => {
+  const { extra, json } = opts;
+
+  // If extra is set, return the full response object.
+  const data = extra ? res : res.data;
+
+  // If json is set, return the response as a JSON string.
+  if (json) {
+    return JSON.stringify(data);
+  }
+
+  // Otherwise, return the response as a pretty-printed JSON string.
+  return formatObjectForShell(data);
+}
 
 /**
  * Error handler for errors thrown by the V10 driver. Custom handlers
@@ -108,45 +192,46 @@ export const runV10Query = async ({
  * @throws {Error} Always throws an error with a message based on the error code or handler response
  * @returns {never} This function always throws an error
  */
-export const throwForV10Error = (e, handlers = {}) => {
+// eslint-disable-next-line complexity
+export const throwForError = (e, handlers = {}) => {
   if (e instanceof ServiceError) {
     switch (e.code) {
       case "invalid_query":
-        throw new Error(handlers.onInvalidQuery?.(e) ?? e.message);
+        throw new Error(handlers.onInvalidQuery?.(e) ?? formatError(e));
       case "invalid_request ":
-        throw new Error(handlers.onInvalidRequest?.(e) ?? e.message);
+        throw new Error(handlers.onInvalidRequest?.(e) ?? formatError(e));
       case "abort":
-        throw new Error(handlers.onAbort?.(e) ?? e.message);
+        throw new Error(handlers.onAbort?.(e) ?? formatError(e));
       case "constraint_failure":
-        throw new Error(handlers.onConstraintFailure?.(e) ?? e.message);
+        throw new Error(handlers.onConstraintFailure?.(e) ?? formatError(e));
       case "unauthorized":
         throw new Error(
           handlers.onUnauthorized?.(e) ??
             "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.",
         );
       case "forbidden":
-        throw new Error(handlers.onForbidden?.(e) ?? e.message);
+        throw new Error(handlers.onForbidden?.(e) ?? formatError(e));
       case "contended_transaction":
-        throw new Error(handlers.onContendedTransaction?.(e) ?? e.message);
+        throw new Error(handlers.onContendedTransaction?.(e) ?? formatError(e));
       case "limit_exceeded":
-        throw new Error(handlers.onLimitExceeded?.(e) ?? e.message);
+        throw new Error(handlers.onLimitExceeded?.(e) ?? formatError(e));
       case "time_out":
-        throw new Error(handlers.onTimeOut?.(e) ?? e.message);
+        throw new Error(handlers.onTimeOut?.(e) ?? formatError(e));
       case "internal_error":
-        throw new Error(handlers.onInternalError?.(e) ?? e.message);
+        throw new Error(handlers.onInternalError?.(e) ?? formatError(e));
       case "document_not_found":
-        throw new Error(handlers.onDocumentNotFound?.(e) ?? e.message);
+        throw new Error(handlers.onDocumentNotFound?.(e) ?? formatError(e));
       default:
         throw e;
     }
   } else if (e instanceof ClientError) {
-    throw new Error(handlers.onClientError?.(e) ?? e.message);
+    throw new Error(handlers.onClientError?.(e) ?? formatError(e));
   } else if (e instanceof ClientClosedError) {
-    throw new Error(handlers.onClientClosedError?.(e) ?? e.message);
+    throw new Error(handlers.onClientClosedError?.(e) ?? formatError(e));
   } else if (e instanceof NetworkError) {
-    throw new Error(handlers.onNetworkError?.(e) ?? e.message);
+    throw new Error(handlers.onNetworkError?.(e) ?? formatError(e));
   } else if (e instanceof ProtocolError) {
-    throw new Error(handlers.onProtocolError?.(e) ?? e.message);
+    throw new Error(handlers.onProtocolError?.(e) ?? formatError(e));
   } else {
     throw e;
   }

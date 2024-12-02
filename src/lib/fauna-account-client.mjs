@@ -187,12 +187,12 @@ export class FaunaAccountClient {
    *
    * @param {Object} params - The parameters for creating the key.
    * @param {string} params.path - The path of the database, including region group
-   * @param {string} [params.role] - The builtin role for the key. Default admin.
+   * @param {string} params.role - The builtin role for the key.
    * @param {string} params.ttl - ISO String for the key's expiration time
    * @returns {Promise<Object>} - A promise that resolves when the key is created.
    * @throws {Error} - Throws an error if there is an issue during key creation.
    */
-  async createKey({ path, role = "admin", ttl }) {
+  async createKey({ path, role, ttl }) {
     const TTL_DEFAULT_MS = 1000 * 60 * 60 * 24;
     return await this.retryableAccountRequest({
       method: "POST",

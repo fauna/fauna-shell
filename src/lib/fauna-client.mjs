@@ -1,26 +1,6 @@
 //@ts-check
 
-// export type QueryResponse<T> = QuerySuccess<T> | QueryFailure;
 import { container } from "../cli.mjs";
-
-// export type QuerySuccess<T> = {
-//   status: 200;
-//   body: {
-//     summary?: string;
-//     data: T;
-//   };
-// };
-
-// export type QueryFailure = {
-//   status: number;
-//   body: {
-//     summary?: string;
-//     error: {
-//       code: string;
-//       message?: string;
-//     };
-//   };
-// };
 
 export default class FaunaClient {
   // : { endpoint: string; secret: string; timeout?: number }
@@ -90,3 +70,88 @@ export default class FaunaClient {
     return undefined;
   }
 }
+
+export const getSecret = async () => {
+  const credentials = container.resolve("credentials");
+  if (!credentials.databaseKeys.key) {
+    return await credentials.databaseKeys.getOrRefreshKey();
+  }
+  return credentials.databaseKeys.key;
+}
+
+export const retryInvalidCredsOnce = async (initialSecret, fn) => {
+  try {
+    return await fn(initialSecret);
+  } catch (err) {
+    // If it's a 401, we need to refresh the secret. Let's just do type narrowing here
+    // vs doing another v4 vs v10 check.
+    if (err && (err.httpStatus === 401 || err.requestResult?.statusCode === 401)) {
+      const credentials = container.resolve("credentials");
+
+      await credentials.databaseKeys.onInvalidCreds();
+      const refreshedSecret = await credentials.databaseKeys.getOrRefreshKey();
+
+      return fn(refreshedSecret);
+    }
+    throw err;
+  }
+}
+
+/**
+ * Runs a query from a string expression.
+ * @param {string} expression - The FQL expression to interpret
+ * @param {object} argv - The command-line arguments
+ * @returns {Promise<any>}
+ */
+export const runQueryFromString = (expression, argv) => {
+  const faunaV4 = container.resolve("faunaClientV4");
+  const faunaV10 = container.resolve("faunaClientV10");
+
+  if (argv.apiVersion === "4") {
+    const { secret, url, timeout } = argv;
+    return retryInvalidCredsOnce(secret, (secret) => faunaV4.runQueryFromString({ expression, secret, url, client: undefined, options: { queryTimeout: timeout } }));
+  } else {
+    const { secret, url, timeout,...rest } = argv;
+    // eslint-disable-next-line camelcase
+    return retryInvalidCredsOnce(secret, (secret) => faunaV10.runQueryFromString({ expression, secret, url, client: undefined, options: { query_timeout_ms: timeout, ...rest } }));
+  }
+};
+
+/**
+ * Formats an error.
+ * @param {object} err - The error to format
+ * @param {object} opts
+ * @param {string} opts.apiVersion - The API version
+ * @param {boolean} opts.extra - Whether to include extra information
+ * @returns {object}
+ */
+export const formatError = (err, { apiVersion, extra }) => {
+  const faunaV4 = container.resolve("faunaClientV4");
+  const faunaV10 = container.resolve("faunaClientV10");
+
+  if (apiVersion === "4") {
+    return faunaV4.formatError(err, { extra });
+  } else {
+    return faunaV10.formatError(err, { extra }); 
+  }
+};
+
+/**
+ * Formats a query response.
+ * @param {object} res - The query response
+ * @param {object} opts
+ * @param {string} opts.apiVersion - The API version
+ * @param {boolean} opts.extra - Whether to include extra information
+ * @param {boolean} opts.json - Whether to format the response as JSON
+ * @returns {object}
+ */
+export const formatQueryResponse = (res, { apiVersion, extra, json }) => {
+  const faunaV4 = container.resolve("faunaClientV4");
+  const faunaV10 = container.resolve("faunaClientV10");
+
+  if (apiVersion === "4") {
+    return faunaV4.formatQueryResponse(res, { extra, json });
+  } else {
+    return faunaV10.formatQueryResponse(res, { extra, json });
+  }
+};

@@ -23,7 +23,7 @@ import { hideBin } from "yargs/helpers";
  * @param {argv} [args.argv] - The parsed yargs argv. Used to determine the current verbosity and if any components are included in verboseComponents.
  */
 export function log({
-  text,
+  text = "",
   verbosity,
   stream,
   component = "unknown",
@@ -163,6 +163,33 @@ function fatal(customConsole, text, component, argv) {
   });
 }
 
+/**
+ * Logs text to a stream unless the quiet flag is set.
+ *
+ * @function
+ * @param {any} stream
+ * @param {string} text
+ * @param {argv} [argv]
+ */
+function quietableStream(stream, text, argv) {
+  if (!argv) {
+    argv = yargs(hideBin(process.argv))
+      .options({
+        quiet: {
+          type: "boolean",
+          default: false,
+        }
+      })
+      .version(false).argv;
+  }
+
+  if (argv.quiet) {
+    return;
+  }
+
+  stream(text);
+}
+
 function buildLogger({ stderrStream, stdoutStream }) {
   const customConsole = new Console({
     stderr: stderrStream,
@@ -179,7 +206,7 @@ function buildLogger({ stderrStream, stdoutStream }) {
 
     // use these for communicating with customers
     stdout: customConsole.log,
-    stderr: customConsole.error,
+    stderr: quietableStream.bind(null, customConsole.error),
   };
 }
 

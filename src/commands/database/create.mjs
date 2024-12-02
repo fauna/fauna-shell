@@ -1,16 +1,17 @@
 //@ts-check
 
-import { FaunaError, fql } from "fauna";
+import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
-import { throwForV10Error } from "../../lib/fauna.mjs";
+import { throwForError } from "../../lib/fauna.mjs";
 
 async function createDatabase(argv) {
   const logger = container.resolve("logger");
-  const runV10Query = container.resolve("runV10Query");
+  const { fql } = container.resolve("fauna");
+  const { runQuery } = container.resolve("faunaClientV10");
 
   try {
-    await runV10Query({
+    await runQuery({
       url: argv.url,
       secret: argv.secret,
       query: fql`Database.create({
@@ -23,7 +24,7 @@ async function createDatabase(argv) {
     logger.stdout(`Database '${argv.name}' was successfully created.`);
   } catch (e) {
     if (e instanceof FaunaError) {
-      throwForV10Error(e, {
+      throwForError(e, {
         onConstraintFailure: () =>
           `Constraint failure: The database '${argv.name}' may already exists or one of the provided options may be invalid.`,
       });
