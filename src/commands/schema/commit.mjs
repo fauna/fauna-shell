@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 
 async function doCommit(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
@@ -63,14 +63,13 @@ async function doCommit(argv) {
 }
 
 function buildCommitCommand(yargs) {
-  return yargs
+  return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
         description: "Prompt for user input (e.g., confirmations)",
         default: true,
         type: "boolean",
       },
-      ...commonQueryOptions,
     })
     .example([["$0 schema commit"]])
     .version(false)

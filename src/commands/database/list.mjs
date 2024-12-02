@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 
 async function listDatabases() {
@@ -23,10 +23,7 @@ async function listDatabases() {
 }
 
 function buildListCommand(yargs) {
-  return yargs
-    .options({
-      ...commonQueryOptions,
-    })
+  return yargsWithCommonQueryOptions(yargs)
     .help("help", "show help");
 }
 

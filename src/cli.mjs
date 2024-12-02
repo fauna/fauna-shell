@@ -114,6 +114,13 @@ function buildYargs(argvInput) {
     .demandCommand()
     .strict(true)
     .options({
+      color: {
+        description:
+          "whether or not to emit escape codes for multi-color terminal output.",
+        type: "boolean",
+        // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
+        default: chalk.level > 0,
+      },
       config: {
         type: "string",
         description: "a config file to use",
@@ -160,6 +167,11 @@ function buildYargs(argvInput) {
         type: "array",
         default: [],
         choices: ["fetch", "error", "config", "argv", "creds"],
+      },
+      verbosity: {
+        description: "the lowest level diagnostic logs to emit",
+        type: "number",
+        default: 0,
       },
     })
     .wrap(yargsInstance.terminalWidth())
