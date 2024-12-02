@@ -15,8 +15,9 @@ const DEFAULT_ROLE = "admin";
  */
 export class DatabaseKeys {
   constructor(argv, accountKey) {
-    const { database, role } = argv;
-    this.keyName = DatabaseKeys.getKeyName(database, role);
+    const { database } = argv;
+    this.role = argv.role || DEFAULT_ROLE;
+    this.keyName = DatabaseKeys.getKeyName(database, this.role);
     this.keyStore = new SecretKeyStorage(accountKey);
     this.ttlMs = TTL_DEFAULT_MS;
 
@@ -28,8 +29,6 @@ export class DatabaseKeys {
     if (this.keySource !== "credentials-file") {
       // Provided secret carries a role assignment already
       this.role = undefined;
-    } else {
-      this.role = role || DEFAULT_ROLE;
     }
 
     if (!key && keySource !== "credentials-file") {
