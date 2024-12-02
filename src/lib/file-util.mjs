@@ -287,11 +287,11 @@ export class SecretKeyStorage extends CredentialsStorage {
 export class AccountKeyStorage extends CredentialsStorage {
   /**
    * Creates an instance of AccountKey.
-   * @param {string} profile - The profile used to index the account keys.
+   * @param {string} user - The user used to index the account keys.
    */
-  constructor(profile) {
+  constructor(user) {
     super("access_keys");
-    this.profile = profile;
+    this.user = user;
   }
 
   /**
@@ -299,11 +299,11 @@ export class AccountKeyStorage extends CredentialsStorage {
    * @returns { Object<"refreshToken" | "accountKey", string> } The account key and refresh token.
    */
   get() {
-    return super.get(this.profile);
+    return super.get(this.user);
   }
 
   save(value) {
-    super.save(this.profile, value);
+    super.save(this.user, value);
   }
 
   /**
@@ -311,7 +311,7 @@ export class AccountKeyStorage extends CredentialsStorage {
    * @returns {boolean} - Returns true if the operation was successful, otherwise false.
    */
   delete() {
-    return super.delete(this.profile);
+    return super.delete(this.user);
   }
 }
 
