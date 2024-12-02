@@ -4,9 +4,9 @@ import chalk from "chalk";
 import yargs from "yargs";
 
 import databaseCommand from "./commands/database/database.mjs";
-import evalCommand from "./commands/eval.mjs";
 import keyCommand from "./commands/key.mjs";
 import loginCommand from "./commands/login.mjs";
+import queryCommand from "./commands/query.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
 import { buildCredentials } from "./lib/auth/credentials.mjs";
@@ -105,7 +105,7 @@ function buildYargs(argvInput) {
     .config("config", configParser)
     .middleware([checkForUpdates, logArgv], true)
     .middleware([fixPaths, buildCredentials], false)
-    .command("eval", "evaluate a query", evalCommand)
+    .command(queryCommand)
     .command("shell", "start an interactive shell", shellCommand)
     .command("login", "login via website", loginCommand)
     .command(keyCommand)
@@ -131,6 +131,16 @@ function buildYargs(argvInput) {
         type: "string",
         description: "a user profile",
         default: "default",
+      },
+      json: {
+        type: "boolean",
+        description: "output the result as JSON",
+        default: false,
+      },
+      quiet: {
+        type: "boolean",
+        description: "only emit output",
+        default: false,
       },
       color: {
         description:

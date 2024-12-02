@@ -1,22 +1,20 @@
 //@ts-check
 
-import * as awilix from "awilix";
 import { expect } from "chai";
-import chalk from "chalk";
 import { fql, ServiceError } from "fauna";
 import sinon from "sinon";
 
-import { builtYargs, run } from "../../src/cli.mjs";
+import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
 describe("database create", () => {
-  let container, logger, runV10Query;
+  let container, logger, runQuery;
 
   beforeEach(() => {
     // reset the container before each test
     container = setupContainer();
     logger = container.resolve("logger");
-    runV10Query = container.resolve("runV10Query");
+    runQuery = container.resolve("faunaClientV10").runQuery;
   });
 
   [{ missing: "name", command: "database create --secret 'secret'" }].forEach(
@@ -26,10 +24,7 @@ describe("database create", () => {
           await run(command, container);
         } catch (e) {}
 
-        const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-          `Missing required argument: ${missing}`,
-        )}`;
-        expect(logger.stderr).to.have.been.calledWith(message);
+        expect(logger.stderr).to.have.been.calledWith(sinon.match(`Missing required argument: ${missing}`));
         expect(container.resolve("parseYargs")).to.have.been.calledOnce;
       });
     },
@@ -56,7 +51,7 @@ describe("database create", () => {
     describe("calls fauna with the user specified arguments", () => {
       it(`${args}`, async () => {
         await run(`database create ${args}`, container);
-        expect(runV10Query).to.have.been.calledOnceWith({
+        expect(runQuery).to.have.been.calledOnceWith({
           url: sinon.match.string,
           secret: expected.secret,
           query: fql`Database.create({
@@ -87,20 +82,16 @@ describe("database create", () => {
     },
   ].forEach(({ error, expectedMessage }) => {
     it(`handles ${error.code} errors when calling fauna`, async () => {
-      const runV10QueryStub = sinon.stub().rejects(error);
-      container.register({
-        runV10Query: awilix.asValue(runV10QueryStub),
-      });
+      runQuery.rejects(error);
 
       try {
         await run(
-          `database create --name 'testdb' --secret 'secret'`,
+          `database create --name 'testdb' --secret 'secret' --verbosity=9001`,
           container,
         );
       } catch (e) {}
 
-      const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(expectedMessage)}`;
-      expect(logger.stderr).to.have.been.calledWith(message);
+      expect(logger.stderr).to.have.been.calledWith(sinon.match(expectedMessage));
     });
   });
 });
