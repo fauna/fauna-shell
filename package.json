@@ -70,7 +70,7 @@
   "scripts": {
     "lint": "eslint . --fix",
     "test": "npm run test:local",
-    "test:local": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter mocha-multi-reporters --reporter-options configFile=./test/config/reporter.json",
+    "test:local": "mocha --recursive ./test/credentials.mjs --require ./test/mocha-root-hooks.mjs --reporter mocha-multi-reporters --reporter-options configFile=./test/config/reporter.json",
     "pretest:ci": "npm run build:app",
     "test:ci": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter mocha-multi-reporters --reporter-options configFile=./test/config/reporter.json",
     "build": "npm run build:app && npm run build:sea",

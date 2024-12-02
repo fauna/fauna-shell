@@ -3,6 +3,7 @@ import { normalize } from "node:path";
 import { PassThrough } from "node:stream";
 
 import * as awilix from "awilix";
+import os from "os";
 import { spy, stub } from "sinon";
 
 import { f, InMemoryWritableStream } from "../../test/helpers.mjs";
@@ -54,7 +55,7 @@ export function setupTestContainer() {
     // real implementation
     parseYargs: awilix.asValue(spy(parseYargs)),
     fs: awilix.asValue(customfs),
-    homedir: awilix.asValue(stub().returns("/home/user")),
+    homedir: awilix.asValue(stub().returns(os.tmpdir())),
     fsp: awilix.asValue({
       unlink: stub(),
       writeFile: stub(),

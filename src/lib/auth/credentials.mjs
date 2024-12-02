@@ -65,6 +65,7 @@ export class Credentials {
  * @param {*} argv
  */
 export function buildCredentials(argv) {
+  console.log("in middleware");
   const credentials = new Credentials(argv);
   container.register({
     credentials: asValue(credentials, { lifetime: Lifetime.SINGLETON }),
