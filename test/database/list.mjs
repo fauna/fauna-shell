@@ -7,7 +7,7 @@ import sinon from "sinon";
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
-describe.only("database list", () => {
+describe("database list", () => {
   let container,
     fs,
     logger,
