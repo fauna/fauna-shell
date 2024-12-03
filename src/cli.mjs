@@ -104,6 +104,18 @@ function buildYargs(argvInput) {
     .env("FAUNA")
     .config("config", configParser)
     .middleware([checkForUpdates, logArgv], true)
+    .middleware((argv) => {
+      if (!argv.url) {
+        if (argv.local) {
+          argv.url = 'http://localhost:8443';
+        } else {
+          argv.url = 'https://db.fauna.com';
+        }
+      }
+      if (!argv.secret && argv.local) {
+        argv.secret = "secret";
+      }
+    })
     .middleware([fixPaths, buildCredentials], false)
     .command(queryCommand)
     .command("shell", "start an interactive shell", shellCommand)

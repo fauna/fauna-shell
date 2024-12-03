@@ -94,17 +94,5 @@ export function yargsWithCommonConfigurableQueryOptions(yargs) {
 
 function yargsWithCommonOptions(yargs, options) {
   return yargs
-    .options({ ...options, })
-    .middleware((argv) => {
-      if (!argv.url) {
-        if (argv.local) {
-          argv.url = 'http://localhost:8443';
-        } else {
-          argv.url = 'https://db.fauna.com';
-        }
-      }
-      if (!argv.secret && argv.local) {
-        argv.secret = "secret";
-      }
-    });
+    .options({ ...options, });
 }
