@@ -157,7 +157,7 @@ export class FaunaAccountClient {
     const { account_key: newAccountKey, refresh_token: newRefreshToken } =
       await makeAccountRequest({
         method: "POST",
-        path: "/session/refre`sh",
+        path: "/session/refresh",
         secret: refreshToken,
       });
     return { accountKey: newAccountKey, refreshToken: newRefreshToken };
