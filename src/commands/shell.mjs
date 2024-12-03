@@ -119,7 +119,7 @@ function buildShellCommand(yargs) {
   return yargsWithCommonConfigurableQueryOptions(yargs)
     .example([["$0 shell"], ["$0 shell --database us-std/example --role admin"]])
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {

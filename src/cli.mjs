@@ -116,54 +116,54 @@ function buildYargs(argvInput) {
     .options({
       color: {
         description:
-          "whether or not to emit escape codes for multi-color terminal output.",
+          "Enable color formatting for the output. Uses ANSI escape codes.",
         type: "boolean",
         // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
         default: chalk.level > 0,
       },
       config: {
         type: "string",
-        description: "a config file to use",
+        description: "Path to a CLI config file to use. Use `--profile` to select a profile from the file.",
         default: ".",
       },
       profile: {
         alias: "p",
         type: "string",
         description:
-          "the profile in your config file to fetch CLI settings from",
+          "Profile from the CLI config file to use. Each profile specifies a set of CLI settings.",
         default: "default",
       },
       user: {
         alias: "u",
         type: "string",
-        description: "a user profile",
+        description: "User profile used to run the command. Create user profiles using `fauna login`.",
         default: "default",
       },
       json: {
         type: "boolean",
-        description: "output the result as JSON",
+        description: "Output the results as JSON.",
         default: false,
       },
       quiet: {
         type: "boolean",
-        description: "only emit output",
+        description: "Only output the results of the command.",
         default: false,
       },
       verboseComponent: {
         description:
-          "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
+          "Comma-separated list of components to emit diagnostic logs for. Takes precedence over the `--verbosity` flag.",
         type: "array",
         default: [],
         choices: ["fetch", "error", "config", "argv", "creds"],
       },
       verbosity: {
-        description: "the lowest level diagnostic logs to emit",
+        description: "Maximum verbosity level for log messages. Accepts 1 (fatal) to 5 (debug). Lower values represent more critical logs.",
         type: "number",
         default: 0,
       },
     })
     .wrap(yargsInstance.terminalWidth())
-    .help("help", "show help")
+    .help("help", "Show help.")
     .fail(false)
     .exitProcess(false)
     .version(false)

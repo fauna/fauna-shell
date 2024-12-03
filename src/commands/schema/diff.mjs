@@ -132,7 +132,7 @@ function buildDiffCommand(yargs) {
       ["$0 schema diff --active --text"],
     ])
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {

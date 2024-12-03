@@ -73,12 +73,12 @@ function buildCommitCommand(yargs) {
     })
     .example([["$0 schema commit"]])
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "commit",
-  description: "Push the current project's .fsl files to Fauna.",
+  description: "Apply staged schema files to a database.",
   builder: buildCommitCommand,
   handler: doCommit,
 };

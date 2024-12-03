@@ -76,28 +76,29 @@ function buildListCommand(yargs) {
     .options({
       pageSize: {
         type: "number",
+        description: "Maximum number of databases to return.",
         default: 1000,
       },
     })
-    .help("help", "show help")
+    .help("help", "Show help.")
     .example([
-      ["$0 database list", "list all databases"],
+      ["$0 database list", "List all top-level databases."],
       [
         "$0 database list --database 'us-std/example'",
-        "list all databases under us-std/example",
+        "list all child databases under `us-std/example`.",
       ],
       [
         "$0 database list --secret 'my-secret'",
-        "list all databases using the provided database secret",
+        "List all child databases for the database scoped to a secret.",
       ],
-      ["$0 database list --json", "list all databases and output as JSON"],
-      ["$0 database list --pageSize 10", "list the first 10 databases"],
+      ["$0 database list --json", "List all top-level databases and output as JSON."],
+      ["$0 database list --pageSize 10", "List the first 10 top-level databases"],
     ]);
 }
 
 export default {
   command: "list",
-  description: "Lists your databases",
+  description: "List databases.",
   builder: buildListCommand,
   handler: listDatabases,
 };

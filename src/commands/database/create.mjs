@@ -39,28 +39,28 @@ function buildCreateCommand(yargs) {
       name: {
         type: "string",
         required: true,
-        description: "the name of the database to create",
+        description: "Name of the database to create.",
       },
       typechecked: {
         type: "string",
-        description: "enable typechecking for the database",
+        description: "Enable typechecking. Defaults to the typechecking setting of the parent database.",
       },
       protected: {
         type: "boolean",
-        description: "allow destructive schema changes",
+        description: "Enable protected mode for the database. Protected mode disallows destructive schema changes.",
       },
       priority: {
         type: "number",
-        description: "user-defined priority assigned to the child database",
+        description: "User-defined priority for the database.",
       },
     })
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "create",
-  description: "Creates a database",
+  description: "Create a child database.",
   builder: buildCreateCommand,
   handler: createDatabase,
 };

@@ -12,13 +12,13 @@ function buildDatabase(yargs) {
     .command(deleteCommand)
     .demandCommand()
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "database",
   aliases: ["db"],
-  describe: "Interact with your databases",
+  describe: "Create and manage databases.",
   builder: buildDatabase,
   // eslint-disable-next-line no-empty-function
   handler: () => {},

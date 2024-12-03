@@ -26,12 +26,12 @@ function buildSchema(yargs) {
     .command(statusCommand)
     .demandCommand()
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "schema",
-  describe: "Manipulate Fauna schema state",
+  describe: "Manage a database's schema.",
   builder: buildSchema,
   // eslint-disable-next-line no-empty-function
   handler: () => {},
