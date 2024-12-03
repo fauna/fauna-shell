@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { makeFaunaRequest } from "../../lib/db.mjs";
 
 async function determineFileState(argv, filenames) {
@@ -121,7 +121,7 @@ async function doPull(argv) {
 }
 
 function buildPullCommand(yargs) {
-  return yargs
+  return yargsWithCommonQueryOptions(yargs)
     .options({
       delete: {
         description:
@@ -134,7 +134,6 @@ function buildPullCommand(yargs) {
         type: "boolean",
         default: false,
       },
-      ...commonQueryOptions,
     })
     .example([
       ["$0 schema pull"],

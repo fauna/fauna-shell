@@ -190,7 +190,37 @@ describe("configuration file", function () {
         argvMatcher: sinon.match({
           apiVersion: "10",
           secret: "no-config",
-          url: "https://db.fauna.com:443",
+          url: "https://db.fauna.com",
+          timeout: 5000,
+          typecheck: undefined,
+        }),
+        objectToReturn: databaseObject,
+      });
+    });
+
+    it("--local arg sets the url to http://localhost:8443 if no URL is given", async function () {
+      fs.readdirSync.withArgs(process.cwd()).returns([]);
+      await runBasicTest({
+        cmd: `eval "Database.all()" --secret "no-config" --local`,
+        argvMatcher: sinon.match({
+          apiVersion: "10",
+          secret: "no-config",
+          url: "http://localhost:8443",
+          timeout: 5000,
+          typecheck: undefined,
+        }),
+        objectToReturn: databaseObject,
+      });
+    });
+
+    it("--url arg takes precedence over --local arg for the URL", async function () {
+      fs.readdirSync.withArgs(process.cwd()).returns([]);
+      await runBasicTest({
+        cmd: `eval "Database.all()" --secret "no-config" --local --url http://localhost:hibob`,
+        argvMatcher: sinon.match({
+          apiVersion: "10",
+          secret: "no-config",
+          url: "http://localhost:hibob",
           timeout: 5000,
           typecheck: undefined,
         }),
