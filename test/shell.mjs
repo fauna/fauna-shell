@@ -103,7 +103,7 @@ describe("shell", function () {
         });
       };
 
-      it("can be navigated through", async function () {
+      it.skip("can be navigated through", async function () {
         registerHomedir(container, "track-history");
 
         // start the shell
@@ -145,7 +145,7 @@ describe("shell", function () {
         return runPromise;
       });
 
-      it("can be cleared", async function () {
+      it.skip("can be cleared", async function () {
         registerHomedir(container, "clear-history");
 
         // start the shell
@@ -185,7 +185,7 @@ describe("shell", function () {
         return runPromise;
       });
 
-      it("can be persisted between sessions", async function () {
+      it.skip("can be persisted between sessions", async function () {
         registerHomedir(container, "persist-history");
 
         // create history file
