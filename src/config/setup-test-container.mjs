@@ -86,7 +86,7 @@ export function setupTestContainer() {
     fetch: awilix.asValue(stub().resolves(f({}))),
     gatherFSL: awilix.asValue(stub().resolves([])),
     makeFaunaRequest: awilix.asValue(spy(makeFaunaRequest)),
-    makeAccountRequest: awilix.asValue(spy(makeAccountRequest)),
+    makeAccountRequest: awilix.asValue(stub()),
     runQueryFromString: awilix.asValue(stub().resolves({})),
     formatError: awilix.asValue(stub()),
     formatQueryResponse: awilix.asValue(stub()),
