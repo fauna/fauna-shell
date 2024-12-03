@@ -4,17 +4,28 @@ import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
+import { getSecret } from "../../lib/fauna-client.mjs";
 import { formatObjectForShell } from "../../lib/misc.mjs";
 
+function validate(argv) {
+  if (!argv.secret && !argv.database) {
+    throw new Error(
+      "No secret or database provided. Please use either --secret or --database.",
+    );
+  }
+  return true;
+}
+
 async function createDatabase(argv) {
+  const secret = await getSecret();
   const logger = container.resolve("logger");
   const { fql } = container.resolve("fauna");
   const { runQuery } = container.resolve("faunaClientV10");
 
   try {
     await runQuery({
+      secret,
       url: argv.url,
-      secret: argv.secret,
       query: fql`Database.create({
         name: ${argv.name},
         protected: ${argv.protected ?? null},
@@ -52,19 +63,32 @@ function buildCreateCommand(yargs) {
       },
       typechecked: {
         type: "string",
-        description: "Enable typechecking for the database. Defaults to the typechecking setting of the parent database.",
+        description:
+          "Enable typechecking for the database. Defaults to the typechecking setting of the parent database.",
       },
       protected: {
         type: "boolean",
-        description: "Enable protected mode for the database. Protected mode disallows destructive schema changes.",
+        description:
+          "Enable protected mode for the database. Protected mode disallows destructive schema changes.",
       },
       priority: {
         type: "number",
         description: "User-defined priority for the database.",
       },
     })
+    .check(validate)
     .version(false)
-    .help("help", "Show help.");
+    .help("help", "show help")
+    .example([
+      [
+        "$0 database create --name 'my-database' --database 'us-std/example'",
+        "Create a database named 'my-database' under `us-std/example`.",
+      ],
+      [
+        "$0 database create --name 'my-database' --secret 'my-secret'",
+        "Create a database named 'my-database' scoped to a secret.",
+      ],
+    ]);
 }
 
 export default {

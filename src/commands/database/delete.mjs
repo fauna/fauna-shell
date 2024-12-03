@@ -4,16 +4,27 @@ import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
+import { getSecret } from "../../lib/fauna-client.mjs";
+
+function validate(argv) {
+  if (!argv.secret && !argv.database) {
+    throw new Error(
+      "No secret or database provided. Please use either --secret or --database.",
+    );
+  }
+  return true;
+}
 
 async function deleteDatabase(argv) {
+  const secret = await getSecret();
   const { fql } = container.resolve("fauna");
   const logger = container.resolve("logger");
   const { runQuery } = container.resolve("faunaClientV10");
 
   try {
     await runQuery({
+      secret,
       url: argv.url,
-      secret: argv.secret,
       query: fql`Database.byName(${argv.name}).delete()`,
     });
 
@@ -39,8 +50,19 @@ function buildDeleteCommand(yargs) {
         description: "Name of the database to delete.",
       },
     })
+    .check(validate)
     .version(false)
-    .help("help", "Show help.");
+    .help("help", "show help")
+    .example(
+      [
+        "$0 database delete --name 'my-database' --database 'us-std/example'",
+        "Delete a database named 'my-database' under `us-std/example`.",
+      ],
+      [
+        "$0 database delete --name 'my-database' --secret 'my-secret'",
+        "Delete a database named 'my-database' scoped to a secret.",
+      ],
+    );
 }
 
 export default {
