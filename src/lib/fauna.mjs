@@ -170,7 +170,8 @@ export const formatQueryResponse = (res, opts = {}) => {
 /**
  * Error handler for errors thrown by the V10 driver. Custom handlers
  * can be provided for different types of errors, and a default error
- * message is thrown if no handler is provided.
+ * message is thrown if no handler is provided. This may be used when we run
+ * commands on the users behalf and want to provide a more helpful error message.
  *
  * @param {import("fauna").FaunaError} e - The Fauna error to handle
  * @param {object} [handlers] - Optional error handlers

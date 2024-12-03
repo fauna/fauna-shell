@@ -157,7 +157,7 @@ export class FaunaAccountClient {
     const { account_key: newAccountKey, refresh_token: newRefreshToken } =
       await makeAccountRequest({
         method: "POST",
-        path: "/session/refresh",
+        path: "/session/refre`sh",
         secret: refreshToken,
       });
     return { accountKey: newAccountKey, refreshToken: newRefreshToken };
@@ -166,15 +166,19 @@ export class FaunaAccountClient {
   /**
    * Lists databases associated with the given account key.
    *
-   * @returns {Promise<Object[]>} - The list of databases.
+   * @param {Object} params - The list databases request parameters.
+   * @param {string} [params.path] - The path of the database, including region group.
+   * @param {number} [params.pageSize] - The number of databases to return. Default 1000.
+   * @returns {Promise<{results: Array<{name: string, path: string, region_group: string, has_children: boolean}>, next_token: string | undefined}>} - The list of databases.
    * @throws {Error} - Throws an error if there is an issue during the request.
    */
-  async listDatabases() {
+  async listDatabases({ path, pageSize = 1000 }) {
     try {
       return this.retryableAccountRequest({
         method: "GET",
         path: "/databases",
         secret: this.accountKeys.key,
+        params: { max_results: pageSize, ...(path && { path }) },
       });
     } catch (err) {
       err.message = `Failure to list databases: ${err.message}`;
