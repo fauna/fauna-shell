@@ -29,7 +29,7 @@ function buildSchema(yargs) {
 }
 
 export default {
-  command: "schema",
+  command: "schema <method>",
   describe: "Manipulate Fauna schema state",
   builder: buildSchema,
   // eslint-disable-next-line no-empty-function
