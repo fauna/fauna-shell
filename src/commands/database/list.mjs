@@ -1,6 +1,7 @@
 //@ts-check
 
 import { FaunaError } from "fauna";
+
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
@@ -56,9 +57,9 @@ async function listDatabasesWithSecret(argv) {
 
 async function listDatabases(argv) {
   if (argv.secret) {
-    return listDatabasesWithSecret(argv);
+    listDatabasesWithSecret(argv);
   } else {
-    await listDatabasesWithAccountAPI(argv);
+    listDatabasesWithAccountAPI(argv);
   }
 }
 

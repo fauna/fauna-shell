@@ -178,6 +178,7 @@ export class FaunaAccountClient {
         method: "GET",
         path: "/databases",
         secret: this.accountKeys.key,
+        // eslint-disable-next-line - the API expects max_results
         params: { max_results: pageSize, ...(path && { path }) },
       });
     } catch (err) {
