@@ -95,8 +95,7 @@ export function yargsWithCommonConfigurableQueryOptions(yargs) {
 function yargsWithCommonOptions(yargs, options) {
   return yargs
     .options({ ...options, })
-    .check((argv) => {
-      // If --local is provided and --url is not, set argv.url to "http://localhost:8443"
+    .middleware((argv) => {
       if (!argv.url) {
         if (argv.local) {
           argv.url = 'http://localhost:8443';
@@ -104,6 +103,8 @@ function yargsWithCommonOptions(yargs, options) {
           argv.url = 'https://db.fauna.com';
         }
       }
-      return true; // Validation passed
+      if (!argv.secret && argv.local) {
+        argv.secret = "secret";
+      }
     });
 }
