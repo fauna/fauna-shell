@@ -14,7 +14,7 @@ const validateCredentialArgs = (argv) => {
     // The '--role' option is not supported when using a secret. Secrets have an
     // implicit role.
     throw new Error(
-      "The '--role' option is not supported when using a secret. It will be ignored.",
+      "The '--role' option is not supported when using a '--secret'. Please specify only one.",
     );
   }
 };

@@ -46,9 +46,13 @@ export class DatabaseKeys {
    */
   static resolveKeySources(argv, storedKey) {
     let key, keySource;
-    // argv.secret come from flag, config, or FAUNA_SECRET
+    // argv.secret comes from flag, config, or FAUNA_SECRET
     if (argv.secret) {
       key = argv.secret;
+      keySource = "user";
+    // argv.local comes from a flag or config.
+    } else if (argv.local) {
+      key = "secret";
       keySource = "user";
     } else {
       key = storedKey;

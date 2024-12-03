@@ -56,8 +56,8 @@ const COMMON_QUERY_OPTIONS = {
  * @param {string} argv.secret - The secret to use
  */
 export const validateDatabaseOrSecret = (argv) => {
-  if (!argv.database && !argv.secret) {
-    throw new Error("No database or secret specified. Pass --database or --secret.");
+  if (!argv.database && !argv.secret && !argv.local) {
+    throw new Error("No database or secret specified. Pass either --database, or --secret, or --local.");
   }
 }
 
@@ -103,10 +103,6 @@ function yargsWithCommonOptions(yargs, options) {
         } else {
           argv.url = 'https://db.fauna.com';
         }
-      }
-      // if --local is provided and --secret is not set argv.secret to "secret"
-      if (!argv.secret && argv.local) {
-        argv.secret = 'secret';
       }
       return true; // Validation passed
     });

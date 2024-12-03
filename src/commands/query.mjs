@@ -61,7 +61,7 @@ async function queryCommand(argv) {
 
   // get the query handler and run the query
   try {
-    const secret = await getSecret({ secretArg: argv.secret });
+    const secret = await getSecret();
     const { url, timeout, typecheck, extra, json, apiVersion } = argv;
     const results = await container.resolve("runQueryFromString")(expression, {
       apiVersion,
