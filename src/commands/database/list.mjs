@@ -83,16 +83,16 @@ function buildListCommand(yargs) {
     })
     .help("help", "Show help.")
     .example([
-      ["$0 database list", "List all top-level databases."],
+      ["$0 database list", "List all top-level databases"],
       [
         "$0 database list --database 'us-std/example'",
-        "list all child databases under `us-std/example`.",
+        "list all child databases under `us-std/example`",
       ],
       [
         "$0 database list --secret 'my-secret'",
-        "List all child databases for the database scoped to a secret.",
+        "List all child databases for the database scoped to a secret",
       ],
-      ["$0 database list --json", "List all top-level databases and output as JSON."],
+      ["$0 database list --json", "List all top-level databases and output as JSON"],
       ["$0 database list --pageSize 10", "List the first 10 top-level databases"],
     ]);
 }

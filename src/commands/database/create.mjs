@@ -43,7 +43,7 @@ function buildCreateCommand(yargs) {
       },
       typechecked: {
         type: "string",
-        description: "Enable typechecking. Defaults to the typechecking setting of the parent database.",
+        description: "Enable typechecking for the database. Defaults to the typechecking setting of the parent database.",
       },
       protected: {
         type: "boolean",
