@@ -1,8 +1,9 @@
 //@ts-check
 
-import sinon from "sinon";
 import { expect } from "chai";
 import { ServiceError } from "fauna";
+import sinon from "sinon";
+
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
@@ -29,6 +30,52 @@ describe.only("database list", () => {
     formatQueryResponse =
       container.resolve("faunaClientV10").formatQueryResponse;
     makeAccountRequest = container.resolve("makeAccountRequest");
+  });
+
+  describe("when --local is provided", () => {
+    [
+      {
+        args: "--local",
+        expected: { secret: "secret", url: "http://localhost:8443" },
+      },
+      {
+        args: "--local --url http://yo_dog:8443",
+        expected: { secret: "secret", url: "http://yo_dog:8443" },
+      },
+      {
+        args: "--local --secret taco",
+        expected: { secret: "taco", url: "http://localhost:8443" },
+      },
+      {
+        args: "--local --pageSize 10",
+        expected: { secret: "secret", pageSize: 10, url: "http://localhost:8443" },
+      },
+      {
+        args: "--local --json",
+        expected: { secret: "secret", json: true, url: "http://localhost:8443" },
+      },
+    ].forEach(({ args, expected }) => {
+      it(`calls fauna with the correct args: ${args}`, async () => {
+        const stubedResponse = { data: [{ name: "testdb" }] };
+        runQueryFromString.resolves(stubedResponse);
+
+        await run(`database list ${args}`, container);
+
+        expect(runQueryFromString).to.have.been.calledOnceWith({
+          url: expected.url,
+          secret: expected.secret,
+          expression: `Database.all().paginate(${expected.pageSize ?? 1000}).data { name }`,
+        });
+
+        expect(logger.stdout).to.have.been.calledOnceWith(
+          formatQueryResponse(stubedResponse, {
+            json: expected.json ?? false,
+          }),
+        );
+
+        expect(makeAccountRequest).to.not.have.been.called;
+      });
+    });
   });
 
   describe("when --secret is provided", () => {
