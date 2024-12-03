@@ -1,9 +1,10 @@
 //@ts-check
 
 import { FaunaError } from "fauna";
+
 import { container } from "../../cli.mjs";
-import { throwForError } from "../../lib/fauna.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import { throwForError } from "../../lib/fauna.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 
 // Narrow the output fields based on the provided flags.
