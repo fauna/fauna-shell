@@ -1,17 +1,14 @@
 //@ts-check
 
-import sinon from "sinon";
 import { expect } from "chai";
 import { ServiceError } from "fauna";
+import sinon from "sinon";
+
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
 describe("database list", () => {
-  let container,
-    logger,
-    runQueryFromString,
-    formatQueryResponse,
-    makeAccountRequest;
+  let container, logger, runQueryFromString, formatQueryResponse;
 
   beforeEach(() => {
     // reset the container before each test
@@ -20,7 +17,6 @@ describe("database list", () => {
     runQueryFromString = container.resolve("faunaClientV10").runQueryFromString;
     formatQueryResponse =
       container.resolve("faunaClientV10").formatQueryResponse;
-    makeAccountRequest = container.resolve("makeAccountRequest");
   });
 
   [

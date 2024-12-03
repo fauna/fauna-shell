@@ -7,11 +7,20 @@ import { throwForError } from "../../lib/fauna.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 
-const OUTPUT_FIELDS = ["name"];
+// Narrow the output fields based on the provided flags.
+const getOutputFields = (argv) => {
+  if (!argv.secret && !argv.database) {
+    // If we are listing top level databases the region group
+    // needs to be included as database names can be re-used across
+    // regions.
+    return ["name", "region_group"];
+  }
+  return ["name"];
+};
 
-function pickOutputFields(databases) {
+function pickOutputFields(databases, argv) {
   return databases.map((d) =>
-    OUTPUT_FIELDS.reduce((acc, field) => {
+    getOutputFields(argv).reduce((acc, field) => {
       acc[field] = d[field];
       return acc;
     }, {}),
@@ -25,7 +34,7 @@ async function listDatabasesWithAccountAPI(argv) {
     pageSize,
     path: database,
   });
-  const output = pickOutputFields(response.results);
+  const output = pickOutputFields(response.results, argv);
   if (json) {
     container.resolve("logger").stdout(JSON.stringify(output));
   } else {
@@ -44,7 +53,7 @@ async function listDatabasesWithSecret(argv) {
       secret,
       // This gives us back an array of database names. If we want to
       // provide the after token at some point this query will need to be updated.
-      expression: `Database.all().paginate(${pageSize}).data { ${OUTPUT_FIELDS} }`,
+      expression: `Database.all().paginate(${pageSize}).data { ${getOutputFields(argv)} }`,
     });
     container.resolve("logger").stdout(formatQueryResponse(result, { json }));
   } catch (e) {
@@ -75,7 +84,7 @@ function buildListCommand(yargs) {
     .example([
       ["$0 database list", "list all databases"],
       [
-        "$0 database list --database us-std/example",
+        "$0 database list --database 'us-std/example'",
         "list all databases under us-std/example",
       ],
       [
