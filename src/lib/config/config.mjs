@@ -82,6 +82,7 @@ export function configParser(path) {
   const argv = yargs(argvInput).options({
     profile: {
       default: "default",
+      alias: ["p"],
       type: "string",
     },
   }).argv;

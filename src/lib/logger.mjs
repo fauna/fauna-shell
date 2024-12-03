@@ -2,8 +2,7 @@ import chalk from "chalk";
 import { Console } from "console";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-
-import { builtYargs } from "../cli.mjs";
+import yargsParser from "yargs-parser";
 
 /**
  * @typedef argv
@@ -38,12 +37,19 @@ export function log({
 
   // this case only occurs when an error is thrown and not caught _or_ a command is called with
   // the `--help` flag (where checkForDefaultConfig calls this)
-  if (!argv && builtYargs.parsed) {
-    argv = builtYargs.parsed.argv;
+  if (!argv) {
+    argv = yargsParser(process.argv.slice(2), {
+      array: ["verboseComponent"],
+      alias: {
+        profile: ["p"],
+        config: ["c"],
+      },
+    });
   }
 
   if (
     argv &&
+    argv.verboseComponent &&
     (argv.verbosity >= verbosity || argv.verboseComponent.includes(component))
   ) {
     const prefix = chalk.reset("[") + formatter(component) + chalk.reset("]: ");
