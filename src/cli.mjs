@@ -166,6 +166,6 @@ function buildYargs(argvInput) {
     .help("help", "show help")
     .fail(false)
     .exitProcess(false)
-    .version(false)
+    .version()
     .completion();
 }

@@ -140,7 +140,6 @@ function buildPullCommand(yargs) {
       ["$0 schema pull --active"],
       ["$0 schema pull --delete"],
     ])
-    .version(false)
     .help("help", "show help");
 }
 

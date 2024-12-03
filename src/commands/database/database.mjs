@@ -11,7 +11,6 @@ function buildDatabase(yargs) {
     .command(createCommand)
     .command(deleteCommand)
     .demandCommand()
-    .version(false)
     .help("help", "show help");
 }
 

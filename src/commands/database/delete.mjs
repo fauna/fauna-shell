@@ -37,7 +37,6 @@ function buildDeleteCommand(yargs) {
         description: "the name of the database to delete",
       },
     })
-    .version(false)
     .help("help", "show help");
 }
 
