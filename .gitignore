@@ -16,6 +16,9 @@ coverage
 test-results.xml
 .history
 
+# test directory for persisted files
+/test/test-homedir
+
 # default fauna config file names
 fauna.config.yaml,
 fauna.config.yml,
