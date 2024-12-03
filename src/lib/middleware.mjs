@@ -44,3 +44,29 @@ export function checkForUpdates(argv) {
   notifier.notify();
   return argv;
 }
+
+/**
+ * Mutates argv appropriately for local Fauna usage
+ * (i.e. local container usage). If --local is provided
+ * and --url is not, argv.url is set to 'http://localhost:8443'.
+ * If --local is provided and --secret is not, argv.secret is
+ * set to 'secret'.
+ * @param {import('yargs').Arguments} argv
+ * @returns {void}
+*/
+export function applyLocalArg(argv) {
+  const logger = container.resolve("logger");
+  if (!argv.url) {
+    if (argv.local) {
+      argv.url = 'http://localhost:8443';
+      logger.debug("Set url to 'http://localhost:8443' as --local was given and --url was not", "argv", argv);
+    } else {
+      argv.url = 'https://db.fauna.com';
+      logger.debug("Defaulted url to 'https://db.fauna.com' no --url was provided", "argv", argv);
+    }
+  }
+  if (!argv.secret && argv.local) {
+    argv.secret = "secret";
+    logger.debug("Set secret to 'secret' as --local was given and --secret was not", "argv", argv);
+  }
+}
