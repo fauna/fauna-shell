@@ -190,7 +190,7 @@ describe("configuration file", function () {
         argvMatcher: sinon.match({
           apiVersion: "10",
           secret: "no-config",
-          url: "https://db.fauna.com:443",
+          url: "https://db.fauna.com",
           timeout: 5000,
           typecheck: undefined,
         }),
