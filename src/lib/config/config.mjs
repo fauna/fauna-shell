@@ -1,5 +1,6 @@
 import yaml from "yaml";
 import yargs from "yargs";
+import yargsParser from "yargs-parser";
 
 import { argvInput, container } from "../../cli.mjs";
 
@@ -82,6 +83,7 @@ export function configParser(path) {
   const argv = yargs(argvInput).options({
     profile: {
       default: "default",
+      alias: ["p"],
       type: "string",
     },
   }).argv;

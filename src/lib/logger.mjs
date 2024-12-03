@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { Console } from "console";
 import yargs from "yargs";
+import yargsParser from "yargs-parser";
 import { hideBin } from "yargs/helpers";
 
 import { builtYargs } from "../cli.mjs";
@@ -38,8 +39,13 @@ export function log({
 
   // this case only occurs when an error is thrown and not caught _or_ a command is called with
   // the `--help` flag (where checkForDefaultConfig calls this)
-  if (!argv && builtYargs.parsed) {
-    argv = builtYargs.parsed.argv;
+  if (!argv) {
+    argv = yargsParser(process.argv.slice(2), {
+      alias: {
+        profile: ["p"],
+        config: ["c"],
+      },
+    });
   }
 
   if (
