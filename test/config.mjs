@@ -98,7 +98,9 @@ describe("configuration file", function () {
 
     await run(cmd, container);
 
-    expect(stdout.getWritten()).to.equal(`${JSON.stringify(objectToReturn, null, 2)}\n`);
+    expect(stdout.getWritten()).to.equal(
+      `${JSON.stringify(objectToReturn, null, 2)}\n`,
+    );
     expect(stderr.getWritten()).to.equal("");
   }
 
@@ -288,10 +290,7 @@ describe("configuration file", function () {
         .throws(fakeFSError);
 
       try {
-        await run(
-          `eval --config ./dev.yaml "Database.all()"`,
-          container,
-        );
+        await run(`eval --config ./dev.yaml "Database.all()"`, container);
       } catch (e) {}
 
       const errorText = `Config file not found at path ${configPath}.`;

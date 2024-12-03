@@ -24,7 +24,9 @@ describe("database create", () => {
           await run(command, container);
         } catch (e) {}
 
-        expect(logger.stderr).to.have.been.calledWith(sinon.match(`Missing required argument: ${missing}`));
+        expect(logger.stderr).to.have.been.calledWith(
+          sinon.match(`Missing required argument: ${missing}`),
+        );
         expect(container.resolve("parseYargs")).to.have.been.calledOnce;
       });
     },
@@ -91,7 +93,9 @@ describe("database create", () => {
         );
       } catch (e) {}
 
-      expect(logger.stderr).to.have.been.calledWith(sinon.match(expectedMessage));
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match(expectedMessage),
+      );
     });
   });
 });

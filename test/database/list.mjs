@@ -48,11 +48,19 @@ describe("database list", () => {
       },
       {
         args: "--local --pageSize 10",
-        expected: { secret: "secret", pageSize: 10, url: "http://localhost:8443" },
+        expected: {
+          secret: "secret",
+          pageSize: 10,
+          url: "http://localhost:8443",
+        },
       },
       {
         args: "--local --json",
-        expected: { secret: "secret", json: true, url: "http://localhost:8443" },
+        expected: {
+          secret: "secret",
+          json: true,
+          url: "http://localhost:8443",
+        },
       },
     ].forEach(({ args, expected }) => {
       it(`calls fauna with the correct args: ${args}`, async () => {

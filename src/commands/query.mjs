@@ -5,7 +5,11 @@ import {
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { formatError, formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
+import {
+  formatError,
+  formatQueryResponse,
+  getSecret,
+} from "../lib/fauna-client.mjs";
 
 function validate(argv) {
   const { existsSync, accessSync, constants } = container.resolve("fs");
@@ -49,7 +53,7 @@ const resolveInput = (argv) => {
 
   logger.debug("no --input specified, using [fql]", "argv");
   return argv.fql;
-}
+};
 
 async function queryCommand(argv) {
   // validate the arguments and throw if they are invalid
@@ -84,7 +88,10 @@ async function queryCommand(argv) {
 
     return results;
   } catch (err) {
-    err.message = formatError(err, { apiVersion: argv.apiVersion, extra: argv.extra }); 
+    err.message = formatError(err, {
+      apiVersion: argv.apiVersion,
+      extra: argv.extra,
+    });
     throw err;
   }
 }
@@ -95,13 +102,12 @@ function buildQueryCommand(yargs) {
       type: "string",
       description: "the query to run; use - to read from stdin",
     })
-    .nargs('fql', 1)
+    .nargs("fql", 1)
     .options({
       input: {
         alias: "i",
         type: "string",
-        description:
-          "file path to read the query (or queries) from",
+        description: "file path to read the query (or queries) from",
       },
       output: {
         alias: "o",
@@ -110,16 +116,32 @@ function buildQueryCommand(yargs) {
       },
       extra: {
         type: "boolean",
-        description: "include additional information in the output, including stats",
+        description:
+          "include additional information in the output, including stats",
         default: false,
       },
     })
     .example([
-      ['$0 query "Collection.all()" --database us-std/example --role admin', "run the query and write to stdout "],
-      ["$0 query -i /path/to/queries.fql --database us-std/example --role admin", "run the query from a file"],
-      ['echo "1 + 1" | $0 query - --database us-std/example --role admin', "run the query from stdin"],
-      ['$0 query -i /path/to/queries.fql -o /tmp/result.json --database us-std/example --role admin', "run the query and write to a file"],
-      ['$0 query -i /path/to/queries.fql -o /tmp/result.json --extra --database us-std/example --role admin', "run the query and write full API response to a file"],
+      [
+        '$0 query "Collection.all()" --database us-std/example --role admin',
+        "run the query and write to stdout ",
+      ],
+      [
+        "$0 query -i /path/to/queries.fql --database us-std/example --role admin",
+        "run the query from a file",
+      ],
+      [
+        'echo "1 + 1" | $0 query - --database us-std/example --role admin',
+        "run the query from stdin",
+      ],
+      [
+        "$0 query -i /path/to/queries.fql -o /tmp/result.json --database us-std/example --role admin",
+        "run the query and write to a file",
+      ],
+      [
+        "$0 query -i /path/to/queries.fql -o /tmp/result.json --extra --database us-std/example --role admin",
+        "run the query and write full API response to a file",
+      ],
     ])
     .help("help", "show help");
 }

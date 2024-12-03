@@ -89,7 +89,10 @@ export const retryInvalidCredsOnce = async (initialSecret, fn) => {
   } catch (err) {
     // If it's a 401, we need to refresh the secret. Let's just do type narrowing here
     // vs doing another v4 vs v10 check.
-    if (err && (err.httpStatus === 401 || err.requestResult?.statusCode === 401)) {
+    if (
+      err &&
+      (err.httpStatus === 401 || err.requestResult?.statusCode === 401)
+    ) {
       const credentials = container.resolve("credentials");
 
       await credentials.databaseKeys.onInvalidCreds();
@@ -99,7 +102,7 @@ export const retryInvalidCredsOnce = async (initialSecret, fn) => {
     }
     throw err;
   }
-}
+};
 
 /**
  * Runs a query from a string expression.
@@ -113,11 +116,27 @@ export const runQueryFromString = (expression, argv) => {
 
   if (argv.apiVersion === "4") {
     const { secret, url, timeout } = argv;
-    return retryInvalidCredsOnce(secret, (secret) => faunaV4.runQueryFromString({ expression, secret, url, client: undefined, options: { queryTimeout: timeout } }));
+    return retryInvalidCredsOnce(secret, (secret) =>
+      faunaV4.runQueryFromString({
+        expression,
+        secret,
+        url,
+        client: undefined,
+        options: { queryTimeout: timeout },
+      }),
+    );
   } else {
-    const { secret, url, timeout,...rest } = argv;
+    const { secret, url, timeout, ...rest } = argv;
     // eslint-disable-next-line camelcase
-    return retryInvalidCredsOnce(secret, (secret) => faunaV10.runQueryFromString({ expression, secret, url, client: undefined, options: { query_timeout_ms: timeout, ...rest } }));
+    return retryInvalidCredsOnce(secret, (secret) =>
+      faunaV10.runQueryFromString({
+        expression,
+        secret,
+        url,
+        client: undefined,
+        options: { query_timeout_ms: timeout, ...rest },
+      }),
+    );
   }
 };
 
@@ -136,7 +155,7 @@ export const formatError = (err, { apiVersion, extra }) => {
   if (apiVersion === "4") {
     return faunaV4.formatError(err, { extra });
   } else {
-    return faunaV10.formatError(err, { extra }); 
+    return faunaV10.formatError(err, { extra });
   }
 };
 

@@ -1,4 +1,3 @@
-
 //@ts-check
 
 import { EOL } from "node:os";
@@ -19,7 +18,7 @@ const v10Object1 = createV10QuerySuccess({
       ts: "2024-07-16T19:16:15.980Z",
       global_id: "asd7zi8pharfn",
     },
-  ]
+  ],
 });
 
 const v10Object2 = createV10QuerySuccess({
@@ -31,24 +30,24 @@ const v10Object2 = createV10QuerySuccess({
 
 const v4Object1 = createV4QuerySuccess({
   "@ref": {
-    "id": "test",
-    "collection": {
+    id: "test",
+    collection: {
       "@ref": {
-        "id": "collections"
-      }
-    }
-  }
+        id: "collections",
+      },
+    },
+  },
 });
 
 const v4Object2 = createV4QuerySuccess({
   "@ref": {
-    "id": "alpacas",
-    "collection": {
+    id: "alpacas",
+    collection: {
       "@ref": {
-        "id": "collections"
-      }
-    }
-  }
+        id: "collections",
+      },
+    },
+  },
 });
 
 describe("shell", function () {

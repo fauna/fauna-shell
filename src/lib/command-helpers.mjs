@@ -3,8 +3,9 @@
 // used for queries customers can't configure that are made on their behalf
 const COMMON_QUERY_OPTIONS = {
   local: {
-    type: 'boolean',
-    describe: 'Indicates a local Fauna container is being used. Sets the URL to http://localhost:8443 if --url is not provided. Use --url to set a custom url for your container.',
+    type: "boolean",
+    describe:
+      "Indicates a local Fauna container is being used. Sets the URL to http://localhost:8443 if --url is not provided. Use --url to set a custom url for your container.",
     default: false,
   },
   url: {
@@ -42,24 +43,25 @@ const COMMON_QUERY_OPTIONS = {
   role: {
     alias: "r",
     type: "string",
-    description: "a role"
+    description: "a role",
   },
 };
-
 
 /**
  * Validate that the user has specified either a database or a secret.
  * This check is not required for commands that can operate at a
  * "root" level.
- * @param {object} argv 
+ * @param {object} argv
  * @param {string} argv.database - The database to use
  * @param {string} argv.secret - The secret to use
  */
 export const validateDatabaseOrSecret = (argv) => {
   if (!argv.database && !argv.secret && !argv.local) {
-    throw new Error("No database or secret specified. Pass either --database, or --secret, or --local.");
+    throw new Error(
+      "No database or secret specified. Pass either --database, or --secret, or --local.",
+    );
   }
-}
+};
 
 // used for queries customers can configure
 const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
@@ -81,7 +83,7 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     type: "number",
     description: "connection timeout in milliseconds",
     default: 5000,
-  }
+  },
 };
 
 export function yargsWithCommonQueryOptions(yargs) {
@@ -93,6 +95,5 @@ export function yargsWithCommonConfigurableQueryOptions(yargs) {
 }
 
 function yargsWithCommonOptions(yargs, options) {
-  return yargs
-    .options({ ...options, });
+  return yargs.options({ ...options });
 }

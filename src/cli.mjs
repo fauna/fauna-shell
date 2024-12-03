@@ -11,7 +11,12 @@ import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
 import { buildCredentials } from "./lib/auth/credentials.mjs";
 import { configParser } from "./lib/config/config.mjs";
-import { applyLocalArg, checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
+import {
+  applyLocalArg,
+  checkForUpdates,
+  fixPaths,
+  logArgv,
+} from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables> } cliContainer */
 

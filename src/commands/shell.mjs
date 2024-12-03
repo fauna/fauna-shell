@@ -106,7 +106,9 @@ async function buildCustomEval(argv) {
       }
 
       // If extra is on, return the full response. Otherwise, return just the data.
-      logger.stdout(formatQueryResponse(res, { apiVersion, extra, json: false }));
+      logger.stdout(
+        formatQueryResponse(res, { apiVersion, extra, json: false }),
+      );
 
       return cb(null);
     } catch (e) {

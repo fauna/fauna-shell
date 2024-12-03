@@ -16,7 +16,7 @@ export const getClient = async (argv) => {
   const { Client } = container.resolve("faunadb");
   const { hostname, port, protocol } = new URL(argv.url);
   const scheme = protocol?.replace(/:$/, "");
-  
+
   return new Client({
     domain: hostname,
     port: Number(port),
@@ -27,7 +27,7 @@ export const getClient = async (argv) => {
     headers: {
       "x-fauna-shell-builtin": "true",
       "x-fauna-source": "Fauna Shell",
-    }
+    },
   });
 };
 
@@ -69,8 +69,8 @@ export const runQuery = async ({
   options = {},
 }) => {
   validateQueryParams({ query, client, url, secret });
-  let _client = client ?? await getClient({ url, secret });
- 
+  let _client = client ?? (await getClient({ url, secret }));
+
   try {
     return await _client.queryWithMetrics(query, options);
   } finally {
@@ -92,16 +92,16 @@ export const formatError = (err, opts = {}) => {
 
   // By doing this we can avoid requiring a faunadb direct dependency
   if (
-    err 
-    && typeof err.requestResult === 'object' 
-    && typeof err.requestResult.responseContent === 'object'
-    && Array.isArray(err.requestResult.responseContent.errors)
+    err &&
+    typeof err.requestResult === "object" &&
+    typeof err.requestResult.responseContent === "object" &&
+    Array.isArray(err.requestResult.responseContent.errors)
   ) {
     // If extra is on, return the full error.
     if (extra) {
       return formatFullErrorForShell(err);
     }
-    
+
     const { errors } = err.requestResult.responseContent;
     if (!errors) {
       return err.message;
@@ -109,12 +109,12 @@ export const formatError = (err, opts = {}) => {
 
     const messages = [];
     errors.forEach(({ code, description, position }) => {
-       messages.push(`${code}: ${description} at ${position.join(', ')}\n`);
+      messages.push(`${code}: ${description} at ${position.join(", ")}\n`);
     });
 
-    return messages.join('\n').trim();
+    return messages.join("\n").trim();
   }
-  
+
   return err.message;
 };
 
@@ -134,7 +134,7 @@ export const formatQueryResponse = (res, opts = {}) => {
   }
 
   return formatObjectForShell(data);
-}
+};
 
 /**
  * Runs a V4 Fauna query from a string expression.

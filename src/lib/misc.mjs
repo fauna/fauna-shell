@@ -43,7 +43,7 @@ export function formatObjectForShell(obj) {
 
 /**
  * Formats an error for display in the shell. Use this when you want to see
- * the full error object. Use specific formatting logic in your commands 
+ * the full error object. Use specific formatting logic in your commands
  * if you are creating a summary message. This is best used with --extra.
  * @param {any} err - The error to format
  * @returns {string} The formatted error

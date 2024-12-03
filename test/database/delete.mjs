@@ -78,7 +78,9 @@ describe("database delete", () => {
         );
       } catch (e) {}
 
-      expect(logger.stderr).to.have.been.calledWith(sinon.match(expectedMessage));
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match(expectedMessage),
+      );
     });
   });
 });
