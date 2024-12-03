@@ -81,7 +81,6 @@ export const injectables = {
   // utilities for interacting with Fauna
   runQueryFromString: awilix.asValue(runQueryFromString),
   formatError: awilix.asValue(formatError),
-  formatQueryResponse: awilix.asValue(formatQueryResponse),
   faunaClientV10: awilix.asValue(faunaV10),
   faunaClientV4: awilix.asValue(faunaV4),
 

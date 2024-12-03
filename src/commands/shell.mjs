@@ -8,7 +8,7 @@ import {
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { getSecret } from "../lib/fauna-client.mjs";
+import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 import { dirExists, fileExists } from "../lib/file-util.mjs";
 
 async function shellCommand(argv) {
@@ -119,7 +119,6 @@ async function shellCommand(argv) {
 async function buildCustomEval(argv) {
   const runQueryFromString = container.resolve("runQueryFromString");
   const formatError = container.resolve("formatError");
-  const formatQueryResponse = container.resolve("formatQueryResponse");
 
   return async (cmd, ctx, _filename, cb) => {
     try {

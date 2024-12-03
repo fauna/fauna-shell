@@ -92,7 +92,6 @@ export function setupTestContainer() {
     makeAccountRequest: awilix.asValue(stub()),
     runQueryFromString: awilix.asValue(stub().resolves({})),
     formatError: awilix.asValue(stub()),
-    formatQueryResponse: awilix.asValue(stub()),
     faunaClientV10: awilix.asValue({
       getClient: stub(),
       runQuery: stub(),

@@ -75,9 +75,9 @@ describe("shell", function () {
       fs: awilix.asValue(node_fs),
     });
 
+    logger = container.resolve("logger");
     stdin = container.resolve("stdinStream");
     stdout = container.resolve("stdoutStream");
-    logger = container.resolve("logger");
     runQueryFromString = container.resolve("runQueryFromString");
   });
 
@@ -103,14 +103,16 @@ describe("shell", function () {
         });
       };
 
-      it.skip("can be navigated through", async function () {
+      it("can be navigated through", async function () {
         registerHomedir(container, "track-history");
 
         // start the shell
-        const runPromise = run(
-          `shell --secret "secret" --typecheck`,
-          container,
-        );
+        const runPromise = run(`shell --secret "secret"`, container);
+        // Wait for the shell to start (print ">")
+        // sleep for a little bit to let the shell get started
+        // for some reason this is needed for the stdout to be read from predictably
+        await sleep(50);
+        await stdout.waitForWritten();
 
         // send our first command
         stdin.push(`1\n2\n3\n`);
@@ -145,14 +147,16 @@ describe("shell", function () {
         return runPromise;
       });
 
-      it.skip("can be cleared", async function () {
+      it("can be cleared", async function () {
         registerHomedir(container, "clear-history");
 
         // start the shell
-        const runPromise = run(
-          `shell --secret "secret" --typecheck`,
-          container,
-        );
+        const runPromise = run(`shell --secret "secret"`, container);
+        // Wait for the shell to start (print ">")
+        // sleep for a little bit to let the shell get started
+        // for some reason this is needed for the stdout to be read from predictably
+        await sleep(50);
+        await stdout.waitForWritten();
 
         // send our first command
         stdin.push("4\n5\n6\n");
@@ -185,7 +189,7 @@ describe("shell", function () {
         return runPromise;
       });
 
-      it.skip("can be persisted between sessions", async function () {
+      it("can be persisted between sessions", async function () {
         registerHomedir(container, "persist-history");
 
         // create history file
@@ -200,10 +204,12 @@ describe("shell", function () {
         fs.writeFileSync(path.join(homedir, ".fauna/history"), "9\n8\n7\n");
 
         // start the shell
-        const runPromise = run(
-          `shell --secret "secret" --typecheck`,
-          container,
-        );
+        const runPromise = run(`shell --secret "secret"`, container);
+        // Wait for the shell to start (print ">")
+        // sleep for a little bit to let the shell get started
+        // for some reason this is needed for the stdout to be read from predictably
+        await sleep(50);
+        await stdout.waitForWritten();
 
         // navigate up through history
         await stdout.waitForWritten();
@@ -230,14 +236,18 @@ describe("shell", function () {
   });
 
   describe("v10", function () {
-    it.skip("can open a shell and run several queries", async function () {
+    it("can open a shell and run several queries", async function () {
       runQueryFromString.resolves(v10Object1);
       let query = "Database.all().take(1)";
 
       // start the shell
       const runPromise = run(`shell --secret "secret"`, container);
       // Wait for the shell to start (print ">")
+      // sleep for a little bit to let the shell get started
+      // for some reason this is needed for the stdout to be read from predictably
+      await sleep(50);
       await stdout.waitForWritten();
+
       // send our first command
       stdin.push(`${query}\n`);
       await stdout.waitForWritten();
