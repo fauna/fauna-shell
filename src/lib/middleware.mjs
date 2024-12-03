@@ -8,6 +8,10 @@ import { fileURLToPath } from "node:url";
 import { container } from "../cli.mjs";
 import { fixPath } from "../lib/file-util.mjs";
 
+const LOCAL_URL = "http://localhost:8443";
+const LOCAL_SECRET = "secret";
+const DEFAULT_URL = "https://db.fauna.com";
+
 export function logArgv(argv) {
   const logger = container.resolve("logger");
   logger.debug(JSON.stringify(argv, null, 4), "argv", argv);
@@ -58,15 +62,15 @@ export function applyLocalArg(argv) {
   const logger = container.resolve("logger");
   if (!argv.url) {
     if (argv.local) {
-      argv.url = 'http://localhost:8443';
-      logger.debug("Set url to 'http://localhost:8443' as --local was given and --url was not", "argv", argv);
+      argv.url = LOCAL_URL;
+      logger.debug(`Set url to '${LOCAL_URL}' as --local was given and --url was not`, "argv", argv);
     } else {
-      argv.url = 'https://db.fauna.com';
-      logger.debug("Defaulted url to 'https://db.fauna.com' no --url was provided", "argv", argv);
+      argv.url = DEFAULT_URL;
+      logger.debug(`Defaulted url to '${DEFAULT_URL}' no --url was provided`, "argv", argv);
     }
   }
   if (!argv.secret && argv.local) {
-    argv.secret = "secret";
-    logger.debug("Set secret to 'secret' as --local was given and --secret was not", "argv", argv);
+    argv.secret = LOCAL_SECRET;
+    logger.debug(`Set secret to '${LOCAL_SECRET}' as --local was given and --secret was not`, "argv", argv);
   }
 }
