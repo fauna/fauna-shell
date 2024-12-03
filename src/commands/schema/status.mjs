@@ -59,7 +59,6 @@ async function doStatus(argv) {
 function buildStatusCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
     .example([["$0 schema status"]])
-    .version(false)
     .help("help", "Show help.");
 }
 
