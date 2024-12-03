@@ -50,10 +50,6 @@ export class DatabaseKeys {
     if (argv.secret) {
       key = argv.secret;
       keySource = "user";
-    // argv.local comes from a flag or config.
-    } else if (argv.local) {
-      key = "secret";
-      keySource = "user";
     } else {
       key = storedKey;
       keySource = "credentials-file";
