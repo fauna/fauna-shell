@@ -2,8 +2,8 @@
 
 import { container } from "../cli.mjs";
 import {
-  yargsWithCommonConfigurableQueryOptions,
   validateDatabaseOrSecret,
+  yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
 import { formatError, formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 

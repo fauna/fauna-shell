@@ -1,18 +1,5 @@
 //@ts-check
 
-import { container } from "../cli.mjs";
-
-// TODO: update for yargs
-function buildHeaders() {
-  const headers = {
-    "X-Fauna-Source": "Fauna Shell",
-  };
-  // if (!["ShellCommand", "EvalCommand"].includes(constructor.name)) {
-  //   headers["x-fauna-shell-builtin"] = "true";
-  // }
-  return headers;
-}
-
 // used for queries customers can't configure that are made on their behalf
 const COMMON_QUERY_OPTIONS = {
   local: {
