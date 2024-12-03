@@ -41,6 +41,7 @@ export function log({
   // the `--help` flag (where checkForDefaultConfig calls this)
   if (!argv) {
     argv = yargsParser(process.argv.slice(2), {
+      array: ["verboseComponent"],
       alias: {
         profile: ["p"],
         config: ["c"],
@@ -50,6 +51,7 @@ export function log({
 
   if (
     argv &&
+    argv.verboseComponent &&
     (argv.verbosity >= verbosity || argv.verboseComponent.includes(component))
   ) {
     const prefix = chalk.reset("[") + formatter(component) + chalk.reset("]: ");
