@@ -128,9 +128,9 @@ export const formatError = (err, opts = {}) => {
   // If the error has a queryInfo object with a summary property, we can format it.
   // Doing this check allows this code to avoid a fauna direct dependency.
   if (
-    err
-    && typeof err.queryInfo === 'object'
-    && typeof err.queryInfo.summary === 'string'
+    err &&
+    typeof err.queryInfo === "object" &&
+    typeof err.queryInfo.summary === "string"
   ) {
     // If you want extra information, use util.inspect to get the full error object.
     if (extra) {
@@ -142,11 +142,11 @@ export const formatError = (err, opts = {}) => {
   } else {
     return err.message;
   }
-}
+};
 
 /**
  * Formats a V10 Fauna query response.
- * @par [ am {import("fauna").QuerySuccess<any>} res 
+ * @par [ am {import("fauna").QuerySuccess<any>} res
  * @param {object} [opts]
  * @param {boolean} [opts.extra] - Whether to include extra information
  * @param {boolean} [opts.json] - Whether to return the response as a JSON string
@@ -165,7 +165,7 @@ export const formatQueryResponse = (res, opts = {}) => {
 
   // Otherwise, return the response as a pretty-printed JSON string.
   return formatObjectForShell(data);
-}
+};
 
 /**
  * Error handler for errors thrown by the V10 driver. Custom handlers
