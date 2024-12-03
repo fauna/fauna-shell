@@ -96,13 +96,17 @@ function yargsWithCommonOptions(yargs, options) {
   return yargs
     .options({ ...options, })
     .check((argv) => {
-      // If --local is provided and --url is not, set the default URL for local
+      // If --local is provided and --url is not, set argv.url to "http://localhost:8443"
       if (!argv.url) {
         if (argv.local) {
           argv.url = 'http://localhost:8443';
         } else {
           argv.url = 'https://db.fauna.com';
         }
+      }
+      // if --local is provided and --secret is not set argv.secret to "secret"
+      if (!argv.secret && argv.local) {
+        argv.secret = 'secret';
       }
       return true; // Validation passed
     });

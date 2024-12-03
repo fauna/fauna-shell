@@ -71,7 +71,17 @@ export default class FaunaClient {
   }
 }
 
-export const getSecret = async () => {
+/**
+ * Gets a secret. Defaults to the secretArg. If the secretArg is undefined
+ * fetches a secret for the current credentials.
+ * @param opts {Object}
+ * @param opts.secretArg {string} The secret passed as an argument, if any.
+ * @return {string} the secret
+ */
+export async function getSecret({ secretArg }) {
+  if (secretArg !== undefined) {
+    return secretArg;
+  }
   const credentials = container.resolve("credentials");
   if (!credentials.databaseKeys.key) {
     return await credentials.databaseKeys.getOrRefreshKey();
