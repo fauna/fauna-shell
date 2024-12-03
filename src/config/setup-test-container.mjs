@@ -1,4 +1,4 @@
-import fs from "node:fs";
+import fs, { writeFile } from "node:fs";
 import path from "node:path";
 import { PassThrough } from "node:stream";
 

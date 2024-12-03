@@ -6,7 +6,7 @@ import path from "node:path";
 
 import * as awilix from "awilix";
 import { expect } from "chai";
-import sinon from "sinon";
+import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
@@ -22,7 +22,7 @@ const v10Object1 = createV10QuerySuccess({
       ts: "2024-07-16T19:16:15.980Z",
       global_id: "asd7zi8pharfn",
     },
-  ]
+  ],
 });
 
 const v10Object2 = createV10QuerySuccess({
@@ -34,24 +34,24 @@ const v10Object2 = createV10QuerySuccess({
 
 const v4Object1 = createV4QuerySuccess({
   "@ref": {
-    "id": "test",
-    "collection": {
+    id: "test",
+    collection: {
       "@ref": {
-        "id": "collections"
-      }
-    }
-  }
+        id: "collections",
+      },
+    },
+  },
 });
 
 const v4Object2 = createV4QuerySuccess({
   "@ref": {
-    "id": "alpacas",
-    "collection": {
+    id: "alpacas",
+    collection: {
       "@ref": {
-        "id": "collections"
-      }
-    }
-  }
+        id: "collections",
+      },
+    },
+  },
 });
 
 const sleep = async (ms) =>
@@ -69,9 +69,6 @@ describe("shell", function () {
 
   beforeEach(() => {
     container = setupContainer();
-    container.register({
-      fs: awilix.asValue(node_fs)
-    });
 
     // we need to use the actual node fs, not the mock
     container.register({
@@ -102,7 +99,7 @@ describe("shell", function () {
         const homedir = path.join(__dirname, "../test/test-homedir", subdir);
 
         container.register({
-          homedir: awilix.asFunction(() => homedir).scoped(),
+          homedir: awilix.asValue(stub().returns(homedir)),
         });
       };
 
@@ -196,7 +193,7 @@ describe("shell", function () {
         // sessions, but there are complications trying to reset stdin after
         // pushing null.
         const fs = container.resolve("fs");
-        const homedir = container.resolve("homedir");
+        const homedir = container.resolve("homedir")();
         if (!dirExists(path.join(homedir, ".fauna"))) {
           fs.mkdirSync(path.join(homedir, ".fauna"), { recursive: true });
         }
