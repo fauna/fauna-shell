@@ -71,7 +71,11 @@ export default class FaunaClient {
   }
 }
 
-export const getSecret = async () => {
+/**
+ * Gets a secret for the current credentials.
+ * @return {Promise<string>} the secret
+ */
+export async function getSecret() {
   const credentials = container.resolve("credentials");
   if (!credentials.databaseKeys.key) {
     return await credentials.databaseKeys.getOrRefreshKey();
