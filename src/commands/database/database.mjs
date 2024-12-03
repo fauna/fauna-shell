@@ -1,13 +1,12 @@
 //@ts-check
 
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import createCommand from "./create.mjs";
 import deleteCommand from "./delete.mjs";
 import listCommand from "./list.mjs";
 
 function buildDatabase(yargs) {
-  return yargs
-    .options(commonQueryOptions)
+  return yargsWithCommonQueryOptions(yargs)
     .command(listCommand)
     .command(createCommand)
     .command(deleteCommand)

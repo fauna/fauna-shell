@@ -11,7 +11,7 @@ import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
 import { buildCredentials } from "./lib/auth/credentials.mjs";
 import { configParser } from "./lib/config/config.mjs";
-import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
+import { applyLocalArg, checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables> } cliContainer */
 
@@ -104,7 +104,7 @@ function buildYargs(argvInput) {
     .env("FAUNA")
     .config("config", configParser)
     .middleware([checkForUpdates, logArgv], true)
-    .middleware([fixPaths, buildCredentials], false)
+    .middleware([applyLocalArg, fixPaths, buildCredentials], false)
     .command(queryCommand)
     .command("shell", "start an interactive shell", shellCommand)
     .command("login", "login via website", loginCommand)
@@ -114,6 +114,13 @@ function buildYargs(argvInput) {
     .demandCommand()
     .strict(true)
     .options({
+      color: {
+        description:
+          "whether or not to emit escape codes for multi-color terminal output.",
+        type: "boolean",
+        // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
+        default: chalk.level > 0,
+      },
       config: {
         type: "string",
         description: "a config file to use",
@@ -142,24 +149,17 @@ function buildYargs(argvInput) {
         description: "only emit output",
         default: false,
       },
-      color: {
-        description:
-          "whether or not to emit escape codes for multi-color terminal output.",
-        type: "boolean",
-        // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
-        default: chalk.level > 0,
-      },
-      verbosity: {
-        description: "the lowest level diagnostic logs to emit",
-        type: "number",
-        default: 0,
-      },
       verboseComponent: {
         description:
           "components to emit diagnostic logs for; this takes precedence over the 'verbosity' flag",
         type: "array",
         default: [],
         choices: ["fetch", "error", "config", "argv", "creds"],
+      },
+      verbosity: {
+        description: "the lowest level diagnostic logs to emit",
+        type: "number",
+        default: 0,
       },
     })
     .wrap(yargsInstance.terminalWidth())

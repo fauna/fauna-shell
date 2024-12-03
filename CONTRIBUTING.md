@@ -1,4 +1,5 @@
 ### Quick Start
+Install dependencies and verify you can execute the CLI:
 
 Sanity check your local setup:
 
@@ -7,7 +8,7 @@ Sanity check your local setup:
 npm install
 # Run the local code
 ./src/user-entrypoint.mjs
-# Make sure you can build
+# Make sure you can build the distributions:
 npm run build
 ```
 
@@ -15,6 +16,12 @@ If you change code and want to see how it behaves from a customer-perspective:
 
 ```
 ./src/user-entrypoint.mjs <command> <subcommand> [--option ...]
+```
+
+You can run the tests with:
+
+```
+npm run test
 ```
 
 ### Application versions
