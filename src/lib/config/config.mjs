@@ -1,6 +1,5 @@
 import yaml from "yaml";
 import yargs from "yargs";
-import yargsParser from "yargs-parser";
 
 import { argvInput, container } from "../../cli.mjs";
 

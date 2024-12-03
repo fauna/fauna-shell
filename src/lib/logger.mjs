@@ -1,10 +1,8 @@
 import chalk from "chalk";
 import { Console } from "console";
 import yargs from "yargs";
-import yargsParser from "yargs-parser";
 import { hideBin } from "yargs/helpers";
-
-import { builtYargs } from "../cli.mjs";
+import yargsParser from "yargs-parser";
 
 /**
  * @typedef argv
