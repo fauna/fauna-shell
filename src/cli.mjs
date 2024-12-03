@@ -11,7 +11,7 @@ import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
 import { buildCredentials } from "./lib/auth/credentials.mjs";
 import { configParser } from "./lib/config/config.mjs";
-import { checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
+import { applyLocalArg, checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables> } cliContainer */
 
@@ -104,19 +104,7 @@ function buildYargs(argvInput) {
     .env("FAUNA")
     .config("config", configParser)
     .middleware([checkForUpdates, logArgv], true)
-    .middleware((argv) => {
-      if (!argv.url) {
-        if (argv.local) {
-          argv.url = 'http://localhost:8443';
-        } else {
-          argv.url = 'https://db.fauna.com';
-        }
-      }
-      if (!argv.secret && argv.local) {
-        argv.secret = "secret";
-      }
-    })
-    .middleware([fixPaths, buildCredentials], false)
+    .middleware([applyLocalArg, fixPaths, buildCredentials], false)
     .command(queryCommand)
     .command("shell", "start an interactive shell", shellCommand)
     .command("login", "login via website", loginCommand)
