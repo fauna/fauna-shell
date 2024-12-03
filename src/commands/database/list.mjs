@@ -57,9 +57,9 @@ async function listDatabasesWithSecret(argv) {
 
 async function listDatabases(argv) {
   if (argv.secret) {
-    listDatabasesWithSecret(argv);
+    return listDatabasesWithSecret(argv);
   } else {
-    listDatabasesWithAccountAPI(argv);
+    return listDatabasesWithAccountAPI(argv);
   }
 }
 
