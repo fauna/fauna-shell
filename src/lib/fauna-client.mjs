@@ -75,7 +75,7 @@ export default class FaunaClient {
  * Gets a secret. Defaults to the secretArg. If the secretArg is undefined
  * fetches a secret for the current credentials.
  * @param opts {Object}
- * @param opts.secretArg {string} The secret passed as an argument, if any.
+ * @param opts.secretArg {string | undefined} The secret passed as an argument, if any.
  * @return {Promise<string>} the secret
  */
 export async function getSecret({ secretArg }) {
