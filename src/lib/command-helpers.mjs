@@ -28,7 +28,7 @@ const COMMON_QUERY_OPTIONS = {
     alias: "u",
     type: "string",
     description:
-      "User account used to run the command. Register a user account in the CLI using `fauna login`.",
+      "User used to run the command. You must first log in as the user using `fauna login`.",
     default: "default",
     group: "API:",
   },

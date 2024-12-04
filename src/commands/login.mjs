@@ -39,7 +39,7 @@ function buildLoginCommand(yargs) {
     user: {
       alias: "u",
       type: "string",
-      description: "Name of account to register",
+      description: "User to log in as",
       default: "default",
       group: "login Options:",
     },
