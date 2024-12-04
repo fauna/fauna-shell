@@ -4,16 +4,16 @@
 const COMMON_QUERY_OPTIONS = {
   local: {
     type: 'boolean',
-    describe: 'Indicates a local Fauna container is being used. Sets the URL to http://localhost:8443 if --url is not provided. Use --url to set a custom url for your container.',
+    describe: 'Use a local Fauna container. If not otherwise specified, sets `--url` to http://localhost:8443 and `--secret` to "secret".',
     default: false,
   },
   url: {
     type: "string",
-    description: "the Fauna URL to query",
+    description: "URL for Fauna Core HTTP API requests made by the command. Defaults to https://db.fauna.com.",
   },
   secret: {
     type: "string",
-    description: "the secret to use when calling Fauna",
+    description: "Authentication secret for Fauna Core HTTP API requests made by the command. Mutually exclusive with `--database` and `--role`.",
     required: false,
   },
   accountUrl: {
@@ -37,12 +37,12 @@ const COMMON_QUERY_OPTIONS = {
   database: {
     alias: "d",
     type: "string",
-    description: "a database path, including region",
+    description: "Path, including Region Group identifier and hierarchy, for the database to run the command in. Mutually exclusive with `--secret`.",
   },
   role: {
     alias: "r",
     type: "string",
-    description: "a role"
+    description: "Role used to run the command. Mutually exclusive with `--secret`."
   },
 };
 
@@ -51,7 +51,7 @@ const COMMON_QUERY_OPTIONS = {
  * Validate that the user has specified either a database or a secret.
  * This check is not required for commands that can operate at a
  * "root" level.
- * @param {object} argv 
+ * @param {object} argv
  * @param {string} argv.database - The database to use
  * @param {string} argv.secret - The secret to use
  */
@@ -65,7 +65,7 @@ export const validateDatabaseOrSecret = (argv) => {
 const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   ...COMMON_QUERY_OPTIONS,
   apiVersion: {
-    description: "which FQL version to use",
+    description: "FQL version to use.",
     type: "string",
     alias: "v",
     default: "10",
@@ -74,12 +74,12 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   // v10 specific options
   typecheck: {
     type: "boolean",
-    description: "enable typechecking",
+    description: "Enable typechecking. Defaults to the typechecking setting of the database.",
     default: undefined,
   },
   timeout: {
     type: "number",
-    description: "connection timeout in milliseconds",
+    description: "Maximum runtime, in milliseconds, for Fauna Core HTTP API requests made by the command.",
     default: 5000,
   }
 };

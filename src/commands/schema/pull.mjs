@@ -141,12 +141,12 @@ function buildPullCommand(yargs) {
       ["$0 schema pull --delete"],
     ])
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "pull",
-  describe: "Pull a database schema's .fsl files into the current project",
+  describe: "Pull a database schema's .fsl files to a local directory.",
   builder: buildPullCommand,
   handler: doPull,
 };

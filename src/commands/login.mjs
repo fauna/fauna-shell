@@ -40,7 +40,7 @@ function buildLoginCommand(yargs) {
 
 export default {
   command: "login",
-  describe: "login via website",
+  describe: "Authenticate with Fauna.",
   builder: buildLoginCommand,
   handler: doLogin,
 };

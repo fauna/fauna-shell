@@ -152,12 +152,12 @@ function buildShellCommand(yargs) {
       ["$0 shell --database us-std/example --role admin"],
     ])
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "shell",
-  describe: "start an interactive shell",
+  describe: "Run queries in an interactive REPL.",
   builder: buildShellCommand,
   handler: shellCommand,
 };

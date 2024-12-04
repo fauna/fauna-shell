@@ -66,19 +66,19 @@ function buildCommitCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
-        description: "Prompt for user input (e.g., confirmations)",
+        description: "Prompt for input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
         default: true,
         type: "boolean",
       },
     })
     .example([["$0 schema commit"]])
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "commit",
-  description: "Push the current project's .fsl files to Fauna.",
+  description: "Apply staged schema files to a database.",
   builder: buildCommitCommand,
   handler: doCommit,
 };
