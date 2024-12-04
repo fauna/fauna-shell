@@ -110,7 +110,8 @@ function isYargsError(error) {
   if (
     error.message &&
     (error.message.startsWith("Unknown argument") ||
-      error.message.startsWith("Missing required argument"))
+      error.message.startsWith("Missing required argument") ||
+      error.message.startsWith("Unknown command"))
   ) {
     return true;
   }
