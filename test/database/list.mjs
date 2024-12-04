@@ -164,7 +164,16 @@ describe("database list", () => {
     ].forEach(({ args, expected }) => {
       it(`calls the account api with the correct args: ${args}`, async () => {
         mockAccessKeysFile({ fs });
-        const stubbedResponse = { results: [{ name: "test" }] };
+        const stubbedResponse = {
+          results: [
+            {
+              name: "test",
+              ...(expected.regionGroup
+                ? { region_group: expected.regionGroup }
+                : {}),
+            },
+          ],
+        };
         makeAccountRequest.resolves(stubbedResponse);
 
         await run(`database list ${args}`, container);
