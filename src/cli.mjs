@@ -158,11 +158,14 @@ function buildYargs(argvInput) {
         type: "boolean",
         // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
         default: chalk.level > 0,
+        group: "Output:",
       },
       config: {
         type: "string",
-        description: "Path to a CLI config file to use. Use `--profile` to select a profile from the file.",
+        description:
+          "Path to a CLI config file to use. Use `--profile` to select a profile from the file.",
         default: ".",
+        group: "Config:",
       },
       profile: {
         alias: "p",
@@ -170,34 +173,43 @@ function buildYargs(argvInput) {
         description:
           "Profile from the CLI config file to use. Each profile specifies a set of CLI settings.",
         default: "default",
+        group: "Config:",
       },
       user: {
         alias: "u",
         type: "string",
-        description: "User account used to run the command. Register a user account in the CLI using `fauna login`.",
+        description:
+          "User account used to run the command. Register a user account in the CLI using `fauna login`.",
         default: "default",
+        group: "API:",
       },
       json: {
         type: "boolean",
         description: "Output the results as JSON.",
         default: false,
+        group: "Output:",
       },
       quiet: {
         type: "boolean",
-        description: "Only output the results of the command. Useful for scripts, CI/CD, and automation workflows.",
+        description:
+          "Only output the results of the command. Useful for scripts, CI/CD, and automation workflows.",
         default: false,
+        group: "Output:",
       },
       verboseComponent: {
         description:
-          "Components to emit diagnostic logs for. Takes precedence over the `--verbosity` flag. Pass components as a comma-separate list, such as `--verboseComponent fetch, error`, or as separate flags, such as `--verboseComponent fetch --verboseComponent error`.",
+          "Components to emit diagnostic logs for. Takes precedence over the `--verbosity` flag. Pass components as a space-separated list, such as `--verboseComponent fetch error`, or as separate flags, such as `--verboseComponent fetch --verboseComponent error`.",
         type: "array",
         default: [],
         choices: ["fetch", "error", "config", "argv", "creds"],
+        group: "Debug:",
       },
       verbosity: {
-        description: "Maximum verbosity level for log messages. Accepts 1 (fatal) to 5 (debug). Lower values represent more critical logs.",
+        description:
+          "Maximum verbosity level for log messages. Accepts 1 (fatal) to 5 (debug). Lower values represent more critical logs.",
         type: "number",
         default: 0,
+        group: "Debug:",
       },
     })
     .wrap(yargsInstance.terminalWidth())
