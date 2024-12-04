@@ -179,10 +179,10 @@ export class FaunaAccountClient {
         path: "/databases",
         secret: this.accountKeys.key,
         // The API expects max_results
-        // eslint-disable-next-line camelcase
         params: {
+          // eslint-disable-next-line camelcase
           max_results: pageSize,
-          ...(path && { path: this.standardizeRegion(path) }),
+          ...(path && { path: FaunaAccountClient.standardizeRegion(path) }),
         },
       });
     } catch (err) {
@@ -208,7 +208,7 @@ export class FaunaAccountClient {
       path: "/databases/keys",
       body: JSON.stringify({
         role,
-        path: this.standardizeRegion(path),
+        path: FaunaAccountClient.standardizeRegion(path),
         ttl: ttl || new Date(Date.now() + TTL_DEFAULT_MS).toISOString(),
         name: "System generated shell key",
       }),
@@ -234,7 +234,7 @@ export class FaunaAccountClient {
    *
    * @throws {TypeError} If databasePath is provided but not a string
    */
-  standardizeRegion(databasePath) {
+  static standardizeRegion(databasePath) {
     if (!databasePath) return databasePath;
     if (typeof databasePath !== "string") {
       throw new TypeError("Database path must be a string");
