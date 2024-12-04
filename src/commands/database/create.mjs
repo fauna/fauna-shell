@@ -81,7 +81,6 @@ function buildCreateCommand(yargs) {
       },
     })
     .check(validate)
-    .version(false)
     .help("help", "show help")
     .example([
       [

@@ -99,7 +99,6 @@ function buildPushCommand(yargs) {
       ["$0 schema push --dir schemas/myschema"],
       ["$0 schema push --active"],
     ])
-    .version(false)
     .help("help", "Show help.");
 }
 
