@@ -175,14 +175,6 @@ function buildYargs(argvInput) {
         default: "default",
         group: "Config:",
       },
-      user: {
-        alias: "u",
-        type: "string",
-        description:
-          "User account used to run the command. Register a user account in the CLI using `fauna login`.",
-        default: "default",
-        group: "API:",
-      },
       json: {
         type: "boolean",
         description: "Output the results as JSON.",
