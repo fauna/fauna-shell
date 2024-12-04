@@ -111,6 +111,8 @@ describe("shell", function () {
       return runPromise;
     });
 
+    it.skip("does not colorize output if --no-color is used", async function () { });
+
     it.skip("can eval a query with typechecking enabled", async function () {
       container.resolve("performV10Query").resolves(v10Object1);
       let query = "Database.all().take(1)";

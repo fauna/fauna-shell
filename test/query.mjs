@@ -2,6 +2,7 @@
 
 import { expect } from "chai";
 import { ServiceError } from "fauna";
+import { colorize } from "json-colorizer";
 import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
@@ -107,6 +108,18 @@ describe("query", function () {
       expect(runQueryFromString).to.have.been.calledWith(sinon.match.string, sinon.match({
         apiVersion: '10'
       }));
+    });
+
+    it("can colorize output by default", async function () {
+      runQueryFromString.resolves({ data: [] });
+      await run(`query "Database.all()" --secret=foo`, container);
+      expect(logger.stdout).to.have.been.calledWith(colorize([]));
+    });
+
+    it("does not colorize output if --no-color is used", async function () {
+      runQueryFromString.resolves({ data: [] });
+      await run(`query "Database.all()" --secret=foo --no-color`, container);
+      expect(logger.stdout).to.have.been.calledWith(JSON.stringify([], null, 2));
     });
 
     // This test is disabled because the argv fallback requires a real process.argv
