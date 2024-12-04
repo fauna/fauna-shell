@@ -68,7 +68,6 @@ function buildAbandonCommand(yargs) {
       },
     })
     .example([["$0 schema abandon"]])
-    .version(false)
     .help("help", "Show help.");
 }
 

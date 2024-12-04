@@ -202,6 +202,6 @@ function buildYargs(argvInput) {
     .help("help", "Show help.")
     .fail(false)
     .exitProcess(false)
-    .version(false)
+    .version()
     .completion();
 }

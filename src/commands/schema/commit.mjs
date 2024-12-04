@@ -72,7 +72,6 @@ function buildCommitCommand(yargs) {
       },
     })
     .example([["$0 schema commit"]])
-    .version(false)
     .help("help", "Show help.");
 }
 

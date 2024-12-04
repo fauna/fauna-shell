@@ -160,7 +160,6 @@ function buildQueryCommand(yargs) {
         "Run the query and write the full API response to a file",
       ],
     ])
-    .version(false)
     .help("help", "Show help.");
 }
 

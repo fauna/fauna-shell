@@ -131,7 +131,6 @@ function buildDiffCommand(yargs) {
       ["$0 schema diff --staged"],
       ["$0 schema diff --active --text"],
     ])
-    .version(false)
     .help("help", "Show help.");
 }
 

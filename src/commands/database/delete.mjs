@@ -54,8 +54,7 @@ function buildDeleteCommand(yargs) {
       },
     })
     .check(validate)
-    .version(false)
-    .help("help", "show help")
+    .help("help", "Show help.")
     .example([
       [
         "$0 database delete --name 'my-database' --database 'us-std/example'",
