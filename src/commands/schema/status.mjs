@@ -4,6 +4,7 @@ import chalk from "chalk";
 
 import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 
 async function doStatus(argv) {
@@ -11,6 +12,7 @@ async function doStatus(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
   let params = new URLSearchParams({ diff: "summary" });
+  const secret = await getSecret();
   const gatherFSL = container.resolve("gatherFSL");
   const fsl = reformatFSL(await gatherFSL(argv.dir));
 
@@ -19,6 +21,7 @@ async function doStatus(argv) {
     path: "/schema/1/staged/status",
     params,
     method: "GET",
+    secret,
   });
 
   params = new URLSearchParams({
@@ -32,6 +35,7 @@ async function doStatus(argv) {
     params,
     method: "POST",
     body: fsl,
+    secret,
   });
 
   logger.stdout(`Staged changes: ${chalk.bold(statusResponse.status)}`);
