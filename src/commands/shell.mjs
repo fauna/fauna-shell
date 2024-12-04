@@ -1,6 +1,5 @@
 //@ts-check
 
-import path from "node:path";
 import repl from "node:repl";
 
 import { container } from "../cli.mjs";
@@ -9,28 +8,16 @@ import {
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
 import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
-import { dirExists, fileExists } from "../lib/file-util.mjs";
+import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
 
 async function shellCommand(argv) {
   validateDatabaseOrSecret(argv);
 
-  const fs = container.resolve("fs");
   const logger = container.resolve("logger");
   let completionPromise;
 
   if (argv.dbPath) logger.stdout(`Starting shell for database ${argv.dbPath}`);
   logger.stdout("Type Ctrl+D or .exit to exit the shell");
-
-  // Setup history file
-  const homedir = container.resolve("homedir")();
-  const historyDir = path.join(homedir, ".fauna");
-  if (!dirExists(historyDir)) {
-    fs.mkdirSync(historyDir, { recursive: true });
-  }
-  const historyFile = path.join(historyDir, "history");
-  if (!fileExists(historyFile)) {
-    fs.writeFileSync(historyFile, "");
-  }
 
   /** @type {import('node:repl').ReplOptions} */
   const replArgs = {
@@ -43,12 +30,12 @@ async function shellCommand(argv) {
     input: container.resolve("stdinStream"),
     eval: await buildCustomEval(argv),
     terminal: true,
-    historySize: 1000,
   };
 
   const shell = repl.start(replArgs);
 
   // Setup history
+  const historyFile = initHistoryStorage();
   shell.setupHistory(historyFile, (err) => {
     if (err) {
       logger.stderr(`Error setting up history: ${err.message}`);
@@ -77,7 +64,7 @@ async function shellCommand(argv) {
       help: "Clear command history",
       action: () => {
         try {
-          fs.writeFileSync(historyFile, "");
+          clearHistoryStorage();
           logger.stdout("History cleared");
           // Reinitialize history
           shell.setupHistory(historyFile, (err) => {
