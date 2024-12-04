@@ -7,18 +7,36 @@ const COMMON_QUERY_OPTIONS = {
     describe:
       'Use a local Fauna container. If not otherwise specified, sets `--url` to http://localhost:8443 and `--secret` to "secret".',
     default: false,
+    group: "API:",
   },
   url: {
     type: "string",
     description:
       "URL for Fauna Core HTTP API requests made by the command. Defaults to https://db.fauna.com.",
+    group: "API:",
   },
   secret: {
     type: "string",
     description:
       "Authentication secret for Fauna Core HTTP API requests made by the command. Mutually exclusive with `--database` and `--role`.",
     required: false,
+    group: "API:",
   },
+  database: {
+    alias: "d",
+    type: "string",
+    description:
+      "Path, including Region Group identifier and hierarchy, for the database to run the command in. Mutually exclusive with `--secret`.",
+    group: "API:",
+  },
+  role: {
+    alias: "r",
+    type: "string",
+    description:
+      "Role used to run the command. Mutually exclusive with `--secret`.",
+    group: "API:",
+  },
+  // hidden
   accountUrl: {
     type: "string",
     description: "the Fauna account URL to query",
@@ -36,18 +54,6 @@ const COMMON_QUERY_OPTIONS = {
     description: "the client secret to use when calling Fauna",
     required: false,
     hidden: true,
-  },
-  database: {
-    alias: "d",
-    type: "string",
-    description:
-      "Path, including Region Group identifier and hierarchy, for the database to run the command in. Mutually exclusive with `--secret`.",
-  },
-  role: {
-    alias: "r",
-    type: "string",
-    description:
-      "Role used to run the command. Mutually exclusive with `--secret`.",
   },
 };
 
@@ -147,6 +153,7 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     alias: "v",
     default: "10",
     choices: ["4", "10"],
+    group: "API:",
   },
   // v10 specific options
   typecheck: {
@@ -154,12 +161,14 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     description:
       "Enable typechecking. Defaults to the typechecking setting of the database.",
     default: undefined,
+    group: "API:",
   },
   timeout: {
     type: "number",
     description:
       "Maximum runtime, in milliseconds, for Fauna Core HTTP API requests made by the command.",
     default: 5000,
+    group: "API:",
   },
 };
 
