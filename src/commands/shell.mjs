@@ -156,6 +156,8 @@ function buildShellCommand(yargs) {
 }
 
 export default {
+  command: "shell",
+  describe: "start an interactive shell",
   builder: buildShellCommand,
   handler: shellCommand,
 };

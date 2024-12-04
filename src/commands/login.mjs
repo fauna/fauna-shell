@@ -39,6 +39,8 @@ function buildLoginCommand(yargs) {
 }
 
 export default {
+  command: "login",
+  describe: "login via website",
   builder: buildLoginCommand,
   handler: doLogin,
 };
