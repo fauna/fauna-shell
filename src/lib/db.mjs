@@ -3,7 +3,7 @@
 import { container } from "../cli.mjs";
 
 function buildParamsString({ argv, params, path }) {
-  const routesWithColor = ["/schema/1/staged/status", "/schema/1/validate"];
+  const routesWithColor = ["/schema/1/staged/status", "/schema/1/diff"];
   if (params && argv.color && routesWithColor.includes(path))
     params.set("color", "ansi");
   if (params && params.sort) params.sort();

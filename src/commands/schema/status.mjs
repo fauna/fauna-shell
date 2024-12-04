@@ -10,7 +10,7 @@ async function doStatus(argv) {
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
-  let params = new URLSearchParams({ diff: "summary" });
+  let params = new URLSearchParams({ format: "summary" });
   const gatherFSL = container.resolve("gatherFSL");
   const fsl = reformatFSL(await gatherFSL(argv.dir));
 
@@ -22,13 +22,13 @@ async function doStatus(argv) {
   });
 
   params = new URLSearchParams({
-    diff: "summary",
+    format: "summary",
     staged: "true",
     version: statusResponse.version,
   });
   const validationResponse = await makeFaunaRequest({
     argv,
-    path: "/schema/1/validate",
+    path: "/schema/1/diff",
     params,
     method: "POST",
     body: fsl,

@@ -128,7 +128,6 @@ describe("cli operations", function () {
         status: "none",
         diff: "Staged schema: none",
         pending_summary: "",
-        text_diff: "",
       }),
     );
     fetch.onCall(1).resolves(

@@ -30,7 +30,6 @@ describe("schema abandon", function () {
         status: "ready",
         pending_summary: "",
         diff: diff,
-        text_diff: textDiff,
       }),
     );
 
@@ -38,7 +37,7 @@ describe("schema abandon", function () {
 
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/abandon", { force: "true" }),
+      buildUrl("/schema/1/staged/abandon"),
       { ...commonFetchParams, method: "POST" },
     );
     expect(logger.stdout).to.have.been.calledWith("Schema has been abandoned");
@@ -54,7 +53,6 @@ describe("schema abandon", function () {
         status: "ready",
         pending_summary: "",
         diff: diff,
-        text_diff: textDiff,
       }),
     );
     fetch.onCall(1).resolves(f({ version: 1728679966220000 }));
@@ -65,7 +63,7 @@ describe("schema abandon", function () {
     await run(`schema abandon --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "semantic", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(fetch).to.have.been.calledWith(
@@ -93,7 +91,7 @@ describe("schema abandon", function () {
     expect(logger.stderr).to.have.been.calledWith(message);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "semantic", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
   });
@@ -105,7 +103,6 @@ describe("schema abandon", function () {
         status: "ready",
         pending_summary: "",
         diff: diff,
-        text_diff: textDiff,
       }),
     );
     fetch.onCall(1).resolves(f({ version: 1728679966220000 }));
@@ -117,7 +114,7 @@ describe("schema abandon", function () {
 
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "semantic", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(logger.stdout).to.have.been.calledWith("Abandon cancelled");

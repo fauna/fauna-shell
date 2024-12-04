@@ -75,7 +75,6 @@ describe("schema status", function () {
         status: "none",
         diff: "Staged schema: none",
         pending_summary: "",
-        text_diff: "",
       }),
     );
     fetch.onCall(1).resolves(
@@ -88,12 +87,12 @@ describe("schema status", function () {
     await run(`schema status --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "summary", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "summary", color: "ansi" }),
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
-        diff: "summary",
+      buildUrl("/schema/1/diff", {
+        format: "summary",
         staged: "true",
         version: "0",
         color: "ansi",
@@ -115,7 +114,6 @@ describe("schema status", function () {
         status: "none",
         diff: "Staged schema: none",
         pending_summary: "",
-        text_diff: "",
       }),
     );
     fetch.onCall(1).resolves(
@@ -131,12 +129,12 @@ describe("schema status", function () {
     await run(`schema status --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "summary", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "summary", color: "ansi" }),
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
-        diff: "summary",
+      buildUrl("/schema/1/diff", {
+        format: "summary",
         staged: "true",
         version: "0",
         color: "ansi",
@@ -166,7 +164,6 @@ describe("schema status", function () {
         status: "ready",
         diff: summaryDiff,
         pending_summary: "",
-        text_diff: textDiff,
       }),
     );
     fetch.onCall(1).resolves(
@@ -179,13 +176,13 @@ describe("schema status", function () {
     await run(`schema status --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "summary", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "summary", color: "ansi" }),
       commonFetchParams,
     );
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
-        diff: "summary",
+      buildUrl("/schema/1/diff", {
+        format: "summary",
         staged: "true",
         version: "0",
         color: "ansi",
@@ -211,7 +208,6 @@ describe("schema status", function () {
         status: "ready",
         diff: summaryDiff,
         pending_summary: "",
-        text_diff: "",
       }),
     );
     fetch.onCall(1).resolves(
@@ -226,12 +222,12 @@ describe("schema status", function () {
     await run(`schema status --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "summary", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "summary", color: "ansi" }),
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
-        diff: "summary",
+      buildUrl("/schema/1/diff", {
+        format: "summary",
         staged: "true",
         version: "0",
         color: "ansi",
@@ -270,7 +266,7 @@ describe("schema status", function () {
     await run(`schema status --no-color --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "summary" }),
+      buildUrl("/schema/1/staged/status", { format: "summary" }),
       commonFetchParams,
     );
     expect(logger.stderr).not.to.have.been.called;

@@ -30,7 +30,6 @@ describe("schema commit", function () {
         status: "ready",
         pending_summary: "",
         diff: diff,
-        text_diff: textDiff,
       }),
     );
 
@@ -42,7 +41,7 @@ describe("schema commit", function () {
     await run(`schema commit --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "semantic", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(fetch).to.have.been.calledWith(
@@ -63,7 +62,7 @@ describe("schema commit", function () {
 
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/commit", { force: "true" }),
+      buildUrl("/schema/1/staged/commit"),
       { ...commonFetchParams, method: "POST" },
     );
     expect(logger.stdout).to.have.been.calledWith("Schema has been committed");
@@ -81,7 +80,7 @@ describe("schema commit", function () {
     expect(error).to.have.property("code", 1);
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "semantic", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(logger.stdout).to.not.have.been.called;
@@ -101,7 +100,7 @@ describe("schema commit", function () {
     expect(error).to.have.property("code", 1);
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "semantic", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(logger.stdout).to.have.been.calledWith(diff);
@@ -117,7 +116,6 @@ describe("schema commit", function () {
         status: "ready",
         pending_summary: "",
         diff: diff,
-        text_diff: textDiff,
       }),
     );
 
@@ -128,7 +126,7 @@ describe("schema commit", function () {
 
     expect(fetch).to.have.been.calledOnce;
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "semantic", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
     expect(logger.stdout).to.have.been.calledWith("Commit cancelled");

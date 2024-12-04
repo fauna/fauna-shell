@@ -9,21 +9,17 @@ async function doCommit(argv) {
   const confirm = container.resolve("confirm");
 
   if (!argv.input) {
-    const params = new URLSearchParams({
-      force: "true", // Just commit, don't pass a schema version through.
-    });
-
+    // Just commit, don't pass a schema version through.
     await makeFaunaRequest({
       argv,
       path: "/schema/1/staged/commit",
-      params,
       method: "POST",
     });
 
     logger.stdout("Schema has been committed");
   } else {
     // Show status to confirm.
-    const params = new URLSearchParams({ diff: "true" });
+    const params = new URLSearchParams({ format: "semantic" });
 
     const response = await makeFaunaRequest({
       argv,

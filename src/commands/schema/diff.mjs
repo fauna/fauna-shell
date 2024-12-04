@@ -41,15 +41,12 @@ function buildValidateParams(argv, version) {
   const [source] = parseTarget(argv);
   const diffKind = argv.text ? "textual" : "semantic";
   const params = new URLSearchParams({
-    diff: diffKind,
+    format: diffKind,
     staged: String(source === "staged"),
   });
   if (version) {
     params.set("version", version);
-  } else {
-    params.set("force", "true");
   }
-
   return params;
 }
 
@@ -81,7 +78,7 @@ async function doDiff(argv) {
   } else {
     const { diff } = await makeFaunaRequest({
       argv,
-      path: "/schema/1/validate",
+      path: "/schema/1/diff",
       params: buildValidateParams(argv, version),
       body: files,
       method: "POST",
