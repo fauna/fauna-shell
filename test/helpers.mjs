@@ -1,8 +1,9 @@
 //@ts-check
 
-import sinon from "sinon";
 import { join } from "node:path";
 import { Writable } from "node:stream";
+
+import sinon from "sinon";
 
 // small helper for sinon to wrap your return value
 // in the shape fetch would return it from the network

@@ -4,7 +4,7 @@ import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
-import { getSecret } from "../../lib/fauna-client.mjs";
+import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
 
 function validate(argv) {
   if (!argv.secret && !argv.database) {
@@ -15,21 +15,32 @@ function validate(argv) {
   return true;
 }
 
+async function runDeleteQuery(secret, argv) {
+  const { fql } = container.resolve("fauna");
+  const { runQuery } = container.resolve("faunaClientV10");
+  return runQuery({
+    secret,
+    url: argv.url,
+    query: fql`Database.byName(${argv.name}).delete()`,
+  });
+}
+
 async function deleteDatabase(argv) {
   const secret = await getSecret();
-  const { fql } = container.resolve("fauna");
   const logger = container.resolve("logger");
-  const { runQuery } = container.resolve("faunaClientV10");
 
   try {
-    await runQuery({
-      secret,
-      url: argv.url,
-      query: fql`Database.byName(${argv.name}).delete()`,
-    });
+    if (argv.secret === secret) {
+      // If we are using a user provided secret, we should not
+      // try to refresh it if it is bad.
+      await runDeleteQuery(secret, argv);
+    } else {
+      await retryInvalidCredsOnce(secret, async (secret) =>
+        runDeleteQuery(secret, argv),
+      );
+    }
 
-    // We use stderr for messaging and there's no stdout output for a deleted database
-    logger.stderr(`Database '${argv.name}' was successfully deleted.`);
+    logger.stdout(`Database '${argv.name}' was successfully deleted.`);
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e, {
@@ -50,6 +61,7 @@ function buildDeleteCommand(yargs) {
         description: "Name of the database to delete.",
       },
     })
+    .check(validate)
     .version(false)
     .help("help", "show help")
     .example([

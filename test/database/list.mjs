@@ -5,9 +5,9 @@ import { ServiceError } from "fauna";
 import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
-import { mockAccessKeysFile } from "../helpers.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import { formatObjectForShell } from "../../src/lib/misc.mjs";
+import { mockAccessKeysFile } from "../helpers.mjs";
 
 describe("database list", () => {
   let container,

@@ -5,8 +5,8 @@ import { fql, ServiceError } from "fauna";
 import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
-import { mockAccessKeysFile } from "../helpers.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { mockAccessKeysFile } from "../helpers.mjs";
 
 describe("database create", () => {
   let container, logger, runQuery, makeAccountRequest;
@@ -135,7 +135,7 @@ describe("database create", () => {
         expected: { name: "testdb", database: "us-std/example", priority: 10 },
       },
     ].forEach(({ args, expected }) => {
-      it(`calls fauna with ${args}`, async () => {
+      it(`calls fauna with the correct args: ${args}`, async () => {
         mockAccessKeysFile({ fs: container.resolve("fs") });
         // We will attempt to mint a new database key, mock the response
         // so we can verify that the new key is used.
