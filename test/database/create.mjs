@@ -19,20 +19,30 @@ describe("database create", () => {
     makeAccountRequest = container.resolve("makeAccountRequest");
   });
 
-  [{ missing: "name", command: "database create --secret 'secret'" }].forEach(
-    ({ missing, command }) => {
-      it(`requires a ${missing}`, async () => {
-        try {
-          await run(command, container);
-        } catch (e) {}
-
-        expect(logger.stderr).to.have.been.calledWith(
-          sinon.match(`Missing required argument: ${missing}`),
-        );
-        expect(container.resolve("parseYargs")).to.have.been.calledOnce;
-      });
+  [
+    {
+      command: "database create --secret 'secret'",
+      message: "Missing required argument: name",
     },
-  );
+    {
+      command: "database create --database 'us-std/example'",
+      message: "Missing required argument: name",
+    },
+    {
+      command: "database create --name 'testdb'",
+      message:
+        "No secret or database provided. Please use either --secret or --database.",
+    },
+  ].forEach(({ command, message }) => {
+    it(`validates invalid arguments: ${command}`, async () => {
+      try {
+        await run(command, container);
+      } catch (e) {}
+
+      expect(logger.stderr).to.have.been.calledWith(sinon.match(message));
+      expect(container.resolve("parseYargs")).to.have.been.calledOnce;
+    });
+  });
 
   [
     {

@@ -1,13 +1,12 @@
 //@ts-check
 
 import { expect } from "chai";
-import chalk from "chalk";
 import { fql, ServiceError } from "fauna";
 import sinon from "sinon";
 
-import { builtYargs, run } from "../../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { run } from "../../src/cli.mjs";
 import { mockAccessKeysFile } from "../helpers.mjs";
+import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
 describe("database delete", () => {
   let container, logger, runQuery, makeAccountRequest;
@@ -20,21 +19,30 @@ describe("database delete", () => {
     makeAccountRequest = container.resolve("makeAccountRequest");
   });
 
-  [{ missing: "name", command: "database delete --secret 'secret'" }].forEach(
-    ({ missing, command }) => {
-      it(`requires a ${missing}`, async () => {
-        try {
-          await run(command, container);
-        } catch (e) {}
-
-        const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-          `Missing required argument: ${missing}`,
-        )}`;
-        expect(logger.stderr).to.have.been.calledWith(message);
-        expect(container.resolve("parseYargs")).to.have.been.calledOnce;
-      });
+  [
+    {
+      command: "database delete --secret 'secret'",
+      message: "Missing required argument: name",
     },
-  );
+    {
+      command: "database delete --database 'us-std/example'",
+      message: "Missing required argument: name",
+    },
+    {
+      command: "database delete --name 'testdb'",
+      message:
+        "No secret or database provided. Please use either --secret or --database.",
+    },
+  ].forEach(({ command, message }) => {
+    it(`validates invalid arguments: ${command}`, async () => {
+      try {
+        await run(command, container);
+      } catch (e) {}
+
+      expect(logger.stderr).to.have.been.calledWith(sinon.match(message));
+      expect(container.resolve("parseYargs")).to.have.been.calledOnce;
+    });
+  });
 
   [
     {
