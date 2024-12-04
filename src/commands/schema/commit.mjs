@@ -1,12 +1,17 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { CommandError, yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import {
+  CommandError,
+  yargsWithCommonQueryOptions,
+} from "../../lib/command-helpers.mjs";
+import { getSecret } from "../../lib/fauna-client.mjs";
 
 async function doCommit(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
+  const secret = await getSecret();
 
   if (!argv.input) {
     const params = new URLSearchParams({
@@ -18,6 +23,7 @@ async function doCommit(argv) {
       path: "/schema/1/staged/commit",
       params,
       method: "POST",
+      secret,
     });
 
     logger.stdout("Schema has been committed");
@@ -30,6 +36,7 @@ async function doCommit(argv) {
       path: "/schema/1/staged/status",
       params,
       method: "GET",
+      secret,
     });
 
     if (response.status === "none")
@@ -53,6 +60,7 @@ async function doCommit(argv) {
         path: "/schema/1/staged/commit",
         params,
         method: "POST",
+        secret,
       });
 
       logger.stdout("Schema has been committed");
@@ -66,7 +74,8 @@ function buildCommitCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
-        description: "Prompt for input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
+        description:
+          "Prompt for input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
         default: true,
         type: "boolean",
       },

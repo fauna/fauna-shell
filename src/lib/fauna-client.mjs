@@ -1,5 +1,6 @@
 //@ts-check
 
+
 import { container } from "../cli.mjs";
 
 export default class FaunaClient {
@@ -91,7 +92,9 @@ export const retryInvalidCredsOnce = async (initialSecret, fn) => {
     // vs doing another v4 vs v10 check.
     if (
       err &&
-      (err.httpStatus === 401 || err.requestResult?.statusCode === 401)
+      (err.name === "unauthorized" ||
+        err.httpStatus === 401 ||
+        err.requestResult?.statusCode === 401)
     ) {
       const credentials = container.resolve("credentials");
 
