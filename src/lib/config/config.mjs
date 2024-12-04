@@ -80,13 +80,16 @@ export function configParser(path) {
 
   logger.debug(`Reading config from ${path}.`, "config");
   const config = getConfig(path);
-  const argv = yargs(argvInput).options({
-    profile: {
-      default: "default",
-      alias: ["p"],
-      type: "string",
-    },
-  }).argv;
+  const argv = yargs(argvInput)
+    .options({
+      profile: {
+        default: "default",
+        alias: ["p"],
+        type: "string",
+      },
+    })
+    .help(false)
+    .version(false).argv;
 
   logger.debug(`Using profile ${argv.profile}...`, "config");
   parsedProfile = config.toJSON()[argv.profile];
