@@ -130,7 +130,7 @@ describe("database delete", () => {
   describe("if --database is provided", () => {
     [
       {
-        args: "--name 'testdb' --database 'us-std/example'",
+        args: "--name 'testdb' --database 'us/example'",
         expected: { name: "testdb", database: "us-std/example" },
       },
     ].forEach(({ args, expected }) => {

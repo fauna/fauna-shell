@@ -154,11 +154,11 @@ describe("database list", () => {
         expected: { pageSize: 10, regionGroup: "us-std" },
       },
       {
-        args: "--database 'us-std/example'",
+        args: "--database 'us/example'",
         expected: { database: "us-std/example" },
       },
       {
-        args: "--database 'us-std/example' --json",
+        args: "--database 'us/example' --json",
         expected: { database: "us-std/example", json: true },
       },
     ].forEach(({ args, expected }) => {

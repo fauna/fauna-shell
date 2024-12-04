@@ -84,8 +84,8 @@ function buildCreateCommand(yargs) {
     .help("help", "show help")
     .example([
       [
-        "$0 database create --name 'my-database' --database 'us-std/example'",
-        "Create a database named 'my-database' under `us-std/example`.",
+        "$0 database create --name 'my-database' --database 'us/example'",
+        "Create a database named 'my-database' under `us/example`.",
       ],
       [
         "$0 database create --name 'my-database' --secret 'my-secret'",
