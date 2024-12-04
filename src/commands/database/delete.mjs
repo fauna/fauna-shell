@@ -4,8 +4,8 @@ import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
-import { validateSecretOrDatabase } from "./database.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
+import { validateSecretOrDatabase } from "./database.mjs";
 
 function validate(argv) {
   validateSecretOrDatabase(argv);

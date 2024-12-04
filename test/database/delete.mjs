@@ -5,8 +5,8 @@ import { fql, ServiceError } from "fauna";
 import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
-import { mockAccessKeysFile } from "../helpers.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { mockAccessKeysFile } from "../helpers.mjs";
 
 describe("database delete", () => {
   let container, logger, runQuery, makeAccountRequest;

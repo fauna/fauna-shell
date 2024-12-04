@@ -127,13 +127,14 @@ export const runQueryFromString = (expression, argv) => {
     );
   } else {
     const { secret, url, timeout, ...rest } = argv;
-    // eslint-disable-next-line camelcase
+
     return retryInvalidCredsOnce(secret, (secret) =>
       faunaV10.runQueryFromString({
         expression,
         secret,
         url,
         client: undefined,
+        // eslint-disable-next-line camelcase
         options: { query_timeout_ms: timeout, ...rest },
       }),
     );
