@@ -1,13 +1,16 @@
-
 //@ts-check
 
+import node_fs from "node:fs";
 import { EOL } from "node:os";
+import path from "node:path";
 
+import * as awilix from "awilix";
 import { expect } from "chai";
-import sinon from "sinon";
+import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { dirExists } from "../src/lib/file-util.mjs";
 import { createV4QuerySuccess, createV10QuerySuccess } from "./helpers.mjs";
 
 // this is defined up here so the indentation doesn't make it harder to use :(
@@ -19,7 +22,7 @@ const v10Object1 = createV10QuerySuccess({
       ts: "2024-07-16T19:16:15.980Z",
       global_id: "asd7zi8pharfn",
     },
-  ]
+  ],
 });
 
 const v10Object2 = createV10QuerySuccess({
@@ -31,35 +34,50 @@ const v10Object2 = createV10QuerySuccess({
 
 const v4Object1 = createV4QuerySuccess({
   "@ref": {
-    "id": "test",
-    "collection": {
+    id: "test",
+    collection: {
       "@ref": {
-        "id": "collections"
-      }
-    }
-  }
+        id: "collections",
+      },
+    },
+  },
 });
 
 const v4Object2 = createV4QuerySuccess({
   "@ref": {
-    "id": "alpacas",
-    "collection": {
+    id: "alpacas",
+    collection: {
       "@ref": {
-        "id": "collections"
-      }
-    }
-  }
+        id: "collections",
+      },
+    },
+  },
 });
+
+const sleep = async (ms) =>
+  await new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 describe("shell", function () {
   let container, stdin, stdout, logger, runQueryFromString;
-  let prompt = `${EOL}\x1B[1G\x1B[0J> \x1B[3G`;
+
+  const promptReset = "\x1B[1G\x1B[0J> ";
+  const prompt = `${EOL}${promptReset}\x1B[3G`;
+  const getHistoryPrompt = (text) =>
+    `${promptReset}${text}\u001b[${3 + text.length}G`;
 
   beforeEach(() => {
     container = setupContainer();
+
+    // we need to use the actual node fs, not the mock
+    container.register({
+      fs: awilix.asValue(node_fs),
+    });
+
+    logger = container.resolve("logger");
     stdin = container.resolve("stdinStream");
     stdout = container.resolve("stdoutStream");
-    logger = container.resolve("logger");
     runQueryFromString = container.resolve("runQueryFromString");
   });
 
@@ -71,17 +89,165 @@ describe("shell", function () {
     it.skip("can read input from a file", async function () {});
 
     it.skip("can set a connection timeout", async function () {});
+
+    describe("history", function () {
+      const upArrow = "\x1b[A";
+      const downArrow = "\x1b[B";
+
+      const registerHomedir = (container, subdir = "") => {
+        const __dirname = import.meta.dirname;
+        const homedir = path.join(__dirname, "../test/test-homedir", subdir);
+
+        container.register({
+          homedir: awilix.asValue(stub().returns(homedir)),
+        });
+      };
+
+      it("can be navigated through", async function () {
+        registerHomedir(container, "track-history");
+
+        // start the shell
+        const runPromise = run(`shell --secret "secret"`, container);
+        // Wait for the shell to start (print ">")
+        // sleep for a little bit to let the shell get started
+        // for some reason this is needed for the stdout to be read from predictably
+        await sleep(50);
+        await stdout.waitForWritten();
+
+        // send our first command
+        stdin.push(`1\n2\n3\n`);
+        await stdout.waitForWritten();
+
+        // navigate up through history
+        stdout.clear();
+        stdin.push(upArrow);
+        await stdout.waitForWritten();
+        expect(stdout.getWritten()).to.equal(getHistoryPrompt("3"));
+        stdout.clear();
+        stdin.push(upArrow);
+        await stdout.waitForWritten();
+        expect(stdout.getWritten()).to.equal(getHistoryPrompt("2"));
+        stdout.clear();
+        stdin.push(upArrow);
+        await stdout.waitForWritten();
+        expect(stdout.getWritten()).to.equal(getHistoryPrompt("1"));
+        stdout.clear();
+        stdin.push(downArrow);
+        await stdout.waitForWritten();
+        expect(stdout.getWritten()).to.equal(getHistoryPrompt("2"));
+        stdout.clear();
+        stdin.push(downArrow);
+        await stdout.waitForWritten();
+        expect(stdout.getWritten()).to.equal(getHistoryPrompt("3"));
+
+        expect(container.resolve("stderrStream").getWritten()).to.equal("");
+
+        stdin.push(null);
+
+        return runPromise;
+      });
+
+      it("can be cleared", async function () {
+        registerHomedir(container, "clear-history");
+
+        // start the shell
+        const runPromise = run(`shell --secret "secret"`, container);
+        // Wait for the shell to start (print ">")
+        // sleep for a little bit to let the shell get started
+        // for some reason this is needed for the stdout to be read from predictably
+        await sleep(50);
+        await stdout.waitForWritten();
+
+        // send our first command
+        stdin.push("4\n5\n6\n");
+        await stdout.waitForWritten();
+
+        const command = ".clearhistory";
+        const expected = `${command}\r\nHistory cleared${prompt}`;
+
+        // confirm feedback that .clearhistory command was run
+        stdout.clear();
+        stdin.push(`${command}\n`);
+        await stdout.waitForWritten();
+        expect(stdout.getWritten()).to.equal(expected);
+
+        // sleep to allow time for history to be cleared
+        await sleep(100);
+
+        // Confirm that history is indeed cleared
+        // When there is no history to flip thorugh, stdout will not be written
+        // to. Allow some time for stdout to change to catch issues where stdout
+        // is written to.
+        stdin.push(upArrow);
+        await Promise.any([stdout.waitForWritten(), sleep(100)]);
+        expect(stdout.getWritten()).to.equal(expected);
+
+        expect(container.resolve("stderrStream").getWritten()).to.equal("");
+
+        stdin.push(null);
+
+        return runPromise;
+      });
+
+      it("can be persisted between sessions", async function () {
+        registerHomedir(container, "persist-history");
+
+        // create history file
+        // NOTE: this would be more precise if we could run multiple shell
+        // sessions, but there are complications trying to reset stdin after
+        // pushing null.
+        const fs = container.resolve("fs");
+        const homedir = container.resolve("homedir")();
+        if (!dirExists(path.join(homedir, ".fauna"))) {
+          fs.mkdirSync(path.join(homedir, ".fauna"), { recursive: true });
+        }
+        fs.writeFileSync(path.join(homedir, ".fauna/history"), "9\n8\n7\n");
+
+        // start the shell
+        const runPromise = run(`shell --secret "secret"`, container);
+        // Wait for the shell to start (print ">")
+        // sleep for a little bit to let the shell get started
+        // for some reason this is needed for the stdout to be read from predictably
+        await sleep(50);
+        await stdout.waitForWritten();
+
+        // navigate up through history
+        await stdout.waitForWritten();
+        stdout.clear();
+        stdin.push(upArrow);
+        await stdout.waitForWritten();
+        expect(stdout.getWritten()).to.equal(getHistoryPrompt("9"));
+        stdout.clear();
+        stdin.push(upArrow);
+        await stdout.waitForWritten();
+        expect(stdout.getWritten()).to.equal(getHistoryPrompt("8"));
+        stdout.clear();
+        stdin.push(upArrow);
+        await stdout.waitForWritten();
+        expect(stdout.getWritten()).to.equal(getHistoryPrompt("7"));
+
+        expect(container.resolve("stderrStream").getWritten()).to.equal("");
+
+        stdin.push(null);
+
+        return runPromise;
+      });
+    });
   });
 
   describe("v10", function () {
-    it.skip("can open a shell and run several queries", async function () {
+    it("can open a shell and run several queries", async function () {
       runQueryFromString.resolves(v10Object1);
       let query = "Database.all().take(1)";
 
       // start the shell
       const runPromise = run(`shell --secret "secret"`, container);
       // Wait for the shell to start (print ">")
+      // sleep for a little bit to let the shell get started
+      // for some reason this is needed for the stdout to be read from predictably
+      await sleep(50);
       await stdout.waitForWritten();
+
       // send our first command
       stdin.push(`${query}\n`);
       await stdout.waitForWritten();
