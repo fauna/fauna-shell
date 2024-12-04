@@ -1,10 +1,11 @@
 //@ts-check
 
-// used for queries customers can't configure that are made on their behalf
+// used for queries customers can't config  ure that are made on their behalf
 const COMMON_QUERY_OPTIONS = {
   local: {
-    type: 'boolean',
-    describe: 'Indicates a local Fauna container is being used. Sets the URL to http://localhost:8443 if --url is not provided. Use --url to set a custom url for your container.',
+    type: "boolean",
+    describe:
+      "Indicates a local Fauna container is being used. Sets the URL to http://localhost:8443 if --url is not provided. Use --url to set a custom url for your container.",
     default: false,
   },
   url: {
@@ -42,9 +43,79 @@ const COMMON_QUERY_OPTIONS = {
   role: {
     alias: "r",
     type: "string",
-    description: "a role"
+    description: "a role",
   },
 };
+
+/**
+ * An error that is thrown by commands that is not a validation error, but
+ * a known error state that should be communicated to the user.
+ */
+export class CommandError extends Error {
+  /**
+   * @param {string} message
+   * @param {object} [opts]
+   * @param {number} [opts.exitCode]
+   * @param {boolean} [opts.hideHelp]
+   * @param {Error} [opts.cause]
+   */
+  constructor(message, { exitCode = 1, hideHelp = true, cause } = {}) {
+    super(message);
+    this.exitCode = exitCode;
+    this.hideHelp = hideHelp;
+    this.cause = cause;
+  }
+}
+
+/**
+ * An error that is thrown when the user provides invalid input, but
+ * isn't caught until command execution.
+ */
+export class ValidationError extends CommandError {
+  /**
+   * @param {string} message
+   * @param {object} [opts]
+   * @param {number} [opts.exitCode]
+   * @param {boolean} [opts.hideHelp]
+   * @param {Error} [opts.cause]
+   */
+  constructor(message, { exitCode = 1, hideHelp = false, cause } = {}) {
+    super(message, { exitCode, hideHelp, cause });
+  }
+}
+
+/**
+ * Returns true if the error is an error potentially thrown by yargs
+ * @param {Error} error
+ * @returns {boolean}
+ */
+function isYargsError(error) {
+  // Sometimes they are named YError. This seems to the case in middleware.
+  if (error.name === "YError") {
+    return true;
+  }
+
+  // Usage errors from yargs are thrown as plain old Error. The best
+  // you can do is check for the message.
+  if (
+    error.message &&
+    (error.message.startsWith("Unknown argument") ||
+      error.message.startsWith("Missing required argument"))
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Returns true if the error is not an error yargs or one we've thrown ourselves in a command
+ * @param {Error} error
+ * @returns {boolean}
+ */
+export function isUnknownError(error) {
+  return !isYargsError(error) && !(error instanceof CommandError);
+}
 
 
 /**
@@ -54,10 +125,13 @@ const COMMON_QUERY_OPTIONS = {
  * @param {object} argv 
  * @param {string} argv.database - The database to use
  * @param {string} argv.secret - The secret to use
+ * @param {boolean} argv.local - Whether to use a local Fauna container
  */
 export const validateDatabaseOrSecret = (argv) => {
   if (!argv.database && !argv.secret && !argv.local) {
-    throw new Error("No database or secret specified. Pass either --database, or --secret, or --local.");
+    throw new ValidationError(
+      "No database or secret specified. Pass either --database, or --secret, or --local.",
+    );
   }
 }
 

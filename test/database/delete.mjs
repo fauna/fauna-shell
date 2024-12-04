@@ -1,11 +1,10 @@
 //@ts-check
 
 import { expect } from "chai";
-import chalk from "chalk";
 import { fql, ServiceError } from "fauna";
 import sinon from "sinon";
 
-import { builtYargs, run } from "../../src/cli.mjs";
+import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
 describe("database delete", () => {
@@ -25,10 +24,9 @@ describe("database delete", () => {
           await run(command, container);
         } catch (e) {}
 
-        const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-          `Missing required argument: ${missing}`,
-        )}`;
-        expect(logger.stderr).to.have.been.calledWith(message);
+        expect(logger.stderr).to.have.been.calledWith(
+          sinon.match(`Missing required argument: ${missing}`),
+        );
         expect(container.resolve("parseYargs")).to.have.been.calledOnce;
       });
     },
@@ -78,7 +76,9 @@ describe("database delete", () => {
         );
       } catch (e) {}
 
-      expect(logger.stderr).to.have.been.calledWith(sinon.match(expectedMessage));
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match(expectedMessage),
+      );
     });
   });
 });

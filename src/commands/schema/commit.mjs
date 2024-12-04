@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import { CommandError, yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 
 async function doCommit(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
@@ -33,12 +33,12 @@ async function doCommit(argv) {
     });
 
     if (response.status === "none")
-      throw new Error("There is no staged schema to commit");
+      throw new CommandError("There is no staged schema to commit");
 
     logger.stdout(response.diff);
 
     if (response.status !== "ready")
-      throw new Error("Schema is not ready to be committed");
+      throw new CommandError("Schema is not ready to be committed");
 
     const confirmed = await confirm({
       message: "Accept and commit these changes?",

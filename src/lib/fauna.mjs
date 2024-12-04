@@ -2,6 +2,7 @@
 /**
  * @fileoverview Fauna V10 client utilities for query execution and error handling.
  */
+
 import {
   ClientClosedError,
   ClientError,
@@ -11,6 +12,7 @@ import {
 } from "fauna";
 
 import { container } from "../cli.mjs";
+import { CommandError, ValidationError } from "./command-helpers.mjs";
 import { formatFullErrorForShell, formatObjectForShell } from "./misc.mjs";
 
 /**
@@ -46,7 +48,9 @@ export const getClient = ({ url, secret }) => {
 
   // Check for required arguments.
   if (!secret) {
-    throw new Error("No secret provided. Pass --secret or --database.");
+    throw new ValidationError(
+      "No secret provided. Pass --secret or --database.",
+    );
   }
   // Create the client.
   return new Client({ secret, endpoint: url ? new URL(url) : undefined });
@@ -73,7 +77,7 @@ export const runQuery = async ({
 }) => {
   // Check for required arguments.
   if (!query) {
-    throw new Error("A query is required.");
+    throw new CommandError("A query is required.");
   }
 
   // Create the client if one wasn't provided.
@@ -139,9 +143,9 @@ export const formatError = (err, opts = {}) => {
     }
 
     // Otherwise, return the summary and fall back to the message.
-    return err.queryInfo?.summary ?? err.message;
+    return `The query failed with the following error:\n\n${err.queryInfo?.summary ?? err.message}`;
   } else {
-    return err.message;
+    return `The query failed unexpectedly with the following error:\n\n${err.message}`;
   }
 };
 

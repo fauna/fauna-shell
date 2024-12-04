@@ -10,8 +10,14 @@ import queryCommand from "./commands/query.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
 import { buildCredentials } from "./lib/auth/credentials.mjs";
+import { isUnknownError } from "./lib/command-helpers.mjs";
 import { configParser } from "./lib/config/config.mjs";
-import { applyLocalArg, checkForUpdates, fixPaths, logArgv } from "./lib/middleware.mjs";
+import {
+  applyLocalArg,
+  checkForUpdates,
+  fixPaths,
+  logArgv,
+} from "./lib/middleware.mjs";
 
 /** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables> } cliContainer */
 
@@ -21,6 +27,8 @@ export let container;
 export let builtYargs;
 
 export let argvInput;
+
+const BUG_REPORT_MESSAGE = `If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues`;
 
 /**
  * @param {string|string[]} _argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
@@ -42,15 +50,41 @@ export async function run(_argvInput, _container) {
     let subMessage = chalk.reset(
       "Use 'fauna <command> --help' for more information about a command.",
     );
+    let epilogue = "";
 
     if (argvInput.length > 0) {
-      subMessage = chalk.red(e.message);
+      // If the error isn't one of our known errors, wrap it in a generic error message.
+      if (isUnknownError(e)) {
+        subMessage = chalk.red(
+          `An unexpected error occurred...\n\n${e.message}`,
+        );
+        epilogue = `\n${BUG_REPORT_MESSAGE}`;
+
+        logger.debug(`unknown error thrown: ${e.name}`);
+      } else {
+        // Otherwise, just use the error message
+        subMessage = chalk.red(e.message);
+      }
     }
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${subMessage}`;
-    logger.stderr(message);
+
+    // If the error has a truthy displayHelp property, render the help text. Otherwise, just use the error message.
+    logger.stderr(
+      `${e.hideHelp ? "" : `${chalk.reset(await builtYargs.getHelp())}\n\n`}${subMessage}`,
+    );
+
+    if (epilogue) {
+      logger.stderr(chalk.red(epilogue));
+    }
+
+    // Log the stack if it exists
     logger.fatal(e.stack, "error");
-    const exitCode = e.exitCode !== undefined ? e.exitCode : 1;
-    container.resolve("errorHandler")(e, exitCode);
+    logger.fatal(e.cause?.stack, "cause");
+
+    // If the error has an exitCode property, use that. Otherwise, use 1.
+    container.resolve("errorHandler")(
+      e,
+      e.exitCode !== undefined ? e.exitCode : 1,
+    );
   }
 }
 
@@ -93,7 +127,7 @@ function buildYargs(argvInput) {
       })
       .command("warn", false, {
         handler: async () => {
-          process.emitWarning("this is a warning emited on the node process");
+          process.emitWarning("this is a warning emitted on the node process");
         },
         builder: {},
       });
