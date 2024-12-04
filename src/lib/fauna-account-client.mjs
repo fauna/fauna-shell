@@ -220,17 +220,17 @@ export class FaunaAccountClient {
    * Transforms database paths to standardize region group naming conventions expected by
    * the account API.
    *
-   * @param {string} databasePath - The database path to standardize
-   * @returns {string} The standardized path
+   * @param {string} [databasePath] - The database path to standardize
+   * @returns {string | undefined} The standardized path
    * @example
    * // Returns "us-std/my-database"
-   * standardizeRegion("us/my-database")
+   * FaunaAccountClient.standardizeRegion("us/my-database")
    *
    * // Returns "eu-std/my-database"
-   * standardizeRegion("eu/my-database")
+   * FaunaAccountClient.standardizeRegion("eu/my-database")
    *
    * // Returns "global/my-database"
-   * standardizeRegion("classic/my-database")
+   * FaunaAccountClient.standardizeRegion("classic/my-database")
    *
    * @throws {TypeError} If databasePath is provided but not a string
    */

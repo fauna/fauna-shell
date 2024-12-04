@@ -5,16 +5,9 @@ import { expect } from "chai";
 import { FaunaAccountClient } from "../src/lib/fauna-account-client.mjs";
 
 describe("FaunaAccountClient", () => {
-  let client;
-
-  beforeEach(() => {
-    client = new FaunaAccountClient();
-  });
-
   [
     // Edge cases
     { original: undefined, expected: undefined },
-    { original: null, expected: null },
     { original: "", expected: "" },
     { original: "/", expected: "" },
     { original: "us/", expected: "us-std" },
@@ -35,7 +28,7 @@ describe("FaunaAccountClient", () => {
     { original: "global/example", expected: "global/example" },
   ].forEach(({ original, expected }) => {
     it(`standardizes ${original} to ${expected}`, () => {
-      expect(client.standardizeRegion(original)).to.equal(expected);
+      expect(FaunaAccountClient.standardizeRegion(original)).to.equal(expected);
     });
   });
 });
