@@ -150,7 +150,7 @@ function buildYargs(argvInput) {
     .command(schemaCommand)
     .command(databaseCommand)
     .demandCommand()
-    .strict(true)
+    .strictCommands(true)
     .options({
       color: {
         description:
