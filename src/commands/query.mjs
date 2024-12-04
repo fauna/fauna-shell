@@ -2,25 +2,34 @@
 
 import { container } from "../cli.mjs";
 import {
+  CommandError,
+  isUnknownError,
   validateDatabaseOrSecret,
+  ValidationError,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { formatError, formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
+import {
+  formatError,
+  formatQueryResponse,
+  getSecret,
+} from "../lib/fauna-client.mjs";
 
 function validate(argv) {
   const { existsSync, accessSync, constants } = container.resolve("fs");
   const dirname = container.resolve("dirname");
 
   if (argv.input && argv.fql) {
-    throw new Error("Cannot specify both --input and [fql]");
+    throw new ValidationError("Cannot specify both --input and [fql]");
   }
 
   if (!argv.input && !argv.fql) {
-    throw new Error("No query specified. Pass [fql] or --input.");
+    throw new ValidationError("No query specified. Pass [fql] or --input.");
   }
 
   if (argv.input && !existsSync(argv.input)) {
-    throw new Error(`File passed to --input does not exist: ${argv.input}`);
+    throw new ValidationError(
+      `File passed to --input does not exist: ${argv.input}`,
+    );
   }
 
   if (argv.output) {
@@ -28,7 +37,9 @@ function validate(argv) {
     try {
       accessSync(outputDir, constants.W_OK);
     } catch (e) {
-      throw new Error(`Unable to write to output directory: ${outputDir}`);
+      throw new ValidationError(
+        `Unable to write to output directory: ${outputDir}`,
+      );
     }
   }
 }
@@ -49,10 +60,10 @@ const resolveInput = (argv) => {
 
   logger.debug("no --input specified, using [fql]", "argv");
   return argv.fql;
-}
+};
 
 async function queryCommand(argv) {
-  // validate the arguments and throw if they are invalid
+  // Run validation here instead of via check for more control over output
   validateDatabaseOrSecret(argv);
   validate(argv);
 
@@ -90,9 +101,14 @@ async function queryCommand(argv) {
 
     return results;
   } catch (err) {
+    if (!isUnknownError(err)) {
+      throw err;
+    }
+
     const { apiVersion, extra, color } = argv;
-    err.message = formatError(err, { apiVersion, extra, color });
-    throw err;
+    throw new CommandError(formatError(err, { apiVersion, extra, color }), {
+      cause: err,
+    });
   }
 }
 
@@ -102,31 +118,47 @@ function buildQueryCommand(yargs) {
       type: "string",
       description: "FQL query to run. Use `-` to read from stdin.",
     })
-    .nargs('fql', 1)
+    .nargs("fql", 1)
     .options({
       input: {
         alias: "i",
         type: "string",
-        description:
-          "Path to a file containing an FQL query to run.",
+        description: "Path to a file containing an FQL query to run.",
       },
       output: {
         alias: "o",
         type: "string",
-        description: "Path to a file where query results are written. Defaults to stdout.",
+        description:
+          "Path to a file where query results are written. Defaults to stdout.",
       },
       extra: {
         type: "boolean",
-        description: "Output the full API response, including summary and query stats.",
+        description:
+          "Output the full API response, including summary and query stats.",
         default: false,
       },
     })
     .example([
-      ['$0 query "Collection.all()" --database us-std/example', "Run the query and write the results to stdout "],
-      ["$0 query -i /path/to/query.fql --database us-std/example", "Run the query from a file"],
-      ['echo "1 + 1" | $0 query - --database us-std/example', "Run the query from stdin"],
-      ['$0 query -i /path/to/queries.fql --output /tmp/result.json --database us-std/example', "Run the query and write the results to a file"],
-      ['$0 query -i /path/to/queries.fql --extra --output /tmp/result.json --database us-std/example', "Run the query and write the full API response to a file"],
+      [
+        '$0 query "Collection.all()" --database us-std/example',
+        "Run the query and write the results to stdout ",
+      ],
+      [
+        "$0 query -i /path/to/query.fql --database us-std/example",
+        "Run the query from a file",
+      ],
+      [
+        'echo "1 + 1" | $0 query - --database us-std/example',
+        "Run the query from stdin",
+      ],
+      [
+        "$0 query -i /path/to/queries.fql --output /tmp/result.json --database us-std/example",
+        "Run the query and write the results to a file",
+      ],
+      [
+        "$0 query -i /path/to/queries.fql --extra --output /tmp/result.json --database us-std/example",
+        "Run the query and write the full API response to a file",
+      ],
     ])
     .help("help", "Show help.");
 }

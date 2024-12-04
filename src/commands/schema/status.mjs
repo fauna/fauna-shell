@@ -3,7 +3,10 @@
 import chalk from "chalk";
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import {
+  CommandError,
+  yargsWithCommonQueryOptions,
+} from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 
@@ -49,7 +52,7 @@ async function doStatus(argv) {
 
   if (validationResponse.error) {
     logger.stdout(`Local changes:`);
-    throw new Error(validationResponse.error.message);
+    throw new CommandError(validationResponse.error.message);
   } else if (validationResponse.diff === "") {
     logger.stdout(`Local changes: ${chalk.bold("none")}\n`);
   } else {

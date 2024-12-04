@@ -1,7 +1,10 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import {
+  CommandError,
+  yargsWithCommonQueryOptions,
+} from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 
 async function doAbandon(argv) {
@@ -36,7 +39,7 @@ async function doAbandon(argv) {
     });
 
     if (response.status === "none")
-      throw new Error("There is no staged schema to abandon");
+      throw new CommandError("There is no staged schema to abandon");
 
     logger.stdout(response.diff);
 

@@ -1,7 +1,10 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import {
+  CommandError,
+  yargsWithCommonQueryOptions,
+} from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 
 async function doCommit(argv) {
@@ -37,12 +40,12 @@ async function doCommit(argv) {
     });
 
     if (response.status === "none")
-      throw new Error("There is no staged schema to commit");
+      throw new CommandError("There is no staged schema to commit");
 
     logger.stdout(response.diff);
 
     if (response.status !== "ready")
-      throw new Error("Schema is not ready to be committed");
+      throw new CommandError("Schema is not ready to be committed");
 
     const confirmed = await confirm({
       message: "Accept and commit these changes?",
@@ -71,7 +74,8 @@ function buildCommitCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
-        description: "Prompt for input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
+        description:
+          "Prompt for input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
         default: true,
         type: "boolean",
       },

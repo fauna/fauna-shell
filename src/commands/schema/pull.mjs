@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import { CommandError, yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { makeFaunaRequest } from "../../lib/db.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 
@@ -81,11 +81,11 @@ async function doPull(argv) {
   // getting active FSL while staged FSL exists is not yet
   // implemented at the service level.
   if (statusResponse.status !== "none" && argv.active) {
-    throw new Error(
+    throw new CommandError(
       "There is a staged schema change. Remove the --active flag to pull it.",
     );
   } else if (statusResponse.status === "none" && !argv.active) {
-    throw new Error("There are no staged schema changes to pull.");
+    throw new CommandError("There are no staged schema changes to pull.");
   }
 
   const { adds, deletes, overwrites } = await determineFileState(

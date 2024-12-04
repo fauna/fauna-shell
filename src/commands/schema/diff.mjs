@@ -3,7 +3,10 @@
 import chalk from "chalk";
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import {
+  ValidationError,
+  yargsWithCommonQueryOptions,
+} from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 
@@ -16,7 +19,7 @@ function parseTarget(argv) {
   }
 
   if (argv.active && argv.staged) {
-    throw new Error("Cannot specify both --active and --staged");
+    throw new ValidationError("Cannot specify both --active and --staged");
   }
 
   if (argv.active) {
@@ -24,7 +27,7 @@ function parseTarget(argv) {
   } else if (argv.staged) {
     return ["active", "staged"];
   } else {
-    throw new Error("Invalid target. Expected: active or staged");
+    throw new ValidationError("Invalid target. Expected: active or staged");
   }
 }
 
