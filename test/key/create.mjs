@@ -20,15 +20,15 @@ describe.only("key create", () => {
 
   [
     {
-      command: "key create",
-      expected: "Missing required argument: --database",
+      command: "key create --ttl '2024-01-01T13:15:03Z'",
+      expected: "Missing required argument: database",
     },
     {
-      args: "key create --database us-std --ttl taco",
-      expected: "Invalid argument: --ttl must be an ISO 8601 date time",
-    }
+      command: "key create --database us-std --ttl taco",
+      expected: "Invalid ttl 'taco'. Provide as an ISO 8601 date time string.",
+    },
   ].forEach(({ command, expected }) => {
-    it("Provides clear error when invalid args are provided", async ({ args, expected }) => {
+    it("Provides clear error when invalid args are provided", async () => {
       try {
         console.log("running");
         await run(command, container);
