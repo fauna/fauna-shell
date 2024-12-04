@@ -120,6 +120,7 @@ export class DatabaseKeys {
     const newSecret = await accountClient.createKey({
       path,
       role,
+      name: "System generated shell key",
       ttl: new Date(expiration).toISOString(),
     });
     this.keyStore.save(this.keyName, {

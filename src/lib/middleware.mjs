@@ -13,6 +13,7 @@ const LOCAL_SECRET = "secret";
 const DEFAULT_URL = "https://db.fauna.com";
 
 export function logArgv(argv) {
+  console.log("logArgv");
   const logger = container.resolve("logger");
   logger.debug(JSON.stringify(argv, null, 4), "argv", argv);
   logger.debug(
@@ -34,6 +35,7 @@ function captureEnvVars() {
 }
 
 export function fixPaths(argv) {
+  console.log("fixPaths");
   if (argv.dir) {
     return { ...argv, dir: fixPath(argv.dir) };
   } else {
@@ -42,6 +44,7 @@ export function fixPaths(argv) {
 }
 
 export function checkForUpdates(argv) {
+  console.log("checkForUpdates");
   // TODO: figure out upgrade path for SEA installations
   if (isSea()) return argv;
 
@@ -61,6 +64,7 @@ export function checkForUpdates(argv) {
   });
 
   notifier.notify();
+  console.log("checkForUpdates done");
   return argv;
 }
 
@@ -74,6 +78,7 @@ export function checkForUpdates(argv) {
  * @returns {void}
  */
 export function applyLocalArg(argv) {
+  console.log("applyLocalArg");
   const logger = container.resolve("logger");
   if (!argv.url) {
     if (argv.local) {
@@ -100,4 +105,6 @@ export function applyLocalArg(argv) {
       argv,
     );
   }
+  console.log("applyLocalArg done");
+  return argv;
 }

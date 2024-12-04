@@ -3,6 +3,8 @@
 import { container } from "../cli.mjs";
 import { InvalidCredsError } from "./misc.mjs";
 
+const KEY_TTL_DEFAULT_MS = 1000 * 60 * 60 * 24;
+
 /**
  * Class representing a client for interacting with the Fauna account API.
  */
@@ -198,20 +200,20 @@ export class FaunaAccountClient {
    * @param {Object} params - The parameters for creating the key.
    * @param {string} params.path - The path of the database, including region group
    * @param {string} params.role - The builtin role for the key.
-   * @param {string} params.ttl - ISO String for the key's expiration time
+   * @param {string | undefined} params.ttl - ISO String for the key's expiration time, optional
+   * @param {string | undefined} params.name - The name for the key, optional
    * @returns {Promise<Object>} - A promise that resolves when the key is created.
    * @throws {Error} - Throws an error if there is an issue during key creation.
    */
-  async createKey({ path, role, ttl }) {
-    const TTL_DEFAULT_MS = 1000 * 60 * 60 * 24;
-    return await this.retryableAccountRequest({
+  async createKey({ path, role, ttl, name }) {
+    return this.retryableAccountRequest({
       method: "POST",
       path: "/databases/keys",
       body: JSON.stringify({
         role,
         path: FaunaAccountClient.standardizeRegion(path),
-        ttl: ttl || new Date(Date.now() + TTL_DEFAULT_MS).toISOString(),
-        name: "System generated shell key",
+        ttl,
+        name,
       }),
       secret: this.accountKeys.key,
     });
