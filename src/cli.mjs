@@ -1,5 +1,6 @@
 // @ts-check
 
+import { util } from "chai";
 import chalk from "chalk";
 import yargs from "yargs";
 
@@ -60,14 +61,15 @@ export async function run(_argvInput, _container) {
         );
         epilogue = `\n${BUG_REPORT_MESSAGE}`;
 
-        logger.debug(`unknown error thrown: ${e.name}`);
+        logger.debug(`unknown error thrown: ${e.name}`, "error");
+        logger.debug(util.inspect(e, true, 2, false), "error");
       } else {
         // Otherwise, just use the error message
         subMessage = chalk.red(e.message);
       }
     }
 
-    // If the error has a truthy displayHelp property, render the help text. Otherwise, just use the error message.
+    // If the error has a truthy hideHelp property, do not render the help text. Otherwise, just use the error message.
     logger.stderr(
       `${e.hideHelp ? "" : `${chalk.reset(await builtYargs.getHelp())}\n\n`}${subMessage}`,
     );
@@ -78,7 +80,7 @@ export async function run(_argvInput, _container) {
 
     // Log the stack if it exists
     logger.fatal(e.stack, "error");
-    logger.fatal(e.cause?.stack, "cause");
+    logger.fatal(e.cause?.stack, "error");
 
     // If the error has an exitCode property, use that. Otherwise, use 1.
     container.resolve("errorHandler")(
