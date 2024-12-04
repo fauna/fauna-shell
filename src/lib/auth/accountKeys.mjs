@@ -24,7 +24,7 @@ export class AccountKeys {
     // Let users know if the creds they provided are invalid (empty)
     if (!key && keySource !== "credentials-file") {
       throw new Error(
-        `The account key provided by ${keySource} is invalid. Please provide an updated value.`,
+        `The account key provided by '${keySource}' is invalid. Please provide an updated value.`,
       );
     }
   }
@@ -56,9 +56,8 @@ export class AccountKeys {
    */
   promptLogin() {
     throw new Error(
-      `The requested user ${this.user || ""} is not signed in or has expired. Please re-authenticate\n
-       To sign in, run:\n
-        fauna login\n
+      `The requested user '${this.user || ""}' is not signed in or has expired.\nPlease re-authenticate\n\n
+      To sign in, run:\n\nfauna login\n
       `,
     );
   }
@@ -70,7 +69,7 @@ export class AccountKeys {
   async onInvalidCreds() {
     if (this.keySource !== "credentials-file") {
       throw new Error(
-        `Account key provided by ${this.keySource} is invalid. Please provide an updated account key.`,
+        `Account key provided by '${this.keySource}' is invalid. Please provide an updated account key.`,
       );
     }
     await this.refreshKey();

@@ -54,7 +54,7 @@ export function dirIsWriteable(path) {
  * @param {string} path - The path to the file.
  * @returns {boolean} - Returns true if the file exists, otherwise false.
  */
-export function fileExists(path) {
+function fileExists(path) {
   const fs = container.resolve("fs");
   try {
     fs.readFileSync(fixPath(path));
@@ -318,6 +318,40 @@ export class AccountKeyStorage extends CredentialsStorage {
   delete() {
     return super.delete(this.user);
   }
+}
+
+/**
+ * Initializes the history storage file.
+ *
+ * @returns {string} The and filename to the history storage file
+ */
+export function initHistoryStorage() {
+  const fs = container.resolve("fs");
+  const homedir = container.resolve("homedir")();
+
+  const historyDir = path.join(homedir, ".fauna");
+  if (!dirExists(historyDir)) {
+    fs.mkdirSync(historyDir, { recursive: true });
+  }
+  const historyFile = path.join(historyDir, "history");
+  if (!fileExists(historyFile)) {
+    fs.writeFileSync(historyFile, "");
+  }
+
+  return historyFile;
+}
+
+/**
+ * Clears the contents of the history storage file.
+ *
+ * `initHistoryStorage()` must have been called before calling this function in
+ * order to ensure that the history storage file exists.
+ */
+export function clearHistoryStorage() {
+  const fs = container.resolve("fs");
+  const homedir = container.resolve("homedir")();
+  const historyFile = path.join(homedir, ".fauna/history");
+  fs.writeFileSync(historyFile, "");
 }
 
 /**

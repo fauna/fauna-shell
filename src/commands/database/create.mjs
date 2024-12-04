@@ -4,24 +4,48 @@ import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
+import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
+import { formatObjectForShell } from "../../lib/misc.mjs";
+import { validateSecretOrDatabase } from "./database.mjs";
 
-async function createDatabase(argv) {
-  const logger = container.resolve("logger");
+function validate(argv) {
+  validateSecretOrDatabase(argv);
+  return true;
+}
+
+async function runCreateQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
   const { runQuery } = container.resolve("faunaClientV10");
-
-  try {
-    await runQuery({
-      url: argv.url,
-      secret: argv.secret,
-      query: fql`Database.create({
+  return runQuery({
+    secret,
+    url: argv.url,
+    query: fql`
+      Database.create({
         name: ${argv.name},
         protected: ${argv.protected ?? null},
         typechecked: ${argv.typechecked ?? null},
         priority: ${argv.priority ?? null},
       })`,
-    });
-    logger.stdout(`Database '${argv.name}' was successfully created.`);
+  });
+}
+
+async function createDatabase(argv) {
+  const secret = await getSecret();
+  const logger = container.resolve("logger");
+
+  try {
+    await retryInvalidCredsOnce(secret, async (secret) =>
+      runCreateQuery(secret, argv),
+    );
+
+    logger.stderr(`Database successfully created.`);
+
+    const { color, json } = argv;
+    if (json) {
+      logger.stdout(formatObjectForShell({ name: argv.name }, { color }));
+    } else {
+      logger.stdout(argv.name);
+    }
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e, {
@@ -39,28 +63,40 @@ function buildCreateCommand(yargs) {
       name: {
         type: "string",
         required: true,
-        description: "the name of the database to create",
+        description: "Name of the database to create.",
       },
       typechecked: {
         type: "string",
-        description: "enable typechecking for the database",
+        description:
+          "Enable typechecking for the database. Defaults to the typechecking setting of the parent database.",
       },
       protected: {
         type: "boolean",
-        description: "allow destructive schema changes",
+        description:
+          "Enable protected mode for the database. Protected mode disallows destructive schema changes.",
       },
       priority: {
         type: "number",
-        description: "user-defined priority assigned to the child database",
+        description: "User-defined priority for the database.",
       },
     })
-    .version(false)
-    .help("help", "show help");
+    .check(validate)
+    .help("help", "show help")
+    .example([
+      [
+        "$0 database create --name 'my-database' --database 'us-std/example'",
+        "Create a database named 'my-database' under `us-std/example`.",
+      ],
+      [
+        "$0 database create --name 'my-database' --secret 'my-secret'",
+        "Create a database named 'my-database' scoped to a secret.",
+      ],
+    ]);
 }
 
 export default {
   command: "create",
-  description: "Creates a database",
+  description: "Create a child database.",
   builder: buildCreateCommand,
   handler: createDatabase,
 };

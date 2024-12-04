@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 
 async function doPush(argv) {
@@ -80,7 +80,7 @@ async function doPush(argv) {
 }
 
 function buildPushCommand(yargs) {
-  return yargs
+  return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
         description: "Prompt for user input (e.g., confirmations)",
@@ -93,20 +93,18 @@ function buildPushCommand(yargs) {
         type: "boolean",
         default: false,
       },
-      ...commonQueryOptions,
     })
     .example([
       ["$0 schema push"],
       ["$0 schema push --dir schemas/myschema"],
       ["$0 schema push --active"],
     ])
-    .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "push",
-  description: "Push the current project's .fsl files to Fauna.",
+  description: "Push local .fsl schema files to Fauna.",
   builder: buildPushCommand,
   handler: doPush,
 };

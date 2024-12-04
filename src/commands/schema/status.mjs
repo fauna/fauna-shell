@@ -3,7 +3,7 @@
 import chalk from "chalk";
 
 import { container } from "../../cli.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 
 async function doStatus(argv) {
@@ -57,18 +57,14 @@ async function doStatus(argv) {
 }
 
 function buildStatusCommand(yargs) {
-  return yargs
-    .options({
-      ...commonQueryOptions,
-    })
+  return yargsWithCommonQueryOptions(yargs)
     .example([["$0 schema status"]])
-    .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "status",
-  description: "Print the staged schema status.",
+  description: "Print the staged schema's status.",
   builder: buildStatusCommand,
   handler: doStatus,
 };

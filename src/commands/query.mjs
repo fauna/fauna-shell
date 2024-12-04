@@ -5,7 +5,11 @@ import {
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { formatError, formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
+import {
+  formatError,
+  formatQueryResponse,
+  getSecret,
+} from "../lib/fauna-client.mjs";
 
 function validate(argv) {
   const { existsSync, accessSync, constants } = container.resolve("fs");
@@ -49,7 +53,7 @@ const resolveInput = (argv) => {
 
   logger.debug("no --input specified, using [fql]", "argv");
   return argv.fql;
-}
+};
 
 async function queryCommand(argv) {
   // validate the arguments and throw if they are invalid
@@ -62,7 +66,11 @@ async function queryCommand(argv) {
   // get the query handler and run the query
   try {
     const secret = await getSecret();
-    const { url, timeout, typecheck, extra, json, apiVersion } = argv;
+    const { url, timeout, typecheck, extra, json, apiVersion, color } = argv;
+
+    // If we're writing to a file, don't colorize the output regardless of the user's preference
+    const useColor = argv.output ? false : color;
+
     const results = await container.resolve("runQueryFromString")(expression, {
       apiVersion,
       secret,
@@ -70,10 +78,12 @@ async function queryCommand(argv) {
       timeout,
       typecheck,
     });
+
     const output = formatQueryResponse(results, {
       apiVersion,
       extra,
       json,
+      color: useColor,
     });
 
     if (argv.output) {
@@ -84,7 +94,8 @@ async function queryCommand(argv) {
 
     return results;
   } catch (err) {
-    err.message = formatError(err, { apiVersion: argv.apiVersion, extra: argv.extra }); 
+    const { apiVersion, extra, color } = argv;
+    err.message = formatError(err, { apiVersion, extra, color });
     throw err;
   }
 }
@@ -93,42 +104,57 @@ function buildQueryCommand(yargs) {
   return yargsWithCommonConfigurableQueryOptions(yargs)
     .positional("fql", {
       type: "string",
-      description: "the query to run; use - to read from stdin",
+      description: "FQL query to run. Use `-` to read from stdin.",
     })
-    .nargs('fql', 1)
+    .nargs("fql", 1)
     .options({
       input: {
         alias: "i",
         type: "string",
-        description:
-          "file path to read the query (or queries) from",
+        description: "Path to a file containing an FQL query to run.",
       },
       output: {
         alias: "o",
         type: "string",
-        description: "file path to write output to; defaults to stdout",
+        description:
+          "Path to a file where query results are written. Defaults to stdout.",
       },
       extra: {
         type: "boolean",
-        description: "include additional information in the output, including stats",
+        description:
+          "Output the full API response, including summary and query stats.",
         default: false,
       },
     })
     .example([
-      ['$0 query "Collection.all()" --database us-std/example --role admin', "run the query and write to stdout "],
-      ["$0 query -i /path/to/queries.fql --database us-std/example --role admin", "run the query from a file"],
-      ['echo "1 + 1" | $0 query - --database us-std/example --role admin', "run the query from stdin"],
-      ['$0 query -i /path/to/queries.fql -o /tmp/result.json --database us-std/example --role admin', "run the query and write to a file"],
-      ['$0 query -i /path/to/queries.fql -o /tmp/result.json --extra --database us-std/example --role admin', "run the query and write full API response to a file"],
+      [
+        '$0 query "Collection.all()" --database us-std/example',
+        "Run the query and write the results to stdout ",
+      ],
+      [
+        "$0 query -i /path/to/query.fql --database us-std/example",
+        "Run the query from a file",
+      ],
+      [
+        'echo "1 + 1" | $0 query - --database us-std/example',
+        "Run the query from stdin",
+      ],
+      [
+        "$0 query -i /path/to/queries.fql --output /tmp/result.json --database us-std/example",
+        "Run the query and write the results to a file",
+      ],
+      [
+        "$0 query -i /path/to/queries.fql --extra --output /tmp/result.json --database us-std/example",
+        "Run the query and write the full API response to a file",
+      ],
     ])
-    .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "query [fql]",
   aliases: ["eval"],
-  describe: "execute a query",
+  describe: "Run an FQL query.",
   builder: buildQueryCommand,
   handler: queryCommand,
 };

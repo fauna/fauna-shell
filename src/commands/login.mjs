@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { commonQueryOptions } from "../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../lib/command-helpers.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 
 async function doLogin() {
@@ -35,12 +35,12 @@ async function doLogin() {
  * @returns
  */
 function buildLoginCommand(yargs) {
-  return yargs.options({
-    ...commonQueryOptions,
-  });
+  return yargsWithCommonQueryOptions(yargs);
 }
 
 export default {
+  command: "login",
+  describe: "Authenticate with Fauna.",
   builder: buildLoginCommand,
   handler: doLogin,
 };

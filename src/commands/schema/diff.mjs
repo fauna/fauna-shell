@@ -3,7 +3,7 @@
 import chalk from "chalk";
 
 import { container } from "../../cli.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 
 /**
@@ -105,7 +105,7 @@ async function doDiff(argv) {
 }
 
 function buildDiffCommand(yargs) {
-  return yargs
+  return yargsWithCommonQueryOptions(yargs)
     .options({
       staged: {
         description:
@@ -124,7 +124,6 @@ function buildDiffCommand(yargs) {
         default: false,
         type: "boolean",
       },
-      ...commonQueryOptions,
     })
     .example([
       ["$0 schema diff"],
@@ -132,8 +131,7 @@ function buildDiffCommand(yargs) {
       ["$0 schema diff --staged"],
       ["$0 schema diff --active --text"],
     ])
-    .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {

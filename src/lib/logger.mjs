@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { Console } from "console";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import yargsParser from "yargs-parser";
 
 /**
  * @typedef argv
@@ -34,27 +35,22 @@ export function log({
   // tag (usually "[error]") to the front anyways, let's strip this prefix
   text = text.replace(/^Error: /, "");
 
-  // this case only occurs when an error is thrown and not caught
+  // this case only occurs when an error is thrown and not caught _or_ a command is called with
+  // the `--help` flag (where checkForDefaultConfig calls this)
   if (!argv) {
-    // we give yargs _just_ enough information that we can use it to parse
-    // out the verbosity flags needed by the logger
-    argv = yargs(hideBin(process.argv))
-      .options({
-        verboseComponent: {
-          type: "array",
-          default: [],
-        },
-        verbosity: {
-          type: "number",
-          default: 0,
-        },
-      })
-      .version(false).argv;
+    argv = yargsParser(process.argv.slice(2), {
+      array: ["verboseComponent"],
+      alias: {
+        profile: ["p"],
+        config: ["c"],
+      },
+    });
   }
 
   if (
-    argv.verbosity >= verbosity ||
-    argv.verboseComponent.includes(component)
+    argv &&
+    argv.verboseComponent &&
+    (argv.verbosity >= verbosity || argv.verboseComponent.includes(component))
   ) {
     const prefix = chalk.reset("[") + formatter(component) + chalk.reset("]: ");
     stream(prefix + formatter(text));
@@ -178,7 +174,7 @@ function quietableStream(stream, text, argv) {
         quiet: {
           type: "boolean",
           default: false,
-        }
+        },
       })
       .version(false).argv;
   }

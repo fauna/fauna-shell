@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { commonQueryOptions } from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 
 async function doAbandon(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
@@ -59,23 +59,21 @@ async function doAbandon(argv) {
 }
 
 function buildAbandonCommand(yargs) {
-  return yargs
+  return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
         description: "Prompt for user input (e.g., confirmations)",
         default: true,
         type: "boolean",
       },
-      ...commonQueryOptions,
     })
     .example([["$0 schema abandon"]])
-    .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "abandon",
-  description: "Abandons the currently staged schema.",
+  description: "Abandon the current staged schema.",
   builder: buildAbandonCommand,
   handler: doAbandon,
 };
