@@ -1,19 +1,20 @@
 import { asValue, Lifetime } from "awilix";
 
 import { container } from "../../cli.mjs";
+import { ValidationError } from "../command-helpers.mjs";
 import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { AccountKeys } from "./accountKeys.mjs";
 import { DatabaseKeys } from "./databaseKeys.mjs";
 
 const validateCredentialArgs = (argv) => {
   if (argv.database && argv.secret) {
-    throw new Error(
+    throw new ValidationError(
       "Cannot use both the '--secret' and '--database' options together. Please specify only one.",
     );
   } else if (argv.role && argv.secret) {
     // The '--role' option is not supported when using a secret. Secrets have an
     // implicit role.
-    throw new Error(
+    throw new ValidationError(
       "The '--role' option is not supported when using a '--secret'. Please specify only one.",
     );
   }

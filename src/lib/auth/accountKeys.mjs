@@ -1,4 +1,5 @@
 import { container } from "../../cli.mjs";
+import { CommandError } from "../command-helpers.mjs";
 import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { AccountKeyStorage } from "../file-util.mjs";
 import { InvalidCredsError } from "../misc.mjs";
@@ -23,7 +24,7 @@ export class AccountKeys {
 
     // Let users know if the creds they provided are invalid (empty)
     if (!key && keySource !== "credentials-file") {
-      throw new Error(
+      throw new CommandError(
         `The account key provided by '${keySource}' is invalid. Please provide an updated value.`,
       );
     }
@@ -55,10 +56,8 @@ export class AccountKeys {
    * Prompt re-authentication and exit the program;
    */
   promptLogin() {
-    throw new Error(
-      `The requested user '${this.user || ""}' is not signed in or has expired.\nPlease re-authenticate\n\n
-      To sign in, run:\n\nfauna login\n
-      `,
+    throw new CommandError(
+      `The requested user '${this.user || ""}' is not signed in or has expired. Please re-authenticate.\n\nTo sign in, run: fauna login`,
     );
   }
 
@@ -68,7 +67,7 @@ export class AccountKeys {
    */
   async onInvalidCreds() {
     if (this.keySource !== "credentials-file") {
-      throw new Error(
+      throw new CommandError(
         `Account key provided by '${this.keySource}' is invalid. Please provide an updated account key.`,
       );
     }

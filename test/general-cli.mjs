@@ -17,10 +17,11 @@ import { f } from "./helpers.mjs";
 const __dirname = import.meta.dirname;
 
 describe("cli operations", function () {
-  let container;
+  let container, stderr;
 
   beforeEach(() => {
     container = setupContainer();
+    stderr = container.resolve("stderrStream");
   });
 
   it("should exit with a helpful message if a flag is not provided", async function () {
@@ -97,9 +98,9 @@ describe("cli operations", function () {
 
     expect(logger.stdout).to.not.be.called;
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "this is a test error",
+      "An unexpected error occurred...\n\nthis is a test error\n\nIf you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues",
     )}`;
-    expect(logger.stderr).to.have.been.calledWith(message);
+    expect(stderr.getWritten().trim()).to.equal(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
@@ -113,9 +114,9 @@ describe("cli operations", function () {
 
     expect(logger.stdout).to.not.be.called;
     const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "this is a rejected promise",
+      "An unexpected error occurred...\n\nthis is a rejected promise\n\nIf you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues",
     )}`;
-    expect(logger.stderr).to.have.been.calledWith(message);
+    expect(stderr.getWritten().trim()).to.equal(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
@@ -179,7 +180,7 @@ describe("cli operations", function () {
 
     // the dev script should emit warnings
     expect(stderr).to.include(
-      "Warning: this is a warning emited on the node process",
+      "Warning: this is a warning emitted on the node process",
     );
   });
 

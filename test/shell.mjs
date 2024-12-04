@@ -241,7 +241,7 @@ describe("shell", function () {
       let query = "Database.all().take(1)";
 
       // start the shell
-      const runPromise = run(`shell --secret "secret"`, container);
+      const runPromise = run(`shell --secret "secret" --no-color`, container);
       // Wait for the shell to start (print ">")
       // sleep for a little bit to let the shell get started
       // for some reason this is needed for the stdout to be read from predictably
