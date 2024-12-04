@@ -49,7 +49,7 @@ export class FaunaAccountClient {
   // By the time we are inside the retryableAccountRequest,
   //  the account key will have been refreshed. Use the latest value
   async getRequestArgs(args) {
-    const updatedKey = await this.accountKeys.getOrRereshKey();
+    const updatedKey = await this.accountKeys.getOrRefreshKey();
     return {
       ...args,
       secret: updatedKey,

@@ -26,7 +26,6 @@ export async function makeAccountRequest({
   const baseUrl = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
   const paramsString = params ? `?${new URLSearchParams(params)}` : "";
   let fullUrl;
-
   try {
     fullUrl = new URL(`/api/v1${path}${paramsString}`, baseUrl).href;
   } catch (e) {
@@ -68,8 +67,9 @@ export async function makeAccountRequest({
  * @returns
  */
 async function parseResponse(response, shouldThrow) {
-  const responseType = response.headers.get("content-type");
-  const responseIsJSON = responseType?.includes("application/json");
+  const responseType =
+    response?.headers?.get("content-type") || "application/json";
+  const responseIsJSON = responseType.includes("application/json");
   if (response.status >= 400 && shouldThrow) {
     let message = `Failed to make request to Fauna account API [${response.status}]`;
     if (responseIsJSON) {
@@ -79,7 +79,6 @@ async function parseResponse(response, shouldThrow) {
     }
     switch (response.status) {
       case 401:
-        // TODO: try and refresh creds and then redo the call, if not then throw.
         throw new InvalidCredsError(message);
       case 403:
         throw new UnauthorizedError(message);

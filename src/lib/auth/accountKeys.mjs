@@ -56,8 +56,9 @@ export class AccountKeys {
    */
   promptLogin() {
     throw new Error(
-      `The requested user ${this.user || ""} is not signed in or has expired.\nPlease re-authenticate\n\n
-      To sign in, run:\n\nfauna login\n
+      `The requested user ${this.user || ""} is not signed in or has expired. Please re-authenticate\n
+       To sign in, run:\n
+        fauna login\n
       `,
     );
   }
@@ -80,11 +81,11 @@ export class AccountKeys {
    * refreshes it and returns it.
    * @returns {string} - The account key
    */
-  async getOrRereshKey() {
+  async getOrRefreshKey() {
     if (this.keySource === "credentials-file") {
       const key = this.keyStore.get();
       // TODO: track ttl for account and refresh keys
-      if (!key || (key.expiresAt && key.expiresAt < Date.now())) {
+      if (!key) {
         this.logger.debug(
           "Found account key, but it is expired. Refreshing...",
           "creds",

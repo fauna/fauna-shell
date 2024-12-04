@@ -2,8 +2,8 @@
 
 import { container } from "../cli.mjs";
 import {
-  commonConfigurableQueryOptions,
   validateDatabaseOrSecret,
+  yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
 import { formatError, formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 
@@ -62,7 +62,7 @@ async function queryCommand(argv) {
   // get the query handler and run the query
   try {
     const secret = await getSecret();
-    const { url, timeout, typecheck, extra, json, apiVersion } = argv
+    const { url, timeout, typecheck, extra, json, apiVersion } = argv;
     const results = await container.resolve("runQueryFromString")(expression, {
       apiVersion,
       secret,
@@ -90,7 +90,7 @@ async function queryCommand(argv) {
 }
 
 function buildQueryCommand(yargs) {
-  return yargs
+  return yargsWithCommonConfigurableQueryOptions(yargs)
     .positional("fql", {
       type: "string",
       description: "the query to run; use - to read from stdin",
@@ -113,7 +113,6 @@ function buildQueryCommand(yargs) {
         description: "include additional information in the output, including stats",
         default: false,
       },
-      ...commonConfigurableQueryOptions,
     })
     .example([
       ['$0 query "Collection.all()" --database us-std/example --role admin', "run the query and write to stdout "],
