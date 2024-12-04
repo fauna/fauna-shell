@@ -1,6 +1,6 @@
 //@ts-check
 
-// used for queries customers can't config  ure that are made on their behalf
+// used for queries customers can't configure that are made on their behalf
 const COMMON_QUERY_OPTIONS = {
   local: {
     type: "boolean",
