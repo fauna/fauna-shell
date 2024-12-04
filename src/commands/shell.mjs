@@ -86,13 +86,13 @@ async function buildCustomEval(argv) {
       if (cmd.trim() === "") return cb();
 
       // These are options used for querying and formatting the response
-      const { apiVersion } = argv;
+      const { apiVersion, color, json } = argv;
       const { extra } = ctx;
 
       let res;
       try {
         const secret = await getSecret();
-        const { url, timeout, typecheck } = argv;
+        const { url, timeout, typecheck, } = argv;
         res = await runQueryFromString(cmd, {
           apiVersion,
           secret,
@@ -101,12 +101,12 @@ async function buildCustomEval(argv) {
           typecheck,
         });
       } catch (err) {
-        logger.stderr(formatError(err, { apiVersion, extra }));
+        logger.stderr(formatError(err, { apiVersion, extra, color }));
         return cb(null);
       }
 
       // If extra is on, return the full response. Otherwise, return just the data.
-      logger.stdout(formatQueryResponse(res, { apiVersion, extra, json: false }));
+      logger.stdout(formatQueryResponse(res, { apiVersion, extra, color, json }));
 
       return cb(null);
     } catch (e) {

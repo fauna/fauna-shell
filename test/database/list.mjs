@@ -6,6 +6,7 @@ import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { formatObjectForShell } from "../../src/lib/misc.mjs";
 
 describe("database list", () => {
   let container,
@@ -56,8 +57,8 @@ describe("database list", () => {
       },
     ].forEach(({ args, expected }) => {
       it(`calls fauna with the correct args: ${args}`, async () => {
-        const stubedResponse = { data: [{ name: "testdb" }] };
-        runQueryFromString.resolves(stubedResponse);
+        const stubbedResponse = { data: [{ name: "testdb" }] };
+        runQueryFromString.resolves(stubbedResponse);
 
         await run(`database list ${args}`, container);
 
@@ -68,7 +69,7 @@ describe("database list", () => {
         });
 
         expect(logger.stdout).to.have.been.calledOnceWith(
-          formatQueryResponse(stubedResponse, {
+          formatQueryResponse(stubbedResponse, {
             json: expected.json ?? false,
           }),
         );
@@ -94,8 +95,8 @@ describe("database list", () => {
       },
     ].forEach(({ args, expected }) => {
       it(`calls fauna with the correct args: ${args}`, async () => {
-        const stubedResponse = { data: [{ name: "testdb" }] };
-        runQueryFromString.resolves(stubedResponse);
+        const stubbedResponse = { data: [{ name: "testdb" }] };
+        runQueryFromString.resolves(stubbedResponse);
 
         await run(`database list ${args}`, container);
 
@@ -106,8 +107,9 @@ describe("database list", () => {
         });
 
         expect(logger.stdout).to.have.been.calledOnceWith(
-          formatQueryResponse(stubedResponse, {
+          formatQueryResponse(stubbedResponse, {
             json: expected.json ?? false,
+            color: true,
           }),
         );
 
@@ -142,11 +144,11 @@ describe("database list", () => {
     [
       {
         args: "",
-        expected: {},
+        expected: { regionGroup: "us-std" },
       },
       {
         args: "--pageSize 10",
-        expected: { pageSize: 10 },
+        expected: { pageSize: 10, regionGroup: "us-std" },
       },
       {
         args: "--database 'us-std/example'",
@@ -159,7 +161,7 @@ describe("database list", () => {
     ].forEach(({ args, expected }) => {
       it(`calls the account api with the correct args: ${args}`, async () => {
         mockCredentialsFile(fs);
-        const stubbedResponse = { results: [{ name: "test" }] };
+        const stubbedResponse = { results: [{ name: "test", ...expected.regionGroup ? { region_group: expected.regionGroup } : {} }] };
         makeAccountRequest.resolves(stubbedResponse);
 
         await run(`database list ${args}`, container);
@@ -177,11 +179,11 @@ describe("database list", () => {
         const expectedOutput = stubbedResponse.results.map((d) => ({
           name: d.name,
           // region group is only returned when listing top level databases
-          ...(!expected.database && { region_group: sinon.match.any }),
+          ...expected.regionGroup ? { region_group: expected.regionGroup } : {},
         }));
 
         expect(logger.stdout).to.have.been.calledOnceWith(
-          expected.json ? JSON.stringify(expectedOutput) : expectedOutput,
+          expected.json ? JSON.stringify(expectedOutput) : formatObjectForShell(expectedOutput, { color: true }),
         );
       });
     });

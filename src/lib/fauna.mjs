@@ -120,10 +120,11 @@ export const runQueryFromString = async ({
  * @param {any} err - An error to format
  * @param {object} [opts]
  * @param {boolean} [opts.extra] - Whether to include extra information
+ * @param {boolean} [opts.color] - Whether to colorize the error
  * @returns {string} The formatted error message
  */
 export const formatError = (err, opts = {}) => {
-  const { extra } = opts;
+  const { extra, color } = opts;
 
   // If the error has a queryInfo object with a summary property, we can format it.
   // Doing this check allows this code to avoid a fauna direct dependency.
@@ -134,7 +135,7 @@ export const formatError = (err, opts = {}) => {
   ) {
     // If you want extra information, use util.inspect to get the full error object.
     if (extra) {
-      return formatFullErrorForShell(err);
+      return formatFullErrorForShell(err, { color });
     }
 
     // Otherwise, return the summary and fall back to the message.
@@ -150,10 +151,11 @@ export const formatError = (err, opts = {}) => {
  * @param {object} [opts]
  * @param {boolean} [opts.extra] - Whether to include extra information
  * @param {boolean} [opts.json] - Whether to return the response as a JSON string
+ * @param {boolean} [opts.color] - Whether to colorize the response
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { extra, json } = opts;
+  const { extra, json, color } = opts;
 
   // If extra is set, return the full response object.
   const data = extra ? res : res.data;
@@ -164,7 +166,7 @@ export const formatQueryResponse = (res, opts = {}) => {
   }
 
   // Otherwise, return the response as a pretty-printed JSON string.
-  return formatObjectForShell(data);
+  return formatObjectForShell(data, { color });
 };
 
 /**
