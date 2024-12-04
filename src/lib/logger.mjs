@@ -49,8 +49,8 @@ export function log({
 
   if (
     argv &&
-    argv.verboseComponent &&
-    (argv.verbosity >= verbosity || argv.verboseComponent.includes(component))
+    (argv.verbosity >= verbosity ||
+      (argv.verboseComponent ?? []).includes(component))
   ) {
     const prefix = chalk.reset("[") + formatter(component) + chalk.reset("]: ");
     stream(prefix + formatter(text));
