@@ -5,7 +5,7 @@ import chalk from "chalk";
 import sinon from "sinon";
 import tryToCatch from "try-to-catch";
 
-import { builtYargs, run } from "../../src/cli.mjs";
+import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import { buildUrl, commonFetchParams, f } from "../helpers.mjs";
 
@@ -85,9 +85,7 @@ describe("schema commit", function () {
       { ...commonFetchParams, method: "GET" },
     );
     expect(logger.stdout).to.not.have.been.called;
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "There is no staged schema to commit",
-    )}`;
+    const message = `${chalk.red("There is no staged schema to commit")}`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(confirm).to.not.have.been.called;
   });
@@ -107,9 +105,7 @@ describe("schema commit", function () {
       { ...commonFetchParams, method: "GET" },
     );
     expect(logger.stdout).to.have.been.calledWith(diff);
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "Schema is not ready to be committed",
-    )}`;
+    const message = `${chalk.red("Schema is not ready to be committed")}`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(confirm).to.not.have.been.called;
   });

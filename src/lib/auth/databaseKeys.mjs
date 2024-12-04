@@ -1,4 +1,5 @@
 import { container } from "../../cli.mjs";
+import { CommandError } from "../command-helpers.mjs";
 import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { SecretKeyStorage } from "../file-util.mjs";
 
@@ -32,7 +33,7 @@ export class DatabaseKeys {
     }
 
     if (!key && keySource !== "credentials-file") {
-      throw new Error(
+      throw new CommandError(
         `The database secret provided by ${keySource} is invalid. Please provide an updated secret.`,
       );
     }
@@ -49,7 +50,7 @@ export class DatabaseKeys {
     // argv.secret comes from flag, config, or FAUNA_SECRET
     if (argv.secret) {
       key = argv.secret;
-      keySource = "user";
+      keySource = "--secret";
     } else {
       key = storedKey;
       keySource = "credentials-file";
