@@ -30,15 +30,9 @@ async function deleteDatabase(argv) {
   const logger = container.resolve("logger");
 
   try {
-    if (argv.secret === secret) {
-      // If we are using a user provided secret, we should not
-      // try to refresh it if it is bad.
-      await runDeleteQuery(secret, argv);
-    } else {
-      await retryInvalidCredsOnce(secret, async (secret) =>
-        runDeleteQuery(secret, argv),
-      );
-    }
+    await retryInvalidCredsOnce(secret, async (secret) =>
+      runDeleteQuery(secret, argv),
+    );
 
     // We use stderr for messaging and there's no stdout output for a deleted database
     logger.stderr(`Database '${argv.name}' was successfully deleted.`);

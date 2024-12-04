@@ -73,11 +73,11 @@ export class DatabaseKeys {
   }
 
   // This method guarantees settings this.dbKey to a valid key
-  async onInvalidCreds() {
+  async onInvalidCreds(error) {
     if (this.keySource !== "credentials-file") {
-      throw new Error(
-        `Secret provided by ${this.keySource} is invalid. Please provide an updated secret.`,
-      );
+      // If this is a user supplied secret, we don't need to refresh it
+      // and should just re-throw the error so it can be handled by the caller.
+      throw error;
     }
     await this.refreshKey();
   }

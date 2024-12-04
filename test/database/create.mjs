@@ -116,6 +116,34 @@ describe("database create", () => {
         expect(makeAccountRequest).to.not.have.been.called;
       });
     });
+
+    it("does not try to refresh the secret if it is invalid", async () => {
+      runQuery.rejects(
+        new ServiceError(
+          {
+            error: {
+              code: "unauthorized",
+              message: "invalid secret",
+            },
+          },
+          401,
+        ),
+      );
+
+      try {
+        await run(
+          `database create --name 'testdb' --secret 'secret' --verbosity=9001`,
+          container,
+        );
+      } catch (e) {}
+
+      expect(makeAccountRequest).to.not.have.been.called;
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match(
+          "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.",
+        ),
+      );
+    });
   });
 
   describe("if --database is provided", () => {

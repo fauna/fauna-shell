@@ -37,15 +37,9 @@ async function createDatabase(argv) {
   const logger = container.resolve("logger");
 
   try {
-    if (argv.secret === secret) {
-      // If we are using a user provided secret, we should not
-      // try to refresh it if it is bad.
-      await runCreateQuery(secret, argv);
-    } else {
-      await retryInvalidCredsOnce(secret, async (secret) =>
-        runCreateQuery(secret, argv),
-      );
-    }
+    await retryInvalidCredsOnce(secret, async (secret) =>
+      runCreateQuery(secret, argv),
+    );
 
     logger.stderr(`Database successfully created.`);
 
