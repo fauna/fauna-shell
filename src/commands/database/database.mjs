@@ -20,7 +20,7 @@ export function validateSecretOrDatabase(argv) {
   // successfully authenticate them.
   if (!argv.secret && !argv.database) {
     throw new Error(
-      "No secret or database provided. Please provide either --secret or --database.",
+      "No secret or database provided. Please use either --secret or --database.",
     );
   }
   return true;
