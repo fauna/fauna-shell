@@ -16,7 +16,7 @@ import { parseYargs } from "../cli.mjs";
 import { makeAccountRequest } from "../lib/account.mjs";
 import { Credentials } from "../lib/auth/credentials.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
-import { makeFaunaRequest } from "../lib/db.mjs";
+import { makeRetryableFaunaRequest } from "../lib/db.mjs";
 import * as faunaV10 from "../lib/fauna.mjs";
 import { formatError, runQueryFromString } from "../lib/fauna-client.mjs";
 import * as faunaV4 from "../lib/faunadb.mjs";
@@ -70,8 +70,8 @@ export const injectables = {
   logger: awilix.asFunction(buildLogger, { lifetime: Lifetime.SINGLETON }),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
   makeAccountRequest: awilix.asValue(makeAccountRequest),
-  makeFaunaRequest: awilix.asValue(makeFaunaRequest),
-  errorHandler: awilix.asValue((error, exitCode) => exit(exitCode)),
+  makeFaunaRequest: awilix.asValue(makeRetryableFaunaRequest),
+  errorHandler: awilix.asValue((_error, exitCode) => exit(exitCode)),
 
   // While we inject the class instance before this in middleware,
   //  we need to register it here to resolve types.
