@@ -1,7 +1,37 @@
 //@ts-check
 
+const COMMON_OPTIONS = {
+  // hidden
+  accountUrl: {
+    type: "string",
+    description: "the Fauna account URL to query",
+    default: "https://account.fauna.com",
+    hidden: true,
+  },
+  clientId: {
+    type: "string",
+    description: "the client id to use when calling Fauna",
+    required: false,
+    hidden: true,
+  },
+  clientSecret: {
+    type: "string",
+    description: "the client secret to use when calling Fauna",
+    required: false,
+    hidden: true,
+  },
+};
+
 // used for queries customers can't configure that are made on their behalf
 const COMMON_QUERY_OPTIONS = {
+  user: {
+    alias: "u",
+    type: "string",
+    description:
+      "User used to run the command. You must first log in as the user using `fauna login`.",
+    default: "default",
+    group: "API:",
+  },
   local: {
     type: "boolean",
     describe:
@@ -35,25 +65,6 @@ const COMMON_QUERY_OPTIONS = {
     description:
       "Role used to run the command. Mutually exclusive with `--secret`.",
     group: "API:",
-  },
-  // hidden
-  accountUrl: {
-    type: "string",
-    description: "the Fauna account URL to query",
-    default: "https://account.fauna.com",
-    hidden: true,
-  },
-  clientId: {
-    type: "string",
-    description: "the client id to use when calling Fauna",
-    required: false,
-    hidden: true,
-  },
-  clientSecret: {
-    type: "string",
-    description: "the client secret to use when calling Fauna",
-    required: false,
-    hidden: true,
   },
 };
 
@@ -181,6 +192,6 @@ export function yargsWithCommonConfigurableQueryOptions(yargs) {
   return yargsWithCommonOptions(yargs, COMMON_CONFIGURABLE_QUERY_OPTIONS);
 }
 
-function yargsWithCommonOptions(yargs, options) {
-  return yargs.options({ ...options });
+export function yargsWithCommonOptions(yargs, options) {
+  return yargs.options({ ...options, ...COMMON_OPTIONS });
 }
