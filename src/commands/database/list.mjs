@@ -6,6 +6,7 @@ import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
+import { formatObjectForShell } from "../../lib/misc.mjs";
 
 // Narrow the output fields based on the provided flags.
 const getOutputFields = (argv) => {
@@ -28,22 +29,23 @@ function pickOutputFields(databases, argv) {
 }
 
 async function listDatabasesWithAccountAPI(argv) {
-  const { pageSize, database, json } = argv;
+  const { pageSize, database, json, color } = argv;
   const accountClient = new FaunaAccountClient();
   const response = await accountClient.listDatabases({
     pageSize,
     path: database,
   });
   const output = pickOutputFields(response.results, argv);
+
   if (json) {
     container.resolve("logger").stdout(JSON.stringify(output));
   } else {
-    container.resolve("logger").stdout(output);
+    container.resolve("logger").stdout(formatObjectForShell(output, { color }));
   }
 }
 
 async function listDatabasesWithSecret(argv) {
-  const { url, secret, pageSize, json } = argv;
+  const { url, secret, pageSize, json, color } = argv;
   const { runQueryFromString, formatQueryResponse } =
     container.resolve("faunaClientV10");
 
@@ -55,7 +57,7 @@ async function listDatabasesWithSecret(argv) {
       // provide the after token at some point this query will need to be updated.
       expression: `Database.all().paginate(${pageSize}).data { ${getOutputFields(argv)} }`,
     });
-    container.resolve("logger").stdout(formatQueryResponse(result, { json }));
+    container.resolve("logger").stdout(formatQueryResponse(result, { json, color }));
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e);

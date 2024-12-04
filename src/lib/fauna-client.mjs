@@ -127,16 +127,17 @@ export const runQueryFromString = (expression, argv) => {
  * @param {object} opts
  * @param {string} opts.apiVersion - The API version
  * @param {boolean} opts.extra - Whether to include extra information
+ * @param {boolean} opts.color - Whether to colorize the error
  * @returns {object}
  */
-export const formatError = (err, { apiVersion, extra }) => {
+export const formatError = (err, { apiVersion, extra, color }) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return faunaV4.formatError(err, { extra });
+    return faunaV4.formatError(err, { extra, color });
   } else {
-    return faunaV10.formatError(err, { extra }); 
+    return faunaV10.formatError(err, { extra, color }); 
   }
 };
 
@@ -147,15 +148,16 @@ export const formatError = (err, { apiVersion, extra }) => {
  * @param {string} opts.apiVersion - The API version
  * @param {boolean} opts.extra - Whether to include extra information
  * @param {boolean} opts.json - Whether to format the response as JSON
+ * @param {boolean} opts.color - Whether to colorize the response
  * @returns {object}
  */
-export const formatQueryResponse = (res, { apiVersion, extra, json }) => {
+export const formatQueryResponse = (res, { apiVersion, extra, json, color }) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return faunaV4.formatQueryResponse(res, { extra, json });
+    return faunaV4.formatQueryResponse(res, { extra, json, color });
   } else {
-    return faunaV10.formatQueryResponse(res, { extra, json });
+    return faunaV10.formatQueryResponse(res, { extra, json, color });
   }
 };

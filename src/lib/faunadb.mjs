@@ -85,10 +85,11 @@ export const runQuery = async ({
  * @param {any} err - An error to format
  * @param {object} [opts]
  * @param {boolean} [opts.extra] - Whether to include extra information
+ * @param {boolean} [opts.color] - Whether to colorize the error
  * @returns {string} The formatted error message
  */
 export const formatError = (err, opts = {}) => {
-  const { extra } = opts;
+  const { extra, color } = opts;
 
   // By doing this we can avoid requiring a faunadb direct dependency
   if (
@@ -99,7 +100,7 @@ export const formatError = (err, opts = {}) => {
   ) {
     // If extra is on, return the full error.
     if (extra) {
-      return formatFullErrorForShell(err);
+      return formatFullErrorForShell(err, { color });
     }
     
     const { errors } = err.requestResult.responseContent;
@@ -124,16 +125,17 @@ export const formatError = (err, opts = {}) => {
  * @param {object} [opts]
  * @param {boolean} [opts.extra] - Whether to include extra information
  * @param {boolean} [opts.json] - Whether to return the response as a JSON string
+ * @param {boolean} [opts.color] - Whether to colorize the response
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { extra, json } = opts;
+  const { extra, json, color } = opts;
   const data = extra ? res : res.value;
   if (json) {
     return JSON.stringify(data);
   }
 
-  return formatObjectForShell(data);
+  return formatObjectForShell(data, { color });
 }
 
 /**

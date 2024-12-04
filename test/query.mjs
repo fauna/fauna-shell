@@ -6,6 +6,7 @@ import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { formatObjectForShell } from "../src/lib/misc.mjs";
 import { createV4QueryFailure, createV4QuerySuccess, createV10QueryFailure, createV10QuerySuccess } from "./helpers.mjs";
 
 describe("query", function () {
@@ -15,6 +16,9 @@ describe("query", function () {
     container = setupContainer();
     logger = container.resolve("logger");
     runQueryFromString = container.resolve("runQueryFromString");
+
+    // Set a default empty response for all queries
+    runQueryFromString.resolves({ data: [] });
   });
 
   describe("common", function () {
@@ -136,7 +140,7 @@ describe("query", function () {
       expect(runQueryFromString).to.have.been.calledWith("\"Database.all()\"", sinon.match({
         apiVersion: '10'
       }));
-      expect(logger.stdout).to.have.been.calledWith(JSON.stringify(testData, null, 2));
+      expect(logger.stdout).to.have.been.calledWith(formatObjectForShell(testData));
       expect(logger.stderr).to.not.be.called;
     });
 
@@ -152,7 +156,7 @@ describe("query", function () {
 
       await run(`query "Database.all()" --extra --secret=foo`, container);
 
-      expect(logger.stdout).to.have.been.calledWith(JSON.stringify(testResponse, null, 2));
+      expect(logger.stdout).to.have.been.calledWith(formatObjectForShell(testResponse));
       expect(logger.stderr).to.not.be.called;
     });
 
@@ -210,7 +214,7 @@ describe("query", function () {
       expect(runQueryFromString).to.have.been.calledWith("\"Collection('test')\"", sinon.match({
         apiVersion: '4'
       }));
-      expect(logger.stdout).to.have.been.calledWith(JSON.stringify(testData, null, 2));
+      expect(logger.stdout).to.have.been.calledWith(formatObjectForShell(testData));
       expect(logger.stderr).to.not.be.called;
     });
 
@@ -230,7 +234,7 @@ describe("query", function () {
 
       await run(`query "Collection('test')" --extra --apiVersion 4 --secret=foo`, container);
 
-      expect(logger.stdout).to.have.been.calledWith(JSON.stringify(testResponse, null, 2));
+      expect(logger.stdout).to.have.been.calledWith(formatObjectForShell(testResponse));
       expect(logger.stderr).to.not.be.called;
     });
 
