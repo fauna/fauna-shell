@@ -4,6 +4,7 @@ import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
+import { formatObjectForShell } from "../../lib/misc.mjs";
 
 async function createDatabase(argv) {
   const logger = container.resolve("logger");
@@ -21,7 +22,15 @@ async function createDatabase(argv) {
         priority: ${argv.priority ?? null},
       })`,
     });
-    logger.stdout(`Database '${argv.name}' was successfully created.`);
+
+    logger.stderr(`Database successfully created.`);
+
+    const { color, json } = argv;
+    if (json) {
+      logger.stdout(formatObjectForShell({ name: argv.name }, { color }));
+    } else {
+      logger.stdout(argv.name);
+    }
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e, {

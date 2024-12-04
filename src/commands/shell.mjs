@@ -7,7 +7,8 @@ import {
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { getSecret } from "../lib/fauna-client.mjs";
+import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
+import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
 
 async function shellCommand(argv) {
   validateDatabaseOrSecret(argv);
@@ -32,6 +33,15 @@ async function shellCommand(argv) {
   };
 
   const shell = repl.start(replArgs);
+
+  // Setup history
+  const historyFile = initHistoryStorage();
+  shell.setupHistory(historyFile, (err) => {
+    if (err) {
+      logger.stderr(`Error setting up history: ${err.message}`);
+    }
+  });
+
   // eslint-disable-next-line no-console
   shell.on("error", console.error);
 
@@ -46,6 +56,25 @@ async function shellCommand(argv) {
       action: () => {
         // eslint-disable-next-line no-console
         console.clear();
+        shell.prompt();
+      },
+    },
+    {
+      cmd: "clearhistory",
+      help: "Clear command history",
+      action: () => {
+        try {
+          clearHistoryStorage();
+          logger.stdout("History cleared");
+          // Reinitialize history
+          shell.setupHistory(historyFile, (err) => {
+            if (err) {
+              logger.stderr(`Error reinitializing history: ${err.message}`);
+            }
+          });
+        } catch (err) {
+          logger.stderr(`Error clearing history: ${err.message}`);
+        }
         shell.prompt();
       },
     },
@@ -77,7 +106,6 @@ async function shellCommand(argv) {
 async function buildCustomEval(argv) {
   const runQueryFromString = container.resolve("runQueryFromString");
   const formatError = container.resolve("formatError");
-  const formatQueryResponse = container.resolve("formatQueryResponse");
 
   return async (cmd, ctx, _filename, cb) => {
     try {
@@ -86,7 +114,7 @@ async function buildCustomEval(argv) {
       if (cmd.trim() === "") return cb();
 
       // These are options used for querying and formatting the response
-      const { apiVersion } = argv;
+      const { apiVersion, color, json } = argv;
       const { extra } = ctx;
 
       let res;
@@ -101,12 +129,14 @@ async function buildCustomEval(argv) {
           typecheck,
         });
       } catch (err) {
-        logger.stderr(formatError(err, { apiVersion, extra }));
+        logger.stderr(formatError(err, { apiVersion, extra, color }));
         return cb(null);
       }
 
       // If extra is on, return the full response. Otherwise, return just the data.
-      logger.stdout(formatQueryResponse(res, { apiVersion, extra, json: false }));
+      logger.stdout(
+        formatQueryResponse(res, { apiVersion, extra, color, json }),
+      );
 
       return cb(null);
     } catch (e) {
@@ -117,12 +147,17 @@ async function buildCustomEval(argv) {
 
 function buildShellCommand(yargs) {
   return yargsWithCommonConfigurableQueryOptions(yargs)
-    .example([["$0 shell"], ["$0 shell --database us-std/example --role admin"]])
+    .example([
+      ["$0 shell"],
+      ["$0 shell --database us-std/example --role admin"],
+    ])
     .version(false)
     .help("help", "Show help.");
 }
 
 export default {
+  command: "shell",
+  describe: "Run queries in an interactive REPL.",
   builder: buildShellCommand,
   handler: shellCommand,
 };

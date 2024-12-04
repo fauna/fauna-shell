@@ -16,7 +16,7 @@ function buildDatabase(yargs) {
 }
 
 export default {
-  command: "database",
+  command: "database <method>",
   aliases: ["db"],
   describe: "Create and manage databases.",
   builder: buildDatabase,

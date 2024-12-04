@@ -62,7 +62,11 @@ async function queryCommand(argv) {
   // get the query handler and run the query
   try {
     const secret = await getSecret();
-    const { url, timeout, typecheck, extra, json, apiVersion } = argv;
+    const { url, timeout, typecheck, extra, json, apiVersion, color } = argv;
+
+    // If we're writing to a file, don't colorize the output regardless of the user's preference
+    const useColor = argv.output ? false : color;
+
     const results = await container.resolve("runQueryFromString")(expression, {
       apiVersion,
       secret,
@@ -70,10 +74,12 @@ async function queryCommand(argv) {
       timeout,
       typecheck,
     });
+
     const output = formatQueryResponse(results, {
       apiVersion,
       extra,
       json,
+      color: useColor,
     });
 
     if (argv.output) {
@@ -84,7 +90,8 @@ async function queryCommand(argv) {
 
     return results;
   } catch (err) {
-    err.message = formatError(err, { apiVersion: argv.apiVersion, extra: argv.extra });
+    const { apiVersion, extra, color } = argv;
+    err.message = formatError(err, { apiVersion, extra, color });
     throw err;
   }
 }

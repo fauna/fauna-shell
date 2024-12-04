@@ -30,7 +30,7 @@ function buildSchema(yargs) {
 }
 
 export default {
-  command: "schema",
+  command: "schema <method>",
   describe: "Manage a database's schema.",
   builder: buildSchema,
   // eslint-disable-next-line no-empty-function

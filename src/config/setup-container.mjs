@@ -18,7 +18,7 @@ import { Credentials } from "../lib/auth/credentials.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
 import * as faunaV10 from "../lib/fauna.mjs";
-import { formatError, formatQueryResponse, runQueryFromString } from "../lib/fauna-client.mjs";
+import { formatError, runQueryFromString } from "../lib/fauna-client.mjs";
 import * as faunaV4 from "../lib/faunadb.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import buildLogger from "../lib/logger.mjs";
@@ -81,7 +81,6 @@ export const injectables = {
   // utilities for interacting with Fauna
   runQueryFromString: awilix.asValue(runQueryFromString),
   formatError: awilix.asValue(formatError),
-  formatQueryResponse: awilix.asValue(formatQueryResponse),
   faunaClientV10: awilix.asValue(faunaV10),
   faunaClientV4: awilix.asValue(faunaV4),
 

@@ -1,6 +1,8 @@
 import util from "node:util";
 import { createContext, runInContext } from "node:vm";
 
+import { colorize } from "json-colorizer";
+
 export async function runQuery(expression, client) {
   const faunadb = (await import("faunadb")).default;
   const wireReadyQuery = runInContext(expression, createContext(faunadb.query));
@@ -32,13 +34,23 @@ export class UnauthorizedError extends Error {
   }
 }
 
+export function isTTY() {
+  return process.stdout.isTTY;
+}
+
 /**
  * Formats an object for display in the shell.
  * @param {any} obj - The object to format
+ * @param {object} [opts] - Options
+ * @param {boolean} [opts.color] - Whether to colorize the object
  * @returns {string} The formatted object
  */
-export function formatObjectForShell(obj) {
-  return JSON.stringify(obj, null, 2);
+export function formatObjectForShell(obj, { color = true } = {}) {
+  if (!color || !isTTY()) {
+    return JSON.stringify(obj, null, 2);
+  }
+
+  return colorize(obj);
 }
 
 /**
@@ -46,8 +58,14 @@ export function formatObjectForShell(obj) {
  * the full error object. Use specific formatting logic in your commands 
  * if you are creating a summary message. This is best used with --extra.
  * @param {any} err - The error to format
+ * @param {object} [opts] - Options
+ * @param {boolean} [opts.color] - Whether to colorize the error
  * @returns {string} The formatted error
  */
-export function formatFullErrorForShell(err) {
-  return util.inspect(err, { depth: null, compact: false });
+export function formatFullErrorForShell(err, { color = true } = {}) {
+  if (!color || !isTTY()) {
+    return JSON.stringify(err, null, 2);
+  }
+
+  return colorize(err);
 }

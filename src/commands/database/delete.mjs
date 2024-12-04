@@ -16,7 +16,9 @@ async function deleteDatabase(argv) {
       secret: argv.secret,
       query: fql`Database.byName(${argv.name}).delete()`,
     });
-    logger.stdout(`Database '${argv.name}' was successfully deleted.`);
+
+    // We use stderr for messaging and there's no stdout output for a deleted database
+    logger.stderr(`Database '${argv.name}' was successfully deleted.`);
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e, {
