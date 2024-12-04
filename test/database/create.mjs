@@ -5,16 +5,18 @@ import { fql, ServiceError } from "fauna";
 import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
+import { mockAccessKeysFile } from "../helpers.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
 describe("database create", () => {
-  let container, logger, runQuery;
+  let container, logger, runQuery, makeAccountRequest;
 
   beforeEach(() => {
     // reset the container before each test
     container = setupContainer();
     logger = container.resolve("logger");
     runQuery = container.resolve("faunaClientV10").runQuery;
+    makeAccountRequest = container.resolve("makeAccountRequest");
   });
 
   [{ missing: "name", command: "database create --secret 'secret'" }].forEach(
@@ -24,46 +26,13 @@ describe("database create", () => {
           await run(command, container);
         } catch (e) {}
 
-        expect(logger.stderr).to.have.been.calledWith(sinon.match(`Missing required argument: ${missing}`));
+        expect(logger.stderr).to.have.been.calledWith(
+          sinon.match(`Missing required argument: ${missing}`),
+        );
         expect(container.resolve("parseYargs")).to.have.been.calledOnce;
       });
     },
   );
-
-  [
-    {
-      args: "--name 'testdb' --secret 'secret'",
-      expected: { name: "testdb", secret: "secret" },
-    },
-    {
-      args: "--name 'testdb' --secret 'secret' --typechecked",
-      expected: { name: "testdb", secret: "secret", typechecked: true },
-    },
-    {
-      args: "--name 'testdb' --secret 'secret' --protected",
-      expected: { name: "testdb", secret: "secret", protected: true },
-    },
-    {
-      args: "--name 'testdb' --secret 'secret' --priority 10",
-      expected: { name: "testdb", secret: "secret", priority: 10 },
-    },
-  ].forEach(({ args, expected }) => {
-    describe("calls fauna with the user specified arguments", () => {
-      it(`${args}`, async () => {
-        await run(`database create ${args}`, container);
-        expect(runQuery).to.have.been.calledOnceWith({
-          url: sinon.match.string,
-          secret: expected.secret,
-          query: fql`Database.create({
-            name: ${expected.name},
-            protected: ${expected.protected ?? null},
-            typechecked: ${expected.typechecked ?? null},
-            priority: ${expected.priority ?? null},
-          })`,
-        });
-      });
-    });
-  });
 
   [
     {
@@ -91,7 +60,111 @@ describe("database create", () => {
         );
       } catch (e) {}
 
-      expect(logger.stderr).to.have.been.calledWith(sinon.match(expectedMessage));
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match(expectedMessage),
+      );
+    });
+  });
+
+  describe("if --secret is provided", () => {
+    [
+      {
+        args: "--name 'testdb' --secret 'secret'",
+        expected: { name: "testdb", secret: "secret" },
+      },
+      {
+        args: "--name 'testdb' --secret 'secret' --typechecked",
+        expected: { name: "testdb", secret: "secret", typechecked: true },
+      },
+      {
+        args: "--name 'testdb' --secret 'secret' --protected",
+        expected: { name: "testdb", secret: "secret", protected: true },
+      },
+      {
+        args: "--name 'testdb' --secret 'secret' --priority 10",
+        expected: { name: "testdb", secret: "secret", priority: 10 },
+      },
+    ].forEach(({ args, expected }) => {
+      it(`calls fauna with the correct args: ${args}`, async () => {
+        await run(`database create ${args}`, container);
+
+        expect(runQuery).to.have.been.calledOnceWith({
+          secret: expected.secret,
+          url: sinon.match.string,
+          query: fql`
+            Database.create({
+              name: ${expected.name},
+              protected: ${expected.protected ?? null},
+              typechecked: ${expected.typechecked ?? null},
+              priority: ${expected.priority ?? null},
+            })
+          `,
+        });
+
+        // If we are using a user provided secret, we should not
+        // need to call the account api to mint or refresh a key.
+        expect(makeAccountRequest).to.not.have.been.called;
+      });
+    });
+  });
+
+  describe("if --database is provided", () => {
+    [
+      {
+        args: "--name 'testdb' --database 'us-std/example'",
+        expected: { name: "testdb", database: "us-std/example" },
+      },
+      {
+        args: "--name 'testdb' --database 'us-std/example' --typechecked",
+        expected: {
+          name: "testdb",
+          database: "us-std/example",
+          typechecked: true,
+        },
+      },
+      {
+        args: "--name 'testdb' --database 'us-std/example' --protected",
+        expected: {
+          name: "testdb",
+          database: "us-std/example",
+          protected: true,
+        },
+      },
+      {
+        args: "--name 'testdb' --database 'us-std/example' --priority 10",
+        expected: { name: "testdb", database: "us-std/example", priority: 10 },
+      },
+    ].forEach(({ args, expected }) => {
+      it(`calls fauna with ${args}`, async () => {
+        mockAccessKeysFile({ fs: container.resolve("fs") });
+        // We will attempt to mint a new database key, mock the response
+        // so we can verify that the new key is used.
+        makeAccountRequest.resolves({ secret: "new-secret" });
+
+        await run(`database create ${args}`, container);
+
+        // Verify that we made a request to mint a new database key.
+        expect(makeAccountRequest).to.have.been.calledOnceWith({
+          method: "POST",
+          path: "/databases/keys",
+          body: sinon.match((value) => value.includes(expected.database)),
+          secret: sinon.match.string,
+        });
+
+        // Verify that we made a request to create the database with the new key.
+        expect(runQuery).to.have.been.calledOnceWith({
+          secret: "new-secret",
+          url: sinon.match.string,
+          query: fql`
+            Database.create({
+              name: '${expected.name}',
+              protected: ${expected.protected ?? null},
+              typechecked: ${expected.typechecked ?? null},
+              priority: ${expected.priority ?? null},
+            })
+          `,
+        });
+      });
     });
   });
 });

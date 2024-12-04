@@ -1,5 +1,6 @@
 //@ts-check
 
+import sinon from "sinon";
 import { join } from "node:path";
 import { Writable } from "node:stream";
 
@@ -131,23 +132,23 @@ export const createV10QuerySuccess = (data) => {
       storage_bytes_read: 510,
       storage_bytes_write: 0,
       rate_limits_hit: [],
-      attempts: 1
+      attempts: 1,
     },
-    schema_version: 0
-  }
-}
+    schema_version: 0,
+  };
+};
 
 export const createV10QueryFailure = (summary) => {
   return {
     error: {
       code: "test_error",
       message: "test error",
-      constraint_failures: []
+      constraint_failures: [],
     },
     httpStatus: 400,
     summary,
-  }
-}
+  };
+};
 
 export const createV4QuerySuccess = (data) => ({
   value: data,
@@ -156,21 +157,48 @@ export const createV4QuerySuccess = (data) => ({
     "x-byte-write-ops": 0,
     "x-compute-ops": 1,
     "x-query-time": 15,
-    "x-txn-retries": 0
-  }
-})
+    "x-txn-retries": 0,
+  },
+});
 
 export const createV4QueryFailure = (error) => ({
   requestResult: {
     responseRaw: JSON.stringify({
-      errors: [error]
+      errors: [error],
     }),
     responseContent: { errors: [error] },
     statusCode: 400,
     headers: {},
-    method: 'POST',
-    path: '/',
-    query: '',
-    requestRaw: ''
-  }
-})
+    method: "POST",
+    path: "/",
+    query: "",
+    requestRaw: "",
+  },
+});
+
+export const mockAccessKeysFile = ({
+  fs,
+  accountKey = "account-key",
+  refreshToken = "refresh-token",
+}) => {
+  fs.readFileSync
+    .withArgs(sinon.match(/access_keys/))
+    .returns(
+      `{"default": { "accountKey": "${accountKey}", "refreshToken": "${refreshToken}"}}`,
+    );
+};
+
+export const mockSecretKeysFile = ({
+  fs,
+  accountKey = "account-key",
+  path = "us-std",
+  role = "admin",
+  secret = "secret",
+  expiresAt = Date.now() + 1000 * 60 * 60 * 24,
+}) => {
+  fs.readFileSync
+    .withArgs(sinon.match(/secret_keys/))
+    .returns(
+      `{${accountKey}: { "${path}:${role}": {"secret": "${secret}", "expiresAt": ${expiresAt}}}}`,
+    );
+};

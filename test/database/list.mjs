@@ -5,6 +5,7 @@ import { ServiceError } from "fauna";
 import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
+import { mockAccessKeysFile } from "../helpers.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import { formatObjectForShell } from "../../src/lib/misc.mjs";
 
@@ -15,12 +16,6 @@ describe("database list", () => {
     runQueryFromString,
     formatQueryResponse,
     makeAccountRequest;
-
-  const mockCredentialsFile = (fs) => {
-    const mockedFile =
-      '{"default": { "accountKey": "valid-account-key", "refreshToken": "valid-refresh-token"}}';
-    fs.readFileSync.withArgs(sinon.match(/access_keys/)).returns(mockedFile);
-  };
 
   beforeEach(() => {
     // reset the container before each test
@@ -49,11 +44,19 @@ describe("database list", () => {
       },
       {
         args: "--local --pageSize 10",
-        expected: { secret: "secret", pageSize: 10, url: "http://localhost:8443" },
+        expected: {
+          secret: "secret",
+          pageSize: 10,
+          url: "http://localhost:8443",
+        },
       },
       {
         args: "--local --json",
-        expected: { secret: "secret", json: true, url: "http://localhost:8443" },
+        expected: {
+          secret: "secret",
+          json: true,
+          url: "http://localhost:8443",
+        },
       },
     ].forEach(({ args, expected }) => {
       it(`calls fauna with the correct args: ${args}`, async () => {
@@ -160,8 +163,8 @@ describe("database list", () => {
       },
     ].forEach(({ args, expected }) => {
       it(`calls the account api with the correct args: ${args}`, async () => {
-        mockCredentialsFile(fs);
-        const stubbedResponse = { results: [{ name: "test", ...expected.regionGroup ? { region_group: expected.regionGroup } : {} }] };
+        mockAccessKeysFile({ fs });
+        const stubbedResponse = { results: [{ name: "test" }] };
         makeAccountRequest.resolves(stubbedResponse);
 
         await run(`database list ${args}`, container);
@@ -179,11 +182,15 @@ describe("database list", () => {
         const expectedOutput = stubbedResponse.results.map((d) => ({
           name: d.name,
           // region group is only returned when listing top level databases
-          ...expected.regionGroup ? { region_group: expected.regionGroup } : {},
+          ...(expected.regionGroup
+            ? { region_group: expected.regionGroup }
+            : {}),
         }));
 
         expect(logger.stdout).to.have.been.calledOnceWith(
-          expected.json ? JSON.stringify(expectedOutput) : formatObjectForShell(expectedOutput, { color: true }),
+          expected.json
+            ? JSON.stringify(expectedOutput)
+            : formatObjectForShell(expectedOutput, { color: true }),
         );
       });
     });

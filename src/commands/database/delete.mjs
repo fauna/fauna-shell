@@ -50,10 +50,9 @@ function buildDeleteCommand(yargs) {
         description: "Name of the database to delete.",
       },
     })
-    .check(validate)
     .version(false)
     .help("help", "show help")
-    .example(
+    .example([
       [
         "$0 database delete --name 'my-database' --database 'us-std/example'",
         "Delete a database named 'my-database' under `us-std/example`.",
@@ -62,7 +61,7 @@ function buildDeleteCommand(yargs) {
         "$0 database delete --name 'my-database' --secret 'my-secret'",
         "Delete a database named 'my-database' scoped to a secret.",
       ],
-    );
+    ]);
 }
 
 export default {

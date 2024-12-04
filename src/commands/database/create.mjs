@@ -4,8 +4,8 @@ import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
-import { getSecret } from "../../lib/fauna-client.mjs";
 import { formatObjectForShell } from "../../lib/misc.mjs";
+import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
 
 function validate(argv) {
   if (!argv.secret && !argv.database) {
@@ -16,23 +16,36 @@ function validate(argv) {
   return true;
 }
 
-async function createDatabase(argv) {
-  const secret = await getSecret();
-  const logger = container.resolve("logger");
+async function runCreateQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
   const { runQuery } = container.resolve("faunaClientV10");
-
-  try {
-    await runQuery({
-      secret,
-      url: argv.url,
-      query: fql`Database.create({
+  return runQuery({
+    secret,
+    url: argv.url,
+    query: fql`
+      Database.create({
         name: ${argv.name},
         protected: ${argv.protected ?? null},
         typechecked: ${argv.typechecked ?? null},
         priority: ${argv.priority ?? null},
       })`,
-    });
+  });
+}
+
+async function createDatabase(argv) {
+  const secret = await getSecret();
+  const logger = container.resolve("logger");
+
+  try {
+    if (argv.secret === secret) {
+      // If we are using a user provided secret, we should not
+      // try to refresh it if it is bad.
+      await runCreateQuery(secret, argv);
+    } else {
+      await retryInvalidCredsOnce(secret, async (secret) =>
+        runCreateQuery(secret, argv),
+      );
+    }
 
     logger.stderr(`Database successfully created.`);
 

@@ -42,7 +42,7 @@ describe("database delete", () => {
   ].forEach(({ args, expected }) => {
     describe("calls fauna with the user specified arguments", () => {
       it(`${args}`, async () => {
-        await run(`database create ${args}`, container);
+        await run(`database delete ${args}`, container);
         expect(runQuery).to.have.been.calledOnceWith({
           url: sinon.match.string,
           secret: expected.secret,
@@ -78,7 +78,9 @@ describe("database delete", () => {
         );
       } catch (e) {}
 
-      expect(logger.stderr).to.have.been.calledWith(sinon.match(expectedMessage));
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match(expectedMessage),
+      );
     });
   });
 });
