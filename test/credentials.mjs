@@ -3,10 +3,11 @@ import * as nodeFs from "node:fs";
 import * as awilix from "awilix";
 import { expect } from "chai";
 import path from "path";
-import sinon from "sinon";
+import sinon, { spy } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { makeAccountRequest as originalMakeAccountRequest } from "../src/lib/account.mjs";
 import { runQueryFromString as originalRunQueryFromString } from "../src/lib/fauna-client.mjs";
 import { f } from "./helpers.mjs";
 
@@ -94,7 +95,7 @@ describe("credentials", function () {
           databaseKeys: {
             role: undefined,
             key: "user-secret",
-            keySource: "user",
+            keySource: "--secret",
           },
         },
       },
@@ -147,6 +148,11 @@ describe("credentials", function () {
 
   // Test various network-dependent functionality of the credentials middleware around account keys
   describe("account keys", () => {
+    beforeEach(() => {
+      container.register({
+        makeAccountRequest: awilix.asValue(spy(originalMakeAccountRequest)),
+      });
+    });
     it("prompts login when account key and refresh token are empty", async () => {
       try {
         setCredsFiles({}, {});
@@ -200,6 +206,7 @@ describe("credentials", function () {
           ),
         );
       await run(`query "Database.all()" -d us-std --no-color`, container);
+      const makeAccountRequest = container.resolve("makeAccountRequest");
       [
         ["/databases/keys", "some-account-key"],
         ["/session/refresh", "some-refresh-token"],
@@ -282,13 +289,16 @@ describe("credentials", function () {
         .resolves({
           data: [],
         });
-      fetch
+      makeAccountRequest
         .withArgs(
-          sinon.match(/\/databases\/keys/),
-          sinon.match({ method: "POST" }),
+          sinon.match({
+            path: sinon.match(/\/databases\/keys/),
+            method: "POST",
+          }),
         )
-        .onCall(0)
-        .resolves(f({ secret: "new-secret" }, 200));
+        .resolves({
+          secret: "new-secret",
+        });
       await run(`query "Database.all()" -d us-std --no-color`, container);
       sinon.assert.calledWithMatch(
         v10runQueryFromString.getCall(0),

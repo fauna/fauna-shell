@@ -14,7 +14,6 @@ export class FaunaAccountClient {
     this.retryableAccountRequest = async (args) => {
       const original = container.resolve("makeAccountRequest");
       const logger = container.resolve("logger");
-      let result;
       try {
         return await original(await this.getRequestArgs(args));
       } catch (e) {
@@ -43,7 +42,6 @@ export class FaunaAccountClient {
           throw e;
         }
       }
-      // return result;
     };
   }
 
@@ -51,7 +49,6 @@ export class FaunaAccountClient {
   //  the account key will have been refreshed. Use the latest value
   async getRequestArgs(args) {
     const updatedKey = await this.accountKeys.getOrRefreshKey();
-    const updatedArgs = { ...args, secret: updatedKey };
     return Promise.resolve({
       ...args,
       secret: updatedKey,
