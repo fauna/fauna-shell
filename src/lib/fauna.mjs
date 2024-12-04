@@ -12,7 +12,7 @@ import {
 } from "fauna";
 
 import { container } from "../cli.mjs";
-import { CommandError, ValidationError } from "./command-helpers.mjs";
+import { ValidationError } from "./command-helpers.mjs";
 import { formatFullErrorForShell, formatObjectForShell } from "./misc.mjs";
 
 /**
@@ -77,7 +77,7 @@ export const runQuery = async ({
 }) => {
   // Check for required arguments.
   if (!query) {
-    throw new CommandError("A query is required.");
+    throw new ValidationError("A query is required.");
   }
 
   // Create the client if one wasn't provided.
