@@ -8,7 +8,7 @@ import { spy, stub } from "sinon";
 
 import { f, InMemoryWritableStream } from "../../test/helpers.mjs";
 import { parseYargs } from "../cli.mjs";
-import { makeFaunaRequest } from "../lib/db.mjs";
+import { makeRetryableFaunaRequest } from "../lib/db.mjs";
 import * as faunaClientV10 from "../lib/fauna.mjs";
 import * as faunaClientV4 from "../lib/faunadb.mjs";
 import buildLogger from "../lib/logger.mjs";
@@ -88,7 +88,7 @@ export function setupTestContainer() {
     normalize: awilix.asValue(spy(path.normalize)),
     fetch: awilix.asValue(stub().resolves(f({}))),
     gatherFSL: awilix.asValue(stub().resolves([])),
-    makeFaunaRequest: awilix.asValue(spy(makeFaunaRequest)),
+    makeFaunaRequest: awilix.asValue(spy(makeRetryableFaunaRequest)),
     makeAccountRequest: awilix.asValue(stub()),
     runQueryFromString: awilix.asValue(stub().resolves({})),
     formatError: awilix.asValue(stub()),
