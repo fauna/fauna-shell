@@ -16,7 +16,7 @@ export class FaunaAccountClient {
       const logger = container.resolve("logger");
       let result;
       try {
-        result = await original(await this.getRequestArgs(args));
+        return await original(await this.getRequestArgs(args));
       } catch (e) {
         if (e instanceof InvalidCredsError) {
           try {
@@ -26,7 +26,8 @@ export class FaunaAccountClient {
             );
             await this.accountKeys.onInvalidCreds();
             // onInvalidCreds will refresh the account key
-            return await original(await this.getRequestArgs(args));
+            const updatedArgs = await this.getRequestArgs(args);
+            return await original(updatedArgs);
           } catch (e) {
             if (e instanceof InvalidCredsError) {
               logger.debug(
@@ -42,7 +43,7 @@ export class FaunaAccountClient {
           throw e;
         }
       }
-      return result;
+      // return result;
     };
   }
 
@@ -50,10 +51,11 @@ export class FaunaAccountClient {
   //  the account key will have been refreshed. Use the latest value
   async getRequestArgs(args) {
     const updatedKey = await this.accountKeys.getOrRefreshKey();
-    return {
+    const updatedArgs = { ...args, secret: updatedKey };
+    return Promise.resolve({
       ...args,
       secret: updatedKey,
-    };
+    });
   }
 
   /**

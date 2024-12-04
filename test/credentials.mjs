@@ -26,7 +26,7 @@ const defaultDatabaseKeysFile = {
 
 // Ensure the credentials middleware correctly sets and refreshes account and database keys
 describe("credentials", function () {
-  let container, stderr, fs, fetch, credsDir;
+  let container, stderr, fs, fetch, credsDir, makeAccountRequest;
 
   // Instead of mocking `fs` to return certain values in each test, let the middleware
   //   read files in the actual filesystem.
@@ -50,6 +50,7 @@ describe("credentials", function () {
     });
     fs = container.resolve("fs");
     fetch = container.resolve("fetch");
+    makeAccountRequest = container.resolve("makeAccountRequest");
 
     const homedir = container.resolve("homedir")();
     credsDir = path.join(homedir, ".fauna/credentials");
@@ -68,7 +69,7 @@ describe("credentials", function () {
     };
     [
       {
-        command: `query "Database.all()" -d us-std`,
+        command: `query "Database.all()" -d us-std --no-color`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -83,7 +84,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" --secret user-secret`,
+        command: `query "Database.all()" --secret user-secret --no-color`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -98,7 +99,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" -d us-std --accountKey user-account-key`,
+        command: `query "Database.all()" -d us-std --accountKey user-account-key --no-color`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -113,7 +114,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" -d us-std -r myrole`,
+        command: `query "Database.all()" -d us-std -r myrole --no-color`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -146,29 +147,32 @@ describe("credentials", function () {
 
   // Test various network-dependent functionality of the credentials middleware around account keys
   describe("account keys", () => {
-    let makeAccountRequest;
-    beforeEach(() => {
-      makeAccountRequest = container.resolve("makeAccountRequest");
-    });
-    it("prompts login when no account key is provided or present", async () => {
+    it("prompts login when account key and refresh token are empty", async () => {
       try {
         setCredsFiles({}, {});
-        await run(`query "Database.all()" -d us-std`, container);
-      } catch (e) {}
-      expect(stderr.getWritten()).to.contain(
-        "The requested user default is not signed in or has expired",
-      );
+        await run(`query "Database.all()" -d us-std --no-color`, container);
+      } catch (e) {
+        expect(stderr.getWritten()).to.contain(
+          "The requested user 'default' is not signed in or has expired.",
+        );
+      }
     });
 
     it("prompts login when refresh token is invalid", async () => {
       setCredsFiles(defaultAccountKeysFile, {});
-      fetch.resolves(f({}, 401));
+      fetch
+        .withArgs(
+          sinon.match(/\/session\/refresh/),
+          sinon.match({ method: "POST" }),
+        )
+        .resolves(f({}, 401));
       try {
-        await run(`query "Database.all()" -d us-std`, container);
-      } catch (e) {}
-      expect(stderr.getWritten()).to.contain(
-        "The requested user default is not signed in or has expired",
-      );
+        await run(`query "Database.all()" -d us-std --no-color`, container);
+      } catch (e) {
+        expect(stderr.getWritten()).to.contain(
+          "The requested user 'default' is not signed in or has expired",
+        );
+      }
     });
 
     it("refreshes account key", async () => {
@@ -180,6 +184,7 @@ describe("credentials", function () {
         )
         .onCall(0)
         .resolves(f({}, 401));
+
       fetch
         .withArgs(
           sinon.match(/\/session\/refresh/),
@@ -194,7 +199,7 @@ describe("credentials", function () {
             200,
           ),
         );
-      await run(`query "Database.all()" -d us-std`, container);
+      await run(`query "Database.all()" -d us-std --no-color`, container);
       [
         ["/databases/keys", "some-account-key"],
         ["/session/refresh", "some-refresh-token"],
@@ -222,10 +227,10 @@ describe("credentials", function () {
         .onCall(0)
         .resolves(f({}, 401));
       try {
-        await run(`query "Database.all()" -d us-std`, container);
+        await run(`query "Database.all()" -d us-std --no-color`, container);
       } catch (e) {
         expect(stderr.getWritten()).to.contain(
-          "Account key provided by user is invalid. Please provide an updated account key.",
+          "Account key provided by 'user' is invalid. Please provide an updated account key.",
         );
       }
     });
@@ -249,15 +254,13 @@ describe("credentials", function () {
     it("shows error when user provided database key is invalid", async () => {
       process.env.FAUNA_SECRET = "invalid-user-db-key";
       v10runQueryFromString.rejects({
-        error: {},
+        message: "Invalid credentials",
         httpStatus: 401,
       });
       try {
-        await run(`query "Database.all()"`, container);
+        await run(`query "Database.all()" --no-color`, container);
       } catch (e) {
-        expect(stderr.getWritten()).to.contain(
-          "Secret provided by user is invalid. Please provide an updated secret",
-        );
+        expect(stderr.getWritten()).to.contain("Invalid credentials");
         sinon.assert.calledWithMatch(
           v10runQueryFromString.getCall(0),
           sinon.match({
@@ -286,7 +289,7 @@ describe("credentials", function () {
         )
         .onCall(0)
         .resolves(f({ secret: "new-secret" }, 200));
-      await run(`query "Database.all()" -d us-std`, container);
+      await run(`query "Database.all()" -d us-std --no-color`, container);
       sinon.assert.calledWithMatch(
         v10runQueryFromString.getCall(0),
         sinon.match({

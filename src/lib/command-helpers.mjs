@@ -19,6 +19,12 @@ const COMMON_QUERY_OPTIONS = {
       "Authentication secret for Fauna Core HTTP API requests made by the command. Mutually exclusive with `--database` and `--role`.",
     required: false,
   },
+  accountKey: {
+    type: "string",
+    description: "The account key to use when calling Fauna",
+    required: false,
+    hidden: true,
+  },
   accountUrl: {
     type: "string",
     description: "the Fauna account URL to query",
