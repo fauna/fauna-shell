@@ -5,14 +5,11 @@ import { FaunaError } from "fauna";
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
 import { formatObjectForShell } from "../../lib/misc.mjs";
+import { validateSecretOrDatabase } from "./database.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
 
 function validate(argv) {
-  if (!argv.secret && !argv.database) {
-    throw new Error(
-      "No secret or database provided. Please use either --secret or --database.",
-    );
-  }
+  validateSecretOrDatabase(argv);
   return true;
 }
 

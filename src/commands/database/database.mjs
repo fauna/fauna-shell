@@ -15,6 +15,17 @@ function buildDatabase(yargs) {
     .help("help", "Show help.");
 }
 
+export function validateSecretOrDatabase(argv) {
+  // Makes sure the user has provided either a secret or a database so we can
+  // successfully authenticate them.
+  if (!argv.secret && !argv.database) {
+    throw new Error(
+      "No secret or database provided. Please provide either --secret or --database.",
+    );
+  }
+  return true;
+}
+
 export default {
   command: "database <method>",
   aliases: ["db"],
