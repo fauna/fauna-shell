@@ -1,7 +1,9 @@
 //@ts-check
 
 
+
 import { container } from "../cli.mjs";
+import { CommandError } from "./command-helpers.mjs";
 import { retryInvalidCredsOnce } from "./fauna-client.mjs";
 
 function buildParamsString({ argv, params, path }) {
@@ -61,11 +63,17 @@ export async function makeFaunaRequest({
   if (body) fetchArgs.body = body;
 
   const response = await fetch(fullUrl, fetchArgs);
-
   const obj = await response.json();
 
   if (obj.error && shouldThrow) {
-    throw new Error(obj.error.message);
+    const err = new CommandError(obj.error.message);
+    err.name = obj.error.code;
+
+    if (obj.error.code === "unauthorized") {
+      err.message = "The database secret provided is invalid.";
+    }
+
+    throw err;
   }
 
   return obj;

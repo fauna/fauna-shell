@@ -1,8 +1,10 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { CommandError, yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
-import { makeFaunaRequest } from "../../lib/db.mjs";
+import {
+  CommandError,
+  yargsWithCommonQueryOptions,
+} from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 
 async function determineFileState(argv, filenames) {
@@ -52,6 +54,7 @@ function logDiff({ argv, adds, overwrites, deletes }) {
 async function doPull(argv) {
   const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
+  const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const secret = await getSecret();
 
   // fetch the list of remote FSL files
