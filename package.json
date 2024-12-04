@@ -73,7 +73,7 @@
     "test": "npm run test:local",
     "test:local": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter mocha-multi-reporters --reporter-options configFile=./test/config/reporter.json",
     "pretest:ci": "npm run build:app",
-    "test:ci": "mocha --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter mocha-multi-reporters --reporter-options configFile=./test/config/reporter.json",
+    "test:ci": "mocha --forbid-only --recursive ./test --require ./test/mocha-root-hooks.mjs --reporter mocha-multi-reporters --reporter-options configFile=./test/config/reporter.json",
     "build": "npm run build:app && npm run build:sea",
     "build:app": "esbuild --bundle ./src/user-entrypoint.mjs --platform=node --outfile=./dist/cli.cjs --format=cjs --inject:./sea/import-meta-url.js --define:import.meta.url=importMetaUrl --define:process.env.NODE_ENV=\\\"production\\\"",
     "build:sea": "node ./sea/build.cjs",
