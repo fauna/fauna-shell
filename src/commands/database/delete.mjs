@@ -4,18 +4,32 @@ import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
+import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
+import { validateSecretOrDatabase } from "./database.mjs";
+
+function validate(argv) {
+  validateSecretOrDatabase(argv);
+  return true;
+}
+
+async function runDeleteQuery(secret, argv) {
+  const { fql } = container.resolve("fauna");
+  const { runQuery } = container.resolve("faunaClientV10");
+  return runQuery({
+    secret,
+    url: argv.url,
+    query: fql`Database.byName(${argv.name}).delete()`,
+  });
+}
 
 async function deleteDatabase(argv) {
-  const { fql } = container.resolve("fauna");
+  const secret = await getSecret();
   const logger = container.resolve("logger");
-  const { runQuery } = container.resolve("faunaClientV10");
 
   try {
-    await runQuery({
-      url: argv.url,
-      secret: argv.secret,
-      query: fql`Database.byName(${argv.name}).delete()`,
-    });
+    await retryInvalidCredsOnce(secret, async (secret) =>
+      runDeleteQuery(secret, argv),
+    );
 
     // We use stderr for messaging and there's no stdout output for a deleted database
     logger.stderr(`Database '${argv.name}' was successfully deleted.`);
@@ -39,8 +53,19 @@ function buildDeleteCommand(yargs) {
         description: "Name of the database to delete.",
       },
     })
+    .check(validate)
     .version(false)
-    .help("help", "Show help.");
+    .help("help", "show help")
+    .example([
+      [
+        "$0 database delete --name 'my-database' --database 'us-std/example'",
+        "Delete a database named 'my-database' under `us-std/example`.",
+      ],
+      [
+        "$0 database delete --name 'my-database' --secret 'my-secret'",
+        "Delete a database named 'my-database' scoped to a secret.",
+      ],
+    ]);
 }
 
 export default {

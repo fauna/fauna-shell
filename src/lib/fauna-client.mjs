@@ -89,17 +89,20 @@ export const retryInvalidCredsOnce = async (initialSecret, fn) => {
   } catch (err) {
     // If it's a 401, we need to refresh the secret. Let's just do type narrowing here
     // vs doing another v4 vs v10 check.
-    if (err && (err.httpStatus === 401 || err.requestResult?.statusCode === 401)) {
+    if (
+      err &&
+      (err.httpStatus === 401 || err.requestResult?.statusCode === 401)
+    ) {
       const credentials = container.resolve("credentials");
 
-      await credentials.databaseKeys.onInvalidCreds();
+      await credentials.databaseKeys.onInvalidCreds(err);
       const refreshedSecret = await credentials.databaseKeys.getOrRefreshKey();
 
       return fn(refreshedSecret);
     }
     throw err;
   }
-}
+};
 
 /**
  * Runs a query from a string expression.
@@ -113,11 +116,28 @@ export const runQueryFromString = (expression, argv) => {
 
   if (argv.apiVersion === "4") {
     const { secret, url, timeout } = argv;
-    return retryInvalidCredsOnce(secret, (secret) => faunaV4.runQueryFromString({ expression, secret, url, client: undefined, options: { queryTimeout: timeout } }));
+    return retryInvalidCredsOnce(secret, (secret) =>
+      faunaV4.runQueryFromString({
+        expression,
+        secret,
+        url,
+        client: undefined,
+        options: { queryTimeout: timeout },
+      }),
+    );
   } else {
-    const { secret, url, timeout,...rest } = argv;
-    // eslint-disable-next-line camelcase
-    return retryInvalidCredsOnce(secret, (secret) => faunaV10.runQueryFromString({ expression, secret, url, client: undefined, options: { query_timeout_ms: timeout, ...rest } }));
+    const { secret, url, timeout, ...rest } = argv;
+
+    return retryInvalidCredsOnce(secret, (secret) =>
+      faunaV10.runQueryFromString({
+        expression,
+        secret,
+        url,
+        client: undefined,
+        // eslint-disable-next-line camelcase
+        options: { query_timeout_ms: timeout, ...rest },
+      }),
+    );
   }
 };
 
@@ -137,7 +157,7 @@ export const formatError = (err, { apiVersion, extra, color }) => {
   if (apiVersion === "4") {
     return faunaV4.formatError(err, { extra, color });
   } else {
-    return faunaV10.formatError(err, { extra, color }); 
+    return faunaV10.formatError(err, { extra, color });
   }
 };
 
@@ -151,7 +171,10 @@ export const formatError = (err, { apiVersion, extra, color }) => {
  * @param {boolean} opts.color - Whether to colorize the response
  * @returns {object}
  */
-export const formatQueryResponse = (res, { apiVersion, extra, json, color }) => {
+export const formatQueryResponse = (
+  res,
+  { apiVersion, extra, json, color },
+) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
