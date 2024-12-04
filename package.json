@@ -36,7 +36,7 @@
     "esbuild": "^0.24.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.10.0",
-    "husky": "^9.1.6",
+    "husky": "^9.1.7",
     "mocha": "^10.7.3",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",
@@ -77,8 +77,9 @@
     "build": "npm run build:app && npm run build:sea",
     "build:app": "esbuild --bundle ./src/user-entrypoint.mjs --platform=node --outfile=./dist/cli.cjs --format=cjs --inject:./sea/import-meta-url.js --define:import.meta.url=importMetaUrl --define:process.env.NODE_ENV=\\\"production\\\"",
     "build:sea": "node ./sea/build.cjs",
-    "format": "prettier -w .",
-    "format:check": "prettier -c ."
+    "format": "prettier -w --log-level silent .",
+    "format:check": "prettier -c .",
+    "prepare": "husky"
   },
   "husky": {
     "hooks": {
