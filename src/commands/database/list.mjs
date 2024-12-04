@@ -57,7 +57,9 @@ async function listDatabasesWithSecret(argv) {
       // provide the after token at some point this query will need to be updated.
       expression: `Database.all().paginate(${pageSize}).data { ${getOutputFields(argv)} }`,
     });
-    container.resolve("logger").stdout(formatQueryResponse(result, { json, color }));
+    container
+      .resolve("logger")
+      .stdout(formatQueryResponse(result, { json, color }));
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e);
@@ -87,15 +89,21 @@ function buildListCommand(yargs) {
     .example([
       ["$0 database list", "List all top-level databases"],
       [
-        "$0 database list --database 'us-std/example'",
-        "list all child databases under `us-std/example`",
+        "$0 database list --database 'us/example'",
+        "list all child databases under `us/example`",
       ],
       [
         "$0 database list --secret 'my-secret'",
         "List all child databases for the database scoped to a secret",
       ],
-      ["$0 database list --json", "List all top-level databases and output as JSON"],
-      ["$0 database list --pageSize 10", "List the first 10 top-level databases"],
+      [
+        "$0 database list --json",
+        "List all top-level databases and output as JSON",
+      ],
+      [
+        "$0 database list --pageSize 10",
+        "List the first 10 top-level databases",
+      ],
     ]);
 }
 
