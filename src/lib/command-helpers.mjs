@@ -13,7 +13,7 @@ const COMMON_QUERY_OPTIONS = {
   },
   secret: {
     type: "string",
-    description: "Authentication secret for Fauna Core HTTP API requests made by the command. Mutually exclusive with `--database`.",
+    description: "Authentication secret for Fauna Core HTTP API requests made by the command. Mutually exclusive with `--database` and `--role`.",
     required: false,
   },
   accountUrl: {

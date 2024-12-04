@@ -116,7 +116,7 @@ function buildYargs(argvInput) {
     .options({
       color: {
         description:
-          "Enable color formatting for the output. Uses ANSI escape codes.",
+          "Enable color formatting for the output. Uses ANSI escape codes. Enabled by default if supported by the terminal. Use `--no-color` or `--color=false` to disable.",
         type: "boolean",
         // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
         default: chalk.level > 0,
@@ -136,7 +136,7 @@ function buildYargs(argvInput) {
       user: {
         alias: "u",
         type: "string",
-        description: "User profile used to run the command. Create user profiles using `fauna login`.",
+        description: "User account used to run the command. Register a user account in the CLI using `fauna login`.",
         default: "default",
       },
       json: {
@@ -146,12 +146,12 @@ function buildYargs(argvInput) {
       },
       quiet: {
         type: "boolean",
-        description: "Only output the results of the command.",
+        description: "Only output the results of the command. Useful for scripts, CI/CD, and automation workflows.",
         default: false,
       },
       verboseComponent: {
         description:
-          "Comma-separated list of components to emit diagnostic logs for. Takes precedence over the `--verbosity` flag.",
+          "Components to emit diagnostic logs for. Takes precedence over the `--verbosity` flag. Pass components as a comma-separate list, such as `--verboseComponent fetch, error`, or as separate flags, such as `--verboseComponent fetch --verboseComponent error`.",
         type: "array",
         default: [],
         choices: ["fetch", "error", "config", "argv", "creds"],

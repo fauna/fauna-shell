@@ -66,7 +66,7 @@ function buildCommitCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
-        description: "Prompt for user input (e.g., confirmations)",
+        description: "Prompt for input, such as confirmation. Use `--no-input` to run the command without prompts. Useful for scripts, CI/CD, and automation workflows.",
         default: true,
         type: "boolean",
       },
