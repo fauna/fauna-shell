@@ -80,7 +80,9 @@ export async function run(_argvInput, _container) {
 
     // Log the stack if it exists
     logger.fatal(e.stack, "error");
-    logger.fatal(e.cause?.stack, "error");
+    if (e.cause) {
+      logger.fatal(e.cause?.stack, "error");
+    }
 
     // If the error has an exitCode property, use that. Otherwise, use 1.
     container.resolve("errorHandler")(
