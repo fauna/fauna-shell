@@ -50,12 +50,12 @@ export function formatObjectForShell(obj, { color = true } = {}) {
     return JSON.stringify(obj, null, 2);
   }
 
-  return colorize(obj);
+  return colorize(JSON.stringify(obj));
 }
 
 /**
  * Formats an error for display in the shell. Use this when you want to see
- * the full error object. Use specific formatting logic in your commands 
+ * the full error object. Use specific formatting logic in your commands
  * if you are creating a summary message. This is best used with --extra.
  * @param {any} err - The error to format
  * @param {object} [opts] - Options
@@ -67,5 +67,5 @@ export function formatFullErrorForShell(err, { color = true } = {}) {
     return JSON.stringify(err, null, 2);
   }
 
-  return colorize(err);
+  return colorize(JSON.stringify(err));
 }
