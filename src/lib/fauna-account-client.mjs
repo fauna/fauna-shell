@@ -240,7 +240,8 @@ export class FaunaAccountClient {
       throw new TypeError("Database path must be a string");
     }
 
-    const parts = databasePath.split("/");
+    const trimmed = databasePath.replace(/^\/|\/$/g, "");
+    const parts = trimmed.split("/");
     const region = parts[0].toLowerCase();
     const rest = parts.slice(1).join("/");
 
@@ -251,6 +252,6 @@ export class FaunaAccountClient {
     };
 
     const standardRegion = regionMap[region] || region;
-    return `${standardRegion}/${rest}`;
+    return rest ? `${standardRegion}/${rest}` : standardRegion;
   }
 }
