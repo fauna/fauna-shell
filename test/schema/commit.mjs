@@ -10,8 +10,6 @@ import { setupTestContainer as setupContainer } from "../../src/config/setup-tes
 import { buildUrl, commonFetchParams, f } from "../helpers.mjs";
 
 describe("schema commit", function () {
-  const textDiff =
-    "\u001b[1mcollections.fsl\u001b[22m\n\u001b[36m@ line 9 to 14\u001b[0m\n      postalCode: String,\n      country: String\n    }\n\u001b[31m-   age: Number?\u001b[0m\n\n    compute cart: Order? = (customer => Order.byCustomerAndStatus(customer, 'cart').first())\n\n\u001b[36m@ line 24 to 30\u001b[0m\n\n    migrations {\n      add .age\n\u001b[32m+     drop .age\u001b[0m\n    }\n  }\n\n";
   const diff =
     "\u001b[1;34m* Modifying collection `Customer`\u001b[0m at collections.fsl:2:1:\n  * Defined fields:\n\u001b[31m  - drop field `.age`\u001b[0m\n\n";
   let container, fetch, logger, confirm;
@@ -90,6 +88,7 @@ describe("schema commit", function () {
   });
 
   it("errors if the schema is not in a ready state", async function () {
+    // eslint-disable-next-line no-warning-comments
     // TODO: what are the valid statuses? !none, !ready results in this case
     fetch.onCall(0).resolves(f({ status: "building", diff: diff }));
 

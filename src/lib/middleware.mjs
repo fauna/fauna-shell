@@ -27,6 +27,7 @@ export function fixPaths(argv) {
 }
 
 export function checkForUpdates(argv) {
+  // eslint-disable-next-line no-warning-comments
   // TODO: figure out upgrade path for SEA installations
   if (isSea()) return argv;
 

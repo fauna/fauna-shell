@@ -82,6 +82,7 @@ export class AccountKeys {
   async getOrRereshKey() {
     if (this.keySource === "credentials-file") {
       const key = this.keyStore.get();
+      // eslint-disable-next-line no-warning-comments
       // TODO: track ttl for account and refresh keys
       if (!key || (key.expiresAt && key.expiresAt < Date.now())) {
         this.logger.debug(

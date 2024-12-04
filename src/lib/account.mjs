@@ -79,6 +79,7 @@ async function parseResponse(response, shouldThrow) {
     }
     switch (response.status) {
       case 401:
+        // eslint-disable-next-line no-warning-comments
         // TODO: try and refresh creds and then redo the call, if not then throw.
         throw new InvalidCredsError(message);
       case 403:

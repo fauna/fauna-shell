@@ -24,6 +24,7 @@ async function shellCommand(argv) {
     prompt: `${argv.db_path || ""}> `,
     ignoreUndefined: true,
     preview: argv.apiVersion !== "10",
+    // eslint-disable-next-line no-warning-comments
     // TODO: integrate with fql-analyzer for completions
     completer: argv.apiVersion === "10" ? () => [] : undefined,
     output: container.resolve("stdoutStream"),

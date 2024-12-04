@@ -12,6 +12,7 @@ export default class FaunaClient {
 
   // query<T>(query: string, opts?: format?: string; typecheck?: boolean; secret?: string;
   // returns Promise<QueryResponse<T>>
+  // eslint-disable-next-line complexity
   async query(query, opts) {
     const fetch = container.resolve("fetch");
 

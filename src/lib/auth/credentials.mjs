@@ -54,6 +54,7 @@ export class Credentials {
     this.accountKeys.keyStore.save({
       accountKey,
       refreshToken,
+      // eslint-disable-next-line no-warning-comments
       // TODO: set expiration
     });
     this.accountKeys.key = accountKey;

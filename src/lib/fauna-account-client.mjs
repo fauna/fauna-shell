@@ -129,6 +129,7 @@ export class FaunaAccountClient {
    * @throws {Error} - Throws an error if there is an issue during session retrieval.
    */
 
+  // eslint-disable-next-line no-warning-comments
   // TODO: get/set expiration details
   static async getSession(accessToken) {
     const makeAccountRequest = container.resolve("makeAccountRequest");
@@ -146,6 +147,7 @@ export class FaunaAccountClient {
     }
   }
 
+  // eslint-disable-next-line no-warning-comments
   // TODO: get/set expiration details
   /**
    * Uses refreshToken to get a new accountKey and refreshToken.

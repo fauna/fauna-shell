@@ -52,6 +52,7 @@ class OAuthClient {
   }
 
   // req: IncomingMessage, res: ServerResponse
+  // eslint-disable-next-line complexity
   _handleRequest(req, res) {
     const logger = container.resolve("logger");
     const allowedOrigins = [
