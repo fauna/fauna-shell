@@ -36,16 +36,16 @@ function buildDeleteCommand(yargs) {
       name: {
         type: "string",
         required: true,
-        description: "the name of the database to delete",
+        description: "Name of the database to delete.",
       },
     })
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "delete",
-  description: "Deletes a database",
+  description: "Delete a child database.",
   builder: buildDeleteCommand,
   handler: deleteDatabase,
 };

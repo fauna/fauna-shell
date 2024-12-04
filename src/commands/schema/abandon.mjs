@@ -69,12 +69,12 @@ function buildAbandonCommand(yargs) {
     })
     .example([["$0 schema abandon"]])
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "abandon",
-  description: "Abandons the currently staged schema.",
+  description: "Abandon the current staged schema.",
   builder: buildAbandonCommand,
   handler: doAbandon,
 };

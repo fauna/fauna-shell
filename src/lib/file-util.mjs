@@ -1,6 +1,4 @@
 //@ts-check
-
-import fs from "node:fs";
 import path from "node:path";
 
 import { container } from "../cli.mjs";
@@ -12,7 +10,7 @@ import { container } from "../cli.mjs";
  */
 export function fixPath(path) {
   const normalize = container.resolve("normalize");
-  const homedir = container.resolve("homedir");
+  const homedir = container.resolve("homedir")();
   return normalize(path.replace(/^~/, homedir));
 }
 
@@ -22,6 +20,7 @@ export function fixPath(path) {
  * @returns {boolean}
  */
 export function dirExists(path) {
+  const fs = container.resolve("fs");
   const stat = fs.statSync(fixPath(path), {
     // returns undefined instead of throwing if the file doesn't exist
     throwIfNoEntry: false,
@@ -39,6 +38,7 @@ export function dirExists(path) {
  * @returns {boolean}
  */
 export function dirIsWriteable(path) {
+  const fs = container.resolve("fs");
   try {
     fs.accessSync(fixPath(path), fs.constants.W_OK);
   } catch (e) {
@@ -55,6 +55,7 @@ export function dirIsWriteable(path) {
  * @returns {boolean} - Returns true if the file exists, otherwise false.
  */
 function fileExists(path) {
+  const fs = container.resolve("fs");
   try {
     fs.readFileSync(fixPath(path));
     return true;
@@ -69,6 +70,7 @@ function fileExists(path) {
  * @returns {Object.<string, any>} - The parsed JSON content of the file.
  */
 function getJSONFileContents(path) {
+  const fs = container.resolve("fs");
   // Open file for reading and writing without truncating
   try {
     const fileContent = fs.readFileSync(path, { flag: "r+" })?.toString();
@@ -109,6 +111,8 @@ export class CredentialsStorage {
    * @param {string} [filename=""] - The name of the credentials file.
    */
   constructor(filename = "") {
+    const fs = container.resolve("fs");
+
     this.filename = filename;
 
     const homedir = container.resolve("homedir")();
@@ -128,6 +132,7 @@ export class CredentialsStorage {
   }
 
   setFile(contents) {
+    const fs = container.resolve("fs");
     fs.writeFileSync(this.filepath, JSON.stringify(contents, null, 2));
   }
 
@@ -313,6 +318,40 @@ export class AccountKeyStorage extends CredentialsStorage {
   delete() {
     return super.delete(this.user);
   }
+}
+
+/**
+ * Initializes the history storage file.
+ *
+ * @returns {string} The and filename to the history storage file
+ */
+export function initHistoryStorage() {
+  const fs = container.resolve("fs");
+  const homedir = container.resolve("homedir")();
+
+  const historyDir = path.join(homedir, ".fauna");
+  if (!dirExists(historyDir)) {
+    fs.mkdirSync(historyDir, { recursive: true });
+  }
+  const historyFile = path.join(historyDir, "history");
+  if (!fileExists(historyFile)) {
+    fs.writeFileSync(historyFile, "");
+  }
+
+  return historyFile;
+}
+
+/**
+ * Clears the contents of the history storage file.
+ *
+ * `initHistoryStorage()` must have been called before calling this function in
+ * order to ensure that the history storage file exists.
+ */
+export function clearHistoryStorage() {
+  const fs = container.resolve("fs");
+  const homedir = container.resolve("homedir")();
+  const historyFile = path.join(homedir, ".fauna/history");
+  fs.writeFileSync(historyFile, "");
 }
 
 /**

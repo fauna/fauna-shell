@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { normalize } from "node:path";
+import path from "node:path";
 import { PassThrough } from "node:stream";
 
 import * as awilix from "awilix";
@@ -42,9 +42,11 @@ export function setupTestContainer() {
   const container = setupCommonContainer();
 
   const thingsToManuallyMock = automock(container);
-  const customfs = stub(fs);
+  const customfs = stub({ ...fs });
   // this is a mock used by the default profile behavior
   customfs.readdirSync.withArgs(process.cwd()).returns([]);
+
+  const __dirname = import.meta.dirname;
 
   const manualMocks = {
     // process specifics
@@ -56,7 +58,9 @@ export function setupTestContainer() {
     // real implementation
     parseYargs: awilix.asValue(spy(parseYargs)),
     fs: awilix.asValue(customfs),
-    homedir: awilix.asValue(stub().returns("/home/user")),
+    homedir: awilix.asValue(
+      stub().returns(path.join(__dirname, "../../test/test-homedir")),
+    ),
     fsp: awilix.asValue({
       unlink: stub(),
       writeFile: stub(),
@@ -81,14 +85,13 @@ export function setupTestContainer() {
       error.code = exitCode;
       throw error;
     }),
-    normalize: awilix.asValue(spy(normalize)),
+    normalize: awilix.asValue(spy(path.normalize)),
     fetch: awilix.asValue(stub().resolves(f({}))),
     gatherFSL: awilix.asValue(stub().resolves([])),
     makeFaunaRequest: awilix.asValue(spy(makeFaunaRequest)),
     makeAccountRequest: awilix.asValue(stub()),
     runQueryFromString: awilix.asValue(stub().resolves({})),
     formatError: awilix.asValue(stub()),
-    formatQueryResponse: awilix.asValue(stub()),
     faunaClientV10: awilix.asValue({
       getClient: stub(),
       runQuery: stub(),

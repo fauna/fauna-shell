@@ -100,12 +100,12 @@ function buildPushCommand(yargs) {
       ["$0 schema push --active"],
     ])
     .version(false)
-    .help("help", "show help");
+    .help("help", "Show help.");
 }
 
 export default {
   command: "push",
-  description: "Push the current project's .fsl files to Fauna.",
+  description: "Push local .fsl schema files to Fauna.",
   builder: buildPushCommand,
   handler: doPush,
 };
