@@ -34,6 +34,10 @@ export class UnauthorizedError extends Error {
   }
 }
 
+export function isTTY() {
+  return process.stdout.isTTY;
+}
+
 /**
  * Formats an object for display in the shell.
  * @param {any} obj - The object to format
@@ -42,7 +46,7 @@ export class UnauthorizedError extends Error {
  * @returns {string} The formatted object
  */
 export function formatObjectForShell(obj, { color = true } = {}) {
-  if (!color) {
+  if (!color || !isTTY()) {
     return JSON.stringify(obj, null, 2);
   }
 
@@ -59,7 +63,7 @@ export function formatObjectForShell(obj, { color = true } = {}) {
  * @returns {string} The formatted error
  */
 export function formatFullErrorForShell(err, { color = true } = {}) {
-  if (!color) {
+  if (!color || !isTTY()) {
     return JSON.stringify(err, null, 2);
   }
 
