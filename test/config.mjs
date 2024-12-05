@@ -385,6 +385,17 @@ describe("configuration file", function () {
       expect(stripAnsi(stderr.getWritten())).to.equal(message);
     });
 
+    it("exits with an error if a profile is specified and there is no config", async function () {
+      try {
+        await run(`eval "Database.all()" --profile nonexistent`, container);
+      } catch (e) {}
+
+      const errorText = `Profile "nonexistent" cannot be specified, because no config file found at "${path.join(__dirname, "..")}". Remove the profile, or provide a config file.`;
+      const message = `${await builtYargs.getHelp()}\n\n${errorText}\n`;
+      expect(stdout.getWritten()).to.equal("");
+      expect(stripAnsi(stderr.getWritten())).to.equal(message);
+    });
+
     it.skip("preserves comments in the config file", async function () {});
   });
 

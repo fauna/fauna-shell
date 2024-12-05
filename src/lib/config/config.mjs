@@ -104,14 +104,15 @@ export const configParser = (argvInput) =>
    * @returns {object}
    */
   function configParserWithArgs(path) {
+    let parsedPath = path;
     let parsedProfile;
     const logger = container.resolve("logger");
 
     if (path === process.cwd()) {
-      path = checkForDefaultConfig(process.cwd());
+      parsedPath = checkForDefaultConfig(process.cwd());
     }
 
-    if (!path) {
+    if (!parsedPath) {
       // if there no config file, we need to assert that no either no profile is
       // specified or that the profile is "default"
       const preConfigArgv = yargsParser(argvInput, {
@@ -129,8 +130,8 @@ export const configParser = (argvInput) =>
       return {};
     }
 
-    logger.debug(`Reading config from ${path}.`, "config");
-    const config = getConfig(path);
+    logger.debug(`Reading config from ${parsedPath}.`, "config");
+    const config = getConfig(parsedPath);
 
     // The "default" profile will be injected here
     const argv = yargsParser(argvInput, {
@@ -145,7 +146,7 @@ export const configParser = (argvInput) =>
     logger.debug(`Using profile ${argv.profile}...`, "config");
     parsedProfile = config.toJSON()[argv.profile];
 
-    validateConfig(argv.profile, parsedProfile, path);
+    validateConfig(argv.profile, parsedProfile, parsedPath);
 
     logger.debug(
       `Applying config: ${JSON.stringify(parsedProfile, null, 4)}`,
