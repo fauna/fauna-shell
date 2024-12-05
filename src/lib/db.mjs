@@ -1,6 +1,10 @@
 //@ts-check
 
+
+
 import { container } from "../cli.mjs";
+import { CommandError } from "./command-helpers.mjs";
+import { retryInvalidCredsOnce } from "./fauna-client.mjs";
 
 function buildParamsString({ argv, params, path }) {
   const routesWithColor = ["/schema/1/staged/status", "/schema/1/validate"];
@@ -23,6 +27,7 @@ function buildParamsString({ argv, params, path }) {
  * @property {method} method - The HTTP method to use when making the request.
  * @property {object} [body] - The body to include in the request.
  * @property {boolean} [shouldThrow=true] - Whether or not to throw if the network request succeeds but is not a 2XX. If this is set to false, makeFaunaRequest will return the error instead of throwing.
+ * @property {string} [secret] - The secret to use when making the request.
  */
 
 /**
@@ -35,6 +40,7 @@ export async function makeFaunaRequest({
   method,
   body = undefined,
   shouldThrow = true,
+  secret,
 }) {
   const fetch = container.resolve("fetch");
   const paramsString = buildParamsString({ argv, params, path });
@@ -51,18 +57,34 @@ export async function makeFaunaRequest({
 
   const fetchArgs = {
     method,
-    headers: { AUTHORIZATION: `Bearer ${argv.secret}` },
+    headers: { AUTHORIZATION: `Bearer ${secret}` },
   };
 
   if (body) fetchArgs.body = body;
 
   const response = await fetch(fullUrl, fetchArgs);
-
   const obj = await response.json();
 
   if (obj.error && shouldThrow) {
-    throw new Error(obj.error.message);
+    const err = new CommandError(obj.error.message);
+    err.name = obj.error.code;
+
+    if (obj.error.code === "unauthorized") {
+      err.message = "The database secret provided is invalid.";
+    }
+
+    throw err;
   }
 
   return obj;
+}
+
+/**
+ * @param {fetchParameters} opts
+ * @returns {Promise<Object>}
+ */
+export function makeRetryableFaunaRequest(opts) {
+  return retryInvalidCredsOnce(opts.secret, (secret) =>
+    makeFaunaRequest({ ...opts, secret }),
+  );
 }

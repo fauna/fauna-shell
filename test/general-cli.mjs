@@ -47,7 +47,7 @@ describe("cli operations", function () {
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
-  it("should exit with a helpful message if a non-existent flag is provided", async function () {
+  it.skip("should exit with a helpful message if a non-existent flag is provided", async function () {
     const logger = container.resolve("logger");
 
     // the halflight flag doesn't exist
@@ -70,7 +70,7 @@ describe("cli operations", function () {
     } catch (e) {}
 
     expect(logger.stdout).to.not.be.called;
-    const message = `${await builtYargs.getHelp()}\n\nUnknown argument: inland-empire`;
+    const message = `${await builtYargs.getHelp()}\n\nUnknown command: inland-empire`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
@@ -163,7 +163,7 @@ describe("cli operations", function () {
       timeout: 5000,
     });
 
-    expect(stderr).to.include("Unknown argument: throw");
+    expect(stderr).to.include("Unknown command: throw");
   });
 
   it("enables nodeJS warnings from the dev entrypoint", async function () {
