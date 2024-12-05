@@ -1,7 +1,7 @@
 import yaml from "yaml";
 import yargsParser from "yargs-parser";
 
-import { container } from "../../cli.mjs";
+import { argvInput, container } from "../../cli.mjs";
 import { ValidationError } from "../command-helpers.mjs";
 
 export const validDefaultConfigNames = [
@@ -80,7 +80,7 @@ export function configParser(path) {
 
   logger.debug(`Reading config from ${path}.`, "config");
   const config = getConfig(path);
-  const argv = yargsParser(process.argv.slice(2), {
+  const argv = yargsParser(argvInput, {
     alias: {
       profile: ["p"],
     },
