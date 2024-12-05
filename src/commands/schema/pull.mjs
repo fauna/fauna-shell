@@ -123,7 +123,7 @@ async function doPull(argv) {
     // process writes and deletes together async - it'll be fastest
     await Promise.all(promises);
   } else {
-    logger.stdout("Change cancelled");
+    logger.stdout("Change cancelled.");
   }
 }
 
@@ -132,20 +132,34 @@ function buildPullCommand(yargs) {
     .options({
       delete: {
         description:
-          "Delete .fsl files in the target directory that are not part of the database schema",
+          "Delete .fsl files in the local directory that are not part of the database schema",
         type: "boolean",
         default: false,
       },
       active: {
-        description: "Pulls the active schema instead of the staged schema",
+        description:
+          "Pull the database's active schema files. If omitted, pulls the database's staged schema, if available.",
         type: "boolean",
         default: false,
       },
     })
     .example([
-      ["$0 schema pull"],
-      ["$0 schema pull --active"],
-      ["$0 schema pull --delete"],
+      [
+        "$0 schema pull --database us/example --dir /path/to/schema",
+        "Pull the 'us/example' database's staged schema.",
+      ],
+      [
+        "$0 schema pull ---secret my-secret --dir /path/to/schema",
+        "Pull the staged schema for the database scoped to a secret.",
+      ],
+      [
+        "$0 schema pull --database us/example --dir /path/to/schema --active",
+        "Pull the 'us/example' database's active schema.",
+      ],
+      [
+        "$0 schema pull --database us/example --dir /path/to/schema --delete",
+        "Delete `.fsl` files in the local directory that are not part of the pulled schema.",
+      ],
     ])
     .help("help", "Show help.");
 }

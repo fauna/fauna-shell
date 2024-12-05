@@ -25,7 +25,7 @@ async function doAbandon(argv) {
       method: "POST",
       secret,
     });
-    logger.stdout("Schema has been abandoned");
+    logger.stdout("Schema has been abandoned.");
   } else {
     // Show status to confirm.
     const params = new URLSearchParams({ diff: "true" });
@@ -39,7 +39,7 @@ async function doAbandon(argv) {
     });
 
     if (response.status === "none")
-      throw new CommandError("There is no staged schema to abandon");
+      throw new CommandError("There is no staged schema to abandon.");
 
     logger.stdout(response.diff);
 
@@ -59,9 +59,9 @@ async function doAbandon(argv) {
         secret,
       });
 
-      logger.stdout("Schema has been abandoned");
+      logger.stdout("Schema has been abandoned.");
     } else {
-      logger.stdout("Abandon cancelled");
+      logger.stdout("Abandon cancelled.");
     }
   }
 }
@@ -76,13 +76,26 @@ function buildAbandonCommand(yargs) {
         type: "boolean",
       },
     })
-    .example([["$0 schema abandon"]])
+    .example([
+      [
+        "$0 schema abandon --database us/example",
+        "Abandon staged schema for the 'us/example' database.",
+      ],
+      [
+        "$0 schema abandon --secret my-secret",
+        "Abandon staged schema for the database scoped to a secret.",
+      ],
+      [
+        "$0 schema abandon --database us/example --no-input",
+        "Run the command without input prompts.",
+      ],
+    ])
     .help("help", "Show help.");
 }
 
 export default {
   command: "abandon",
-  description: "Abandon the current staged schema.",
+  description: "Abandon a database's staged schema.",
   builder: buildAbandonCommand,
   handler: doAbandon,
 };
