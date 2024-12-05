@@ -60,7 +60,7 @@ function keyHandler(argv) {
 
 export default {
   command: "key <method>",
-  description: "Interact with your database keys:",
+  description: "Manage a database's keys.",
   builder: buildKeyCommand,
   handler: keyHandler,
 };
