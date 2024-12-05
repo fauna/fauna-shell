@@ -9,6 +9,7 @@ import * as awilix from "awilix";
 import { Lifetime } from "awilix";
 import fauna from "fauna";
 import faunadb from "faunadb";
+import { colorize } from "json-colorizer";
 import open from "open";
 import updateNotifier from "update-notifier";
 
@@ -64,6 +65,7 @@ export const injectables = {
   updateNotifier: awilix.asValue(updateNotifier),
   fauna: awilix.asValue(fauna),
   faunadb: awilix.asValue(faunadb),
+  colorize: awilix.asValue(colorize),
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
