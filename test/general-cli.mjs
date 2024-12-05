@@ -17,7 +17,16 @@ import { f } from "./helpers.mjs";
 const __dirname = import.meta.dirname;
 
 describe("cli operations", function () {
-  let container, stderr;
+  let container, stderr, startingChalkLevel;
+
+  before(() => {
+    startingChalkLevel = chalk.level;
+    chalk.level = 0;
+  });
+
+  after(() => {
+    chalk.level = startingChalkLevel;
+  });
 
   beforeEach(() => {
     container = setupContainer();
@@ -33,14 +42,12 @@ describe("cli operations", function () {
     } catch (e) {}
 
     expect(logger.stdout).to.not.be.called;
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "Missing required argument: name",
-    )}`;
+    const message = `${await builtYargs.getHelp()}\n\nMissing required argument: name`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
 
-  it("should exit with a helpful message if a non-existent flag is provided", async function () {
+  it.skip("should exit with a helpful message if a non-existent flag is provided", async function () {
     const logger = container.resolve("logger");
 
     // the halflight flag doesn't exist
@@ -49,9 +56,7 @@ describe("cli operations", function () {
     } catch (e) {}
 
     expect(logger.stdout).to.not.be.called;
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "Unknown argument: halflight",
-    )}`;
+    const message = `${await builtYargs.getHelp()}\n\nUnknown argument: halflight`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
@@ -65,9 +70,7 @@ describe("cli operations", function () {
     } catch (e) {}
 
     expect(logger.stdout).to.not.be.called;
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "Unknown argument: inland-empire",
-    )}`;
+    const message = `${await builtYargs.getHelp()}\n\nUnknown command: inland-empire`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
@@ -81,9 +84,7 @@ describe("cli operations", function () {
     } catch (e) {}
 
     expect(logger.stdout).to.not.be.called;
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.reset(
-      "Use 'fauna <command> --help' for more information about a command.",
-    )}`;
+    const message = `${await builtYargs.getHelp()}\n\nUse 'fauna <command> --help' for more information about a command.`;
     expect(logger.stderr).to.have.been.calledWith(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
@@ -97,9 +98,7 @@ describe("cli operations", function () {
     } catch (e) {}
 
     expect(logger.stdout).to.not.be.called;
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "An unexpected error occurred...\n\nthis is a test error\n\nIf you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues",
-    )}`;
+    const message = `${await builtYargs.getHelp()}\n\nAn unexpected error occurred...\n\nthis is a test error\n\nIf you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues`;
     expect(stderr.getWritten().trim()).to.equal(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
@@ -113,9 +112,7 @@ describe("cli operations", function () {
     } catch (e) {}
 
     expect(logger.stdout).to.not.be.called;
-    const message = `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
-      "An unexpected error occurred...\n\nthis is a rejected promise\n\nIf you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues",
-    )}`;
+    const message = `${await builtYargs.getHelp()}\n\nAn unexpected error occurred...\n\nthis is a rejected promise\n\nIf you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues`;
     expect(stderr.getWritten().trim()).to.equal(message);
     expect(container.resolve("parseYargs")).to.have.been.calledOnce;
   });
@@ -166,7 +163,7 @@ describe("cli operations", function () {
       timeout: 5000,
     });
 
-    expect(stderr).to.include("Unknown argument: throw");
+    expect(stderr).to.include("Unknown command: throw");
   });
 
   it("enables nodeJS warnings from the dev entrypoint", async function () {

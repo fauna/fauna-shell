@@ -57,8 +57,8 @@ function buildDeleteCommand(yargs) {
     .help("help", "Show help.")
     .example([
       [
-        "$0 database delete --name 'my-database' --database 'us-std/example'",
-        "Delete a database named 'my-database' under `us-std/example`.",
+        "$0 database delete --name 'my-database' --database 'us/example'",
+        "Delete a database named 'my-database' under `us/example`.",
       ],
       [
         "$0 database delete --name 'my-database' --secret 'my-secret'",

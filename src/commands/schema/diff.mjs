@@ -3,7 +3,11 @@
 import chalk from "chalk";
 
 import { container } from "../../cli.mjs";
-import { ValidationError, yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import {
+  ValidationError,
+  yargsWithCommonQueryOptions,
+} from "../../lib/command-helpers.mjs";
+import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 
 /**
@@ -59,7 +63,7 @@ async function doDiff(argv) {
   const gatherFSL = container.resolve("gatherFSL");
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
-
+  const secret = await getSecret();
   const files = reformatFSL(await gatherFSL(argv.dir));
 
   const { version, status, diff } = await makeFaunaRequest({
@@ -67,6 +71,7 @@ async function doDiff(argv) {
     path: "/schema/1/staged/status",
     params: buildStatusParams(argv),
     method: "GET",
+    secret,
   });
 
   if (target === "staged") {
@@ -85,6 +90,7 @@ async function doDiff(argv) {
       params: buildValidateParams(argv, version),
       body: files,
       method: "POST",
+      secret,
     });
 
     if (status === "none") {
