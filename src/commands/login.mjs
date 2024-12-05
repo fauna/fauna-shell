@@ -42,12 +42,10 @@ function buildLoginCommand(yargs) {
       description: "User to log in as.",
       default: "default",
     },
-  })
-    .example([
-      ["$0 login", "Log in as the 'default' user."],
-      ["$0 login --user john_doe", "Log in as the 'john_doe' user."],
-    ])
-    .help("help", "Show help.");
+  }).example([
+    ["$0 login", "Log in as the 'default' user."],
+    ["$0 login --user john_doe", "Log in as the 'john_doe' user."],
+  ]);
 }
 
 export default {

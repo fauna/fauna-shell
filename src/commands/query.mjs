@@ -167,8 +167,7 @@ function buildQueryCommand(yargs) {
         "$0 query -i /path/to/queries.fql --extra --output /tmp/result.json --database us/example",
         "Run the query and write the full API response to a file.",
       ],
-    ])
-    .help("help", "Show help.");
+    ]);
 }
 
 export default {

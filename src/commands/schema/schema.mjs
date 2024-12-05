@@ -24,8 +24,7 @@ function buildSchema(yargs) {
     .command(pushCommand)
     .command(pullCommand)
     .command(statusCommand)
-    .demandCommand()
-    .help("help", "Show help.");
+    .demandCommand();
 }
 
 export default {

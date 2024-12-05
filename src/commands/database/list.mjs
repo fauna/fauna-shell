@@ -85,7 +85,6 @@ function buildListCommand(yargs) {
         default: 1000,
       },
     })
-    .help("help", "Show help.")
     .example([
       ["$0 database list", "List all top-level databases."],
       [

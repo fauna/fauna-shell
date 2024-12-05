@@ -10,8 +10,7 @@ function buildDatabase(yargs) {
     .command(listCommand)
     .command(createCommand)
     .command(deleteCommand)
-    .demandCommand()
-    .help("help", "Show help.");
+    .demandCommand();
 }
 
 export default {

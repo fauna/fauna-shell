@@ -36,7 +36,6 @@ function buildKeyCommand(yargs) {
         describe: "The role to assign to the key",
       },
     })
-    .help("help", "show help")
     .example([["$0 key create"]]);
 }
 
