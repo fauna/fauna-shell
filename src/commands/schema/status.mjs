@@ -68,11 +68,11 @@ function buildStatusCommand(yargs) {
     .example([
       [
         "$0 schema status --database us/example",
-        "Get the staged schema status for the 'us/example' database."
+        "Get the staged schema status for the 'us/example' database.",
       ],
       [
         "$0 schema status --secret my-secret",
-        "Get the staged schema status for the database scoped to a secret."
+        "Get the staged schema status for the database scoped to a secret.",
       ],
     ])
     .help("help", "Show help.");

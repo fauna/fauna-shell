@@ -150,16 +150,16 @@ function buildShellCommand(yargs) {
     .example([
       [
         "$0 shell --database us/example",
-        "Run queries in the 'us/example' database."
+        "Run queries in the 'us/example' database.",
       ],
       [
         "$0 shell --database us/example --role server",
-        "Run queries in the 'us/example' database using the 'server' role."
+        "Run queries in the 'us/example' database using the 'server' role.",
       ],
       [
         "$0 shell --secret my-secret",
-        "Run queries in the database scoped to a secret."
-      ]
+        "Run queries in the database scoped to a secret.",
+      ],
     ])
     .version(false)
     .help("help", "Show help.");

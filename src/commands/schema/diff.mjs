@@ -114,8 +114,7 @@ function buildDiffCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
     .options({
       staged: {
-        description:
-          "Show the diff between the active and staged schema.",
+        description: "Show the diff between the active and staged schema.",
         default: false,
         type: "boolean",
       },
@@ -126,8 +125,7 @@ function buildDiffCommand(yargs) {
         type: "boolean",
       },
       active: {
-        description:
-          "Show the diff between the active and local schema.",
+        description: "Show the diff between the active and local schema.",
         default: false,
         type: "boolean",
       },
@@ -135,23 +133,23 @@ function buildDiffCommand(yargs) {
     .example([
       [
         "$0 schema diff --database us/example --dir /path/to/schema",
-        "Compare the 'us/example' database's staged schema to the local schema. If no schema is staged, compare the database's active schema to the local schema."
+        "Compare the 'us/example' database's staged schema to the local schema. If no schema is staged, compare the database's active schema to the local schema.",
       ],
       [
         "$0 schema diff --database us/example --dir /path/to/schema --active",
-        "Compare the 'us/example' database's active schema to the local schema."
+        "Compare the 'us/example' database's active schema to the local schema.",
       ],
       [
         "$0 schema diff --secret my-secret --dir /path/to/schema --active",
-        "Compare the active schema of the database scoped to a secret to the local schema."
+        "Compare the active schema of the database scoped to a secret to the local schema.",
       ],
       [
         "$0 schema diff --database us/example --dir /path/to/schema --staged",
-        "Compare the 'us/example' database's active schema to its staged schema."
+        "Compare the 'us/example' database's active schema to its staged schema.",
       ],
       [
         "$0 schema diff --database us/example --dir /path/to/schema --text",
-        "Show a text diff instead of a semantic diff."
+        "Show a text diff instead of a semantic diff.",
       ],
     ])
     .help("help", "Show help.");
@@ -159,7 +157,8 @@ function buildDiffCommand(yargs) {
 
 export default {
   command: "diff",
-  description: "Show the diff between a database's local, staged, or active schema.",
+  description:
+    "Show the diff between a database's local, staged, or active schema.",
   builder: buildDiffCommand,
   handler: doDiff,
 };

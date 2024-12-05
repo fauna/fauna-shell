@@ -79,15 +79,15 @@ function buildAbandonCommand(yargs) {
     .example([
       [
         "$0 schema abandon --database us/example",
-        "Abandon staged schema for the 'us/example' database."
+        "Abandon staged schema for the 'us/example' database.",
       ],
       [
         "$0 schema abandon --secret my-secret",
-        "Abandon staged schema for the database scoped to a secret."
+        "Abandon staged schema for the database scoped to a secret.",
       ],
       [
         "$0 schema abandon --database us/example --no-input",
-        "Run the command without input prompts."
+        "Run the command without input prompts.",
       ],
     ])
     .help("help", "Show help.");
