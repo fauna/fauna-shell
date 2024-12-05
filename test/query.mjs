@@ -110,12 +110,16 @@ describe("query", function () {
       }));
     });
 
-    // This test is skipped for now because we need to figure out a clean way to 
-    // toggle whether our test stdout is a TTY or not.
-    it.skip("can colorize output by default", async function () {
+    it("can colorize output by default", async function () {
       runQueryFromString.resolves({ data: [] });
       await run(`query "Database.all()" --secret=foo`, container);
       expect(logger.stdout).to.have.been.calledWith(colorize([]));
+    });
+
+    it("can colorize bare strings", async function () {
+      runQueryFromString.resolves({ data: "foo" });
+      await run(`query "foo" --secret=foo`, container);
+      expect(logger.stdout).to.have.been.calledWith(colorize('"foo"'));
     });
 
     it("does not colorize output if --no-color is used", async function () {
