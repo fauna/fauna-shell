@@ -79,11 +79,11 @@ export class AccountKeys {
    * refreshes it and returns it.
    * @returns {string} - The account key
    */
-  async getOrRereshKey() {
+  async getOrRefreshKey() {
     if (this.keySource === "credentials-file") {
       const key = this.keyStore.get();
       // TODO: track ttl for account and refresh keys
-      if (!key || (key.expiresAt && key.expiresAt < Date.now())) {
+      if (!key) {
         this.logger.debug(
           "Found account key, but it is expired. Refreshing...",
           "creds",

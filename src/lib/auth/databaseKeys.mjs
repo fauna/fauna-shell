@@ -123,10 +123,10 @@ export class DatabaseKeys {
       ttl: new Date(expiration).toISOString(),
     });
     this.keyStore.save(this.keyName, {
-      secret: newSecret.secret,
+      secret: newSecret?.secret,
       expiresAt: expiration,
     });
-    this.key = newSecret.secret;
-    return newSecret.secret;
+    this.key = newSecret?.secret;
+    return newSecret?.secret;
   }
 }

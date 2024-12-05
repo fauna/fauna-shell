@@ -52,6 +52,11 @@ const COMMON_QUERY_OPTIONS = {
     required: false,
     group: "API:",
   },
+  accountKey: {
+    type: "string",
+    description: "The account key to use when calling Fauna",
+    required: false,
+  },
   database: {
     alias: "d",
     type: "string",

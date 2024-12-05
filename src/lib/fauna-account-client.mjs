@@ -26,7 +26,8 @@ export class FaunaAccountClient {
             );
             await this.accountKeys.onInvalidCreds();
             // onInvalidCreds will refresh the account key
-            return await original(await this.getRequestArgs(args));
+            const updatedArgs = await this.getRequestArgs(args);
+            result = await original(updatedArgs);
           } catch (e) {
             if (e instanceof InvalidCredsError) {
               logger.debug(
@@ -49,7 +50,7 @@ export class FaunaAccountClient {
   // By the time we are inside the retryableAccountRequest,
   //  the account key will have been refreshed. Use the latest value
   async getRequestArgs(args) {
-    const updatedKey = await this.accountKeys.getOrRereshKey();
+    const updatedKey = await this.accountKeys.getOrRefreshKey();
     return {
       ...args,
       secret: updatedKey,
