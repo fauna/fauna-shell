@@ -5,7 +5,7 @@ import chalk from "chalk";
 import yargs from "yargs";
 
 import databaseCommand from "./commands/database/database.mjs";
-import keyCommand from "./commands/key.mjs";
+import keyCommand from "./commands/key/key.mjs";
 import loginCommand from "./commands/login.mjs";
 import queryCommand from "./commands/query.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";

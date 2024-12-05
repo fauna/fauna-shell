@@ -100,4 +100,5 @@ export function applyLocalArg(argv) {
       argv,
     );
   }
+  return argv;
 }

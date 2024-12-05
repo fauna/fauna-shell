@@ -13,7 +13,7 @@ import {
 
 import { container } from "../cli.mjs";
 import { ValidationError } from "./command-helpers.mjs";
-import { formatFullErrorForShell, formatObjectForShell } from "./misc.mjs";
+import { formatFullErrorForShell, formatObject } from "./misc.mjs";
 
 /**
  * Interprets a string as a FQL expression and returns a query.
@@ -159,18 +159,11 @@ export const formatError = (err, opts = {}) => {
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { extra, json, color } = opts;
+  const { extra } = opts;
 
   // If extra is set, return the full response object.
   const data = extra ? res : res.data;
-
-  // If json is set, return the response as a JSON string.
-  if (json) {
-    return JSON.stringify(data);
-  }
-
-  // Otherwise, return the response as a pretty-printed JSON string.
-  return formatObjectForShell(data, { color });
+  return formatObject(data, opts);
 };
 
 /**
