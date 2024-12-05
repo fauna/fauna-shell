@@ -6,7 +6,7 @@ import sinon from "sinon";
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
-describe.only("key create", () => {
+describe("key create", () => {
   let container, /*fs,*/ logger;
 
   beforeEach(() => {
