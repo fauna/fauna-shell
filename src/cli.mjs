@@ -27,8 +27,6 @@ export let container;
 /** @type {import('yargs').Argv} */
 export let builtYargs;
 
-export let argvInput;
-
 const BUG_REPORT_MESSAGE = `If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues`;
 
 /**
@@ -37,7 +35,7 @@ const BUG_REPORT_MESSAGE = `If you believe this is a bug, please report this iss
  */
 export async function run(_argvInput, _container) {
   container = _container;
-  argvInput = _argvInput;
+  const argvInput = _argvInput;
   const logger = container.resolve("logger");
   const parseYargs = container.resolve("parseYargs");
   if (process.env.NODE_ENV === "production") {
@@ -140,7 +138,7 @@ function buildYargs(argvInput) {
   return yargsInstance
     .scriptName("fauna")
     .env("FAUNA")
-    .config("config", configParser)
+    .config("config", configParser(argvInput))
     .middleware([checkForUpdates, logArgv], true)
     .middleware([applyLocalArg, fixPaths, buildCredentials], false)
     .command(queryCommand)
@@ -172,7 +170,6 @@ function buildYargs(argvInput) {
         type: "string",
         description:
           "Profile from the CLI config file to use. Each profile specifies a set of CLI settings.",
-        default: "default",
         group: "Config:",
       },
       json: {

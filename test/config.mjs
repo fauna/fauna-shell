@@ -360,7 +360,7 @@ describe("configuration file", function () {
           configToReturn: noDefaultConfig,
         });
       } catch (e) {}
-      const errorText = `No "default" profile found in config file at ${path.join(__dirname, "../dev.yaml")}. Either specify a profile with "--profile NAME" or add a "default" profile.`;
+      const errorText = `No "default" profile found in config file at "${path.join(__dirname, "../dev.yaml")}". Either specify a profile with "--profile NAME" or add a "default" profile.`;
       const message = `${await builtYargs.getHelp()}\n\n${errorText}\n`;
       expect(stdout.getWritten()).to.equal("");
       expect(stripAnsi(stderr.getWritten())).to.equal(message);
