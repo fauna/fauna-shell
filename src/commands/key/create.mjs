@@ -59,7 +59,7 @@ function buildCreateCommand(yargs) {
       }
       if (argv.database === undefined && argv.secret === undefined) {
         throw new Error(
-          "You must provide at least one of: --database, --secret, --local."
+          "You must provide at least one of: --database, --secret, --local.",
         );
       }
       return true;

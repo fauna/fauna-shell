@@ -23,7 +23,8 @@ describe("key create", () => {
   [
     {
       command: "key create --keyRole admin",
-      expected: "You must provide at least one of: --database, --secret, --local.",
+      expected:
+        "You must provide at least one of: --database, --secret, --local.",
     },
     {
       command: "key create --database us-std",
@@ -52,7 +53,7 @@ describe("key create", () => {
   });
 
   describe("using --local", () => {
-    it ("Prints out a TODO", async () => {
+    it("Prints out a TODO", async () => {
       await runCommand("key create --local --keyRole admin");
       expect(logger.stderr).to.have.been.calledWith(sinon.match("TODO"));
     });
