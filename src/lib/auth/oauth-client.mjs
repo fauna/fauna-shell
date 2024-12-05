@@ -5,7 +5,7 @@ import url from "url";
 import { container } from "../../cli.mjs";
 
 // Default to prod client id and secret
-const clientId = process.env.FAUNA_CLIENT_ID ?? "-_vEB3FKRoWbJdFpMg72Mx0UVAA";
+const clientId = process.env.FAUNA_CLIENT_ID ?? "Aq4_G0mOtm_F1fK3PuzE0k-i9F0";
 // Native public clients are not confidential. The client secret is not used beyond
 //   client identification. https://datatracker.ietf.org/doc/html/rfc8252#section-8.5
 const clientSecret =
