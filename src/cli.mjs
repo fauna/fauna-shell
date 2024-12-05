@@ -210,5 +210,8 @@ function buildYargs(argvInput) {
     .fail(false)
     .exitProcess(false)
     .version()
-    .completion();
+    .completion(
+      "completion",
+      "Output bash/zsh script to enable shell completions. See command output for installation instructions.",
+    );
 }

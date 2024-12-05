@@ -149,7 +149,7 @@ function buildPullCommand(yargs) {
         "Pull the 'us/example' database's staged schema.",
       ],
       [
-        "$0 schema pull ---secret my-secret --dir /path/to/schema",
+        "$0 schema pull --secret my-secret --dir /path/to/schema",
         "Pull the staged schema for the database scoped to a secret.",
       ],
       [
