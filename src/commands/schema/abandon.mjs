@@ -95,7 +95,7 @@ function buildAbandonCommand(yargs) {
 
 export default {
   command: "abandon",
-  description: "Abandon the current staged schema.",
+  description: "Abandon a database's staged schema.",
   builder: buildAbandonCommand,
   handler: doAbandon,
 };
