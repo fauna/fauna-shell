@@ -19,16 +19,16 @@ async function createKeyWithSecret(/*argv*/) {
 }
 
 async function createKeyWithAccountApi(argv) {
-  const AccountClient = new FaunaAccountClient();
-  const { database, role, ttl, name /*json, color*/ } = argv;
-  const databaseKey = await AccountClient.createKey({
+  const accountClient = new FaunaAccountClient();
+  const { database, keyRole, ttl, name } = argv;
+  const databaseKey = await accountClient.createKey({
     path: database,
-    role,
+    role: keyRole,
     ttl,
     name,
   });
-  const { /*path: _,*/ ...rest } = databaseKey;
-  container.resolve("logger").stdout(formatObject(rest));
+  const { path: db, ...rest } = databaseKey;
+  container.resolve("logger").stdout(formatObject({ ...rest, database: db}, argv));
 }
 
 function buildCreateCommand(yargs) {
