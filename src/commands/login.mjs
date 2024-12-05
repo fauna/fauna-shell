@@ -41,7 +41,6 @@ function buildLoginCommand(yargs) {
       type: "string",
       description: "User to log in as.",
       default: "default",
-      group: "Login options:",
     },
   })
     .example([
