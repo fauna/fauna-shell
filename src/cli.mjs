@@ -138,7 +138,7 @@ function buildYargs(argvInput) {
   return yargsInstance
     .scriptName("fauna")
     .env("FAUNA")
-    .config("config", configParser(argvInput))
+    .config("config", configParser.bind(null, argvInput))
     .middleware([checkForUpdates, logArgv], true)
     .middleware([applyLocalArg, fixPaths, buildCredentials], false)
     .command(queryCommand)

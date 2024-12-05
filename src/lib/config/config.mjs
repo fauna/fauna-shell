@@ -94,64 +94,58 @@ function validateConfig(profileName, profileBody, configPath) {
  * Creates a yargs parser given existing command line arguments
  *
  * @param {string|string[]} argvInput - The raw command line arguments.
- * @returns {(path: string) => object} - The yargs parser
+ * @param {string} path
+ * @returns {object} - The yargs parser
  */
-export const configParser = (argvInput) =>
-  /**
-   * A parser to convert config files into appropriate command line arguments
-   *
-   * @param {string} path
-   * @returns {object}
-   */
-  function configParserWithArgs(path) {
-    let parsedPath = path;
-    let parsedProfile;
-    const logger = container.resolve("logger");
+export function configParser(argvInput, path) {
+  let parsedPath = path;
+  let parsedProfile;
+  const logger = container.resolve("logger");
 
-    if (path === process.cwd()) {
-      parsedPath = checkForDefaultConfig(process.cwd());
-    }
+  if (path === process.cwd()) {
+    parsedPath = checkForDefaultConfig(process.cwd());
+  }
 
-    if (!parsedPath) {
-      // if there no config file, we need to assert that no either no profile is
-      // specified or that the profile is "default"
-      const preConfigArgv = yargsParser(argvInput, {
-        alias: {
-          profile: ["p"],
-        },
-        string: ["profile"],
-      });
-      if (preConfigArgv.profile && preConfigArgv.profile !== "default") {
-        throw new ValidationError(
-          `Profile "${preConfigArgv.profile}" cannot be specified, because no config file found at "${path}". ` +
-            `Remove the profile, or provide a config file.`,
-        );
-      }
-      return {};
-    }
-
-    logger.debug(`Reading config from ${parsedPath}.`, "config");
-    const config = getConfig(parsedPath);
-
-    // The "default" profile will be injected here
-    const argv = yargsParser(argvInput, {
+  if (!parsedPath) {
+    // if there no config file, we need to assert that no either no profile is
+    // specified or that the profile is "default"
+    const preConfigArgv = yargsParser(argvInput, {
       alias: {
         profile: ["p"],
       },
-      default: {
-        profile: "default",
-      },
       string: ["profile"],
     });
-    logger.debug(`Using profile ${argv.profile}...`, "config");
-    parsedProfile = config.toJSON()[argv.profile];
+    if (preConfigArgv.profile && preConfigArgv.profile !== "default") {
+      throw new ValidationError(
+        `Profile "${preConfigArgv.profile}" cannot be specified, because no config file found at "${path}". ` +
+          `Remove the profile, or provide a config file.`,
+      );
+    }
+    return {};
+  }
 
-    validateConfig(argv.profile, parsedProfile, parsedPath);
+  logger.debug(`Reading config from ${parsedPath}.`, "config");
+  const config = getConfig(parsedPath);
 
-    logger.debug(
-      `Applying config: ${JSON.stringify(parsedProfile, null, 4)}`,
-      "config",
-    );
+  // The "default" profile will be injected here
+  const argv = yargsParser(argvInput, {
+    alias: {
+      profile: ["p"],
+    },
+    default: {
+      profile: "default",
+    },
+    string: ["profile"],
+  });
+  logger.debug(`Using profile ${argv.profile}...`, "config");
+  parsedProfile = config.toJSON()[argv.profile];
 
-    return parsedProfile;
-  };
+  validateConfig(argv.profile, parsedProfile, parsedPath);
+
+  logger.debug(
+    `Applying config: ${JSON.stringify(parsedProfile, null, 4)}`,
+    "config",
+  );
+
+  return parsedProfile;
+}
