@@ -66,10 +66,8 @@ export class Credentials {
  * @param {*} argv
  */
 export function buildCredentials(argv) {
-  console.log("IN CREDS");
   const credentials = new Credentials(argv);
   container.register({
     credentials: asValue(credentials, { lifetime: Lifetime.SINGLETON }),
   });
-  console.log("LEAVING CREDS");
 }

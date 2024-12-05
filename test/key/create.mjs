@@ -7,14 +7,12 @@ import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
 describe.only("key create", () => {
-  let container,
-      fs,
-      logger;
+  let container, /*fs,*/ logger;
 
   beforeEach(() => {
     // reset the container before each test
     container = setupContainer();
-    fs = container.resolve("fs");
+    // fs = container.resolve("fs");
     logger = container.resolve("logger");
   });
 
@@ -30,13 +28,11 @@ describe.only("key create", () => {
   ].forEach(({ command, expected }) => {
     it("Provides clear error when invalid args are provided", async () => {
       try {
-        console.log("running");
         await run(command, container);
       } catch (e) {}
-      
+
       expect(logger.stderr).to.have.been.calledWith(sinon.match(expected));
       expect(container.resolve("parseYargs")).to.have.been.calledOnce;
     });
   });
-
 });
