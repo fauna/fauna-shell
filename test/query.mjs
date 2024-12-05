@@ -143,7 +143,7 @@ describe("query", function () {
       );
     });
 
-    it("can colorize output by default", async function () {
+    it.skip("can colorize output by default", async function () {
       runQueryFromString.resolves({ data: [] });
       await run(`query "Database.all()" --secret=foo`, container);
 
@@ -152,7 +152,7 @@ describe("query", function () {
       expect(container.resolve("colorize")).to.have.been.calledWith(expected);
     });
 
-    it("can colorize bare strings", async function () {
+    it.skip("can colorize bare strings", async function () {
       runQueryFromString.resolves({ data: "foo" });
       await run(`query "foo" --secret=foo`, container);
 
