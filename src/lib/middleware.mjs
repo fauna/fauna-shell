@@ -15,6 +15,16 @@ const DEFAULT_URL = "https://db.fauna.com";
 export function logArgv(argv) {
   const logger = container.resolve("logger");
   logger.debug(JSON.stringify(argv, null, 4), "argv", argv);
+  const faunaEnvVars = Object.entries(process.env)
+    .filter(([key]) => key.startsWith("FAUNA"))
+    .reduce((acc, [key, value]) => {
+      acc[key] = value;
+      return acc;
+    }, {});
+  logger.debug(
+    `Existing Fauna environment variables: ${JSON.stringify(faunaEnvVars)}`,
+    "argv",
+  );
   return argv;
 }
 
