@@ -1,7 +1,6 @@
 import { DateTime, Settings } from "luxon";
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 import { formatObject } from "../../lib/misc.mjs";
 
@@ -33,7 +32,7 @@ async function createKeyWithAccountApi(argv) {
 }
 
 function buildCreateCommand(yargs) {
-  return yargsWithCommonQueryOptions(yargs)
+  return yargs
     .options({
       name: {
         type: "string",
@@ -46,13 +45,21 @@ function buildCreateCommand(yargs) {
         description:
           "The time-to-live for the key. Provide as an ISO 8601 date time string.",
       },
+      keyRole: {
+        type: "string",
+        required: true,
+        description: "The role to assign to the key; e.g. admin",
+      },
     })
-    .default("role", "admin")
-    .demandOption(["database"])
     .check((argv) => {
       if (argv.ttl && !DateTime.fromISO(argv.ttl).isValid) {
         throw new Error(
           `Invalid ttl '${argv.ttl}'. Provide as an ISO 8601 date time string.`,
+        );
+      }
+      if (argv.database === undefined && argv.secret === undefined) {
+        throw new Error(
+          "You must provide at least one of: --database, --secret, --local."
         );
       }
       return true;

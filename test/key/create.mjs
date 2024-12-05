@@ -16,23 +16,45 @@ describe("key create", () => {
     logger = container.resolve("logger");
   });
 
+  async function runCommand(command) {
+    return run(command, container);
+  }
+
   [
     {
-      command: "key create",
-      expected: "Missing required argument: database",
+      command: "key create --keyRole admin",
+      expected: "You must provide at least one of: --database, --secret, --local.",
     },
     {
-      command: "key create --database us-std --ttl taco",
+      command: "key create --database us-std",
+      expected: "Missing required argument: keyRole",
+    },
+    {
+      command: "key create --database us-std --ttl taco --keyRole admin",
       expected: "Invalid ttl 'taco'. Provide as an ISO 8601 date time string.",
     },
   ].forEach(({ command, expected }) => {
     it("Provides clear error when invalid args are provided", async () => {
       try {
-        await run(command, container);
+        await runCommand(command);
       } catch (e) {}
 
       expect(logger.stderr).to.have.been.calledWith(sinon.match(expected));
       expect(container.resolve("parseYargs")).to.have.been.calledOnce;
+    });
+  });
+
+  describe("using --secret", () => {
+    it("Prints out a TODO", async () => {
+      await runCommand("key create --secret secret --keyRole admin");
+      expect(logger.stderr).to.have.been.calledWith(sinon.match("TODO"));
+    });
+  });
+
+  describe("using --local", () => {
+    it ("Prints out a TODO", async () => {
+      await runCommand("key create --local --keyRole admin");
+      expect(logger.stderr).to.have.been.calledWith(sinon.match("TODO"));
     });
   });
 });

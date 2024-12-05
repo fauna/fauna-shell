@@ -1,9 +1,13 @@
 //@ts-check
 
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import createCommand from "./create.mjs";
 
 function buildKeyCommand(yargs) {
-  return yargs.command(createCommand).demandCommand().help("help", "show help");
+  return yargsWithCommonQueryOptions(yargs)
+    .command(createCommand)
+    .demandCommand()
+    .help("help", "show help");
 }
 
 export default {
