@@ -2,7 +2,6 @@
 
 import { expect } from "chai";
 import { ServiceError } from "fauna";
-import { colorize } from "json-colorizer";
 import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
@@ -144,12 +143,22 @@ describe("query", function () {
       );
     });
 
-    // This test is skipped for now because we need to figure out a clean way to
-    // toggle whether our test stdout is a TTY or not.
     it.skip("can colorize output by default", async function () {
       runQueryFromString.resolves({ data: [] });
       await run(`query "Database.all()" --secret=foo`, container);
-      expect(logger.stdout).to.have.been.calledWith(colorize([]));
+
+      const expected = JSON.stringify([], null, 2);
+      expect(logger.stdout).to.have.been.calledWith(expected);
+      expect(container.resolve("colorize")).to.have.been.calledWith(expected);
+    });
+
+    it.skip("can colorize bare strings", async function () {
+      runQueryFromString.resolves({ data: "foo" });
+      await run(`query "foo" --secret=foo`, container);
+
+      const expected = JSON.stringify("foo", null, 2);
+      expect(logger.stdout).to.have.been.calledWith(expected);
+      expect(container.resolve("colorize")).to.have.been.calledWith(expected);
     });
 
     it("does not colorize output if --no-color is used", async function () {
