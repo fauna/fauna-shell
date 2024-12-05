@@ -42,12 +42,12 @@ const databaseObject = {
   data: [
     {
       name: "test",
-      coll: 'Database',
+      coll: "Database",
       ts: "2024-07-16T19:16:15.980Z",
       global_id: "asd7zi8pharfn",
     },
   ],
-}
+};
 
 describe("configuration file", function () {
   let container, stderr, stdout, fs;
@@ -100,7 +100,9 @@ describe("configuration file", function () {
 
     // We colorize output in the shell, so we strip ANSI codes for testing since these
     // tests aren't focused on testing the shell output specifically
-    expect(stripAnsi(stdout.getWritten())).to.equal(`${JSON.stringify(objectToReturn, null, 2)}\n`);
+    expect(stripAnsi(stdout.getWritten())).to.equal(
+      `${JSON.stringify(objectToReturn, null, 2)}\n`,
+    );
     expect(stderr.getWritten()).to.equal("");
   }
 
@@ -290,10 +292,7 @@ describe("configuration file", function () {
         .throws(fakeFSError);
 
       try {
-        await run(
-          `eval --config ./dev.yaml "Database.all()"`,
-          container,
-        );
+        await run(`eval --config ./dev.yaml "Database.all()"`, container);
       } catch (e) {}
 
       const errorText = `Config file not found at path ${configPath}.`;
