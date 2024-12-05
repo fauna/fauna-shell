@@ -99,7 +99,7 @@ function buildCommitCommand(yargs) {
 
 export default {
   command: "commit",
-  description: "Apply staged schema files to a database.",
+  description: "Apply a staged schema to a database.",
   builder: buildCommitCommand,
   handler: doCommit,
 };
