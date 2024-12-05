@@ -95,7 +95,7 @@ function buildPushCommand(yargs) {
       },
       active: {
         description:
-          "Immediately apply changes to the database's active schema. Skips staging the schema. Can result in temporarily unavailable indexes.",
+          "Immediately apply the local schema to the database's active schema. Skips staging the schema. Can result in temporarily unavailable indexes.",
         type: "boolean",
         default: false,
       },

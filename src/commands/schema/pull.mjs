@@ -132,7 +132,7 @@ function buildPullCommand(yargs) {
     .options({
       delete: {
         description:
-          "Delete .fsl files in the target directory that are not part of the database schema",
+          "Delete .fsl files in the local directory that are not part of the database schema",
         type: "boolean",
         default: false,
       },
@@ -158,7 +158,7 @@ function buildPullCommand(yargs) {
       ],
       [
         "$0 schema pull --database us/example --dir /path/to/schema --delete",
-        "Delete `.fsl` files in the target directory that are not part of the pulled schema.",
+        "Delete `.fsl` files in the local directory that are not part of the pulled schema.",
       ],
     ])
     .help("help", "Show help.");
