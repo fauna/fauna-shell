@@ -4,6 +4,7 @@ import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
+import { localSchemaOptions } from "./schema.mjs";
 
 async function doPush(argv) {
   const logger = container.resolve("logger");
@@ -99,6 +100,7 @@ function buildPushCommand(yargs) {
         type: "boolean",
         default: false,
       },
+      ...localSchemaOptions,
     })
     .example([
       [
