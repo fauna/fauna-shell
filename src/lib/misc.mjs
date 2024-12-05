@@ -39,6 +39,23 @@ export function isTTY() {
 }
 
 /**
+ * Formats an object for display.
+ * @param {any} obj - The object to format
+ * @param {object} [opts] - Options
+ * @param {boolean} [opts.json] - Whether to return a JSON string with no pretty-printing
+ * @returns {string} The formatted object
+ */
+export function formatObject(obj, opts = {}) {
+  const { json } = opts;
+  // if json is set return a JSON string
+  if (json) {
+    return JSON.stringify(obj);
+  }
+  // Otherwise, return a pretty-printed JSON string
+  return formatObjectForShell(obj, opts);
+}
+
+/**
  * Formats an object for display in the shell.
  * @param {any} obj - The object to format
  * @param {object} [opts] - Options
