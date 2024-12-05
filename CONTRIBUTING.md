@@ -1,4 +1,5 @@
 ### Quick Start
+
 Install dependencies and verify you can execute the CLI:
 
 Sanity check your local setup:

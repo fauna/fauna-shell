@@ -57,20 +57,32 @@ export function checkForUpdates(argv) {
  * set to 'secret'.
  * @param {import('yargs').Arguments} argv
  * @returns {void}
-*/
+ */
 export function applyLocalArg(argv) {
   const logger = container.resolve("logger");
   if (!argv.url) {
     if (argv.local) {
       argv.url = LOCAL_URL;
-      logger.debug(`Set url to '${LOCAL_URL}' as --local was given and --url was not`, "argv", argv);
+      logger.debug(
+        `Set url to '${LOCAL_URL}' as --local was given and --url was not`,
+        "argv",
+        argv,
+      );
     } else {
       argv.url = DEFAULT_URL;
-      logger.debug(`Defaulted url to '${DEFAULT_URL}' no --url was provided`, "argv", argv);
+      logger.debug(
+        `Defaulted url to '${DEFAULT_URL}' no --url was provided`,
+        "argv",
+        argv,
+      );
     }
   }
   if (!argv.secret && argv.local) {
     argv.secret = LOCAL_SECRET;
-    logger.debug(`Set secret to '${LOCAL_SECRET}' as --local was given and --secret was not`, "argv", argv);
+    logger.debug(
+      `Set secret to '${LOCAL_SECRET}' as --local was given and --secret was not`,
+      "argv",
+      argv,
+    );
   }
 }

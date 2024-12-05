@@ -1,6 +1,5 @@
 //@ts-check
 
-
 import { container } from "../cli.mjs";
 
 export default class FaunaClient {
