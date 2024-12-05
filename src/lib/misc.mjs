@@ -1,7 +1,7 @@
 import util from "node:util";
 import { createContext, runInContext } from "node:vm";
 
-import { colorize } from "json-colorizer";
+import { container } from "../cli.mjs";
 
 export async function runQuery(expression, client) {
   const faunadb = (await import("faunadb")).default;
@@ -50,7 +50,7 @@ export function formatObjectForShell(obj, { color = true } = {}) {
     return JSON.stringify(obj, null, 2);
   }
 
-  return colorize(JSON.stringify(obj));
+  return container.resolve("colorize")(JSON.stringify(obj, null, 2));
 }
 
 /**
@@ -67,5 +67,5 @@ export function formatFullErrorForShell(err, { color = true } = {}) {
     return JSON.stringify(err, null, 2);
   }
 
-  return colorize(JSON.stringify(err));
+  return container.resolve("colorize")(JSON.stringify(err, null, 2));
 }

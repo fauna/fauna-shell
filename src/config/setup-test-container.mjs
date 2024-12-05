@@ -73,6 +73,7 @@ export function setupTestContainer() {
     faunadb: awilix.asValue({
       Client: stub(),
     }),
+    colorize: awilix.asValue(stub().returnsArg(0)),
     logger: awilix.asFunction((cradle) => spy(buildLogger(cradle))).singleton(),
     AccountClient: awilix.asValue(() => ({
       startOAuthRequest: stub(),
