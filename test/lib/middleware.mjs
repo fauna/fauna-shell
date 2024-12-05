@@ -6,17 +6,15 @@ import { setupTestContainer } from "../../src/config/setup-test-container.mjs";
 import { applyLocalArg } from "../../src/lib/middleware.mjs";
 
 describe("middlewares", function () {
-
   describe("applyLocalArg", function () {
+    const baseArgv = { _: [], $0: "", verboseComponent: [] };
 
-    const baseArgv = {  _: [], $0: '', verboseComponent: []};
-    
     beforeEach(() => {
       setupTestContainer();
     });
 
     it("should set url to localhost:8443 when --local is true and no url provided", function () {
-      const argv = { ...baseArgv, local: true, };
+      const argv = { ...baseArgv, local: true };
       applyLocalArg(argv);
       expect(argv.url).to.equal("http://localhost:8443");
       expect(argv.secret).to.equal("secret");
@@ -37,7 +35,7 @@ describe("middlewares", function () {
     });
 
     it("should not modify secret if already provided", function () {
-      const argv = { ...baseArgv, local: true, secret: "custom-secret", };
+      const argv = { ...baseArgv, local: true, secret: "custom-secret" };
       applyLocalArg(argv);
       expect(argv.url).to.equal("http://localhost:8443");
       expect(argv.secret).to.equal("custom-secret");
