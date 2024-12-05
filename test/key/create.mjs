@@ -18,7 +18,7 @@ describe("key create", () => {
 
   [
     {
-      command: "key create --ttl '2024-01-01T13:15:03Z'",
+      command: "key create",
       expected: "Missing required argument: database",
     },
     {
