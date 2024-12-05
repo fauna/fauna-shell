@@ -152,7 +152,7 @@ export function isUnknownError(error) {
 export const validateDatabaseOrSecret = (argv) => {
   if (!argv.database && !argv.secret && !argv.local) {
     throw new ValidationError(
-      "No database or secret specified. Please specify either --database, --secret, or --local to connect to your desired Fauna database.",
+      "No database or secret specified. Please use either --database, --secret, or --local to connect to your desired Fauna database.",
     );
   }
 };

@@ -31,7 +31,7 @@ describe("database delete", () => {
     {
       command: "database delete --name 'testdb'",
       message:
-        "No secret or database provided. Please use either --secret or --database.",
+        "No database or secret specified. Please use either --database, --secret, or --local to connect to your desired Fauna database.",
     },
   ].forEach(({ command, message }) => {
     it(`validates invalid arguments: ${command}`, async () => {
