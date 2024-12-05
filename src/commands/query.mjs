@@ -140,23 +140,23 @@ function buildQueryCommand(yargs) {
     })
     .example([
       [
-        '$0 query "Collection.all()" --database us-std/example',
+        '$0 query "Collection.all()" --database us/example',
         "Run the query and write the results to stdout ",
       ],
       [
-        "$0 query -i /path/to/query.fql --database us-std/example",
+        "$0 query -i /path/to/query.fql --database us/example",
         "Run the query from a file",
       ],
       [
-        'echo "1 + 1" | $0 query - --database us-std/example',
+        'echo "1 + 1" | $0 query - --database us/example',
         "Run the query from stdin",
       ],
       [
-        "$0 query -i /path/to/queries.fql --output /tmp/result.json --database us-std/example",
+        "$0 query -i /path/to/queries.fql --output /tmp/result.json --database us/example",
         "Run the query and write the results to a file",
       ],
       [
-        "$0 query -i /path/to/queries.fql --extra --output /tmp/result.json --database us-std/example",
+        "$0 query -i /path/to/queries.fql --extra --output /tmp/result.json --database us/example",
         "Run the query and write the full API response to a file",
       ],
     ])

@@ -147,10 +147,7 @@ async function buildCustomEval(argv) {
 
 function buildShellCommand(yargs) {
   return yargsWithCommonConfigurableQueryOptions(yargs)
-    .example([
-      ["$0 shell"],
-      ["$0 shell --database us-std/example --role admin"],
-    ])
+    .example([["$0 shell"], ["$0 shell --database us/example --role admin"]])
     .version(false)
     .help("help", "Show help.");
 }

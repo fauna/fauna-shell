@@ -150,7 +150,7 @@ function buildYargs(argvInput) {
     .command(schemaCommand)
     .command(databaseCommand)
     .demandCommand()
-    .strict(true)
+    .strictCommands(true)
     .options({
       color: {
         description:
@@ -174,14 +174,6 @@ function buildYargs(argvInput) {
           "Profile from the CLI config file to use. Each profile specifies a set of CLI settings.",
         default: "default",
         group: "Config:",
-      },
-      user: {
-        alias: "u",
-        type: "string",
-        description:
-          "User account used to run the command. Register a user account in the CLI using `fauna login`.",
-        default: "default",
-        group: "API:",
       },
       json: {
         type: "boolean",

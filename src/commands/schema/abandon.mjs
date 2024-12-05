@@ -1,12 +1,17 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { CommandError, yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import {
+  CommandError,
+  yargsWithCommonQueryOptions,
+} from "../../lib/command-helpers.mjs";
+import { getSecret } from "../../lib/fauna-client.mjs";
 
 async function doAbandon(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
+  const secret = await getSecret();
 
   if (!argv.input) {
     const params = new URLSearchParams({
@@ -18,6 +23,7 @@ async function doAbandon(argv) {
       path: "/schema/1/staged/abandon",
       params,
       method: "POST",
+      secret,
     });
     logger.stdout("Schema has been abandoned");
   } else {
@@ -29,6 +35,7 @@ async function doAbandon(argv) {
       path: "/schema/1/staged/status",
       params,
       method: "GET",
+      secret,
     });
 
     if (response.status === "none")
@@ -49,6 +56,7 @@ async function doAbandon(argv) {
         path: "/schema/1/staged/abandon",
         params,
         method: "POST",
+        secret,
       });
 
       logger.stdout("Schema has been abandoned");
@@ -62,7 +70,8 @@ function buildAbandonCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
-        description: "Prompt for user input (e.g., confirmations)",
+        description:
+          "Prompt for input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
         default: true,
         type: "boolean",
       },

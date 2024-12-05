@@ -2,16 +2,18 @@
 
 import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 
 async function doPush(argv) {
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
-
   const gatherFSL = container.resolve("gatherFSL");
-  const fsl = reformatFSL(await gatherFSL(argv.dir));
 
   const isStagedPush = !argv.active;
+  const secret = await getSecret();
+
+  const fsl = reformatFSL(await gatherFSL(argv.dir));
 
   if (!argv.input) {
     const params = new URLSearchParams({
@@ -25,6 +27,7 @@ async function doPush(argv) {
       params,
       body: fsl,
       method: "POST",
+      secret,
     });
   } else {
     // Confirm diff, then push it. `force` is set on `validate` so we don't
@@ -40,6 +43,7 @@ async function doPush(argv) {
       params,
       body: fsl,
       method: "POST",
+      secret,
     });
 
     let message = isStagedPush
@@ -72,6 +76,7 @@ async function doPush(argv) {
         params,
         body: fsl,
         method: "POST",
+        secret,
       });
     } else {
       logger.stdout("Push cancelled");
@@ -83,7 +88,8 @@ function buildPushCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
-        description: "Prompt for user input (e.g., confirmations)",
+        description:
+          "Prompt for input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
         default: true,
         type: "boolean",
       },

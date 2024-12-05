@@ -149,11 +149,11 @@ describe("database create", () => {
   describe("if --database is provided", () => {
     [
       {
-        args: "--name 'testdb' --database 'us-std/example'",
+        args: "--name 'testdb' --database 'us/example'",
         expected: { name: "testdb", database: "us-std/example" },
       },
       {
-        args: "--name 'testdb' --database 'us-std/example' --typechecked",
+        args: "--name 'testdb' --database 'us/example' --typechecked",
         expected: {
           name: "testdb",
           database: "us-std/example",
@@ -161,7 +161,7 @@ describe("database create", () => {
         },
       },
       {
-        args: "--name 'testdb' --database 'us-std/example' --protected",
+        args: "--name 'testdb' --database 'us/example' --protected",
         expected: {
           name: "testdb",
           database: "us-std/example",
@@ -169,7 +169,7 @@ describe("database create", () => {
         },
       },
       {
-        args: "--name 'testdb' --database 'us-std/example' --priority 10",
+        args: "--name 'testdb' --database 'us/example' --priority 10",
         expected: { name: "testdb", database: "us-std/example", priority: 10 },
       },
     ].forEach(({ args, expected }) => {

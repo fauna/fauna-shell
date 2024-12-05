@@ -180,8 +180,11 @@ export class FaunaAccountClient {
         path: "/databases",
         secret: this.accountKeys.key,
         // The API expects max_results
-        // eslint-disable-next-line camelcase
-        params: { max_results: pageSize, ...(path && { path }) },
+        params: {
+          // eslint-disable-next-line camelcase
+          max_results: pageSize,
+          ...(path && { path: FaunaAccountClient.standardizeRegion(path) }),
+        },
       });
     } catch (err) {
       err.message = `Failure to list databases: ${err.message}`;
@@ -205,12 +208,51 @@ export class FaunaAccountClient {
       method: "POST",
       path: "/databases/keys",
       body: JSON.stringify({
-        path,
         role,
+        path: FaunaAccountClient.standardizeRegion(path),
         ttl: ttl || new Date(Date.now() + TTL_DEFAULT_MS).toISOString(),
         name: "System generated shell key",
       }),
       secret: this.accountKeys.key,
     });
+  }
+
+  /**
+   * Transforms database paths to standardize region group naming conventions expected by
+   * the account API.
+   *
+   * @param {string} [databasePath] - The database path to standardize
+   * @returns {string | undefined} The standardized path
+   * @example
+   * // Returns "us-std/my-database"
+   * FaunaAccountClient.standardizeRegion("us/my-database")
+   *
+   * // Returns "eu-std/my-database"
+   * FaunaAccountClient.standardizeRegion("eu/my-database")
+   *
+   * // Returns "global/my-database"
+   * FaunaAccountClient.standardizeRegion("classic/my-database")
+   *
+   * @throws {TypeError} If databasePath is provided but not a string
+   */
+  static standardizeRegion(databasePath) {
+    if (!databasePath) return databasePath;
+    if (typeof databasePath !== "string") {
+      throw new TypeError("Database path must be a string");
+    }
+
+    const trimmed = databasePath.replace(/^\/|\/$/g, "");
+    const parts = trimmed.split("/");
+    const region = parts[0].toLowerCase();
+    const rest = parts.slice(1).join("/");
+
+    const regionMap = {
+      us: "us-std",
+      eu: "eu-std",
+      classic: "global",
+    };
+
+    const standardRegion = regionMap[region] || region;
+    return rest ? `${standardRegion}/${rest}` : standardRegion;
   }
 }
