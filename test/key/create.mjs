@@ -5,8 +5,8 @@ import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-import { mockAccessKeysFile } from "../helpers.mjs";
 import { formatObjectForShell } from "../../src/lib/misc.mjs";
+import { mockAccessKeysFile } from "../helpers.mjs";
 
 describe("key create", () => {
   let container, fs, logger, makeAccountRequest;
@@ -50,9 +50,21 @@ describe("key create", () => {
 
   describe("using a user", () => {
     [
-      ["key create --database us-std/test --keyRole admin --ttl '3000-01-01T00:00:00Z' --name taco", true, true],
-      ["key create --database us-std/test --keyRole admin --ttl '3000-01-01T00:00:00Z' --no-color --name taco", true, false],
-      ["key create --database us-std/test --keyRole admin --ttl '3000-01-01T00:00:00Z' --json --name taco", false, true ],
+      [
+        "key create --database us-std/test --keyRole admin --ttl '3000-01-01T00:00:00Z' --name taco",
+        true,
+        true,
+      ],
+      [
+        "key create --database us-std/test --keyRole admin --ttl '3000-01-01T00:00:00Z' --no-color --name taco",
+        true,
+        false,
+      ],
+      [
+        "key create --database us-std/test --keyRole admin --ttl '3000-01-01T00:00:00Z' --json --name taco",
+        false,
+        true,
+      ],
     ].forEach(([command, prettyPrinted, color]) => {
       it("Can call the create key API", async () => {
         mockAccessKeysFile({ fs });
@@ -66,23 +78,21 @@ describe("key create", () => {
         const expected = { ...rest, database };
         makeAccountRequest.resolves(stubbedResponse);
         await runCommand(command);
-        expect(makeAccountRequest).to.have.been.calledOnceWith(
-          {
-            method: "POST",
-            path: "/databases/keys",
-            body: JSON.stringify({
-              role: "admin",
-              path: "us-std/test",
-              ttl: "3000-01-01T00:00:00Z",
-              name: "taco",
-            }),
-            secret: sinon.match.string,
-          }
-        );
+        expect(makeAccountRequest).to.have.been.calledOnceWith({
+          method: "POST",
+          path: "/databases/keys",
+          body: JSON.stringify({
+            role: "admin",
+            path: "us-std/test",
+            ttl: "3000-01-01T00:00:00Z",
+            name: "taco",
+          }),
+          secret: sinon.match.string,
+        });
         expect(logger.stdout).to.have.been.calledOnceWith(
-          prettyPrinted ?
-            formatObjectForShell(expected, { color }) :
-            JSON.stringify(expected)
+          prettyPrinted
+            ? formatObjectForShell(expected, { color })
+            : JSON.stringify(expected),
         );
       });
     });

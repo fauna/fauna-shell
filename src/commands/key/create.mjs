@@ -28,7 +28,9 @@ async function createKeyWithAccountApi(argv) {
     name,
   });
   const { path: db, ...rest } = databaseKey;
-  container.resolve("logger").stdout(formatObject({ ...rest, database: db}, argv));
+  container
+    .resolve("logger")
+    .stdout(formatObject({ ...rest, database: db }, argv));
 }
 
 function buildCreateCommand(yargs) {
