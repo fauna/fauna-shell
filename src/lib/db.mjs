@@ -1,7 +1,5 @@
 //@ts-check
 
-
-
 import { container } from "../cli.mjs";
 import { CommandError } from "./command-helpers.mjs";
 import { retryInvalidCredsOnce } from "./fauna-client.mjs";
