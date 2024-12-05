@@ -206,6 +206,7 @@ function buildYargs(argvInput) {
     })
     .wrap(yargsInstance.terminalWidth())
     .help("help", "Show help.")
+    .alias("help", "h")
     .fail(false)
     .exitProcess(false)
     .version()

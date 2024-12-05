@@ -3,9 +3,9 @@
 import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
+import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
-import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 
 async function runDeleteQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
@@ -49,7 +49,6 @@ function buildDeleteCommand(yargs) {
       },
     })
     .check(validateDatabaseOrSecret)
-    .help("help", "Show help.")
     .example([
       [
         "$0 database delete --name my_database --database us/example",

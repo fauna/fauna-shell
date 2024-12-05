@@ -117,8 +117,7 @@ function buildPushCommand(yargs) {
         "$0 schema push --database us/example --dir /path/to/schema --no-input",
         "Run the command without input prompts.",
       ],
-    ])
-    .help("help", "Show help.");
+    ]);
 }
 
 export default {

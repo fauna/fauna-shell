@@ -3,10 +3,10 @@
 import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
+import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
 import { formatObjectForShell } from "../../lib/misc.mjs";
-import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 
 async function runCreateQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
@@ -76,7 +76,6 @@ function buildCreateCommand(yargs) {
       },
     })
     .check(validateDatabaseOrSecret)
-    .help("help", "show help")
     .example([
       [
         "$0 database create --name my_database --database us/example",
