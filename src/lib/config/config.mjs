@@ -1,7 +1,7 @@
 import yaml from "yaml";
-import yargs from "yargs";
+import yargsParser from "yargs-parser";
 
-import { argvInput, container } from "../../cli.mjs";
+import { container } from "../../cli.mjs";
 import { ValidationError } from "../command-helpers.mjs";
 
 export const validDefaultConfigNames = [
@@ -80,16 +80,15 @@ export function configParser(path) {
 
   logger.debug(`Reading config from ${path}.`, "config");
   const config = getConfig(path);
-  const argv = yargs(argvInput)
-    .options({
-      profile: {
-        default: "default",
-        alias: ["p"],
-        type: "string",
-      },
-    })
-    .help(false)
-    .version(false).argv;
+  const argv = yargsParser(process.argv.slice(2), {
+    alias: {
+      profile: ["p"],
+    },
+    default: {
+      profile: "default",
+    },
+    string: ["profile"],
+  });
 
   logger.debug(`Using profile ${argv.profile}...`, "config");
   parsedProfile = config.toJSON()[argv.profile];
