@@ -5,12 +5,7 @@ import { FaunaError } from "fauna";
 import { container } from "../../cli.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
-import { validateSecretOrDatabase } from "./database.mjs";
-
-function validate(argv) {
-  validateSecretOrDatabase(argv);
-  return true;
-}
+import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 
 async function runDeleteQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
@@ -53,16 +48,16 @@ function buildDeleteCommand(yargs) {
         description: "Name of the database to delete.",
       },
     })
-    .check(validate)
+    .check(validateDatabaseOrSecret)
     .help("help", "Show help.")
     .example([
       [
-        "$0 database delete --name 'my-database' --database 'us/example'",
-        "Delete a database named 'my-database' under `us/example`.",
+        "$0 database delete --name my_database --database us/example",
+        "Delete a database named 'my_database' directly under 'us/example'.",
       ],
       [
-        "$0 database delete --name 'my-database' --secret 'my-secret'",
-        "Delete a database named 'my-database' scoped to a secret.",
+        "$0 database delete --name my_database --secret my-secret",
+        "Delete a database named 'my_database' directly under the database scoped to a secret.",
       ],
     ]);
 }

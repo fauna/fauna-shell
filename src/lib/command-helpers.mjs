@@ -148,6 +148,7 @@ export function isUnknownError(error) {
  * Validate that the user has specified either a database or a secret.
  * This check is not required for commands that can operate at a
  * "root" level.
+ *
  * @param {object} argv
  * @param {string} argv.database - The database to use
  * @param {string} argv.secret - The secret to use
@@ -156,9 +157,10 @@ export function isUnknownError(error) {
 export const validateDatabaseOrSecret = (argv) => {
   if (!argv.database && !argv.secret && !argv.local) {
     throw new ValidationError(
-      "No database or secret specified. Pass either --database, or --secret, or --local.",
+      "No database or secret specified. Please use either --database, --secret, or --local to connect to your desired Fauna database.",
     );
   }
+  return true;
 };
 
 // used for queries customers can configure

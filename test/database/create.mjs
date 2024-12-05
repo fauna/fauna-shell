@@ -31,7 +31,7 @@ describe("database create", () => {
     {
       command: "database create --name 'testdb'",
       message:
-        "No secret or database provided. Please use either --secret or --database.",
+        "No database or secret specified. Please use either --database, --secret, or --local to connect to your desired Fauna database.",
     },
   ].forEach(({ command, message }) => {
     it(`validates invalid arguments: ${command}`, async () => {
@@ -50,7 +50,7 @@ describe("database create", () => {
         error: { code: "constraint_failure", message: "whatever" },
       }),
       expectedMessage:
-        "Constraint failure: The database 'testdb' may already exists or one of the provided options may be invalid.",
+        "Constraint failure: The database 'testdb' already exists or one of the provided options is invalid.",
     },
     {
       error: new ServiceError({
