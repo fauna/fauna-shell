@@ -45,7 +45,7 @@ async function createDatabase(argv) {
     if (e instanceof FaunaError) {
       throwForError(e, {
         onConstraintFailure: () =>
-          `Constraint failure: The database '${argv.name}' may already exists or one of the provided options may be invalid.`,
+          `Constraint failure: The database '${argv.name}' already exists or one of the provided options is invalid.`,
       });
     }
     throw e;
@@ -58,7 +58,7 @@ function buildCreateCommand(yargs) {
       name: {
         type: "string",
         required: true,
-        description: "Name of the database to create.",
+        description: "Name of the child database to create.",
       },
       typechecked: {
         type: "string",
@@ -79,12 +79,20 @@ function buildCreateCommand(yargs) {
     .help("help", "show help")
     .example([
       [
-        "$0 database create --name 'my-database' --database 'us/example'",
-        "Create a database named 'my-database' under `us/example`.",
+        "$0 database create --name my_database --database us/example",
+        "Create a database named 'my_database' directly under 'us/example'.",
       ],
       [
-        "$0 database create --name 'my-database' --secret 'my-secret'",
-        "Create a database named 'my-database' scoped to a secret.",
+        "$0 database create --name my_database --secret my-secret",
+        "Create a database named 'my_database' directly under the database scoped to a secret.",
+      ],
+      [
+        "$0 database create --name my_database --database us/example --typechecked",
+        "Create a database with typechecking enabled.",
+      ],
+      [
+        "$0 database create --name my_database --database us/example --protected",
+        "Create a database with protected mode enabled.",
       ],
     ]);
 }

@@ -41,7 +41,7 @@ describe("schema abandon", function () {
       buildUrl("/schema/1/staged/abandon", { force: "true" }),
       { ...commonFetchParams, method: "POST" },
     );
-    expect(logger.stdout).to.have.been.calledWith("Schema has been abandoned");
+    expect(logger.stdout).to.have.been.calledWith("Schema has been abandoned.");
     expect(logger.stdout).to.not.have.been.calledWith(diff);
     expect(logger.stderr).to.not.have.been.called;
     expect(confirm).to.not.have.been.called;
@@ -72,7 +72,7 @@ describe("schema abandon", function () {
       buildUrl("/schema/1/staged/abandon", { version: "1728677726190000" }),
       { ...commonFetchParams, method: "POST" },
     );
-    expect(logger.stdout).to.have.been.calledWith("Schema has been abandoned");
+    expect(logger.stdout).to.have.been.calledWith("Schema has been abandoned.");
     expect(logger.stdout).to.have.been.calledWith(diff);
     expect(logger.stderr).to.not.have.been.called;
     expect(confirm).to.have.been.calledWith(
@@ -89,7 +89,7 @@ describe("schema abandon", function () {
 
     expect(error).to.have.property("code", 1);
     expect(fetch).to.have.been.calledOnce;
-    const message = `${chalk.red("There is no staged schema to abandon")}`;
+    const message = `${chalk.red("There is no staged schema to abandon.")}`;
     expect(logger.stderr).to.have.been.calledWith(message);
 
     expect(fetch).to.have.been.calledWith(
@@ -120,7 +120,7 @@ describe("schema abandon", function () {
       buildUrl("/schema/1/staged/status", { diff: "true", color: "ansi" }),
       { ...commonFetchParams, method: "GET" },
     );
-    expect(logger.stdout).to.have.been.calledWith("Abandon cancelled");
+    expect(logger.stdout).to.have.been.calledWith("Abandon cancelled.");
     expect(logger.stdout).to.have.been.calledWith(diff);
     expect(logger.stderr).to.not.have.been.called;
     expect(confirm).to.have.been.calledWith(

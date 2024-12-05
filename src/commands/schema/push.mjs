@@ -79,7 +79,7 @@ async function doPush(argv) {
         secret,
       });
     } else {
-      logger.stdout("Push cancelled");
+      logger.stdout("Push cancelled.");
     }
   }
 }
@@ -95,15 +95,28 @@ function buildPushCommand(yargs) {
       },
       active: {
         description:
-          "Immediately applies the schema change instead of staging it",
+          "Immediately apply the local schema to the database's active schema. Skips staging the schema. Can result in temporarily unavailable indexes.",
         type: "boolean",
         default: false,
       },
     })
     .example([
-      ["$0 schema push"],
-      ["$0 schema push --dir schemas/myschema"],
-      ["$0 schema push --active"],
+      [
+        "$0 schema push --database us/example --dir /path/to/schema",
+        "Stage schema changes for the 'us/example' database. If schema is already staged, replace the staged schema.",
+      ],
+      [
+        "$0 schema push --secret my-secret --dir /path/to/schema",
+        "Stage schema changes for the database scoped to a secret. If schema is already staged, replace the staged schema.",
+      ],
+      [
+        "$0 schema push --database us/example --dir /path/to/schema --active",
+        "Immediately apply changes to the 'us/example' database's active schema.",
+      ],
+      [
+        "$0 schema push --database us/example --dir /path/to/schema --no-input",
+        "Run the command without input prompts.",
+      ],
     ])
     .help("help", "Show help.");
 }
