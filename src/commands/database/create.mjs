@@ -8,11 +8,6 @@ import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
 import { formatObjectForShell } from "../../lib/misc.mjs";
 import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 
-function validate(argv) {
-  validateDatabaseOrSecret(argv);
-  return true;
-}
-
 async function runCreateQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
   const { runQuery } = container.resolve("faunaClientV10");
@@ -80,7 +75,7 @@ function buildCreateCommand(yargs) {
         description: "User-defined priority for the database.",
       },
     })
-    .check(validate)
+    .check(validateDatabaseOrSecret)
     .help("help", "show help")
     .example([
       [

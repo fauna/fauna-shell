@@ -7,11 +7,6 @@ import { throwForError } from "../../lib/fauna.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
 import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 
-function validate(argv) {
-  validateDatabaseOrSecret(argv);
-  return true;
-}
-
 async function runDeleteQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
   const { runQuery } = container.resolve("faunaClientV10");
@@ -53,7 +48,7 @@ function buildDeleteCommand(yargs) {
         description: "Name of the database to delete.",
       },
     })
-    .check(validate)
+    .check(validateDatabaseOrSecret)
     .help("help", "Show help.")
     .example([
       [
