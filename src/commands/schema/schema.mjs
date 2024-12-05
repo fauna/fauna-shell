@@ -14,7 +14,7 @@ function buildSchema(yargs) {
         alias: ["directory", "dir"],
         type: "string",
         description:
-          "The path to the project directory containing the schema files to interact with.",
+          "Path to a local directory containing `.fsl` files for the database.",
         default: ".",
       },
     })

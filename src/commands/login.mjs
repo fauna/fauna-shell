@@ -39,16 +39,27 @@ function buildLoginCommand(yargs) {
     user: {
       alias: "u",
       type: "string",
-      description: "User to log in as",
+      description: "User to log in as.",
       default: "default",
-      group: "login Options:",
+      group: "Login options:",
     },
-  });
+  })
+  .example([
+    [
+      "$0 login",
+      "Log in as the 'default' user."
+    ],
+    [
+      "$0 login --user john_doe",
+      "Log in as the 'john_doe' user."
+    ],
+  ])
+  .help("help", "Show help.");
 }
 
 export default {
   command: "login",
-  describe: "Authenticate with Fauna.",
+  describe: "Log in to Fauna using a web-based browser flow.",
   builder: buildLoginCommand,
   handler: doLogin,
 };

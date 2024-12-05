@@ -52,7 +52,7 @@ async function shellCommand(argv) {
   [
     {
       cmd: "clear",
-      help: "Clear the repl",
+      help: "Clear the REPL",
       action: () => {
         // eslint-disable-next-line no-console
         console.clear();
@@ -61,7 +61,7 @@ async function shellCommand(argv) {
     },
     {
       cmd: "clearhistory",
-      help: "Clear command history",
+      help: "Clear the REPL session history",
       action: () => {
         try {
           clearHistoryStorage();
@@ -80,7 +80,7 @@ async function shellCommand(argv) {
     },
     {
       cmd: "lastError",
-      help: "Display the last error",
+      help: "Display the most recent error encountered in the REPL",
       action: () => {
         logger.stdout(shell.context.lastError);
         shell.prompt();
@@ -88,7 +88,7 @@ async function shellCommand(argv) {
     },
     {
       cmd: "toggleExtra",
-      help: "Toggle additional information in shell; off by default",
+      help: "Enable or disable additional output. Disabled by default. If enabled, outputs the full API response, including summary and query stats.",
       action: () => {
         shell.context.extra = !shell.context.extra;
         logger.stderr(
@@ -147,7 +147,20 @@ async function buildCustomEval(argv) {
 
 function buildShellCommand(yargs) {
   return yargsWithCommonConfigurableQueryOptions(yargs)
-    .example([["$0 shell"], ["$0 shell --database us/example --role admin"]])
+    .example([
+      [
+        "$0 shell --database us/example",
+        "Run queries in the 'us/example' database."
+      ],
+      [
+        "$0 shell --database us/example --role server",
+        "Run queries in the 'us/example' database using the 'server' role."
+      ],
+      [
+        "$0 shell --secret my-secret",
+        "Run queries in the database scoped to a secret."
+      ]
+    ])
     .version(false)
     .help("help", "Show help.");
 }

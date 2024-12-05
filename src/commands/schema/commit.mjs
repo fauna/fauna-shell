@@ -80,7 +80,20 @@ function buildCommitCommand(yargs) {
         type: "boolean",
       },
     })
-    .example([["$0 schema commit"]])
+    .example([
+      [
+        "$0 schema commit --database us/example",
+        "Commit staged schema for the 'us/example' database."
+      ],
+      [
+        "$0 schema commit --secret my-secret",
+        "Commit staged schema for the database scoped to a secret."
+      ],
+      [
+        "$0 schema commit --database us/example --no-input",
+        "Run the command without input prompts."
+      ],
+    ])
     .help("help", "Show help.");
 }
 

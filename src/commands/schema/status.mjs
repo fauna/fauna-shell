@@ -65,13 +65,22 @@ async function doStatus(argv) {
 
 function buildStatusCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
-    .example([["$0 schema status"]])
+    .example([
+      [
+        "$0 schema status --database us/example",
+        "Get the staged schema status for the 'us/example' database."
+      ],
+      [
+        "$0 schema status --secret my-secret",
+        "Get the staged schema status for the database scoped to a secret."
+      ],
+    ])
     .help("help", "Show help.");
 }
 
 export default {
   command: "status",
-  description: "Print the staged schema's status.",
+  description: "Show a database's staged schema status.",
   builder: buildStatusCommand,
   handler: doStatus,
 };

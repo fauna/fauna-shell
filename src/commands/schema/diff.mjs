@@ -19,7 +19,7 @@ function parseTarget(argv) {
   }
 
   if (argv.active && argv.staged) {
-    throw new ValidationError("Cannot specify both --active and --staged");
+    throw new ValidationError("Cannot specify both --active and --staged.");
   }
 
   if (argv.active) {
@@ -27,7 +27,7 @@ function parseTarget(argv) {
   } else if (argv.staged) {
     return ["active", "staged"];
   } else {
-    throw new ValidationError("Invalid target. Expected: active or staged");
+    throw new ValidationError("Invalid target. Expected: active or staged.");
   }
 }
 
@@ -115,34 +115,51 @@ function buildDiffCommand(yargs) {
     .options({
       staged: {
         description:
-          "Show the diff between the active and staged schema, instead of the local schema.",
+          "Show the diff between the active and staged schema.",
         default: false,
         type: "boolean",
       },
       text: {
-        description: "Display the text diff instead of the semantic diff.",
+        description:
+          "Show a text diff. A text diff contains line-by-line changes, including comments and whitespace.",
         default: false,
         type: "boolean",
       },
       active: {
         description:
-          "Show the diff against the active schema instead of the staged schema.",
+          "Show the diff between the active and local schema.",
         default: false,
         type: "boolean",
       },
     })
     .example([
-      ["$0 schema diff"],
-      ["$0 schema diff --dir schemas/myschema"],
-      ["$0 schema diff --staged"],
-      ["$0 schema diff --active --text"],
+      [
+        "$0 schema diff --database us/example --dir /path/to/schema",
+        "Compare the 'us/example' database's staged schema to the local schema. If no schema is staged, compare the database's active schema to the local schema."
+      ],
+      [
+        "$0 schema diff --database us/example --dir /path/to/schema --active",
+        "Compare the 'us/example' database's active schema to the local schema."
+      ],
+      [
+        "$0 schema diff --secret my-secret --dir /path/to/schema --active",
+        "Compare the active schema of the database scoped to a secret to the local schema."
+      ],
+      [
+        "$0 schema diff --database us/example --dir /path/to/schema --staged",
+        "Compare the 'us/example' database's active schema to its staged schema."
+      ],
+      [
+        "$0 schema diff --database us/example --dir /path/to/schema --text",
+        "Show a text diff instead of a semantic diff."
+      ],
     ])
     .help("help", "Show help.");
 }
 
 export default {
   command: "diff",
-  description: "Print the diff between local and remote schema.",
+  description: "Show the diff between a database's local, staged, or active schema.",
   builder: buildDiffCommand,
   handler: doDiff,
 };
