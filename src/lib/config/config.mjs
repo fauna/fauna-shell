@@ -91,7 +91,8 @@ function validateConfig(profileName, profileBody, configPath) {
 }
 
 /**
- * Creates a yargs parser given existing command line arguments
+ * A parser to convert config files into appropriate command line arguments
+ * given existing arguments.
  *
  * @param {string|string[]} argvInput - The raw command line arguments.
  * @param {string} path
