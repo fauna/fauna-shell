@@ -360,7 +360,7 @@ describe("configuration file", function () {
           configToReturn: noDefaultConfig,
         });
       } catch (e) {}
-      const errorText = `No "default" profile found in config file at "${path.join(__dirname, "../dev.yaml")}". Either specify a profile with "--profile NAME" or add a "default" profile.`;
+      const errorText = `No "default" profile found in the config file at "${path.join(__dirname, "../dev.yaml")}". Either specify a profile with "--profile NAME" or add a "default" profile.`;
       const message = `${await builtYargs.getHelp()}\n\n${errorText}\n`;
       expect(stdout.getWritten()).to.equal("");
       expect(stripAnsi(stderr.getWritten())).to.equal(message);
@@ -390,7 +390,7 @@ describe("configuration file", function () {
         await run(`eval "Database.all()" --profile nonexistent`, container);
       } catch (e) {}
 
-      const errorText = `Profile "nonexistent" cannot be specified, because no config file found at "${path.join(__dirname, "..")}". Remove the profile, or provide a config file.`;
+      const errorText = `Profile "nonexistent" cannot be specified because there was no config file found at "${path.join(__dirname, "..")}". Remove the profile, or provide a config file.`;
       const message = `${await builtYargs.getHelp()}\n\n${errorText}\n`;
       expect(stdout.getWritten()).to.equal("");
       expect(stripAnsi(stderr.getWritten())).to.equal(message);

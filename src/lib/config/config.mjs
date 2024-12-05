@@ -79,7 +79,7 @@ function checkForDefaultConfig(path) {
 function validateConfig(profileName, profileBody, configPath) {
   if (profileName === "default" && !profileBody) {
     throw new ValidationError(
-      `No "default" profile found in config file at "${configPath}". Either specify a profile with "--profile NAME" or add a "default" profile.`,
+      `No "default" profile found in the config file at "${configPath}". Either specify a profile with "--profile NAME" or add a "default" profile.`,
     );
   }
 
@@ -118,7 +118,7 @@ export function configParser(argvInput, path) {
     });
     if (preConfigArgv.profile && preConfigArgv.profile !== "default") {
       throw new ValidationError(
-        `Profile "${preConfigArgv.profile}" cannot be specified, because no config file found at "${path}". ` +
+        `Profile "${preConfigArgv.profile}" cannot be specified because there was no config file found at "${path}". ` +
           `Remove the profile, or provide a config file.`,
       );
     }

@@ -169,7 +169,7 @@ function buildYargs(argvInput) {
         alias: "p",
         type: "string",
         description:
-          "Profile from the CLI config file to use. Each profile specifies a set of CLI settings. Defaults to the 'default' profile.",
+          "Profile from the CLI config file to use. Each profile specifies a set of CLI settings. Defaults to the 'default' profile when a config file is provided.",
         group: "Config:",
       },
       json: {
