@@ -29,7 +29,7 @@ function captureEnvVars() {
       .reduce((acc, [key, value]) => {
         acc[key] = value;
         return acc;
-      }, {})
+      }, {}),
   );
 }
 
