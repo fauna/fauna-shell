@@ -56,7 +56,7 @@ describe("middlewares", function () {
     it("should set secret with role only when only role provided", function () {
       const argv = { ...baseArgv, local: true, role: "myrole" };
       applyLocalArg(argv);
-      expect(argv.secret).to.equal("secret::@role/myrole");
+      expect(argv.secret).to.equal("secret:myrole");
     });
 
     it("should set secret with database and admin when only database provided", function () {

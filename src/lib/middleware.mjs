@@ -96,7 +96,7 @@ export function applyLocalArg(argv) {
     if (argv.role && argv.database) {
       argv.secret = `${LOCAL_SECRET}:${argv.database}:${argv.role}`;
     } else if (argv.role) {
-      argv.secret = `${LOCAL_SECRET}::@role/${argv.role}`;
+      argv.secret = `${LOCAL_SECRET}:${argv.role}`;
     } else if (argv.database) {
       // no role
       argv.secret = `${LOCAL_SECRET}:${argv.database}:admin`;
