@@ -71,9 +71,21 @@ export function checkForUpdates(argv) {
  * If --local is provided and --secret is not, argv.secret is
  * set to 'secret'.
  * @param {import('yargs').Arguments} argv
- * @returns {void}
+ * @returns {import('yargs').Arguments}
  */
 export function applyLocalArg(argv) {
+  applyLocalToUrl(argv);
+  return applyLocalToSecret(argv);
+}
+
+/**
+ * Mutates argv.url appropriately for local Fauna usage
+ * (i.e. local container usage). If --local is provided
+ * and --url is not, argv.url is set to 'http://localhost:8443'.
+ * @param {import('yargs').Arguments} argv
+ * @returns {import('yargs').Arguments}
+ */
+function applyLocalToUrl(argv) {
   const logger = container.resolve("logger");
   if (!argv.url) {
     if (argv.local) {
@@ -92,10 +104,36 @@ export function applyLocalArg(argv) {
       );
     }
   }
+  return argv;
+}
+
+/**
+ * Mutates argv.secret appropriately for local Fauna usage
+ * (i.e. local container usage). If --local is provided
+ * and --secret is not, argv.secret is set to 'secret'.
+ * Additionally, if --local and --database are provided
+ * the secret is scoped to the database. If --local and
+ * --role are provided the secret is scoped to the role.
+ * @param {import('yargs').Arguments} argv
+ * @returns {import('yargs').Arguments}
+ */
+function applyLocalToSecret(argv) {
+  const logger = container.resolve("logger");
   if (!argv.secret && argv.local) {
-    argv.secret = LOCAL_SECRET;
+    if (argv.role && argv.database) {
+      argv.secret = `${LOCAL_SECRET}:${argv.database}:${argv.role}`;
+    } else if (argv.role) {
+      argv.secret = `${LOCAL_SECRET}:${argv.role}`;
+    } else if (argv.database) {
+      // no role
+      argv.secret = `${LOCAL_SECRET}:${argv.database}:admin`;
+    } else {
+      argv.secret = LOCAL_SECRET;
+    }
     logger.debug(
-      `Set secret to '${LOCAL_SECRET}' as --local was given and --secret was not`,
+      `Set secret to '${argv.secret}' as --local was given, --secret was not, \
+--database was ${argv.database ? `'${argv.database}'` : "not"}, and --role \
+was ${argv.role ? `'${argv.role}'` : "not"}}`,
       "argv",
       argv,
     );
