@@ -183,6 +183,87 @@ describe("query", function () {
     });
   });
 
+  describe("--local usage", function () {
+    it("calls query with a default secret of 'secret'", async function () {
+      const testData = {
+        dummy: "data",
+      };
+      const testResponse = createV10QuerySuccess(testData);
+      runQueryFromString.resolves(testResponse);
+
+      await run(`query "Database.all()" --local`, container);
+
+      expect(runQueryFromString).to.have.been.calledWith(
+        '"Database.all()"',
+        sinon.match({
+          apiVersion: "10",
+          secret: "secret",
+          url: "http://localhost:8443",
+        }),
+      );
+    });
+
+    it("calls query with a scoped secret when a database argument is provided", async function () {
+      const testData = {
+        dummy: "data",
+      };
+      const testResponse = createV10QuerySuccess(testData);
+      runQueryFromString.resolves(testResponse);
+
+      await run(`query "Database.all()" --local --database Taco`, container);
+
+      expect(runQueryFromString).to.have.been.calledWith(
+        '"Database.all()"',
+        sinon.match({
+          apiVersion: "10",
+          secret: "secret:Taco:admin",
+          url: "http://localhost:8443",
+        }),
+      );
+    });
+
+    it("calls query with a scoped secret when a role argument is provided", async function () {
+      const testData = {
+        dummy: "data",
+      };
+      const testResponse = createV10QuerySuccess(testData);
+      runQueryFromString.resolves(testResponse);
+
+      await run(`query "Database.all()" --local --role MyRole`, container);
+
+      expect(runQueryFromString).to.have.been.calledWith(
+        '"Database.all()"',
+        sinon.match({
+          apiVersion: "10",
+          secret: "secret:MyRole",
+          url: "http://localhost:8443",
+        }),
+      );
+    });
+
+    it("calls query with a scoped secret when a role and database argument ares provided", async function () {
+      const testData = {
+        dummy: "data",
+      };
+      const testResponse = createV10QuerySuccess(testData);
+      runQueryFromString.resolves(testResponse);
+
+      await run(
+        `query "Database.all()" --local --role MyRole --database Db`,
+        container,
+      );
+
+      expect(runQueryFromString).to.have.been.calledWith(
+        '"Database.all()"',
+        sinon.match({
+          apiVersion: "10",
+          secret: "secret:Db:MyRole",
+          url: "http://localhost:8443",
+        }),
+      );
+    });
+  });
+
   describe("v10", function () {
     it("can output the result of a query", async function () {
       const testData = {
