@@ -123,7 +123,7 @@ export class CredentialsStorage {
     }
     this.filepath = `${this.credsDir}/${this.filename}`;
     if (!fileExists(this.filepath)) {
-      fs.writeFileSync(this.filepath, "{}");
+      fs.writeFileSync(this.filepath, "{}", { mode: 0o600 });
     }
   }
 
