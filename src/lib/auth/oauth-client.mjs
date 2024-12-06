@@ -1,9 +1,9 @@
 import { createHash, randomBytes } from "crypto";
 import http from "http";
 import url from "url";
-import SuccessPage from "./successPage.mjs";
 
 import { container } from "../../cli.mjs";
+import SuccessPage from "./successPage.mjs";
 
 // Default to prod client id and secret
 const clientId = process.env.FAUNA_CLIENT_ID ?? "Aq4_G0mOtm_F1fK3PuzE0k-i9F0";
