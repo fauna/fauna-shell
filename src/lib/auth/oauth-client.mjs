@@ -3,6 +3,7 @@ import http from "http";
 import url from "url";
 
 import { container } from "../../cli.mjs";
+import SuccessPage from "./successPage.mjs";
 
 // Default to prod client id and secret
 const clientId = process.env.FAUNA_CLIENT_ID ?? "Aq4_G0mOtm_F1fK3PuzE0k-i9F0";
@@ -74,12 +75,8 @@ class OAuthClient {
     if (req.method === "GET") {
       const parsedUrl = url.parse(req.url || "", true);
       if (parsedUrl.pathname === "/success") {
-        res.write(`
-          <body>
-            <h1>Success</h1>
-            <p>Authentication successful. You can close this window and return to the terminal.</p>
-          </body>
-        `);
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.write(SuccessPage);
         res.end();
         this.closeServer();
       } else if (parsedUrl.pathname !== "/") {
