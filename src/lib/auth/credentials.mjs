@@ -7,11 +7,11 @@ import { AccountKeys } from "./accountKeys.mjs";
 import { DatabaseKeys } from "./databaseKeys.mjs";
 
 const validateCredentialArgs = (argv) => {
-  if (argv.database && argv.secret) {
+  if (argv.database && argv.secret && !argv.local) {
     throw new ValidationError(
       "Cannot use both the '--secret' and '--database' options together. Please specify only one.",
     );
-  } else if (argv.role && argv.secret) {
+  } else if (argv.role && argv.secret && !argv.local) {
     // The '--role' option is not supported when using a secret. Secrets have an
     // implicit role.
     throw new ValidationError(
