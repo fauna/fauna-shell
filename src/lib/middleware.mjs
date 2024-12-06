@@ -74,6 +74,18 @@ export function checkForUpdates(argv) {
  * @returns {import('yargs').Arguments}
  */
 export function applyLocalArg(argv) {
+  applyLocalToUrl(argv);
+  return applyLocalToSecret(argv);
+}
+
+/**
+ * Mutates argv.url appropriately for local Fauna usage
+ * (i.e. local container usage). If --local is provided
+ * and --url is not, argv.url is set to 'http://localhost:8443'.
+ * @param {import('yargs').Arguments} argv
+ * @returns {import('yargs').Arguments}
+ */
+function applyLocalToUrl(argv) {
   const logger = container.resolve("logger");
   if (!argv.url) {
     if (argv.local) {
@@ -92,6 +104,18 @@ export function applyLocalArg(argv) {
       );
     }
   }
+  return argv;
+}
+
+/**
+ * Mutates argv.secret appropriately for local Fauna usage
+ * (i.e. local container usage). If --local is provided
+ * and --secret is not, argv.secret is set to 'secret'.
+ * @param {import('yargs').Arguments} argv
+ * @returns {import('yargs').Arguments}
+ */
+function applyLocalToSecret(argv) {
+  const logger = container.resolve("logger");
   if (!argv.secret && argv.local) {
     if (argv.role && argv.database) {
       argv.secret = `${LOCAL_SECRET}:${argv.database}:${argv.role}`;
