@@ -4,8 +4,12 @@ import { container } from "../cli.mjs";
 import { yargsWithCommonOptions } from "../lib/command-helpers.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 
-async function doLogin() {
+async function doLogin(argv) {
   const logger = container.resolve("logger");
+  if (argv.local) {
+    logger.stdout(`Using a local Fauna container does not require login.\n`);
+    return;
+  }
   const open = container.resolve("open");
   const credentials = container.resolve("credentials");
   const oAuth = container.resolve("oauthClient");
