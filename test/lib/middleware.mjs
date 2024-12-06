@@ -7,6 +7,7 @@ import { applyLocalArg } from "../../src/lib/middleware.mjs";
 
 describe("middlewares", function () {
   describe("applyLocalArg", function () {
+    /** @type {import('yargs').Arguments & { url?: string, secret?: string }} */
     const baseArgv = { _: [], $0: "", verboseComponent: [] };
 
     beforeEach(() => {
@@ -39,6 +40,29 @@ describe("middlewares", function () {
       applyLocalArg(argv);
       expect(argv.url).to.equal("http://localhost:8443");
       expect(argv.secret).to.equal("custom-secret");
+    });
+
+    it("should set secret with database and role when both provided", function () {
+      const argv = {
+        ...baseArgv,
+        local: true,
+        database: "mydb",
+        role: "myrole",
+      };
+      applyLocalArg(argv);
+      expect(argv.secret).to.equal("secret:mydb:myrole");
+    });
+
+    it("should set secret with role only when only role provided", function () {
+      const argv = { ...baseArgv, local: true, role: "myrole" };
+      applyLocalArg(argv);
+      expect(argv.secret).to.equal("secret::@role/myrole");
+    });
+
+    it("should set secret with database and admin when only database provided", function () {
+      const argv = { ...baseArgv, local: true, database: "mydb" };
+      applyLocalArg(argv);
+      expect(argv.secret).to.equal("secret:mydb:admin");
     });
   });
 });
