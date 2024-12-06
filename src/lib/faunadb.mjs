@@ -84,12 +84,12 @@ export const runQuery = async ({
  * Formats a V4 Fauna error for display.
  * @param {any} err - An error to format
  * @param {object} [opts]
- * @param {boolean} [opts.extra] - Whether to include extra information
+ * @param {boolean} [opts.raw] - Whether to include full response bodies
  * @param {boolean} [opts.color] - Whether to colorize the error
  * @returns {string} The formatted error message
  */
 export const formatError = (err, opts = {}) => {
-  const { extra, color } = opts;
+  const { raw, color } = opts;
 
   // By doing this we can avoid requiring a faunadb direct dependency
   if (
@@ -98,8 +98,8 @@ export const formatError = (err, opts = {}) => {
     typeof err.requestResult.responseContent === "object" &&
     Array.isArray(err.requestResult.responseContent.errors)
   ) {
-    // If extra is on, return the full error.
-    if (extra) {
+    // If raw is on, return the full error.
+    if (raw) {
       return formatFullErrorForShell(err, { color });
     }
 
@@ -123,14 +123,14 @@ export const formatError = (err, opts = {}) => {
  * Formats a V4 Fauna query response.
  * @param {any} res - The query response to format
  * @param {object} [opts]
- * @param {boolean} [opts.extra] - Whether to include extra information
+ * @param {boolean} [opts.raw] - Whether to include full response bodies
  * @param {boolean} [opts.json] - Whether to return the response as a JSON string
  * @param {boolean} [opts.color] - Whether to colorize the response
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { extra } = opts;
-  const data = extra ? res : res.value;
+  const { raw } = opts;
+  const data = raw ? res : res.value;
   return formatObject(data, opts);
 };
 
