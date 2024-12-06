@@ -161,8 +161,7 @@ function buildShellCommand(yargs) {
         "Run queries in the database scoped to a secret.",
       ],
     ])
-    .version(false)
-    .help("help", "Show help.");
+    .version(false);
 }
 
 export default {

@@ -2,7 +2,7 @@
 import { createContext, runInContext } from "node:vm";
 
 import { container } from "../cli.mjs";
-import { formatFullErrorForShell, formatObjectForShell } from "./misc.mjs";
+import { formatFullErrorForShell, formatObject } from "./misc.mjs";
 
 /**
  * Creates a V4 Fauna client.
@@ -129,13 +129,9 @@ export const formatError = (err, opts = {}) => {
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { extra, json, color } = opts;
+  const { extra } = opts;
   const data = extra ? res : res.value;
-  if (json) {
-    return JSON.stringify(data);
-  }
-
-  return formatObjectForShell(data, { color });
+  return formatObject(data, opts);
 };
 
 /**

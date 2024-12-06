@@ -151,8 +151,7 @@ function buildDiffCommand(yargs) {
         "$0 schema diff --database us/example --dir /path/to/schema --text",
         "Show a text diff instead of a semantic diff.",
       ],
-    ])
-    .help("help", "Show help.");
+    ]);
 }
 
 export default {

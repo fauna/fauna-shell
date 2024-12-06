@@ -93,8 +93,7 @@ function buildCommitCommand(yargs) {
         "$0 schema commit --database us/example --no-input",
         "Run the command without input prompts.",
       ],
-    ])
-    .help("help", "Show help.");
+    ]);
 }
 
 export default {

@@ -149,7 +149,7 @@ function buildPullCommand(yargs) {
         "Pull the 'us/example' database's staged schema.",
       ],
       [
-        "$0 schema pull ---secret my-secret --dir /path/to/schema",
+        "$0 schema pull --secret my-secret --dir /path/to/schema",
         "Pull the staged schema for the database scoped to a secret.",
       ],
       [
@@ -160,8 +160,7 @@ function buildPullCommand(yargs) {
         "$0 schema pull --database us/example --dir /path/to/schema --delete",
         "Delete `.fsl` files in the local directory that are not part of the pulled schema.",
       ],
-    ])
-    .help("help", "Show help.");
+    ]);
 }
 
 export default {
