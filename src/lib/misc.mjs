@@ -73,7 +73,7 @@ export function formatObjectForShell(obj, { color = true } = {}) {
 /**
  * Formats an error for display in the shell. Use this when you want to see
  * the full error object. Use specific formatting logic in your commands
- * if you are creating a summary message. This is best used with --extra.
+ * if you are creating a summary message. This is best used with --raw.
  * @param {any} err - The error to format
  * @param {object} [opts] - Options
  * @param {boolean} [opts.color] - Whether to colorize the error

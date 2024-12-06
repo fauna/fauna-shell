@@ -73,7 +73,7 @@ async function queryCommand(argv) {
   // get the query handler and run the query
   try {
     const secret = await getSecret();
-    const { url, timeout, typecheck, extra, json, apiVersion, color } = argv;
+    const { url, timeout, typecheck, raw, json, apiVersion, color } = argv;
 
     // If we're writing to a file, don't colorize the output regardless of the user's preference
     const useColor = argv.output ? false : color;
@@ -88,7 +88,7 @@ async function queryCommand(argv) {
 
     const output = formatQueryResponse(results, {
       apiVersion,
-      extra,
+      raw,
       json,
       color: useColor,
     });
@@ -105,8 +105,8 @@ async function queryCommand(argv) {
       throw err;
     }
 
-    const { apiVersion, extra, color } = argv;
-    throw new CommandError(formatError(err, { apiVersion, extra, color }), {
+    const { apiVersion, raw, color } = argv;
+    throw new CommandError(formatError(err, { apiVersion, raw, color }), {
       cause: err,
     });
   }
@@ -131,7 +131,7 @@ function buildQueryCommand(yargs) {
         description:
           "Path to a file where query results are written. Defaults to stdout.",
       },
-      extra: {
+      raw: {
         type: "boolean",
         description:
           "Output the full API response, including summary and query stats.",
@@ -164,7 +164,7 @@ function buildQueryCommand(yargs) {
         "Run the query and write the results to a file.",
       ],
       [
-        "$0 query -i /path/to/queries.fql --extra --output /tmp/result.json --database us/example",
+        "$0 query -i /path/to/queries.fql --raw --output /tmp/result.json --database us/example",
         "Run the query and write the full API response to a file.",
       ],
     ]);
