@@ -6,6 +6,7 @@ import yargs from "yargs";
 
 import databaseCommand from "./commands/database/database.mjs";
 import keyCommand from "./commands/key/key.mjs";
+import localCommand from "./commands/local.mjs";
 import loginCommand from "./commands/login.mjs";
 import queryCommand from "./commands/query.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
@@ -147,6 +148,7 @@ function buildYargs(argvInput) {
     .command(keyCommand)
     .command(schemaCommand)
     .command(databaseCommand)
+    .command(localCommand)
     .demandCommand()
     .strictCommands(true)
     .options({
