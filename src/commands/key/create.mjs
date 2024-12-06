@@ -77,7 +77,7 @@ function buildCreateCommand(yargs) {
         "Create a key with the 'server' role for the database scoped to a secret.",
       ],
       [
-        "$0 key create --keyRole server --ttl 2099-12-06T00:01:32.021Z",
+        "$0 key create --keyRole server --ttl 2024-12-06T00:01:32.021Z",
         "Create a key with a ttl.",
       ],
     ]);
