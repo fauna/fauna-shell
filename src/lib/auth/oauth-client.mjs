@@ -1,19 +1,9 @@
 import { createHash, randomBytes } from "crypto";
-import fs from "fs";
 import http from "http";
-import path from "path";
 import url from "url";
+import SuccessPage from "./successPage.mjs";
 
 import { container } from "../../cli.mjs";
-
-// Get current file's directory
-const __filename = url.fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// Read success page content
-const SuccessPage = fs.readFileSync(
-  path.join(__dirname, "./html/SuccessPage.html"),
-  "utf8",
-);
 
 // Default to prod client id and secret
 const clientId = process.env.FAUNA_CLIENT_ID ?? "Aq4_G0mOtm_F1fK3PuzE0k-i9F0";
