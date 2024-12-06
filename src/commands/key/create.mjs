@@ -39,24 +39,24 @@ function buildCreateCommand(yargs) {
       name: {
         type: "string",
         required: false,
-        description: "The name of the key",
+        description: "Name for the key.",
       },
       ttl: {
         type: "string",
         required: false,
         description:
-          "The time-to-live for the key. Provide as an ISO 8601 date time string.",
+          "Time-to-live for the key as an ISO 8601 timestamp. Example: 2099-12-06T00:01:32.021Z. Keys without a ttl don't expire.",
       },
       keyRole: {
         type: "string",
         required: true,
-        description: "The role to assign to the key; e.g. admin",
+        description: "Role assigned to the key, such as 'admin' or 'server'.",
       },
     })
     .check((argv) => {
       if (argv.ttl && !DateTime.fromISO(argv.ttl).isValid) {
         throw new Error(
-          `Invalid ttl '${argv.ttl}'. Provide as an ISO 8601 date time string.`,
+          `Invalid ttl '${argv.ttl}'. Provide a valid ISO 8601 timestamp.`,
         );
       }
       if (argv.database === undefined && argv.secret === undefined) {
@@ -66,7 +66,21 @@ function buildCreateCommand(yargs) {
       }
       return true;
     })
-    .help("help", "show help");
+    .help("help", "Show help.")
+    .example([
+      [
+        "$0 key create --name foo --keyRole admin  --database us/example",
+        "Create a key named 'foo' with the 'admin' role for the 'us/example' database.",
+      ],
+      [
+        "$0 key create --keyRole server --secret my-secret",
+        "Create a key with the 'server' role for the database scoped to a secret.",
+      ],
+      [
+        "$0 key create --keyRole server --ttl 2024-12-06T00:01:32.021Z",
+        "Create a key with a ttl.",
+      ],
+    ]);
 }
 
 export default {

@@ -35,7 +35,7 @@ describe("key create", () => {
     },
     {
       command: "key create --database us-std --ttl taco --keyRole admin",
-      expected: "Invalid ttl 'taco'. Provide as an ISO 8601 date time string.",
+      expected: "Invalid ttl 'taco'. Provide a valid ISO 8601 timestamp.",
     },
   ].forEach(({ command, expected }) => {
     it("Provides clear error when invalid args are provided", async () => {
