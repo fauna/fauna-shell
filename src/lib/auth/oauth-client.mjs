@@ -1,14 +1,13 @@
 import { createHash, randomBytes } from "crypto";
-import http from "http";
-import url from "url";
 import fs from "fs";
+import http from "http";
 import path from "path";
-import { fileURLToPath } from "url";
+import url from "url";
 
 import { container } from "../../cli.mjs";
 
 // Get current file's directory
-const __filename = fileURLToPath(import.meta.url);
+const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Read success page content
 const SuccessPage = fs.readFileSync(
