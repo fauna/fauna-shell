@@ -173,10 +173,7 @@ export const formatError = (err, { apiVersion, raw, color }) => {
  * @param {boolean} opts.color - Whether to colorize the response
  * @returns {object}
  */
-export const formatQueryResponse = (
-  res,
-  { apiVersion, raw, json, color },
-) => {
+export const formatQueryResponse = (res, { apiVersion, raw, json, color }) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 

@@ -134,9 +134,7 @@ async function buildCustomEval(argv) {
       }
 
       // If raw is on, return the full response. Otherwise, return just the data.
-      logger.stdout(
-        formatQueryResponse(res, { apiVersion, raw, color, json }),
-      );
+      logger.stdout(formatQueryResponse(res, { apiVersion, raw, color, json }));
 
       return cb(null);
     } catch (e) {
