@@ -4,6 +4,7 @@ import chalk from "chalk";
 import yargs from "yargs";
 
 import databaseCommand from "./commands/database/database.mjs";
+import localCommand from "./commands/local.mjs";
 import loginCommand from "./commands/login.mjs";
 import queryCommand from "./commands/query.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
@@ -108,6 +109,7 @@ function buildYargs(argvInput) {
     .command(loginCommand)
     .command(schemaCommand)
     .command(databaseCommand)
+    .command(localCommand)
     .demandCommand()
     .strictCommands(true)
     .options({

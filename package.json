@@ -13,6 +13,7 @@
     "@shikijs/cli": "^1.24.0",
     "awilix": "^12.0.2",
     "chalk": "^5.3.0",
+    "dockerode": "^4.0.2",
     "eslint": "^9.12.0",
     "esprima": "^4.0.1",
     "fauna": "^2.4.0",
