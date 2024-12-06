@@ -111,6 +111,9 @@ function applyLocalToUrl(argv) {
  * Mutates argv.secret appropriately for local Fauna usage
  * (i.e. local container usage). If --local is provided
  * and --secret is not, argv.secret is set to 'secret'.
+ * Additionally, if --local and --database are provided
+ * the secret is scoped to the database. If --local and
+ * --role are provided the secret is scoped to the role.
  * @param {import('yargs').Arguments} argv
  * @returns {import('yargs').Arguments}
  */
