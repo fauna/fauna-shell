@@ -128,7 +128,9 @@ function applyLocalToSecret(argv) {
       argv.secret = LOCAL_SECRET;
     }
     logger.debug(
-      `Set secret to '${argv.secret}' as --local was given, --secret was not, --database was ${argv.database ? `'${argv.database}'` : "not"}, and --role was ${argv.role ? `'${argv.role}'` : "not"}}`,
+      `Set secret to '${argv.secret}' as --local was given, --secret was not, \
+--database was ${argv.database ? `'${argv.database}'` : "not"}, and --role \
+was ${argv.role ? `'${argv.role}'` : "not"}}`,
       "argv",
       argv,
     );
