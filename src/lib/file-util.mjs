@@ -335,7 +335,7 @@ export function initHistoryStorage() {
   }
   const historyFile = path.join(historyDir, "history");
   if (!fileExists(historyFile)) {
-    fs.writeFileSync(historyFile, "");
+    fs.writeFileSync(historyFile, "", { mode: 0o600 });
   }
 
   return historyFile;
@@ -351,7 +351,7 @@ export function clearHistoryStorage() {
   const fs = container.resolve("fs");
   const homedir = container.resolve("homedir")();
   const historyFile = path.join(homedir, ".fauna/history");
-  fs.writeFileSync(historyFile, "");
+  fs.writeFileSync(historyFile, "", { mode: 0o600 });
 }
 
 /**
