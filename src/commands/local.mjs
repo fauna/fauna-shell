@@ -8,18 +8,19 @@ const docker = new Docker();
 
 async function pullImage(imageName) {
   const logger = container.resolve("logger"); // Dependency injection for logger
-  const stderrStream = container.resolve("stderrStream");
   logger.stderr(`Pulling the latest version of ${imageName}...\n`);
 
   try {
     const stream = await docker.pull(imageName);
     const layers = {}; // To track progress by layer
     let numLines = 0; // Tracks the number of lines being displayed
+    let lastUpdate = 0;
 
     return new Promise((resolve, reject) => {
       docker.modem.followProgress(
         stream,
         (err, output) => {
+          writePullProgress(layers, numLines);
           if (err) {
             reject(err);
           } else {
@@ -34,15 +35,10 @@ async function pullImage(imageName) {
             layers[event.id] =
               `${event.id}: ${event.status} ${event.progress || ""}`;
           }
-          // Clear only the necessary lines and update them in place
-          stderrStream.write(`\x1B[${numLines}A`);
-          numLines = 0;
-          // clear the screen
-          stderrStream.write("\x1B[0J");
-          Object.values(layers).forEach((line) => {
-            logger.stderr(line);
-            numLines++;
-          });
+          if (Date.now() - lastUpdate > 100) {
+            numLines = writePullProgress(layers, numLines);
+            lastUpdate = Date.now();
+          }
         },
       );
     });
@@ -50,6 +46,21 @@ async function pullImage(imageName) {
     logger.stderr(`Error pulling image ${imageName}: ${error.message}`);
     throw error;
   }
+}
+
+function writePullProgress(layers, numLines) {
+  const logger = container.resolve("logger"); // Dependency injection for logger
+  const stderrStream = container.resolve("stderrStream");
+  // Clear only the necessary lines and update them in place
+  stderrStream.write(`\x1B[${numLines}A`);
+  numLines = 0;
+  // clear the screen
+  stderrStream.write("\x1B[0J");
+  Object.values(layers).forEach((line) => {
+    logger.stderr(line);
+    numLines++;
+  });
+  return numLines;
 }
 
 // Helper function to check if a container exists and its state
