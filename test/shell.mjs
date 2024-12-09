@@ -267,7 +267,7 @@ describe("shell", function () {
 
       // validate
       expect(stdout.getWritten()).to.equal(
-        `Type Ctrl+D or .exit to exit the shell${prompt}${query}\r\n${await colorize(v10Object1.data, { format: "json", color: true })}${prompt}`,
+        `Type Ctrl+D or .exit to exit the shell${prompt}${query}\r\n${await colorize(v10Object1.data, { format: "json", color: false })}${prompt}`,
       );
       expect(logger.stderr).to.not.be.called;
 
@@ -283,7 +283,10 @@ describe("shell", function () {
 
       // validate second object
       expect(stdout.getWritten()).to.equal(
-        `${query}\r\n${JSON.stringify(v10Object2.data, null, 2)}${prompt}`,
+        `${query}\r\n${await colorize(v10Object2.data, {
+          format: "json",
+          color: false,
+        })}${prompt}`,
       );
       expect(logger.stderr).to.not.be.called;
 

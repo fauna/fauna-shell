@@ -1,5 +1,6 @@
 //@ts-check
 
+import console from "node:console";
 import repl from "node:repl";
 
 import { container } from "../cli.mjs";
@@ -22,7 +23,7 @@ async function shellCommand(argv) {
 
   /** @type {import('node:repl').ReplOptions} */
   const replArgs = {
-    prompt: `${argv.database || ""}> `,
+    prompt: `${argv.database ? argv.database : ""}> `,
     ignoreUndefined: true,
     preview: undefined,
     completer: undefined,
@@ -42,7 +43,6 @@ async function shellCommand(argv) {
     }
   });
 
-  // eslint-disable-next-line no-console
   shell.on("error", console.error);
 
   completionPromise = new Promise((resolve) => {
@@ -54,7 +54,6 @@ async function shellCommand(argv) {
       cmd: "clear",
       help: "Clear the REPL",
       action: () => {
-        // eslint-disable-next-line no-console
         console.clear();
         shell.prompt();
       },
@@ -147,6 +146,7 @@ async function buildCustomEval(argv) {
         color,
         format: outputFormat,
       });
+
       logger.stdout(output);
 
       return cb(null);
