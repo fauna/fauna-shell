@@ -190,7 +190,7 @@ function buildYargs(argvInput) {
           "Components to emit diagnostic logs for. Takes precedence over the `--verbosity` flag. Pass components as a space-separated list, such as `--verboseComponent fetch error`, or as separate flags, such as `--verboseComponent fetch --verboseComponent error`.",
         type: "array",
         default: [],
-        choices: ["fetch", "error", "config", "argv", "creds"],
+        choices: ["fetch", "error", "config", "argv", "creds", "client"],
         group: "Debug:",
       },
       verbosity: {
