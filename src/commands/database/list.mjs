@@ -35,22 +35,36 @@ export async function listDatabasesWithAccountAPI(argv) {
     pageSize,
     path: database,
   });
-
   return pickOutputFields(response.results, argv);
 }
 
-export async function listDatabasesWithSecret(argv) {
-  const { url, secret, pageSize } = argv;
-  const { runQueryFromString } = container.resolve("faunaClientV10");
+async function listAndFormatDatabasesWithAccountAPI(argv) {
+  const { json, color } = argv;
+  const output = await listDatabasesWithAccountAPI(argv);
+
+  if (json) {
+    container.resolve("logger").stdout(JSON.stringify(output));
+  } else {
+    container.resolve("logger").stdout(formatObjectForShell(output, { color }));
+  }
+}
+
+async function listDatabasesWithSecret(argv) {
+  const { url, secret, pageSize, json, color } = argv;
+  const { runQueryFromString, formatQueryResponse } =
+    container.resolve("faunaClientV10");
 
   try {
-    return await runQueryFromString({
+    const result = await runQueryFromString({
       url,
       secret,
       // This gives us back an array of database names. If we want to
       // provide the after token at some point this query will need to be updated.
       expression: `Database.all().paginate(${pageSize}).data { ${getOutputFields(argv)} }`,
     });
+    container
+      .resolve("logger")
+      .stdout(formatQueryResponse(result, { json, color }));
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e);
@@ -60,23 +74,11 @@ export async function listDatabasesWithSecret(argv) {
 }
 
 async function listDatabases(argv) {
-  let databases;
   if (argv.secret) {
-    databases = listDatabasesWithSecret(argv);
+    return listDatabasesWithSecret(argv);
   } else {
-    databases = listDatabasesWithAccountAPI(argv);
+    return listAndFormatDatabasesWithAccountAPI(argv);
   }
-
-  if (argv.json) {
-    return JSON.stringify(databases);
-  } else {
-    return formatObjectForShell(databases, { color: argv.color });
-  }
-}
-
-async function doListDatabases(argv) {
-  const logger = container.resolve("logger");
-  logger.stdout(await listDatabases(argv));
 }
 
 function buildListCommand(yargs) {
@@ -113,5 +115,5 @@ export default {
   command: "list",
   description: "List databases.",
   builder: buildListCommand,
-  handler: doListDatabases,
+  handler: listDatabases,
 };

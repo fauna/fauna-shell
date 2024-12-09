@@ -1,6 +1,9 @@
 //@ts-check
 /* eslint-disable require-atomic-updates */
-const __dirname = import.meta.dirname;
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import * as inquirer from "@inquirer/prompts";
 import fileSelector from "inquirer-file-selector";
@@ -124,6 +127,7 @@ async function getDatabaseRunnable(argv /*, priorChoices*/) {
 
   buildCredentials({
     ...argv,
+    user: "default",
     database: runnable.choices.regionGroup,
   });
   runnable.fql = `Database.create({
@@ -289,11 +293,11 @@ async function getProjectRunnable(argv, priorChoices) {
       // new db with demo data? create the demo data, then upload the schema
       await Promise.all([
         fsp.cp(
-          path.join(__dirname, "../lib/schema/demo-collection-schema.fsl"),
+          path.join(__dirname, "../src/lib/schema/demo-collection-schema.fsl"),
           path.join(dirPath, dirName, "collections.fsl"),
         ),
         fsp.cp(
-          path.join(__dirname, "../lib/schema/demo-function-schema.fsl"),
+          path.join(__dirname, "../src/lib/schema/demo-function-schema.fsl"),
           path.join(dirPath, dirName, "functions.fsl"),
         ),
       ]);
