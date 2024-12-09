@@ -1,0 +1,116 @@
+collection Customer {
+  name: String
+  email: String
+  address: {
+    street: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: String
+  }
+
+  compute cart: Order? = (customer => Order.byCustomerAndStatus(customer, 'cart').first())
+
+  // Use a computed field to get the set of Orders for a customer.
+  compute orders: Set<Order> = ( customer => Order.byCustomer(customer))
+
+  // Use a unique constraint to ensure no two customers have the same email.
+  unique [.email]
+
+  index byEmail {
+    terms [.email]
+  }
+}
+
+collection Product {
+  name: String
+  description: String
+  // Use an Integer to represent cents.
+  // This avoids floating-point precision issues.
+  price: Int
+  category: Ref<Category>
+  stock: Int
+
+  // Use a unique constraint to ensure no two products have the same name.
+  unique [.name]
+  check stockIsValid (product => product.stock >= 0)
+  check priceIsValid (product => product.price > 0)
+
+  index byCategory {
+    terms [.category]
+  }
+
+  index sortedByCategory {
+    values [.category]
+  }
+
+  index byName {
+    terms [.name]
+  }
+
+  index sortedByPriceLowToHigh {
+    values [.price, .name, .description, .stock]
+  }
+}
+
+collection Category {
+  name: String
+  description: String
+  compute products: Set<Product> = (category => Product.byCategory(category))
+
+  unique [.name]
+
+  index byName {
+    terms [.name]
+  }
+}
+
+collection Order {
+  customer: Ref<Customer>
+  status: "cart" | "processing" | "shipped" | "delivered"
+  createdAt: Time
+
+  compute items: Set<OrderItem> = (order => OrderItem.byOrder(order))
+  compute total: Number = (order => order.items.fold(0, (sum, orderItem) => {
+    let orderItem: Any = orderItem
+    if (orderItem.product != null) {
+      sum + orderItem.product.price * orderItem.quantity
+    } else {
+      sum
+    }
+  }))
+  payment: { *: Any }
+
+  check oneOrderInCart (order => {
+    Order.byCustomerAndStatus(order.customer, "cart").count() <= 1
+  })
+
+  // Define an index to get all orders for a customer. Orders will be sorted by
+  // createdAt in descending order.
+  index byCustomer {
+    terms [.customer]
+    values [desc(.createdAt), .status]
+  }
+
+  index byCustomerAndStatus {
+    terms [.customer, .status]
+  }
+}
+
+collection OrderItem {
+  order: Ref<Order>
+  product: Ref<Product>
+  quantity: Int
+
+  unique [.order, .product]
+  check positiveQuantity (orderItem => orderItem.quantity > 0)
+
+  index byOrder {
+    terms [.order]
+    values [.product, .quantity]
+  }
+
+  index byOrderAndProduct {
+    terms [.order, .product]
+  }
+}

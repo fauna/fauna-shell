@@ -28,38 +28,29 @@ function pickOutputFields(databases, argv) {
   );
 }
 
-async function listDatabasesWithAccountAPI(argv) {
-  const { pageSize, database, json, color } = argv;
+export async function listDatabasesWithAccountAPI(argv) {
+  const { pageSize, database } = argv;
   const accountClient = new FaunaAccountClient();
   const response = await accountClient.listDatabases({
     pageSize,
     path: database,
   });
-  const output = pickOutputFields(response.results, argv);
 
-  if (json) {
-    container.resolve("logger").stdout(JSON.stringify(output));
-  } else {
-    container.resolve("logger").stdout(formatObjectForShell(output, { color }));
-  }
+  return pickOutputFields(response.results, argv);
 }
 
-async function listDatabasesWithSecret(argv) {
-  const { url, secret, pageSize, json, color } = argv;
-  const { runQueryFromString, formatQueryResponse } =
-    container.resolve("faunaClientV10");
+export async function listDatabasesWithSecret(argv) {
+  const { url, secret, pageSize } = argv;
+  const { runQueryFromString } = container.resolve("faunaClientV10");
 
   try {
-    const result = await runQueryFromString({
+    return await runQueryFromString({
       url,
       secret,
       // This gives us back an array of database names. If we want to
       // provide the after token at some point this query will need to be updated.
       expression: `Database.all().paginate(${pageSize}).data { ${getOutputFields(argv)} }`,
     });
-    container
-      .resolve("logger")
-      .stdout(formatQueryResponse(result, { json, color }));
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e);
@@ -69,11 +60,23 @@ async function listDatabasesWithSecret(argv) {
 }
 
 async function listDatabases(argv) {
+  let databases;
   if (argv.secret) {
-    return listDatabasesWithSecret(argv);
+    databases = listDatabasesWithSecret(argv);
   } else {
-    return listDatabasesWithAccountAPI(argv);
+    databases = listDatabasesWithAccountAPI(argv);
   }
+
+  if (argv.json) {
+    return JSON.stringify(databases);
+  } else {
+    return formatObjectForShell(databases, { color: argv.color });
+  }
+}
+
+async function doListDatabases(argv) {
+  const logger = container.resolve("logger");
+  logger.stdout(await listDatabases(argv));
 }
 
 function buildListCommand(yargs) {
@@ -110,5 +113,5 @@ export default {
   command: "list",
   description: "List databases.",
   builder: buildListCommand,
-  handler: listDatabases,
+  handler: doListDatabases,
 };

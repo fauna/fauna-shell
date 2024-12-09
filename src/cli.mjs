@@ -5,6 +5,7 @@ import chalk from "chalk";
 import yargs from "yargs";
 
 import databaseCommand from "./commands/database/database.mjs";
+import initCommand from "./commands/init.mjs";
 import keyCommand from "./commands/key/key.mjs";
 import loginCommand from "./commands/login.mjs";
 import queryCommand from "./commands/query.mjs";
@@ -60,7 +61,7 @@ export async function run(_argvInput, _container) {
         epilogue = `\n${BUG_REPORT_MESSAGE}`;
 
         logger.debug(`unknown error thrown: ${e.name}`, "error");
-        logger.debug(util.inspect(e, true, 2, false), "error");
+        logger.debug(util.inspect(e, true, 100, false), "error");
       } else {
         // Otherwise, just use the error message
         subMessage = chalk.red(e.message);
@@ -147,6 +148,7 @@ function buildYargs(argvInput) {
     .command(keyCommand)
     .command(schemaCommand)
     .command(databaseCommand)
+    .command(initCommand)
     .demandCommand()
     .strictCommands(true)
     .options({
