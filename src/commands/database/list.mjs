@@ -8,7 +8,6 @@ import { throwForError } from "../../lib/fauna.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 import { colorize, JSON_FORMAT } from "../../lib/formatting/colorize.mjs";
 
-
 // Narrow the output fields based on the provided flags.
 const getOutputFields = (argv) => {
   if (!argv.secret && !argv.database) {
