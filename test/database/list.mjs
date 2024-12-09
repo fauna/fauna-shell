@@ -6,7 +6,7 @@ import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-import { formatObjectForShell } from "../../src/lib/misc.mjs";
+import { colorize } from "../../src/lib/formatting/colorize.mjs";
 import { mockAccessKeysFile } from "../helpers.mjs";
 
 describe("database list", () => {
@@ -14,8 +14,8 @@ describe("database list", () => {
     fs,
     logger,
     runQueryFromString,
-    formatQueryResponse,
-    makeAccountRequest;
+    makeAccountRequest,
+    formatQueryResponse;
 
   beforeEach(() => {
     // reset the container before each test
@@ -72,8 +72,9 @@ describe("database list", () => {
         });
 
         expect(logger.stdout).to.have.been.calledOnceWith(
-          formatQueryResponse(stubbedResponse, {
-            json: expected.json ?? false,
+          await formatQueryResponse(stubbedResponse, {
+            format: "json",
+            color: true,
           }),
         );
 
@@ -110,8 +111,8 @@ describe("database list", () => {
         });
 
         expect(logger.stdout).to.have.been.calledOnceWith(
-          formatQueryResponse(stubbedResponse, {
-            json: expected.json ?? false,
+          await formatQueryResponse(stubbedResponse, {
+            format: "json",
             color: true,
           }),
         );
@@ -197,9 +198,10 @@ describe("database list", () => {
         }));
 
         expect(logger.stdout).to.have.been.calledOnceWith(
-          expected.json
-            ? JSON.stringify(expectedOutput)
-            : formatObjectForShell(expectedOutput, { color: true }),
+          await colorize(expectedOutput, {
+            format: "json",
+            color: true,
+          }),
         );
       });
     });

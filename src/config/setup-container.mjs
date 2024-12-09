@@ -5,11 +5,11 @@ import path from "node:path";
 import { exit } from "node:process";
 
 import { confirm } from "@inquirer/prompts";
+import { codeToANSI } from "@shikijs/cli";
 import * as awilix from "awilix";
 import { Lifetime } from "awilix";
 import fauna from "fauna";
 import faunadb from "faunadb";
-import { colorize } from "json-colorizer";
 import open from "open";
 import updateNotifier from "update-notifier";
 
@@ -65,7 +65,7 @@ export const injectables = {
   updateNotifier: awilix.asValue(updateNotifier),
   fauna: awilix.asValue(fauna),
   faunadb: awilix.asValue(faunadb),
-  colorize: awilix.asValue(colorize),
+  codeToAnsi: awilix.asValue(codeToANSI),
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
