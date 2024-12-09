@@ -12,7 +12,7 @@ async function pullImage(imageName) {
   logger.stderr(`Pulling the latest version of ${imageName}...\n`);
 
   try {
-    const stream = await docker.pull(imageName, "-q");
+    const stream = await docker.pull(imageName);
     const layers = {}; // To track progress by layer
     let numLines = 0; // Tracks the number of lines being displayed
 
