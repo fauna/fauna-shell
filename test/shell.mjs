@@ -109,7 +109,7 @@ describe("shell", function () {
 
         // start the shell
         const runPromise = run(
-          `shell --secret "secret" --format json`,
+          `shell --secret "secret" --format json --no-color`,
           container,
         );
         // Wait for the shell to start (print ">")
@@ -175,6 +175,7 @@ describe("shell", function () {
         // confirm feedback that .clearhistory command was run
         stdout.clear();
         stdin.push(`${command}\n`);
+        await sleep(50);
         await stdout.waitForWritten();
         expect(stdout.getWritten()).to.equal(expected);
 
@@ -212,7 +213,7 @@ describe("shell", function () {
 
         // start the shell
         const runPromise = run(
-          `shell --secret "secret" --format json`,
+          `shell --secret "secret" --format json --no-color`,
           container,
         );
         // Wait for the shell to start (print ">")
@@ -263,6 +264,7 @@ describe("shell", function () {
 
       // send our first command
       stdin.push(`${query}\n`);
+      await sleep(50);
       await stdout.waitForWritten();
 
       // validate
@@ -279,6 +281,7 @@ describe("shell", function () {
       query = "Database.all().take(1)";
       stdin.push(`${query}\n`);
       stdin.push(null); // terminate the shell
+      await sleep(50);
       await stdout.waitForWritten();
 
       // validate second object
