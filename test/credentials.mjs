@@ -130,7 +130,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" -d us-std/test:badpath --no-color`,
+        command: `query "Database.all()" -d us-std/test:badpath --no-color --json`,
         localCreds: defaultLocalCreds,
         expected: {
           databaseKeys: {

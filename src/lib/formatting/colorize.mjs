@@ -25,15 +25,21 @@ const fqlToAnsi = async (obj) => {
 
   const raw = stripAnsi(obj);
   const codeToAnsi = container.resolve("codeToAnsi");
+  const res = await codeToAnsi(raw, "typescript", THEME);
 
-  return await codeToAnsi(raw, "typescript", THEME);
+  return res.trim();
 };
 
 const jsonToAnsi = async (obj) => {
   const codeToAnsi = container.resolve("codeToAnsi");
   const stringified = objToString(obj);
+  const res = await codeToAnsi(stringified, "json", THEME);
 
-  return await codeToAnsi(stringified, "json", THEME);
+  if (!res) {
+    return "";
+  }
+
+  return res.trim();
 };
 
 /**

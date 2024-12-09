@@ -120,6 +120,7 @@ describe("shell", function () {
 
         // send our first command
         stdin.push(`1\n2\n3\n`);
+        await sleep(50);
         await stdout.waitForWritten();
 
         // navigate up through history
@@ -167,6 +168,7 @@ describe("shell", function () {
 
         // send our first command
         stdin.push("4\n5\n6\n");
+        await sleep(50);
         await stdout.waitForWritten();
 
         const command = ".clearhistory";
