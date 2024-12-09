@@ -9,6 +9,7 @@ import {
 } from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
+import { localSchemaOptions } from "./schema.mjs";
 
 /**
  * @returns string[]
@@ -129,6 +130,7 @@ function buildDiffCommand(yargs) {
         default: false,
         type: "boolean",
       },
+      ...localSchemaOptions,
     })
     .example([
       [
