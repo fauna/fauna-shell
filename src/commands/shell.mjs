@@ -4,6 +4,7 @@ import repl from "node:repl";
 
 import { container } from "../cli.mjs";
 import {
+  resolveFormat,
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
@@ -21,11 +22,10 @@ async function shellCommand(argv) {
 
   /** @type {import('node:repl').ReplOptions} */
   const replArgs = {
-    prompt: `${argv.db_path || ""}> `,
+    prompt: `${argv.database || ""}> `,
     ignoreUndefined: true,
-    preview: argv.apiVersion !== "10",
-    // TODO: integrate with fql-analyzer for completions
-    completer: argv.apiVersion === "10" ? () => [] : undefined,
+    preview: undefined,
+    completer: undefined,
     output: container.resolve("stdoutStream"),
     input: container.resolve("stdinStream"),
     eval: await buildCustomEval(argv),
@@ -114,8 +114,15 @@ async function buildCustomEval(argv) {
       if (cmd.trim() === "") return cb();
 
       // These are options used for querying and formatting the response
-      const { apiVersion, color, json } = argv;
-      const { extra } = ctx;
+      const { apiVersion, color, extra: argvExtra } = argv;
+      const extra = ctx.extra === undefined ? argvExtra : ctx.extra;
+
+      if (ctx.extra === undefined) {
+        ctx.extra = argvExtra;
+      }
+
+      // Using --extra or --json output takes precedence over --format
+      const outputFormat = resolveFormat(argv);
 
       let res;
       try {
@@ -127,16 +134,20 @@ async function buildCustomEval(argv) {
           url,
           timeout,
           typecheck,
+          format: outputFormat,
         });
       } catch (err) {
-        logger.stderr(formatError(err, { apiVersion, extra, color }));
+        logger.stderr(await formatError(err, { apiVersion, extra, color }));
         return cb(null);
       }
 
-      // If extra is on, return the full response. Otherwise, return just the data.
-      logger.stdout(
-        formatQueryResponse(res, { apiVersion, extra, color, json }),
-      );
+      const output = await formatQueryResponse(res, {
+        apiVersion,
+        extra,
+        color,
+        format: outputFormat,
+      });
+      logger.stdout(output);
 
       return cb(null);
     } catch (e) {

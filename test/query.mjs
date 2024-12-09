@@ -6,7 +6,7 @@ import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import { formatObjectForShell } from "../src/lib/misc.mjs";
+import { colorize } from "../src/lib/formatting/colorize.mjs";
 import {
   createV4QueryFailure,
   createV4QuerySuccess,
@@ -23,7 +23,7 @@ describe("query", function () {
     runQueryFromString = container.resolve("runQueryFromString");
 
     // Set a default empty response for all queries
-    runQueryFromString.resolves({ data: [] });
+    runQueryFromString.resolves({ data: "test" });
   });
 
   describe("common", function () {
@@ -110,7 +110,7 @@ describe("query", function () {
       runQueryFromString.resolves(testResponse);
 
       await run(
-        `query --secret=foo --output "result.json" "Database.all()"`,
+        `query --secret=foo --output "result.json" "Database.all()" --format json`,
         container,
       );
 
@@ -145,7 +145,7 @@ describe("query", function () {
 
     it.skip("can colorize output by default", async function () {
       runQueryFromString.resolves({ data: [] });
-      await run(`query "Database.all()" --secret=foo`, container);
+      await run(`query "Database.all()" --secret=foo --format json`, container);
 
       const expected = JSON.stringify([], null, 2);
       expect(logger.stdout).to.have.been.calledWith(expected);
@@ -154,7 +154,7 @@ describe("query", function () {
 
     it.skip("can colorize bare strings", async function () {
       runQueryFromString.resolves({ data: "foo" });
-      await run(`query "foo" --secret=foo`, container);
+      await run(`query "foo" --secret=foo --format json`, container);
 
       const expected = JSON.stringify("foo", null, 2);
       expect(logger.stdout).to.have.been.calledWith(expected);
@@ -163,9 +163,12 @@ describe("query", function () {
 
     it("does not colorize output if --no-color is used", async function () {
       runQueryFromString.resolves({ data: [] });
-      await run(`query "Database.all()" --secret=foo --no-color`, container);
+      await run(
+        `query "Database.all()" --secret=foo --no-color --json`,
+        container,
+      );
       expect(logger.stdout).to.have.been.calledWith(
-        JSON.stringify([], null, 2),
+        await colorize([], { format: "json", color: false }),
       );
     });
 
@@ -185,9 +188,7 @@ describe("query", function () {
 
   describe("--local usage", function () {
     it("calls query with a default secret of 'secret'", async function () {
-      const testData = {
-        dummy: "data",
-      };
+      const testData = "fql";
       const testResponse = createV10QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
@@ -204,9 +205,7 @@ describe("query", function () {
     });
 
     it("calls query with a scoped secret when a database argument is provided", async function () {
-      const testData = {
-        dummy: "data",
-      };
+      const testData = "fql";
       const testResponse = createV10QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
@@ -223,9 +222,7 @@ describe("query", function () {
     });
 
     it("calls query with a scoped secret when a role argument is provided", async function () {
-      const testData = {
-        dummy: "data",
-      };
+      const testData = "fql";
       const testResponse = createV10QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
@@ -242,9 +239,7 @@ describe("query", function () {
     });
 
     it("calls query with a scoped secret when a role and database argument ares provided", async function () {
-      const testData = {
-        dummy: "data",
-      };
+      const testData = "fql";
       const testResponse = createV10QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
@@ -276,7 +271,7 @@ describe("query", function () {
       const testResponse = createV10QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
-      await run(`query "Database.all()" --secret=foo`, container);
+      await run(`query "Database.all()" --secret=foo --format json`, container);
 
       expect(runQueryFromString).to.have.been.calledWith(
         '"Database.all()"',
@@ -285,7 +280,7 @@ describe("query", function () {
         }),
       );
       expect(logger.stdout).to.have.been.calledWith(
-        formatObjectForShell(testData),
+        await colorize(testData, { format: "json", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     });
@@ -300,10 +295,13 @@ describe("query", function () {
       const testResponse = createV10QuerySuccess(testData);
       runQueryFromString.resolves(testResponse);
 
-      await run(`query "Database.all()" --extra --secret=foo`, container);
+      await run(
+        `query "Database.all()" --extra --secret=foo --format json`,
+        container,
+      );
 
       expect(logger.stdout).to.have.been.calledWith(
-        formatObjectForShell(testResponse),
+        await colorize(testResponse, { format: "json", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     });
@@ -371,7 +369,7 @@ describe("query", function () {
         }),
       );
       expect(logger.stdout).to.have.been.calledWith(
-        formatObjectForShell(testData),
+        await colorize(testData, { format: "json", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     });
@@ -396,7 +394,7 @@ describe("query", function () {
       );
 
       expect(logger.stdout).to.have.been.calledWith(
-        formatObjectForShell(testResponse),
+        await colorize(testResponse, { format: "json", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     });

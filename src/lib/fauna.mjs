@@ -13,7 +13,7 @@ import {
 
 import { container } from "../cli.mjs";
 import { ValidationError } from "./command-helpers.mjs";
-import { formatFullErrorForShell, formatObject } from "./misc.mjs";
+import { colorize, JSON_FORMAT, TEXT_FORMAT } from "./formatting/colorize.mjs";
 
 /**
  * Interprets a string as a FQL expression and returns a query.
@@ -137,15 +137,21 @@ export const formatError = (err, opts = {}) => {
     typeof err.queryInfo === "object" &&
     typeof err.queryInfo.summary === "string"
   ) {
-    // If you want extra information, use util.inspect to get the full error object.
+    // If you want extra information, make this a JSON output
     if (extra) {
-      return formatFullErrorForShell(err, { color });
+      return colorize(err, { color, format: JSON_FORMAT });
     }
 
     // Otherwise, return the summary and fall back to the message.
-    return `The query failed with the following error:\n\n${err.queryInfo?.summary ?? err.message}`;
+    return colorize(
+      `The query failed with the following error:\n\n${err.queryInfo?.summary ?? err.message}`,
+      { color, format: TEXT_FORMAT },
+    );
   } else {
-    return `The query failed unexpectedly with the following error:\n\n${err.message}`;
+    return colorize(
+      `The query failed unexpectedly with the following error:\n\n${err.message}`,
+      { color, format: TEXT_FORMAT },
+    );
   }
 };
 
@@ -154,16 +160,16 @@ export const formatError = (err, opts = {}) => {
  * @par [ am {import("fauna").QuerySuccess<any>} res
  * @param {object} [opts]
  * @param {boolean} [opts.extra] - Whether to include extra information
- * @param {boolean} [opts.json] - Whether to return the response as a JSON string
+ * @param {string} [opts.format] - The format to use
  * @param {boolean} [opts.color] - Whether to colorize the response
- * @returns {string} The formatted response
+ * @returns {Promise<string>} The formatted response
  */
-export const formatQueryResponse = (res, opts = {}) => {
-  const { extra } = opts;
+export const formatQueryResponse = async (res, opts = {}) => {
+  const { extra, format = JSON_FORMAT, color } = opts;
 
   // If extra is set, return the full response object.
   const data = extra ? res : res.data;
-  return formatObject(data, opts);
+  return colorize(data, { format, color });
 };
 
 /**

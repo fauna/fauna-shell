@@ -70,7 +70,7 @@ describe("credentials", function () {
     };
     [
       {
-        command: `query "Database.all()" -d us-std --no-color`,
+        command: `query "Database.all()" -d us-std --no-color --json`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -85,7 +85,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" --secret user-secret --no-color`,
+        command: `query "Database.all()" --secret user-secret --no-color --json`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -100,7 +100,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" -d us-std --accountKey user-account-key --no-color`,
+        command: `query "Database.all()" -d us-std --accountKey user-account-key --no-color --json`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -115,7 +115,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" -d us-std -r myrole --no-color`,
+        command: `query "Database.all()" -d us-std -r myrole --no-color --json`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -156,7 +156,10 @@ describe("credentials", function () {
     it("prompts login when account key and refresh token are empty", async () => {
       try {
         setCredsFiles({}, {});
-        await run(`query "Database.all()" -d us-std --no-color`, container);
+        await run(
+          `query "Database.all()" -d us-std --no-color --json`,
+          container,
+        );
       } catch (e) {
         expect(stderr.getWritten()).to.contain(
           "The requested user 'default' is not signed in or has expired.",
@@ -173,7 +176,10 @@ describe("credentials", function () {
         )
         .resolves(f({}, 401));
       try {
-        await run(`query "Database.all()" -d us-std --no-color`, container);
+        await run(
+          `query "Database.all()" -d us-std --no-color --json`,
+          container,
+        );
       } catch (e) {
         expect(stderr.getWritten()).to.contain(
           "The requested user 'default' is not signed in or has expired",
@@ -205,7 +211,10 @@ describe("credentials", function () {
             200,
           ),
         );
-      await run(`query "Database.all()" -d us-std --no-color`, container);
+      await run(
+        `query "Database.all()" -d us-std --no-color --json`,
+        container,
+      );
       const makeAccountRequest = container.resolve("makeAccountRequest");
       [
         ["/databases/keys", "some-account-key"],
@@ -234,7 +243,10 @@ describe("credentials", function () {
         .onCall(0)
         .resolves(f({}, 401));
       try {
-        await run(`query "Database.all()" -d us-std --no-color`, container);
+        await run(
+          `query "Database.all()" -d us-std --no-color --json`,
+          container,
+        );
       } catch (e) {
         expect(stderr.getWritten()).to.contain(
           "Account key provided by 'user' is invalid. Please provide an updated account key.",
@@ -265,7 +277,7 @@ describe("credentials", function () {
         httpStatus: 401,
       });
       try {
-        await run(`query "Database.all()" --no-color`, container);
+        await run(`query "Database.all()" --no-color --json`, container);
       } catch (e) {
         expect(stderr.getWritten()).to.contain("Invalid credentials");
         sinon.assert.calledWithMatch(
@@ -299,7 +311,10 @@ describe("credentials", function () {
         .resolves({
           secret: "new-secret",
         });
-      await run(`query "Database.all()" -d us-std --no-color`, container);
+      await run(
+        `query "Database.all()" -d us-std --no-color --json`,
+        container,
+      );
       sinon.assert.calledWithMatch(
         v10runQueryFromString.getCall(0),
         sinon.match({

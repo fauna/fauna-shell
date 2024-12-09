@@ -11,6 +11,7 @@ import sinon, { stub } from "sinon";
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 import { dirExists } from "../src/lib/file-util.mjs";
+import { colorize } from "../src/lib/formatting/colorize.mjs";
 import { createV4QuerySuccess, createV10QuerySuccess } from "./helpers.mjs";
 
 // this is defined up here so the indentation doesn't make it harder to use :(
@@ -107,7 +108,10 @@ describe("shell", function () {
         registerHomedir(container, "track-history");
 
         // start the shell
-        const runPromise = run(`shell --secret "secret"`, container);
+        const runPromise = run(
+          `shell --secret "secret" --format json`,
+          container,
+        );
         // Wait for the shell to start (print ">")
         // sleep for a little bit to let the shell get started
         // for some reason this is needed for the stdout to be read from predictably
@@ -151,7 +155,10 @@ describe("shell", function () {
         registerHomedir(container, "clear-history");
 
         // start the shell
-        const runPromise = run(`shell --secret "secret" --no-color`, container);
+        const runPromise = run(
+          `shell --secret "secret" --no-color --format json`,
+          container,
+        );
         // Wait for the shell to start (print ">")
         // sleep for a little bit to let the shell get started
         // for some reason this is needed for the stdout to be read from predictably
@@ -204,7 +211,10 @@ describe("shell", function () {
         fs.writeFileSync(path.join(homedir, ".fauna/history"), "9\n8\n7\n");
 
         // start the shell
-        const runPromise = run(`shell --secret "secret"`, container);
+        const runPromise = run(
+          `shell --secret "secret" --format json`,
+          container,
+        );
         // Wait for the shell to start (print ">")
         // sleep for a little bit to let the shell get started
         // for some reason this is needed for the stdout to be read from predictably
@@ -241,7 +251,10 @@ describe("shell", function () {
       let query = "Database.all().take(1)";
 
       // start the shell
-      const runPromise = run(`shell --secret "secret" --no-color`, container);
+      const runPromise = run(
+        `shell --secret "secret" --no-color --format json`,
+        container,
+      );
       // Wait for the shell to start (print ">")
       // sleep for a little bit to let the shell get started
       // for some reason this is needed for the stdout to be read from predictably
@@ -254,7 +267,7 @@ describe("shell", function () {
 
       // validate
       expect(stdout.getWritten()).to.equal(
-        `Type Ctrl+D or .exit to exit the shell${prompt}${query}\r\n${JSON.stringify(v10Object1.data, null, 2)}${prompt}`,
+        `Type Ctrl+D or .exit to exit the shell${prompt}${query}\r\n${await colorize(v10Object1.data, { format: "json", color: true })}${prompt}`,
       );
       expect(logger.stderr).to.not.be.called;
 
