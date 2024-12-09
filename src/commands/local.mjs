@@ -8,13 +8,13 @@ const docker = new Docker();
 
 async function pullImage(imageName) {
   const logger = container.resolve("logger"); // Dependency injection for logger
+  const stderrStream = container.resolve("stderrStream");
   logger.stderr(`Pulling the latest version of ${imageName}...\n`);
 
   try {
     const stream = await docker.pull(imageName, "-q");
     const layers = {}; // To track progress by layer
     let numLines = 0; // Tracks the number of lines being displayed
-    const extraLines = 2;
 
     return new Promise((resolve, reject) => {
       docker.modem.followProgress(
@@ -35,10 +35,10 @@ async function pullImage(imageName) {
               `${event.id}: ${event.status} ${event.progress || ""}`;
           }
           // Clear only the necessary lines and update them in place
-          logger.stderr(`\x1B[${numLines + extraLines}A`);
+          stderrStream.write(`\x1B[${numLines}A`);
           numLines = 0;
           // clear the screen
-          logger.stderr("\x1B[0J");
+          stderrStream.write("\x1B[0J");
           Object.values(layers).forEach((line) => {
             logger.stderr(line);
             numLines++;
