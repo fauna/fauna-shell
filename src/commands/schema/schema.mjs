@@ -7,17 +7,18 @@ import pullCommand from "./pull.mjs";
 import pushCommand from "./push.mjs";
 import statusCommand from "./status.mjs";
 
+export const localSchemaOptions = {
+  "project-directory": {
+    alias: ["directory", "dir"],
+    type: "string",
+    description:
+      "Path to a local directory containing `.fsl` files for the database.",
+    default: ".",
+  },
+};
+
 function buildSchema(yargs) {
   return yargs
-    .options({
-      "project-directory": {
-        alias: ["directory", "dir"],
-        type: "string",
-        description:
-          "Path to a local directory containing `.fsl` files for the database.",
-        default: ".",
-      },
-    })
     .command(abandonCommand)
     .command(commitCommand)
     .command(diffCommand)

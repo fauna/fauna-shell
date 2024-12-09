@@ -1,86 +1,159 @@
 //@ts-check
 
+import * as awilix from "awilix";
 import { expect } from "chai";
-import { stub } from "sinon";
+import sinon, { spy } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
 
 describe("login", function () {
-  let container;
-  let fs;
-  const sessionCreds = {
-    accountKey: "account-key",
-    refreshToken: "refresh-token",
+  let container, fs, makeAccountRequest;
+  const mockOAuth = () => {
+    let handlers = {};
+
+    return {
+      _receiveAuthCode: spy(async () => {
+        await handlers.auth_code_received();
+      }),
+      start: spy(async () => {
+        await handlers.ready();
+      }),
+      getOAuthParams: () => {
+        return {
+          client_id: "client-id",
+          redirect_uri: "redirect-uri",
+          code_challenge: "challenge",
+          code_challenge_method: "S256",
+          response_type: "code",
+          scope: "create_session",
+          state: "state",
+        };
+      },
+      getTokenParams: () => {
+        return {
+          clientId: "client-id",
+          clientSecret: "client-secret",
+          authCode: "auth-code",
+          redirectURI: "redirect-uri",
+          codeVerifier: "code-verifier",
+        };
+      },
+      server: {
+        on: (eventName, handler) => {
+          handlers[eventName] = handler;
+        },
+      },
+    };
   };
 
   beforeEach(() => {
     container = setupContainer();
+    container.register({
+      oauthClient: awilix.asFunction(mockOAuth).scoped(),
+    });
     fs = container.resolve("fs");
+    makeAccountRequest = container.resolve("makeAccountRequest");
+    makeAccountRequest
+      .withArgs(
+        sinon.match({
+          path: sinon.match(/\/oauth\/authorize/),
+          method: "GET",
+        }),
+      )
+      .resolves({
+        headers: new Map([["location", "http://dashboard-url.com"]]),
+        status: 302,
+      })
+      .withArgs(
+        sinon.match({
+          path: sinon.match(/\/oauth\/token/),
+          method: "POST",
+        }),
+      )
+      .resolves({
+        access_token: "access-token",
+      })
+      .withArgs(
+        sinon.match({
+          path: sinon.match(/\/session/),
+          method: "POST",
+        }),
+      )
+      .resolves({
+        account_key: "login-account-key",
+        refresh_token: "login-refresh-token",
+      });
   });
 
-  it.skip("can login", async function () {
+  it("can login", async function () {
+    const existingCreds = {
+      testUser: {
+        accountKey: "test",
+        refreshToken: "test",
+      },
+    };
+    fs.readFileSync.returns(JSON.stringify(existingCreds));
     // Run the command first so container is set.
     await run(`login`, container);
     // After container is set, we can get the mocks
     const oauthClient = container.resolve("oauthClient");
     const logger = container.resolve("logger");
-    const accountCreds = container.resolve("accountCreds");
-    const existingCreds = {
-      testProfile: {
-        accountKey: "test",
-        refreshToken: "test",
-      },
-    };
+    const credentials = container.resolve("credentials");
+
     const expectedCreds = {
       ...existingCreds,
-      default: sessionCreds,
+      default: {
+        accountKey: "login-account-key",
+        refreshToken: "login-refresh-token",
+      },
     };
 
     // We start the loopback server
     expect(oauthClient.start.called).to.be.true;
     // We open auth url in the browser and prompt user
-    expect(container.resolve("open").calledWith("dashboard-url"));
+    expect(container.resolve("open").calledWith("http://dashboard-url.com"));
     expect(logger.stdout).to.have.been.calledWith(
-      "To login, open your browser to:\n dashboard-url",
+      "To login, open your browser to:\n http://dashboard-url.com",
     );
-    accountCreds.get = stub().returns(existingCreds);
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
     // Show login success message
     expect(logger.stdout).to.have.been.calledWith("Login Success!\n");
+    expect(credentials.accountKeys.key).to.equal("login-account-key");
     // We save the session credentials alongside existing credential contents
-    expect(accountCreds.filepath).to.include(".fauna/credentials/access_keys");
-    expect(JSON.parse(fs.writeFileSync.args[0][1])).to.deep.equal(
+    expect(fs.writeFileSync.getCall(1).args[0]).to.include("access_keys");
+    expect(JSON.parse(fs.writeFileSync.getCall(1).args[1])).to.deep.equal(
       expectedCreds,
     );
   });
 
-  it.skip("overwrites credentials on login", async function () {
+  it("overwrites credentials on login", async function () {
     const existingCreds = {
-      testProfile: {
+      testUser: {
         accountKey: "oldkey",
         refreshToken: "oldtoken",
       },
     };
-    const expectedCreds = {
-      testProfile: {
-        accountKey: "account-key",
-        refreshToken: "refresh-token",
-      },
-    };
-    await run(`login --profile testProfile`, container);
-    const accountCreds = container.resolve("accountCreds");
+
+    // Local file read returns old creds
+    fs.readFileSync.returns(JSON.stringify(existingCreds));
+    await run(`login --user testUser`, container);
     const oauthClient = container.resolve("oauthClient");
     const logger = container.resolve("logger");
-    // Local file read returns old creds
-    accountCreds.get = stub().returns(existingCreds);
+    const expectedCreds = {
+      testUser: {
+        accountKey: "login-account-key",
+        refreshToken: "login-refresh-token",
+      },
+    };
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
     // Show login success message
     expect(logger.stdout).to.have.been.calledWith("Login Success!\n");
     // We save the session credentials and overwrite the profile of the same name locally
-    expect(JSON.parse(fs.writeFileSync.args[0][1])).to.deep.equal(
+    expect(fs.writeFileSync.getCall(1).args[0]).to.include("access_keys");
+    expect(JSON.parse(fs.writeFileSync.getCall(1).args[1])).to.deep.equal(
       expectedCreds,
     );
   });

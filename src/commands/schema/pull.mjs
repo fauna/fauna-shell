@@ -6,6 +6,7 @@ import {
   yargsWithCommonQueryOptions,
 } from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
+import { localSchemaOptions } from "./schema.mjs";
 
 async function determineFileState(argv, filenames) {
   const gatherFSL = container.resolve("gatherFSL");
@@ -142,6 +143,7 @@ function buildPullCommand(yargs) {
         type: "boolean",
         default: false,
       },
+      ...localSchemaOptions,
     })
     .example([
       [
