@@ -1,0 +1,131 @@
+function createOrUpdateCartItem(customerId, productName, quantity) {
+  // Find the customer by id, using the ! operator to assert that the customer exists.
+  // If the customer does not exist, fauna will throw a document_not_found error.
+  let customer = Customer.byId(customerId)!
+  // There is a unique constraint on [.name] so this will return at most one result.
+  let product = Product.byName(productName).first()
+
+  // Check if the product exists.
+  if (product == null) {
+    abort("Product does not exist.")
+  }
+
+  // Check that the quantity is valid.
+  if (quantity < 0) {
+    abort("Quantity must be a non-negative integer.")
+  }
+
+  // Create a new cart for the customer if they do not have one.
+  if (customer!.cart == null) {
+    Order.create({
+      status: "cart",
+      customer: customer,
+      createdAt: Time.now(),
+      payment: {}
+    })
+  }
+
+  // Check that the product has the requested quantity in stock.
+  if (product!.stock < quantity) {
+    abort("Product does not have the requested quantity in stock.")
+  }
+
+  // Attempt to find an existing order item for the order, product pair.
+  // There is a unique constraint on [.order, .product] so this will return at most one result.
+  let orderItem = OrderItem.byOrderAndProduct(customer!.cart, product).first()
+
+  if (orderItem == null) {
+    // If the order item does not exist, create a new one.
+    OrderItem.create({
+      order: Order(customer!.cart!.id),
+      product: product,
+      quantity: quantity,
+    })
+  } else {
+    // If the order item exists, update the quantity.
+    orderItem!.update({ quantity: quantity })
+  }
+}
+
+function getOrCreateCart(id) {
+  // Find the customer by id, using the ! operator to assert that the customer exists.
+  // If the customer does not exist, fauna will throw a document_not_found error.
+  let customer = Customer.byId(id)!
+
+  if (customer!.cart == null) {
+    // Create a cart if the customer does not have one.
+    Order.create({
+      status: 'cart',
+      customer: Customer.byId(id),
+      createdAt: Time.now(),
+      payment: {}
+    })
+  } else {
+    // Return the cart if it already exists.
+    customer!.cart
+  }
+}
+
+function checkout(orderId, status, payment) {
+  // Find the order by id, using the ! operator to assert that the order exists.
+  let order = Order.byId(orderId)!
+
+  // Check that we are setting the order to the processing status. If not, we should
+  // not be calling this function.
+  if (status != "processing") {
+    abort("Can not call checkout with status other than processing.")
+  }
+
+  // Check that the order can be transitioned to the processing status.
+  validateOrderStatusTransition(order!.status, "processing")
+
+  // Check that the order has at least one order item.
+  if (order!.items.isEmpty()) {
+    abort("Order must have at least one item.")
+  }
+
+  // Check that customer has a valid address.
+  if (order!.customer!.address == null) {
+    abort("Customer must have a valid address.")
+  }
+
+  // Check that the order has a payment method if not provided as an argument.
+  if (order!.payment == null && payment == null) {
+    abort("Order must have a valid payment method.")
+  }
+
+  // Check that the order items are still in stock.
+  order!.items.forEach((item) => {
+    let product: Any = item.product
+    if (product.stock < item.quantity) {
+      abort("One of the selected products does not have the requested quantity in stock.")
+    }
+  })
+
+  // Decrement the stock of each product in the order.
+  order!.items.forEach((item) => {
+    let product: Any = item.product
+    product.update({ stock: product.stock - item.quantity })
+  })
+
+  // Transition the order to the processing status, update the payment if provided.
+  if (payment != null) {
+    order!.update({ status: "processing", payment: payment })
+  } else {
+    order!.update({ status: "processing" })
+  }
+}
+
+function validateOrderStatusTransition(oldStatus, newStatus) {
+  if (oldStatus == "cart" && newStatus != "processing") {
+    // The order can only transition from cart to processing.
+    abort("Invalid status transition.")
+  } else if (oldStatus == "processing" && newStatus != "shipped") {
+    // The order can only transition from processing to shipped.
+    abort("Invalid status transition.")
+  } else if (oldStatus == "shipped" && newStatus != "delivered") {
+    // The order can only transition from shipped to delivered.
+    abort("Invalid status transition.")
+  }
+}
+
