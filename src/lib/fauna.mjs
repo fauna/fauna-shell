@@ -87,9 +87,24 @@ export const runQuery = async ({
       url: /** @type {string} */ (url), // We know this is a string because we check for !url above.
       secret: /** @type {string} */ (secret), // We know this is a string because we check for !secret above.
     });
+  const logger = container.resolve("logger");
   // Run the query.
   return _client
     .query(query, { ...defaultV10QueryOptions, ...options })
+    .then((result) => {
+      logger.debug(
+        `Fauna v10 query result: ${JSON.stringify(result, null, 2)}`,
+        "client",
+      );
+      return result;
+    })
+    .catch((err) => {
+      logger.debug(
+        `Fauna v10 query error: ${JSON.stringify(err, null, 2)}`,
+        "client",
+      );
+      throw err;
+    })
     .finally(() => {
       // Clean up the client if one was created internally.
       if (!client && _client) _client.close();
