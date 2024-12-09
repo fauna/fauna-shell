@@ -61,7 +61,7 @@ export async function run(_argvInput, _container) {
         epilogue = `\n${BUG_REPORT_MESSAGE}`;
 
         logger.debug(`unknown error thrown: ${e.name}`, "error");
-        logger.debug(util.inspect(e, true, 100, false), "error");
+        logger.debug(util.inspect(e, true, 2, false), "error");
       } else {
         // Otherwise, just use the error message
         subMessage = chalk.red(e.message);

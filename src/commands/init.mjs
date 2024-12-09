@@ -14,14 +14,41 @@ import { listDatabasesWithAccountAPI } from "./database/list.mjs";
 
 // TODO: handle error/exit case cleanly
 
+async function doInit(argv) {
+  const getters = [getDatabaseRunnable, getProjectRunnable, getKeyRunnable];
+  const runnables = [];
+
+  let allChoices = {};
+  // in order, gather user input (choices)
+  for (const [index, getter] of Object.entries(getters)) {
+    // eslint-disable-next-line no-await-in-loop
+    runnables[index] = await getter(argv, allChoices);
+    allChoices = { ...allChoices, ...runnables[index].choices };
+  }
+
+  // in order, do tasks based on user input (choices)
+  for (const runnable of runnables) {
+    // eslint-disable-next-line no-await-in-loop
+    await runnable?.runner({ ...runnable, choices: allChoices });
+  }
+}
+
+/**
+ * @param {*} yargs
+ * @returns
+ */
+function buildInitCommand(yargs) {
+  return yargsWithCommonOptions(yargs, {}).example([]);
+}
+
 async function getDatabaseRunnable(argv /*, priorChoices*/) {
   const logger = container.resolve("logger");
   const { runQueryFromString } = container.resolve("faunaClientV10");
 
-  const result = {
+  const runnable = {
     runner: async () => {}, // eslint-disable-line no-empty-function
     fql: "",
-    args: {},
+    choices: {},
   };
 
   buildCredentials({ ...argv, user: "default", database: "us-std" });
@@ -29,7 +56,7 @@ async function getDatabaseRunnable(argv /*, priorChoices*/) {
     .map((db) => `${db.region_group}/${db.name}`)
     .map((dbName) => ({ value: dbName }));
 
-  result.args.createNewDb = await inquirer.select({
+  runnable.choices.createNewDb = await inquirer.select({
     message: "Select a database to create a project for",
     choices: [
       ...dbs,
@@ -40,22 +67,23 @@ async function getDatabaseRunnable(argv /*, priorChoices*/) {
     ],
   });
 
-  if (result.args.createNewDb !== "new") return result;
+  if (runnable.choices.createNewDb !== "new") return runnable;
 
   logger.stdout("Ok! We'll create a new database.");
 
   // settings are presented in the same order as the dashboard
   // they also have the same defaults _except_ for sample data
-  result.args.dbName = await inquirer.input({
+  // which is enabled by default here but not there
+  runnable.choices.dbName = await inquirer.input({
     message: "Database name",
   });
 
-  result.args.regionGroup = await inquirer.select({
+  runnable.choices.regionGroup = await inquirer.select({
     message: "Region group",
     choices: [{ value: "us-std" }, { value: "eu-std" }, { value: "global" }],
   });
 
-  result.args.demoData = await inquirer.confirm({
+  runnable.choices.demoData = await inquirer.confirm({
     message: "Prepopulate with sample data?",
     default: true,
   });
@@ -63,14 +91,14 @@ async function getDatabaseRunnable(argv /*, priorChoices*/) {
   const otherSettings = await inquirer.checkbox({
     message: "Configure any other settings",
     choices: [
-      // this could fail with role issues?
+      // TODO: this could fail with role issues?
       // {
       //   name: "Backups",
       //   value: "backup",
       //   description: "Enabling this will back up your databases.",
       //   checked: false,
       // },
-      // the create DB command has some thing called priority??
+      // TODO: the create DB command has some thing called priority??
       {
         name: "Static typing",
         value: "typechecked",
@@ -87,42 +115,49 @@ async function getDatabaseRunnable(argv /*, priorChoices*/) {
     ],
   });
 
-  result.args.backup = false;
-  result.args.typechecked = false;
-  result.args.protected = false;
-  otherSettings.forEach((settingName) => (result.args[settingName] = true));
+  runnable.choices.backup = false;
+  runnable.choices.typechecked = false;
+  runnable.choices.protected = false;
+  otherSettings.forEach(
+    (settingName) => (runnable.choices[settingName] = true),
+  );
 
-  buildCredentials({ ...argv, user: "default", database: "us-std" });
-  result.fql = `Database.create({
-  name: "${result.args.dbName}",
-  protected: ${result.args.protected ?? null},
-  typechecked: ${result.args.typechecked ?? null},
-  priority: ${result.args.priority ?? null},
+  buildCredentials({
+    ...argv,
+    database: runnable.choices.regionGroup,
+  });
+  runnable.fql = `Database.create({
+  name: "${runnable.choices.dbName}",
+  protected: ${runnable.choices.protected ?? null},
+  typechecked: ${runnable.choices.typechecked ?? null},
+  priority: ${runnable.choices.priority ?? null},
 })`;
 
-  result.runner = async ({ args, fql }) => {
-    logger.stdout(`Creating database ${args.dbName}.`);
-    const result = await runQueryFromString({
+  runnable.runner = async ({ choices, fql }) => {
+    logger.stdout(
+      `Creating database ${choices.dbName} by running the following FQL query:`,
+    );
+    logger.stdout(fql);
+    await runQueryFromString({
       expression: fql,
       secret: await getSecret(),
       url: "https://db.fauna.com",
     });
 
-    logger.stdout(`Created database ${args.dbName}.`);
-    return result;
+    logger.stdout(`Created database ${choices.dbName}.`);
   };
 
-  return result;
+  return runnable;
 }
 
 async function getKeyRunnable(argv, priorChoices) {
   const { runQueryFromString } = container.resolve("faunaClientV10");
   const logger = container.resolve("logger");
 
-  const result = {
+  const runnable = {
     runner: async () => {}, // eslint-disable-line no-empty-function
     fql: "",
-    args: {},
+    choices: {},
   };
 
   let shouldCreate = await inquirer.confirm({
@@ -131,14 +166,14 @@ async function getKeyRunnable(argv, priorChoices) {
     default: true,
   });
 
-  if (!shouldCreate) return result;
+  if (!shouldCreate) return runnable;
 
-  result.args.keyName = await inquirer.input({
+  runnable.choices.keyName = await inquirer.input({
     message: "Key name",
     default: `${priorChoices.dbName}-long-lived-key`,
   });
 
-  result.args.role = await inquirer.select({
+  runnable.choices.role = await inquirer.select({
     message: "Role",
     choices: [
       {
@@ -159,35 +194,35 @@ async function getKeyRunnable(argv, priorChoices) {
   // this is a little white lie - we don't actually run this FQL since we call frontdoor instead
   // but we run the equivalent of it
   // actually, do we just... run the FQL? let's just run the FQL
-  result.fql = `Key.create({
-  role: "${result.args.role}",
+  runnable.fql = `Key.create({
+  role: "${runnable.choices.role}",
   data: {
-    name: "${result.args.keyName}"
+    name: "${runnable.choices.keyName}"
   }
 })`;
 
-  result.runner = async ({ args, fql }) => {
-    logger.stdout(`Creating key ${args.dbName}.`);
-    const result = await runQueryFromString({
+  runnable.runner = async ({ choices, fql }) => {
+    logger.stdout(`Creating key ${choices.dbName} by running FQL query:`);
+    logger.stdout(fql);
+    await runQueryFromString({
       expression: fql,
       secret: await getSecret(),
       url: "https://db.fauna.com",
     });
-    logger.stdout(`Created key ${args.dbName}.`);
-    return result;
+    logger.stdout(`Created key ${choices.dbName}.`);
   };
 
-  return result;
+  return runnable;
 }
 
 async function getProjectRunnable(argv, priorChoices) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
 
-  const result = {
+  const runnable = {
     runner: async () => {}, // eslint-disable-line no-empty-function
     fql: "",
-    args: {},
+    choices: {},
   };
 
   const shouldCreateProjectDirectory = await inquirer.confirm({
@@ -196,20 +231,20 @@ async function getProjectRunnable(argv, priorChoices) {
     default: true,
   });
 
-  if (!shouldCreateProjectDirectory) return result;
+  if (!shouldCreateProjectDirectory) return runnable;
 
-  result.args.dirName = await inquirer.input({
+  runnable.choices.dirName = await inquirer.input({
     message: `FSL files are stored in a project directory and are specific to the database "${priorChoices.dbName}". What would you like to name this project directory?`,
     default: priorChoices.dbName,
   });
 
-  result.args.dirPath = await fileSelector({
+  runnable.choices.dirPath = await fileSelector({
     message: "Where would you like the project directory to be created?",
     type: "directory",
   });
 
-  result.runner = async ({
-    args: { createNewDb, demoData, dirPath, dirName, dbName, regionGroup },
+  runnable.runner = async ({
+    choices: { createNewDb, demoData, dirPath, dirName, dbName, regionGroup },
   }) => {
     const fs = container.resolve("fs");
     const fsp = container.resolve("fsp");
@@ -222,11 +257,13 @@ async function getProjectRunnable(argv, priorChoices) {
       // existing db? fetch the schema
       // TODO: this has huge overlap with schema pull - should refactor so it's only in one place
       fs.mkdirSync(path.join(dirPath, dirName), { recursive: true });
+      const secret = await getSecret();
+
       const filesResponse = await makeFaunaRequest({
-        argv: { ...argv, url: "https://db.fauna.com:443" },
+        argv: { ...argv, url: "https://db.fauna.com" },
         path: "/schema/1/files",
         method: "GET",
-        secret: await getSecret(),
+        secret,
       });
 
       // sort for consistent order (it's nice for tests)
@@ -240,7 +277,7 @@ async function getProjectRunnable(argv, priorChoices) {
       );
       const contents = await getAllSchemaFileContents(filenames, {
         ...argv,
-        secret: await getSecret(),
+        secret,
       });
 
       // don't start writing files until we've successfully fetched all the remote schema files
@@ -300,33 +337,7 @@ async function getProjectRunnable(argv, priorChoices) {
     );
   };
 
-  return result;
-}
-
-async function doInit(argv) {
-  // buildCredentials({ ...argv, user: "default", database: "us-std" });
-  // buildCredentials({ ...argv, user: "default", database: "eu-std" });
-  const runnables = [getDatabaseRunnable, getProjectRunnable, getKeyRunnable];
-
-  let priorChoices = {};
-  // gather user input
-  for (const [index, runnable] of Object.entries(runnables)) {
-    runnables[index] = await runnable(argv, priorChoices); // eslint-disable-line no-await-in-loop
-    priorChoices = { ...priorChoices, ...runnables[index].args };
-  }
-
-  // do tasks based on user input
-  for (const [index, runnable] of Object.entries(runnables)) {
-    await runnable?.runner({ ...runnables[index], args: priorChoices }); // eslint-disable-line no-await-in-loop
-  }
-}
-
-/**
- * @param {*} yargs
- * @returns
- */
-function buildInitCommand(yargs) {
-  return yargsWithCommonOptions(yargs, {}).example([]);
+  return runnable;
 }
 
 export default {
