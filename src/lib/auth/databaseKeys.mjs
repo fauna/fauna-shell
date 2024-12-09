@@ -16,9 +16,9 @@ const DEFAULT_ROLE = "admin";
  */
 export class DatabaseKeys {
   constructor(argv, accountKey) {
-    const { database } = argv;
+    this.path = argv.database;
     this.role = argv.role || DEFAULT_ROLE;
-    this.keyName = DatabaseKeys.getKeyName(database, this.role);
+    this.keyName = DatabaseKeys.getKeyName(this.path, this.role);
     this.keyStore = new SecretKeyStorage(accountKey);
     this.ttlMs = TTL_DEFAULT_MS;
 
@@ -113,13 +113,15 @@ export class DatabaseKeys {
    * @returns {string} - The new secret
    */
   async refreshKey() {
-    this.logger.debug(`Creating new db key for ${this.keyName}`, "creds");
-    const [path, role] = this.keyName.split(":");
+    this.logger.debug(
+      `Creating new db key for path ${this.path} and role ${this.role}`,
+      "creds",
+    );
     const expiration = this.getKeyExpiration();
     const accountClient = new FaunaAccountClient();
     const newSecret = await accountClient.createKey({
-      path,
-      role,
+      path: this.path,
+      role: this.role,
       name: "System generated shell key",
       ttl: new Date(expiration).toISOString(),
     });
