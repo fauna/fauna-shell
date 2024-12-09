@@ -204,17 +204,17 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     type: "string",
     alias: "f",
     description:
-      "Output format for the query. When present, --json takes precedence over --format.",
+      "Output format for the query. When present, --json takes precedence over --format. Only applies to v10 queries.",
     choices: [FQL_FORMAT, JSON_FORMAT],
     default: FQL_FORMAT,
-    group: "API v10:",
+    group: "API:",
   },
   typecheck: {
     type: "boolean",
     description:
       "Enable typechecking. Defaults to the typechecking setting of the database.",
     default: undefined,
-    group: "API v10:",
+    group: "API:",
   },
   timeout: {
     type: "number",
