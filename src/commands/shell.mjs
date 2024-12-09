@@ -21,11 +21,11 @@ async function shellCommand(argv) {
 
   /** @type {import('node:repl').ReplOptions} */
   const replArgs = {
-    prompt: `${argv.db_path || ""}> `,
+    prompt: `${argv.database || ""}> `,
     ignoreUndefined: true,
     preview: argv.apiVersion !== "10",
     // TODO: integrate with fql-analyzer for completions
-    completer: argv.apiVersion === "10" ? () => [] : undefined,
+    completer: () => [],
     output: container.resolve("stdoutStream"),
     input: container.resolve("stdinStream"),
     eval: await buildCustomEval(argv),
