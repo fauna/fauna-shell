@@ -157,4 +157,12 @@ describe("login", function () {
       expectedCreds,
     );
   });
+
+  it("fast completes when using --local", async function () {
+    await run(`login --local`, container);
+    const logger = container.resolve("logger");
+    expect(logger.stdout).to.have.been.calledWith(
+      "Using a local Fauna container does not require login.\n",
+    );
+  });
 });
