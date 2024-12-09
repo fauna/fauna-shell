@@ -187,7 +187,6 @@ function quietableStream(stream, text, argv) {
 }
 
 function buildLogger({ stderrStream, stdoutStream }) {
-
   const customConsole = new Console({
     stderr: stderrStream,
     stdout: stdoutStream,
