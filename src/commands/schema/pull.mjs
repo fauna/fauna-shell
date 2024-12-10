@@ -90,7 +90,7 @@ async function doPull(argv) {
 
   logger.debug(
     `Pulling remote ${source} schema, version '${version}'.`,
-    "schema pull",
+    "schema-pull",
   );
 
   const { adds, deletes, overwrites } = await determineFileState(
