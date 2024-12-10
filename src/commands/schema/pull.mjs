@@ -60,13 +60,9 @@ function logDiff({ argv, adds, overwrites, deletes, source }) {
 function parsePullSource(argv) {
   if (argv.active && argv.staged) {
     throw new ValidationError("Cannot specify both --active and --staged.");
-  }
-
-  if (argv.active) {
+  } else if (argv.active) {
     return "active";
-  }
-
-  if (argv.staged) {
+  } else if (argv.staged) {
     return "staged";
   }
 
