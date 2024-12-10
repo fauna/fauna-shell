@@ -129,6 +129,18 @@ describe("credentials", function () {
           },
         },
       },
+      {
+        command: `query "Database.all()" -d us-std/test:badpath --no-color`,
+        localCreds: defaultLocalCreds,
+        expected: {
+          databaseKeys: {
+            role: "admin",
+            path: "us-std/test:badpath",
+            key: undefined,
+            keySource: "credentials-file",
+          },
+        },
+      },
     ].forEach(({ command, expected, localCreds }) => {
       it(`builds credentials from: '${command}'`, async () => {
         setCredsFiles(localCreds.accountKeys, localCreds.databaseKeys);
