@@ -6,7 +6,7 @@ import chalk from "chalk";
 import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
-describe.only("schema", function () {
+describe("schema", function () {
   let container, logger;
   beforeEach(() => {
     container = setupContainer();
