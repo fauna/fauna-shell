@@ -95,7 +95,7 @@ describe("credentials", function () {
           databaseKeys: {
             role: undefined,
             key: "user-secret",
-            keySource: "--secret",
+            keySource: "user",
           },
         },
       },

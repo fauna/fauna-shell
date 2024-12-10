@@ -12,7 +12,7 @@ import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
 
 /**
- * @returns string[]
+ * @returns {[string, string]} An tuple containing the source and target schema
  */
 function parseTarget(argv) {
   if (!argv.active && !argv.staged) {
