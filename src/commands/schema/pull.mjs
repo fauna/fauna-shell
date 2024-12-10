@@ -117,7 +117,10 @@ async function doPull(argv) {
   const source =
     (argvSource ?? statusResponse.status === "none") ? "active" : "staged";
 
-  logger.debug(`Pulling remote ${source} schema, version '${version}'.`, "schema pull");
+  logger.debug(
+    `Pulling remote ${source} schema, version '${version}'.`,
+    "schema pull",
+  );
 
   const { adds, deletes, overwrites } = await determineFileState(
     argv,
@@ -170,14 +173,13 @@ function buildPullCommand(yargs) {
         default: false,
       },
       active: {
-        description:
-          "Specify to pull the database's active schema files. If omitted, pulls the database's staged schema, if available.",
+        description: "Pull the database's active schema files.",
         type: "boolean",
         default: false,
       },
       staged: {
         description:
-          "Specify to pull the database's staged schema files. Fails if there is no staged schema available.",
+          "Pull the database's staged schema files. Fails if there is no staged schema available.",
         type: "boolean",
         default: false,
       },
