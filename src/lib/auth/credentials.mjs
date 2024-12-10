@@ -23,7 +23,7 @@ const validateCredentialArgs = (argv) => {
 
   if (argv.user && argv.accountKey) {
     logger.debug(
-      "Both 'user' and 'account-key' arguments were specified. 'account-key' will be used to mint database secrets. 'user' will be ignored.",
+      "Both 'user' and 'accountKey' arguments were specified. 'accountKey' will be used to mint database secrets. 'user' will be ignored.",
       "creds",
     );
   }
