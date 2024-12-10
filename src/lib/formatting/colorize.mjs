@@ -6,8 +6,6 @@ export const FQL_FORMAT = "fql";
 export const JSON_FORMAT = "json";
 export const TEXT_FORMAT = "text";
 
-const THEME = "github-dark-high-contrast";
-
 const objToString = (obj) => JSON.stringify(obj, null, 2);
 
 const textToAnsi = (obj) => {
@@ -25,7 +23,7 @@ const fqlToAnsi = (obj) => {
 
   const raw = stripAnsi(obj);
   const codeToAnsi = container.resolve("codeToAnsi");
-  const res = codeToAnsi(raw, "fql", THEME);
+  const res = codeToAnsi(raw, "fql");
 
   return res.trim();
 };
@@ -33,7 +31,7 @@ const fqlToAnsi = (obj) => {
 const jsonToAnsi = (obj) => {
   const codeToAnsi = container.resolve("codeToAnsi");
   const stringified = objToString(obj);
-  const res = codeToAnsi(stringified, "json", THEME);
+  const res = codeToAnsi(stringified, "json");
 
   if (!res) {
     return "";

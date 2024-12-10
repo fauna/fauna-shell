@@ -6,7 +6,6 @@ export default [
   ...defaultConfig,
   {
     languageOptions: {
-      ecmaVersion: 2024,
       globals: {
         ...globals.mocha,
         ...globals.nodeBuiltin,
