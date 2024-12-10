@@ -25,7 +25,7 @@ const fqlToAnsi = (obj) => {
 
   const raw = stripAnsi(obj);
   const codeToAnsi = container.resolve("codeToAnsi");
-  const res = codeToAnsi(raw, "typescript", THEME);
+  const res = codeToAnsi(raw, "fql", THEME);
 
   return res.trim();
 };
