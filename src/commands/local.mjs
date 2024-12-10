@@ -2,22 +2,22 @@ import Docker from "dockerode";
 
 import { container } from "../cli.mjs";
 
-const docker = new Docker();
+const DOCKER = new Docker();
 
 // Helper function to pull the latest image
 
 async function pullImage(imageName) {
   const logger = container.resolve("logger"); // Dependency injection for logger
-  logger.stderr(`Pulling the latest version of ${imageName}...\n`);
+  logger.stderr(`[PullImage] Pulling the latest version of ${imageName}...\n`);
 
   try {
-    const stream = await docker.pull(imageName);
+    const stream = await DOCKER.pull(imageName);
     const layers = {}; // To track progress by layer
     let numLines = 0; // Tracks the number of lines being displayed
     let lastUpdate = 0;
 
     return new Promise((resolve, reject) => {
-      docker.modem.followProgress(
+      DOCKER.modem.followProgress(
         stream,
         (err, output) => {
           writePullProgress(layers, numLines);
@@ -25,7 +25,7 @@ async function pullImage(imageName) {
             reject(err);
           } else {
             // Move to the reserved space for completion message
-            logger.stderr("Pull complete.");
+            logger.stderr("[PullImage] Pull complete.");
             resolve(output);
           }
         },
@@ -43,13 +43,15 @@ async function pullImage(imageName) {
       );
     });
   } catch (error) {
-    logger.stderr(`Error pulling image ${imageName}: ${error.message}`);
+    logger.stderr(
+      `[PullImage] Error pulling image ${imageName}: ${error.message}`,
+    );
     throw error;
   }
 }
 
 function writePullProgress(layers, numLines) {
-  const logger = container.resolve("logger"); // Dependency injection for logger
+  const logger = container.resolve("logger");
   const stderrStream = container.resolve("stderrStream");
   // Clear only the necessary lines and update them in place
   stderrStream.write(`\x1B[${numLines}A`);
@@ -66,8 +68,10 @@ function writePullProgress(layers, numLines) {
 // Helper function to check if a container exists and its state
 async function getContainerState(containerName) {
   const logger = container.resolve("logger"); // Dependency injection for logger
-  logger.stderr(`Checking state for container '${containerName}'...`);
-  const containers = await docker.listContainers({ all: true });
+  logger.stderr(
+    `[GetContainerState] Checking state for container '${containerName}'...`,
+  );
+  const containers = await DOCKER.listContainers({ all: true });
   return containers.find((container) =>
     container.Names.includes(`/${containerName}`),
   );
@@ -80,10 +84,7 @@ async function startContainer({
   hostPort,
   containerPort,
 }) {
-  const logger = container.resolve("logger"); // Dependency injection for logger
-  logger.stderr(`Starting container '${containerName}'...`);
-
-  const dockerContainer = await docker.createContainer({
+  const dockerContainer = await DOCKER.createContainer({
     Image: imageName,
     name: containerName,
     HostConfig: {
@@ -97,8 +98,12 @@ async function startContainer({
     },
   });
   await dockerContainer.start();
-  logger.stderr(`Container '${containerName}' started successfully.`);
-  const logStream = await dockerContainer.logs({
+  return dockerContainer;
+}
+
+async function createLogStream({ dockerContainer, containerName }) {
+  const logger = container.resolve("logger");
+  let logStream = await dockerContainer.logs({
     stdout: true,
     stderr: true,
     follow: true,
@@ -107,16 +112,19 @@ async function startContainer({
 
   // Pipe the logs to your logger
   logStream.on("data", (chunk) => {
-    logger.stderr(`[${containerName}] ${chunk.toString()}`);
+    logger.stderr(`[StartContainer][${containerName}] ${chunk.toString()}`);
   });
 
-  logStream.on("end", () => {
-    logger.stderr(`Container '${containerName}' logs have finished.`);
+  logStream.on("end", async () => {
+    logger.stderr(
+      `[StartContainer] Container '${containerName}' logs have finished.`,
+    );
+    logStream = await createLogStream({ dockerContainer, containerName });
   });
 
   logStream.on("error", (error) => {
     logger.stderr(
-      `Error tailing logs for container '${containerName}': ${error.message}`,
+      `[StartContainer] Error tailing logs for container '${containerName}': ${error.message}`,
     );
   });
 
@@ -131,7 +139,7 @@ async function ensureContainerRunning({
   containerPort,
   pull,
 }) {
-  const logger = container.resolve("logger"); // Dependency injection for logger
+  const logger = container.resolve("logger");
   try {
     // Optionally pull the latest image
     if (pull) {
@@ -140,39 +148,49 @@ async function ensureContainerRunning({
 
     // Check container state
     const existingContainer = await getContainerState(containerName);
+    let dockerContainer = undefined;
     if (existingContainer) {
-      if (existingContainer.State === "running") {
+      dockerContainer = DOCKER.getContainer(existingContainer.Id);
+      if (existingContainer.State === "paused") {
         logger.stderr(
-          `Container '${containerName}' is already running. Skipping start.`,
+          `[StartContainer] Container '${containerName}' exists but is paused. Unpausing it...`,
         );
-        await waitForHealthCheck({
-          url: `http://localhost:${hostPort}`,
-          logStream: undefined,
-        });
-        return;
+        await dockerContainer.unpause();
+      } else if (existingContainer.State === "created") {
+        logger.stderr(
+          `[StartContainer] Container '${containerName}' is created but not started. Starting it...`,
+        );
+        await dockerContainer.start();
       } else {
         logger.stderr(
-          `Container '${containerName}' exists but is stopped. Starting it...`,
+          `[StartContainer] Container '${containerName}' is already running.`,
         );
-        const container = docker.getContainer(existingContainer.Id);
-        await container.start();
-        logger.stderr(`Container '${containerName}' started.`);
-        return;
       }
+    } else {
+      logger.stderr(
+        `[StartContainer] Starting container '${containerName}'...`,
+      );
+      dockerContainer = await startContainer({
+        imageName,
+        containerName,
+        hostPort,
+        containerPort,
+      });
     }
+    const logStream = await createLogStream({ dockerContainer, containerName });
     // Start a new container
-    const logStream = await startContainer({
-      imageName,
-      containerName,
-      hostPort,
-      containerPort,
-    });
+    logger.stderr(
+      `[StartContainer] Container '${containerName}' started. Monitoring HealthCheck for readiness.`,
+    );
     await waitForHealthCheck({
       url: `http://localhost:${hostPort}`,
       logStream,
     });
+    logger.stderr(
+      `[ConatinerReady] Container '${containerName}' is up and healthy`,
+    );
   } catch (error) {
-    logger.stderr(`Error: ${error.message}`);
+    logger.stderr(`[StartContainer] Error: ${error.message}`);
     throw error;
   }
 }
@@ -184,7 +202,7 @@ async function waitForHealthCheck({
   logStream,
 }) {
   const logger = container.resolve("logger");
-  logger.stderr(`Waiting for Fauna to be ready at ${url}...`);
+  logger.stderr(`[HealthCheck] Waiting for Fauna to be ready at ${url}...`);
 
   let attemptCounter = 0;
 
@@ -195,13 +213,13 @@ async function waitForHealthCheck({
         timeout: 1000,
       });
       if (response.ok) {
-        logger.stderr(`Fauna is ready at ${url}`);
+        logger.stderr(`[HealthCheck] Fauna is ready at ${url}`);
         logStream?.destroy();
         return;
       }
     } catch (error) {
       logger.stderr(
-        `Fauna is not yet ready. Attempt ${attemptCounter + 1}/${maxAttempts} failed: ${error.message}. Retrying in ${delay / 1000} seconds...`,
+        `[HealthCheck] Fauna is not yet ready. Attempt ${attemptCounter + 1}/${maxAttempts} failed: ${error.message}. Retrying in ${delay / 1000} seconds...`,
       );
     }
 
@@ -211,9 +229,11 @@ async function waitForHealthCheck({
     });
   }
 
-  logger.stderr(`Max attempts reached. Service at ${url} did not respond.`);
+  logger.stderr(
+    `[HealthCheck] Max attempts reached. Service at ${url} did not respond.`,
+  );
   throw new Error(
-    `Fauna at ${url} is not ready after ${maxAttempts} attempts.`,
+    `[HealthCheck] Fauna at ${url} is not ready after ${maxAttempts} attempts.`,
   );
 }
 
