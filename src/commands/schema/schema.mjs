@@ -1,5 +1,6 @@
 //@ts-check
 
+import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 import abandonCommand from "./abandon.mjs";
 import commitCommand from "./commit.mjs";
 import diffCommand from "./diff.mjs";
@@ -25,6 +26,7 @@ function buildSchema(yargs) {
     .command(pushCommand)
     .command(pullCommand)
     .command(statusCommand)
+    .check(validateDatabaseOrSecret)
     .demandCommand();
 }
 
