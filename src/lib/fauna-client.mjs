@@ -1,75 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-
-export default class FaunaClient {
-  // : { endpoint: string; secret: string; timeout?: number }
-  constructor(opts) {
-    this.endpoint = opts.endpoint;
-    this.secret = opts.secret;
-    this.timeout = opts.timeout;
-  }
-
-  // query<T>(query: string, opts?: format?: string; typecheck?: boolean; secret?: string;
-  // returns Promise<QueryResponse<T>>
-  async query(query, opts) {
-    const fetch = container.resolve("fetch");
-
-    const { format, typecheck, secret } = {
-      format: opts?.format ?? "simple",
-      typecheck: opts?.typecheck ?? undefined,
-      secret: opts?.secret ?? this.secret,
-    };
-    const url = new URL(this.endpoint);
-    url.pathname = "/query/1";
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${secret ?? this.secret}`,
-        "x-fauna-source": "Fauna Shell",
-        ...(typecheck !== undefined && {
-          "x-typecheck": typecheck.toString(),
-        }),
-        ...(format !== undefined && { "x-format": format }),
-        ...((this.timeout && {
-          "x-query-timeout-ms": this.timeout.toString(10),
-        }) ??
-          {}),
-      },
-      body: JSON.stringify({ query }),
-    });
-
-    const json = await response.json();
-
-    if (response.status === 200 || response.status === 201) {
-      return {
-        status: 200,
-        body: json,
-      };
-    } else {
-      return {
-        status: response.status,
-        body: {
-          summary: json.summary,
-          error: {
-            code: json.error?.code,
-            message: json.error?.message,
-          },
-        },
-      };
-    }
-  }
-
-  /**
-   * We have two different clients, 1 for v10 and 1 for v4.  The v4 client requires closing
-   * In order to allow commands to just close their client without having to worry about which
-   * client they received, adding this noop method here.
-   */
-  // eslint-disable-next-line class-methods-use-this
-  async close() {
-    return undefined;
-  }
-}
+import { JSON_FORMAT } from "./formatting/colorize.mjs";
 
 /**
  * Gets a secret for the current credentials.
@@ -128,7 +60,11 @@ export const runQueryFromString = (expression, argv) => {
       }),
     );
   } else {
-    const { secret, url, timeout, ...rest } = argv;
+    const { secret, url, timeout, format, ...rest } = argv;
+    let apiFormat = "decorated";
+    if (format === JSON_FORMAT) {
+      apiFormat = "simple";
+    }
 
     return retryInvalidCredsOnce(secret, (secret) =>
       faunaV10.runQueryFromString({
@@ -137,7 +73,7 @@ export const runQueryFromString = (expression, argv) => {
         url,
         client: undefined,
         // eslint-disable-next-line camelcase
-        options: { query_timeout_ms: timeout, ...rest },
+        options: { query_timeout_ms: timeout, format: apiFormat, ...rest },
       }),
     );
   }
@@ -150,7 +86,7 @@ export const runQueryFromString = (expression, argv) => {
  * @param {string} opts.apiVersion - The API version
  * @param {boolean} opts.raw - Whether to include full response bodies
  * @param {boolean} opts.color - Whether to colorize the error
- * @returns {object}
+ * @returns {string}
  */
 export const formatError = (err, { apiVersion, raw, color }) => {
   const faunaV4 = container.resolve("faunaClientV4");
@@ -168,18 +104,21 @@ export const formatError = (err, { apiVersion, raw, color }) => {
  * @param {object} res - The query response
  * @param {object} opts
  * @param {string} opts.apiVersion - The API version
+ * @param {string} opts.format - The data format
  * @param {boolean} opts.raw - Whether to include full response bodies
- * @param {boolean} opts.json - Whether to format the response as JSON
  * @param {boolean} opts.color - Whether to colorize the response
- * @returns {object}
+ * @returns {string}
  */
-export const formatQueryResponse = (res, { apiVersion, raw, json, color }) => {
+export const formatQueryResponse = (
+  res,
+  { apiVersion, raw, color, format },
+) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return faunaV4.formatQueryResponse(res, { raw, json, color });
+    return faunaV4.formatQueryResponse(res, { raw, color });
   } else {
-    return faunaV10.formatQueryResponse(res, { raw, json, color });
+    return faunaV10.formatQueryResponse(res, { raw, format, color });
   }
 };

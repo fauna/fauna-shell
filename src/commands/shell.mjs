@@ -1,9 +1,13 @@
 //@ts-check
 
+import console from "node:console";
 import repl from "node:repl";
+
+import * as esprima from "esprima";
 
 import { container } from "../cli.mjs";
 import {
+  resolveFormat,
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
@@ -11,6 +15,8 @@ import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
 
 async function shellCommand(argv) {
+  const { query: v4Query } = container.resolve("faunadb");
+
   validateDatabaseOrSecret(argv);
 
   const logger = container.resolve("logger");
@@ -21,7 +27,7 @@ async function shellCommand(argv) {
 
   /** @type {import('node:repl').ReplOptions} */
   const replArgs = {
-    prompt: `${argv.db_path || ""}> `,
+    prompt: `${argv.database || ""}> `,
     ignoreUndefined: true,
     preview: argv.apiVersion !== "10",
     // TODO: integrate with fql-analyzer for completions
@@ -42,8 +48,11 @@ async function shellCommand(argv) {
     }
   });
 
-  // eslint-disable-next-line no-console
   shell.on("error", console.error);
+
+  if (argv.apiVersion === "4") {
+    Object.assign(shell.context, v4Query);
+  }
 
   completionPromise = new Promise((resolve) => {
     shell.on("exit", resolve);
@@ -54,7 +63,6 @@ async function shellCommand(argv) {
       cmd: "clear",
       help: "Clear the REPL",
       action: () => {
-        // eslint-disable-next-line no-console
         console.clear();
         shell.prompt();
       },
@@ -114,27 +122,50 @@ async function buildCustomEval(argv) {
       if (cmd.trim() === "") return cb();
 
       // These are options used for querying and formatting the response
-      const { apiVersion, color, json } = argv;
-      const { raw } = ctx;
+      const { apiVersion, color, raw: argvRaw } = argv;
+      const raw = ctx.raw === undefined ? argvRaw : ctx.raw;
+
+      if (ctx.raw === undefined) {
+        ctx.raw = argvRaw;
+      }
+
+      // Using --raw or --json output takes precedence over --format
+      const outputFormat = resolveFormat(argv);
+
+      if (apiVersion === "4") {
+        try {
+          esprima.parseScript(cmd);
+        } catch (err) {
+          return cb(new repl.Recoverable(err));
+        }
+      }
 
       let res;
       try {
         const secret = await getSecret();
         const { url, timeout, typecheck } = argv;
+
         res = await runQueryFromString(cmd, {
           apiVersion,
           secret,
           url,
           timeout,
           typecheck,
+          format: outputFormat,
         });
       } catch (err) {
         logger.stderr(formatError(err, { apiVersion, raw, color }));
         return cb(null);
       }
 
-      // If raw is on, return the full response. Otherwise, return just the data.
-      logger.stdout(formatQueryResponse(res, { apiVersion, raw, color, json }));
+      const output = formatQueryResponse(res, {
+        apiVersion,
+        raw,
+        color,
+        format: outputFormat,
+      });
+
+      logger.stdout(output);
 
       return cb(null);
     } catch (e) {

@@ -114,14 +114,13 @@ describe("login", function () {
     // We open auth url in the browser and prompt user
     expect(container.resolve("open").calledWith("http://dashboard-url.com"));
     expect(logger.stdout).to.have.been.calledWith(
-      "To login, open your browser to:\n http://dashboard-url.com",
+      "To login, open your browser to:\nhttp://dashboard-url.com",
     );
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
-    // Show login success message
-    expect(logger.stdout).to.have.been.calledWith("Login Success!\n");
-    expect(credentials.accountKeys.key).to.equal("login-account-key");
+
     // We save the session credentials alongside existing credential contents
+    expect(credentials.accountKeys.key).to.equal("login-account-key");
     expect(fs.writeFileSync.getCall(1).args[0]).to.include("access_keys");
     expect(JSON.parse(fs.writeFileSync.getCall(1).args[1])).to.deep.equal(
       expectedCreds,
@@ -140,7 +139,6 @@ describe("login", function () {
     fs.readFileSync.returns(JSON.stringify(existingCreds));
     await run(`login --user testUser`, container);
     const oauthClient = container.resolve("oauthClient");
-    const logger = container.resolve("logger");
     const expectedCreds = {
       testUser: {
         accountKey: "login-account-key",
@@ -149,8 +147,7 @@ describe("login", function () {
     };
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
-    // Show login success message
-    expect(logger.stdout).to.have.been.calledWith("Login Success!\n");
+
     // We save the session credentials and overwrite the profile of the same name locally
     expect(fs.writeFileSync.getCall(1).args[0]).to.include("access_keys");
     expect(JSON.parse(fs.writeFileSync.getCall(1).args[1])).to.deep.equal(

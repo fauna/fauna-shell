@@ -9,7 +9,6 @@ import * as awilix from "awilix";
 import { Lifetime } from "awilix";
 import fauna from "fauna";
 import faunadb from "faunadb";
-import { colorize } from "json-colorizer";
 import open from "open";
 import updateNotifier from "update-notifier";
 
@@ -22,6 +21,7 @@ import * as faunaV10 from "../lib/fauna.mjs";
 import { formatError, runQueryFromString } from "../lib/fauna-client.mjs";
 import * as faunaV4 from "../lib/faunadb.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
+import { codeToAnsi } from "../lib/formatting/codeToAnsi.mjs";
 import buildLogger from "../lib/logger.mjs";
 import {
   deleteUnusedSchemaFiles,
@@ -65,7 +65,7 @@ export const injectables = {
   updateNotifier: awilix.asValue(updateNotifier),
   fauna: awilix.asValue(fauna),
   faunadb: awilix.asValue(faunadb),
-  colorize: awilix.asValue(colorize),
+  codeToAnsi: awilix.asValue(codeToAnsi),
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),

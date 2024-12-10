@@ -5,7 +5,6 @@ import chalk from "chalk";
 import yargs from "yargs";
 
 import databaseCommand from "./commands/database/database.mjs";
-import keyCommand from "./commands/key/key.mjs";
 import loginCommand from "./commands/login.mjs";
 import queryCommand from "./commands/query.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
@@ -132,6 +131,12 @@ function buildYargs(argvInput) {
           process.emitWarning("this is a warning emitted on the node process");
         },
         builder: {},
+      })
+      .command("argv", false, {
+        handler: async (argv) => {
+          container.resolve("logger").stdout(argv);
+        },
+        builder: {},
       });
   }
 
@@ -144,7 +149,6 @@ function buildYargs(argvInput) {
     .command(queryCommand)
     .command(shellCommand)
     .command(loginCommand)
-    .command(keyCommand)
     .command(schemaCommand)
     .command(databaseCommand)
     .demandCommand()
