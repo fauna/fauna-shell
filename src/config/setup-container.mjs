@@ -17,6 +17,7 @@ import { makeAccountRequest } from "../lib/account.mjs";
 import { Credentials } from "../lib/auth/credentials.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { makeRetryableFaunaRequest } from "../lib/db.mjs";
+import DockerClient from "../lib/docker-client.mjs";
 import * as faunaV10 from "../lib/fauna.mjs";
 import {
   formatError,
@@ -75,6 +76,7 @@ export const injectables = {
   parseYargs: awilix.asValue(parseYargs),
   logger: awilix.asFunction(buildLogger, { lifetime: Lifetime.SINGLETON }),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
+  dockerClient: awilix.asClass(DockerClient, { lifetime: Lifetime.SINGLETON }),
   makeAccountRequest: awilix.asValue(makeAccountRequest),
   makeFaunaRequest: awilix.asValue(makeRetryableFaunaRequest),
   errorHandler: awilix.asValue((_error, exitCode) => exit(exitCode)),

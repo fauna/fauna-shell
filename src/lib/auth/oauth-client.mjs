@@ -6,10 +6,10 @@ import { container } from "../../cli.mjs";
 import SuccessPage from "./successPage.mjs";
 
 // Default to prod client id and secret
-const clientId = process.env.FAUNA_CLIENT_ID ?? "Aq4_G0mOtm_F1fK3PuzE0k-i9F0";
+const CLIENT_ID = process.env.FAUNA_CLIENT_ID ?? "Aq4_G0mOtm_F1fK3PuzE0k-i9F0";
 // Native public clients are not confidential. The client secret is not used beyond
 //   client identification. https://datatracker.ietf.org/doc/html/rfc8252#section-8.5
-const clientSecret =
+const CLIENT_SECRET =
   process.env.FAUNA_CLIENT_SECRET ??
   "2W9eZYlyN5XwnpvaP3AwOfclrtAjTXncH6k-bdFq1ZV0hZMFPzRIfg";
 const REDIRECT_URI = `http://127.0.0.1`;
@@ -28,7 +28,7 @@ class OAuthClient {
 
   getOAuthParams() {
     return {
-      client_id: clientId, // eslint-disable-line camelcase
+      client_id: CLIENT_ID, // eslint-disable-line camelcase
       redirect_uri: `${REDIRECT_URI}:${this.port}`, // eslint-disable-line camelcase
       code_challenge: this.codeChallenge, // eslint-disable-line camelcase
       code_challenge_method: "S256", // eslint-disable-line camelcase
@@ -40,8 +40,8 @@ class OAuthClient {
 
   getTokenParams() {
     return {
-      clientId,
-      clientSecret,
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
       authCode: this.authCode,
       redirectURI: `${REDIRECT_URI}:${this.port}`,
       codeVerifier: this.codeVerifier,
