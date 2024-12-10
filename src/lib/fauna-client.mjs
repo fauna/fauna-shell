@@ -3,6 +3,8 @@
 import { container } from "../cli.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
+const SUMMARY_FQL_REGEX = /^(\s\s\|)|(\d\s\|)/;
+
 /**
  * Gets a secret for the current credentials.
  * @return {Promise<string>} the secret
@@ -130,23 +132,18 @@ export const formatQueryResponse = (
 };
 
 /**
- * Formats a performance hint. If no hint is available, returns a default message. If
- * the hint is malformed, returns the hint as is.
- * @param {string} performanceHint - The performance hint
+ * Formats a summary of a query from a fauna
+ * @param {string} summary - The summary of the query
  * @returns {string}
  */
-export const formatPerformanceHint = (performanceHint) => {
-  if (
-    !performanceHint ||
-    typeof performanceHint !== "string" ||
-    !performanceHint.startsWith("performance_hint")
-  ) {
-    return "performance_hint: No performance hint available.";
+export const formatQuerySummary = (summary) => {
+  if (!summary || typeof summary !== "string") {
+    return "No summary returned.";
   }
 
   try {
-    const lines = performanceHint.split("\n").map((line) => {
-      if (line.startsWith("performance_hint")) {
+    const lines = summary.split("\n").map((line) => {
+      if (!line.match(SUMMARY_FQL_REGEX)) {
         return line;
       }
       return colorize(line, { format: Format.FQL });
@@ -155,6 +152,6 @@ export const formatPerformanceHint = (performanceHint) => {
   } catch (err) {
     const logger = container.resolve("logger");
     logger.debug(`Unable to parse performance hint: ${err}`);
-    return performanceHint;
+    return summary;
   }
 };

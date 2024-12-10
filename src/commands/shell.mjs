@@ -12,8 +12,8 @@ import {
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
 import {
-  formatPerformanceHint,
   formatQueryResponse,
+  formatQuerySummary,
   getSecret,
 } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
@@ -120,6 +120,17 @@ async function shellCommand(argv) {
         shell.prompt();
       },
     },
+    {
+      cmd: "toggleSummary",
+      help: "Enable or disable the summary field of the API response. Disabled by default. If enabled, outputs the summary field of the API response.",
+      action: () => {
+        shell.context.summary = !shell.context.summary;
+        logger.stderr(
+          `Summary in shell: ${shell.context.summary ? "on" : "off"}`,
+        );
+        shell.prompt();
+      },
+    },
   ].forEach(({ cmd, ...cmdOptions }) => shell.defineCommand(cmd, cmdOptions));
 
   return completionPromise;
@@ -148,6 +159,7 @@ async function buildCustomEval(argv) {
       const { apiVersion, color } = argv;
       const raw = getArgvOrCtx("raw", argv, ctx);
       const performanceHints = getArgvOrCtx("performanceHints", argv, ctx);
+      const summary = getArgvOrCtx("summary", argv, ctx);
 
       // Using --raw or --json output takes precedence over --format
       const outputFormat = resolveFormat({ ...argv, raw });
@@ -175,8 +187,8 @@ async function buildCustomEval(argv) {
           format: outputFormat,
         });
 
-        if (performanceHints && apiVersion === "10") {
-          logger.stdout(formatPerformanceHint(res.summary));
+        if ((summary || performanceHints) && apiVersion === "10") {
+          logger.stdout(formatQuerySummary(res.summary));
         }
       } catch (err) {
         logger.stderr(formatError(err, { apiVersion, raw, color }));

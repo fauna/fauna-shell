@@ -11,8 +11,8 @@ import {
 } from "../lib/command-helpers.mjs";
 import {
   formatError,
-  formatPerformanceHint,
   formatQueryResponse,
+  formatQuerySummary,
   getSecret,
 } from "../lib/fauna-client.mjs";
 import { isTTY } from "../lib/misc.mjs";
@@ -86,6 +86,7 @@ async function queryCommand(argv) {
       color,
       raw,
       performanceHints,
+      summary,
     } = argv;
 
     // If we're writing to a file, don't colorize the output regardless of the user's preference
@@ -108,8 +109,8 @@ async function queryCommand(argv) {
 
     // If performance hints are enabled, print the summary to stderr.
     // This is only supported in v10.
-    if (performanceHints && apiVersion === "10") {
-      logger.stderr(formatPerformanceHint(results.summary));
+    if ((summary || performanceHints) && apiVersion === "10") {
+      logger.stderr(formatQuerySummary(results.summary));
     }
 
     const output = formatQueryResponse(results, {

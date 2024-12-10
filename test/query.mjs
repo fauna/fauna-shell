@@ -356,7 +356,8 @@ describe("query", function () {
 
     it("can display performance hints", async function () {
       runQueryFromString.resolves({
-        summary: "performance_hint: use a more efficient query\n<diagnostics>",
+        summary:
+          "performance_hint: use a more efficient query\n1 | use a more efficient query",
         data: "fql",
       });
 
@@ -369,7 +370,7 @@ describe("query", function () {
         sinon.match(/use a more efficient query/),
       );
       expect(container.resolve("codeToAnsi")).to.have.been.calledWith(
-        sinon.match(/<diagnostics>/),
+        sinon.match(/use a more efficient query/),
         "fql",
       );
       expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
