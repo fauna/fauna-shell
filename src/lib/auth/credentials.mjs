@@ -7,15 +7,24 @@ import { AccountKeys } from "./accountKeys.mjs";
 import { DatabaseKeys } from "./databaseKeys.mjs";
 
 const validateCredentialArgs = (argv) => {
-  if (argv.database && argv.secret && !argv.local) {
-    throw new ValidationError(
-      "Cannot use both the '--secret' and '--database' options together. Please specify only one.",
-    );
-  } else if (argv.role && argv.secret && !argv.local) {
-    // The '--role' option is not supported when using a secret. Secrets have an
-    // implicit role.
-    throw new ValidationError(
-      "The '--role' option is not supported when using a '--secret'. Please specify only one.",
+  const logger = container.resolve("logger");
+  const illegalArgCombos = [
+    ["accountKey", "secret", "local"],
+    ["secret", "database", "local"],
+    ["secret", "role", "local"],
+  ];
+  for (const [first, second, conditional] of illegalArgCombos) {
+    if (argv[first] && argv[second] && !argv[conditional]) {
+      throw new ValidationError(
+        `Cannot use both the '--${first}' and '--${second}' options together. Please specify only one.`,
+      );
+    }
+  }
+
+  if (argv.user && argv.accountKey) {
+    logger.debug(
+      "Both 'user' and 'accountKey' arguments were specified. 'accountKey' will be used to mint database secrets. 'user' will be ignored.",
+      "creds",
     );
   }
 };
