@@ -117,7 +117,7 @@ async function doPull(argv) {
   const source =
     (argvSource ?? statusResponse.status === "none") ? "active" : "staged";
 
-  logger.debug(`Pulling remote ${source} schema, version '${version}'.`);
+  logger.debug(`Pulling remote ${source} schema, version '${version}'.`, "schema pull");
 
   const { adds, deletes, overwrites } = await determineFileState(
     argv,
