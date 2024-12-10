@@ -28,14 +28,19 @@ function pickOutputFields(databases, argv) {
   );
 }
 
-async function listDatabasesWithAccountAPI(argv) {
-  const { pageSize, database, json, color } = argv;
+export async function listDatabasesWithAccountAPI(argv) {
+  const { pageSize, database } = argv;
   const accountClient = new FaunaAccountClient();
   const response = await accountClient.listDatabases({
     pageSize,
     path: database,
   });
-  const output = pickOutputFields(response.results, argv);
+  return pickOutputFields(response.results, argv);
+}
+
+async function listAndFormatDatabasesWithAccountAPI(argv) {
+  const { json, color } = argv;
+  const output = await listDatabasesWithAccountAPI(argv);
 
   if (json) {
     container.resolve("logger").stdout(JSON.stringify(output));
@@ -72,7 +77,7 @@ async function listDatabases(argv) {
   if (argv.secret) {
     return listDatabasesWithSecret(argv);
   } else {
-    return listDatabasesWithAccountAPI(argv);
+    return listAndFormatDatabasesWithAccountAPI(argv);
   }
 }
 
