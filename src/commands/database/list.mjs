@@ -38,7 +38,7 @@ async function listDatabasesWithAccountAPI(argv) {
   const output = pickOutputFields(response.results, argv);
 
   container.resolve("logger").stdout(
-    await colorize(output, {
+    colorize(output, {
       format: JSON_FORMAT,
       color: color,
     }),
@@ -60,9 +60,7 @@ async function listDatabasesWithSecret(argv) {
     });
     container
       .resolve("logger")
-      .stdout(
-        await formatQueryResponse(result, { format: JSON_FORMAT, color }),
-      );
+      .stdout(formatQueryResponse(result, { format: JSON_FORMAT, color }));
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e);

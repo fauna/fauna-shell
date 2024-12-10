@@ -140,7 +140,7 @@ async function buildCustomEval(argv) {
         return cb(null);
       }
 
-      const output = await formatQueryResponse(res, {
+      const output = formatQueryResponse(res, {
         apiVersion,
         raw,
         color,

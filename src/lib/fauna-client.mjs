@@ -86,9 +86,9 @@ export const runQueryFromString = (expression, argv) => {
  * @param {string} opts.apiVersion - The API version
  * @param {boolean} opts.raw - Whether to include full response bodies
  * @param {boolean} opts.color - Whether to colorize the error
- * @returns {Promise<string>}
+ * @returns {string}
  */
-export const formatError = async (err, { apiVersion, raw, color }) => {
+export const formatError = (err, { apiVersion, raw, color }) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
@@ -107,9 +107,9 @@ export const formatError = async (err, { apiVersion, raw, color }) => {
  * @param {string} opts.format - The data format
  * @param {boolean} opts.raw - Whether to include full response bodies
  * @param {boolean} opts.color - Whether to colorize the response
- * @returns {Promise<string>}
+ * @returns {string}
  */
-export const formatQueryResponse = async (
+export const formatQueryResponse = (
   res,
   { apiVersion, raw, color, format },
 ) => {
@@ -117,8 +117,8 @@ export const formatQueryResponse = async (
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return await faunaV4.formatQueryResponse(res, { raw, color });
+    return faunaV4.formatQueryResponse(res, { raw, color });
   } else {
-    return await faunaV10.formatQueryResponse(res, { raw, format, color });
+    return faunaV10.formatQueryResponse(res, { raw, format, color });
   }
 };

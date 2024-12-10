@@ -94,7 +94,7 @@ async function queryCommand(argv) {
       color: useColor,
     });
 
-    const output = await formatQueryResponse(results, {
+    const output = formatQueryResponse(results, {
       apiVersion,
       format: outputFormat,
       raw,
@@ -114,7 +114,7 @@ async function queryCommand(argv) {
     }
 
     const { apiVersion, raw, color } = argv;
-    throw new CommandError(await formatError(err, { apiVersion, raw, color }), {
+    throw new CommandError(formatError(err, { apiVersion, raw, color }), {
       cause: err,
     });
   }

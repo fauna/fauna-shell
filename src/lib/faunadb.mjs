@@ -129,9 +129,9 @@ export const formatError = (err, opts = {}) => {
  * @param {boolean} [opts.json] - Whether to return the response as a JSON string
  * @param {boolean} [opts.color] - Whether to colorize the response
  * @param {string} [opts.format] - The format to use for the response
- * @returns {Promise<string>} The formatted response
+ * @returns {string} The formatted response
  */
-export const formatQueryResponse = async (res, opts = {}) => {
+export const formatQueryResponse = (res, opts = {}) => {
   const { raw, color, format } = opts;
   const data = raw ? res : res.value;
   const resolvedFormat = raw ? JSON_FORMAT : (format ?? JSON_FORMAT);

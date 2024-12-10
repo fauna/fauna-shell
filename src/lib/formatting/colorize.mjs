@@ -18,22 +18,22 @@ const textToAnsi = (obj) => {
   return obj;
 };
 
-const fqlToAnsi = async (obj) => {
+const fqlToAnsi = (obj) => {
   if (typeof obj !== "string") {
     throw new Error("Unable to format FQL unless it is already a string.");
   }
 
   const raw = stripAnsi(obj);
   const codeToAnsi = container.resolve("codeToAnsi");
-  const res = await codeToAnsi(raw, "typescript", THEME);
+  const res = codeToAnsi(raw, "typescript", THEME);
 
   return res.trim();
 };
 
-const jsonToAnsi = async (obj) => {
+const jsonToAnsi = (obj) => {
   const codeToAnsi = container.resolve("codeToAnsi");
   const stringified = objToString(obj);
-  const res = await codeToAnsi(stringified, "json", THEME);
+  const res = codeToAnsi(stringified, "json", THEME);
 
   if (!res) {
     return "";
@@ -49,7 +49,7 @@ const jsonToAnsi = async (obj) => {
  * @param {string} [opts.format] - The format to use
  * @returns {string} The formatted object
  */
-export const toAnsi = async (obj, { format = TEXT_FORMAT } = {}) => {
+export const toAnsi = (obj, { format = TEXT_FORMAT } = {}) => {
   switch (format) {
     case FQL_FORMAT:
       return fqlToAnsi(obj);
@@ -68,11 +68,8 @@ export const toAnsi = async (obj, { format = TEXT_FORMAT } = {}) => {
  * @param {boolean} [opts.color] - Whether to colorize the object
  * @returns {string} The formatted object
  */
-export const colorize = async (
-  obj,
-  { color = true, format = TEXT_FORMAT } = {},
-) => {
-  const ansiString = await toAnsi(obj, { format });
+export const colorize = (obj, { color = true, format = TEXT_FORMAT } = {}) => {
+  const ansiString = toAnsi(obj, { format });
 
   if (color) {
     return ansiString;

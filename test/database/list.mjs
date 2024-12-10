@@ -72,7 +72,7 @@ describe("database list", () => {
         });
 
         expect(logger.stdout).to.have.been.calledOnceWith(
-          await formatQueryResponse(stubbedResponse, {
+          formatQueryResponse(stubbedResponse, {
             format: "json",
             color: true,
           }),
@@ -111,7 +111,7 @@ describe("database list", () => {
         });
 
         expect(logger.stdout).to.have.been.calledOnceWith(
-          await formatQueryResponse(stubbedResponse, {
+          formatQueryResponse(stubbedResponse, {
             format: "json",
             color: true,
           }),

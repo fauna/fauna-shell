@@ -162,9 +162,9 @@ export const formatError = (err, opts = {}) => {
  * @param {boolean} [opts.raw] - Whether to include full response bodies
  * @param {string} [opts.format] - The format to use
  * @param {boolean} [opts.color] - Whether to colorize the response
- * @returns {Promise<string>} The formatted response
+ * @returns {string} The formatted response
  */
-export const formatQueryResponse = async (res, opts = {}) => {
+export const formatQueryResponse = (res, opts = {}) => {
   const { raw, format = JSON_FORMAT, color } = opts;
 
   // If raw is set, return the full response object.

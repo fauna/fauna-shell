@@ -5,7 +5,6 @@ import path from "node:path";
 import { exit } from "node:process";
 
 import { confirm } from "@inquirer/prompts";
-import { codeToANSI } from "@shikijs/cli";
 import * as awilix from "awilix";
 import { Lifetime } from "awilix";
 import fauna from "fauna";
@@ -22,6 +21,7 @@ import * as faunaV10 from "../lib/fauna.mjs";
 import { formatError, runQueryFromString } from "../lib/fauna-client.mjs";
 import * as faunaV4 from "../lib/faunadb.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
+import { codeToAnsi } from "../lib/formatting/codeToAnsi.mjs";
 import buildLogger from "../lib/logger.mjs";
 import {
   deleteUnusedSchemaFiles,
@@ -65,7 +65,7 @@ export const injectables = {
   updateNotifier: awilix.asValue(updateNotifier),
   fauna: awilix.asValue(fauna),
   faunadb: awilix.asValue(faunadb),
-  codeToAnsi: awilix.asValue(codeToANSI),
+  codeToAnsi: awilix.asValue(codeToAnsi),
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),

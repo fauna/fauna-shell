@@ -168,7 +168,7 @@ describe("query", function () {
         container,
       );
       expect(logger.stdout).to.have.been.calledWith(
-        await colorize([], { format: "json", color: false }),
+        colorize([], { format: "json", color: false }),
       );
     });
 
@@ -280,7 +280,7 @@ describe("query", function () {
         }),
       );
       expect(logger.stdout).to.have.been.calledWith(
-        await colorize(testData, { format: "json", color: true }),
+        colorize(testData, { format: "json", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     });
@@ -301,7 +301,7 @@ describe("query", function () {
       );
 
       expect(logger.stdout).to.have.been.calledWith(
-        await colorize(testResponse, { format: "json", color: true }),
+        colorize(testResponse, { format: "json", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     });
@@ -369,7 +369,7 @@ describe("query", function () {
         }),
       );
       expect(logger.stdout).to.have.been.calledWith(
-        await colorize(testData, { format: "json", color: true }),
+        colorize(testData, { format: "json", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     });
@@ -394,7 +394,7 @@ describe("query", function () {
       );
 
       expect(logger.stdout).to.have.been.calledWith(
-        await colorize(testResponse, { format: "json", color: true }),
+        colorize(testResponse, { format: "json", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     });
