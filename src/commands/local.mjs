@@ -4,8 +4,12 @@ import { container } from "../cli.mjs";
 
 const DOCKER = new Docker();
 
-// Helper function to pull the latest image
-
+/**
+ * Pulls the latest version of the given image
+ * @param {string} imageName The name of the image to pull
+ * @returns {Promise<void>} a promise that resolves when the image is pulled. It will
+ * reject if there is an error pulling the image.
+ */
 async function pullImage(imageName) {
   const logger = container.resolve("logger"); // Dependency injection for logger
   logger.stderr(`[PullImage] Pulling the latest version of ${imageName}...\n`);
@@ -50,6 +54,15 @@ async function pullImage(imageName) {
   }
 }
 
+/**
+ * Writes the progress of the image pull to stderr.
+ * It clears the lines that have already been written and updates them in place
+ * so that the progress is displayed in the same place with no "flicker".
+ * @param {Object} layers The layers of the image
+ * @param {number} numLines The number of lines to clear and update
+ * @returns {number} The number of lines written. Pass this value back into
+ * the next call to writePullProgress so that it can update the lines in place.
+ */
 function writePullProgress(layers, numLines) {
   const logger = container.resolve("logger");
   const stderrStream = container.resolve("stderrStream");
@@ -65,8 +78,16 @@ function writePullProgress(layers, numLines) {
   return numLines;
 }
 
-// Helper function to check if a container exists and its state
-async function getContainerState(containerName) {
+/**
+ * Finds a container by name
+ * @param {string} containerName The name of the container to find
+ * @returns {Promise<Object>} The container object if found, otherwise undefined.
+ * The container object has the following properties:
+ * - Id: The ID of the container
+ * - Names: The names of the container
+ * - State: The state of the container
+ */
+async function findContainer(containerName) {
   const logger = container.resolve("logger"); // Dependency injection for logger
   logger.stderr(
     `[GetContainerState] Checking state for container '${containerName}'...`,
@@ -77,8 +98,15 @@ async function getContainerState(containerName) {
   );
 }
 
-// Helper function to start a container
-async function startContainer({
+/**
+ * Creates a container
+ * @param {string} imageName The name of the image to create the container from
+ * @param {string} containerName The name of the container to start
+ * @param {number} hostPort The port on the host machine mapped to the container's port
+ * @param {number} containerPort The port inside the container Fauna listens on
+ * @returns {Promise<Object>} The container object
+ */
+async function createContainer({
   imageName,
   containerName,
   hostPort,
@@ -97,10 +125,64 @@ async function startContainer({
       [`${containerPort}/tcp`]: {},
     },
   });
-  await dockerContainer.start();
   return dockerContainer;
 }
 
+/**
+ * Starts a container
+ * @param {string} imageName The name of the image to create the container from
+ * @param {string} containerName The name of the container to start
+ * @param {number} hostPort The port on the host machine mapped to the container's port
+ * @param {number} containerPort The port inside the container Fauna listens on
+ * @returns {Promise<Object>} The container object
+ */
+async function startContainer({
+  imageName,
+  containerName,
+  hostPort, 
+  containerPort
+ }) {
+  const logger = container.resolve("logger");
+  const existingContainer = await findContainer(containerName);
+  let dockerContainer = undefined;
+  if (existingContainer) {
+    dockerContainer = DOCKER.getContainer(existingContainer.Id);
+    if (existingContainer.State === "paused") {
+      logger.stderr(
+        `[StartContainer] Container '${containerName}' exists but is paused. Unpausing it...`,
+      );
+      await dockerContainer.unpause();
+    } else if (existingContainer.State === "created") {
+      logger.stderr(
+        `[StartContainer] Container '${containerName}' is created but not started. Starting it...`,
+      );
+      await dockerContainer.start();
+    } else {
+      logger.stderr(
+        `[StartContainer] Container '${containerName}' is already running.`,
+      );
+    }
+  } else {
+    logger.stderr(
+      `[StartContainer] Starting container '${containerName}'...`,
+    );
+    dockerContainer = await createContainer({
+      imageName,
+      containerName,
+      hostPort,
+      containerPort,
+    });
+    await dockerContainer.start();
+  }
+  return dockerContainer;
+}
+
+/**
+ * Creates a log stream for the container
+ * @param {Object} dockerContainer The container object
+ * @param {string} containerName The name of the container
+ * @returns {Promise<Object>} The log stream
+ */
 async function createLogStream({ dockerContainer, containerName }) {
   const logger = container.resolve("logger");
   let logStream = await dockerContainer.logs({
@@ -131,70 +213,15 @@ async function createLogStream({ dockerContainer, containerName }) {
   return logStream;
 }
 
-// Main function to ensure the container is running
-async function ensureContainerRunning({
-  imageName,
-  containerName,
-  hostPort,
-  containerPort,
-  pull,
-}) {
-  const logger = container.resolve("logger");
-  try {
-    // Optionally pull the latest image
-    if (pull) {
-      await pullImage(imageName);
-    }
-
-    // Check container state
-    const existingContainer = await getContainerState(containerName);
-    let dockerContainer = undefined;
-    if (existingContainer) {
-      dockerContainer = DOCKER.getContainer(existingContainer.Id);
-      if (existingContainer.State === "paused") {
-        logger.stderr(
-          `[StartContainer] Container '${containerName}' exists but is paused. Unpausing it...`,
-        );
-        await dockerContainer.unpause();
-      } else if (existingContainer.State === "created") {
-        logger.stderr(
-          `[StartContainer] Container '${containerName}' is created but not started. Starting it...`,
-        );
-        await dockerContainer.start();
-      } else {
-        logger.stderr(
-          `[StartContainer] Container '${containerName}' is already running.`,
-        );
-      }
-    } else {
-      logger.stderr(
-        `[StartContainer] Starting container '${containerName}'...`,
-      );
-      dockerContainer = await startContainer({
-        imageName,
-        containerName,
-        hostPort,
-        containerPort,
-      });
-    }
-    const logStream = await createLogStream({ dockerContainer, containerName });
-    // Start a new container
-    logger.stderr(
-      `[StartContainer] Container '${containerName}' started. Monitoring HealthCheck for readiness.`,
-    );
-    await waitForHealthCheck({
-      url: `http://localhost:${hostPort}`,
-      logStream,
-    });
-    logger.stderr(
-      `[ConatinerReady] Container '${containerName}' is up and healthy`,
-    );
-  } catch (error) {
-    logger.stderr(`[StartContainer] Error: ${error.message}`);
-    throw error;
-  }
-}
-
+/**
+ * Waits for the container to be ready
+ * @param {string} url The url to check
+ * @param {number} maxAttempts The maximum number of attempts to check
+ * @param {number} delay The delay between attempts in milliseconds
+ * @param {Object} logStream The log stream to destroy when the container is ready
+ * @returns {Promise<void>} a promise that resolves when the container is ready.
+ * It will reject if the container is not ready after the maximum number of attempts.
+ */
 async function waitForHealthCheck({
   url,
   maxAttempts = 100,
@@ -239,6 +266,56 @@ async function waitForHealthCheck({
   );
 }
 
+/**
+ * Ensures the container is running
+ * @param {string} imageName The name of the image to create the container from
+ * @param {string} containerName The name of the container to start
+ * @param {number} hostPort The port on the host machine mapped to the container's port
+ * @param {number} containerPort The port inside the container Fauna listens on
+ * @param {boolean} pull Whether to pull the latest image
+ * @returns {Promise<void>}
+ */
+async function ensureContainerRunning({
+  imageName,
+  containerName,
+  hostPort,
+  containerPort,
+  pull,
+}) {
+  const logger = container.resolve("logger");
+  try {
+    if (pull) {
+      await pullImage(imageName);
+    }
+    const dockerContainer = await startContainer({
+      imageName,
+      containerName,
+      hostPort,
+      containerPort,
+    });
+    const logStream = await createLogStream({ dockerContainer, containerName });
+    logger.stderr(
+      `[StartContainer] Container '${containerName}' started. Monitoring HealthCheck for readiness.`,
+    );
+    await waitForHealthCheck({
+      url: `http://localhost:${hostPort}`,
+      logStream,
+    });
+    logger.stderr(
+      `[ConatinerReady] Container '${containerName}' is up and healthy`,
+    );
+  } catch (error) {
+    logger.stderr(`[StartContainer] Error: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Starts the local Fauna container
+ * @param {import('yargs').Arguments} argv The arguments from yargs
+ * @returns {Promise<void>} a promise that resolves when the container is ready.
+ * It will reject if the container is not ready after the maximum number of attempts.
+ */
 async function startLocal(argv) {
   await ensureContainerRunning({
     imageName: argv.image,
@@ -249,6 +326,11 @@ async function startLocal(argv) {
   });
 }
 
+/**
+ * Builds the yargs command for the local command
+ * @param {import('yargs').Argv} yargs The yargs instance
+ * @returns {import('yargs').Argv} The yargs instance
+ */
 function buildLocalCommand(yargs) {
   return yargs.options({
     containerPort: {
