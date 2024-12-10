@@ -6,7 +6,7 @@ import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
-import { formatObjectForShell } from "../../lib/misc.mjs";
+import { colorize, JSON_FORMAT } from "../../lib/formatting/colorize.mjs";
 
 // Narrow the output fields based on the provided flags.
 const getOutputFields = (argv) => {
@@ -29,7 +29,7 @@ function pickOutputFields(databases, argv) {
 }
 
 async function listDatabasesWithAccountAPI(argv) {
-  const { pageSize, database, json, color } = argv;
+  const { pageSize, database, color } = argv;
   const accountClient = new FaunaAccountClient();
   const response = await accountClient.listDatabases({
     pageSize,
@@ -37,15 +37,16 @@ async function listDatabasesWithAccountAPI(argv) {
   });
   const output = pickOutputFields(response.results, argv);
 
-  if (json) {
-    container.resolve("logger").stdout(JSON.stringify(output));
-  } else {
-    container.resolve("logger").stdout(formatObjectForShell(output, { color }));
-  }
+  container.resolve("logger").stdout(
+    colorize(output, {
+      format: JSON_FORMAT,
+      color: color,
+    }),
+  );
 }
 
 async function listDatabasesWithSecret(argv) {
-  const { url, secret, pageSize, json, color } = argv;
+  const { url, secret, pageSize, color } = argv;
   const { runQueryFromString, formatQueryResponse } =
     container.resolve("faunaClientV10");
 
@@ -59,7 +60,7 @@ async function listDatabasesWithSecret(argv) {
     });
     container
       .resolve("logger")
-      .stdout(formatQueryResponse(result, { json, color }));
+      .stdout(formatQueryResponse(result, { format: JSON_FORMAT, color }));
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e);

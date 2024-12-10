@@ -4,6 +4,7 @@ import { container } from "../cli.mjs";
 import {
   CommandError,
   isUnknownError,
+  resolveFormat,
   validateDatabaseOrSecret,
   ValidationError,
   yargsWithCommonConfigurableQueryOptions,
@@ -13,6 +14,7 @@ import {
   formatQueryResponse,
   getSecret,
 } from "../lib/fauna-client.mjs";
+import { isTTY } from "../lib/misc.mjs";
 
 function validate(argv) {
   const { existsSync, accessSync, constants } = container.resolve("fs");
@@ -73,10 +75,13 @@ async function queryCommand(argv) {
   // get the query handler and run the query
   try {
     const secret = await getSecret();
-    const { url, timeout, typecheck, raw, json, apiVersion, color } = argv;
+    const { url, timeout, typecheck, apiVersion, color, raw } = argv;
 
     // If we're writing to a file, don't colorize the output regardless of the user's preference
-    const useColor = argv.output ? false : color;
+    const useColor = argv.output || !isTTY() ? false : color;
+
+    // Using --json or --raw takes precedence over --format
+    const outputFormat = resolveFormat(argv);
 
     const results = await container.resolve("runQueryFromString")(expression, {
       apiVersion,
@@ -84,12 +89,15 @@ async function queryCommand(argv) {
       url,
       timeout,
       typecheck,
+      format: outputFormat,
+      raw,
+      color: useColor,
     });
 
     const output = formatQueryResponse(results, {
       apiVersion,
+      format: outputFormat,
       raw,
-      json,
       color: useColor,
     });
 
