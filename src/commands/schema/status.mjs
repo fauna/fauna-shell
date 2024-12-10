@@ -9,6 +9,7 @@ import {
 } from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
+import { localSchemaOptions } from "./schema.mjs";
 
 async function doStatus(argv) {
   const logger = container.resolve("logger");
@@ -17,7 +18,9 @@ async function doStatus(argv) {
   let params = new URLSearchParams({ diff: "summary" });
   const secret = await getSecret();
   const gatherFSL = container.resolve("gatherFSL");
-  const fsl = reformatFSL(await gatherFSL(argv.dir));
+
+  const files = await gatherFSL(argv.dir);
+  const fsl = reformatFSL(files);
 
   const statusResponse = await makeFaunaRequest({
     argv,
@@ -32,6 +35,7 @@ async function doStatus(argv) {
     staged: "true",
     version: statusResponse.version,
   });
+
   const validationResponse = await makeFaunaRequest({
     argv,
     path: "/schema/1/validate",
@@ -64,16 +68,18 @@ async function doStatus(argv) {
 }
 
 function buildStatusCommand(yargs) {
-  return yargsWithCommonQueryOptions(yargs).example([
-    [
-      "$0 schema status --database us/example",
-      "Get the staged schema status for the 'us/example' database.",
-    ],
-    [
-      "$0 schema status --secret my-secret",
-      "Get the staged schema status for the database scoped to a secret.",
-    ],
-  ]);
+  return yargsWithCommonQueryOptions(yargs)
+    .options(localSchemaOptions)
+    .example([
+      [
+        "$0 schema status --database us/example",
+        "Get the staged schema status for the 'us/example' database.",
+      ],
+      [
+        "$0 schema status --secret my-secret",
+        "Get the staged schema status for the database scoped to a secret.",
+      ],
+    ]);
 }
 
 export default {

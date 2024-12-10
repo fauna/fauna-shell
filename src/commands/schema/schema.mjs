@@ -6,6 +6,7 @@ import diffCommand from "./diff.mjs";
 import pullCommand from "./pull.mjs";
 import pushCommand from "./push.mjs";
 import statusCommand from "./status.mjs";
+import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 
 export const localSchemaOptions = {
   "project-directory": {
@@ -25,6 +26,7 @@ function buildSchema(yargs) {
     .command(pushCommand)
     .command(pullCommand)
     .command(statusCommand)
+    .check(validateDatabaseOrSecret)
     .demandCommand();
 }
 
