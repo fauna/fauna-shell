@@ -75,12 +75,12 @@ async function queryCommand(argv) {
   // get the query handler and run the query
   try {
     const secret = await getSecret();
-    const { url, timeout, typecheck, apiVersion, color, extra } = argv;
+    const { url, timeout, typecheck, apiVersion, color, raw } = argv;
 
     // If we're writing to a file, don't colorize the output regardless of the user's preference
     const useColor = argv.output || !isTTY() ? false : color;
 
-    // Using --json or --extra takes precedence over --format
+    // Using --json or --raw takes precedence over --format
     const outputFormat = resolveFormat(argv);
 
     const results = await container.resolve("runQueryFromString")(expression, {
@@ -90,14 +90,14 @@ async function queryCommand(argv) {
       timeout,
       typecheck,
       format: outputFormat,
-      extra,
+      raw,
       color: useColor,
     });
 
     const output = await formatQueryResponse(results, {
       apiVersion,
-      extra,
       format: outputFormat,
+      raw,
       color: useColor,
     });
 
@@ -113,13 +113,10 @@ async function queryCommand(argv) {
       throw err;
     }
 
-    const { apiVersion, extra, color } = argv;
-    throw new CommandError(
-      await formatError(err, { apiVersion, extra, color }),
-      {
-        cause: err,
-      },
-    );
+    const { apiVersion, raw, color } = argv;
+    throw new CommandError(await formatError(err, { apiVersion, raw, color }), {
+      cause: err,
+    });
   }
 }
 
@@ -142,7 +139,7 @@ function buildQueryCommand(yargs) {
         description:
           "Path to a file where query results are written. Defaults to stdout.",
       },
-      extra: {
+      raw: {
         type: "boolean",
         description:
           "Output the full API response, including summary and query stats.",
@@ -175,7 +172,7 @@ function buildQueryCommand(yargs) {
         "Run the query and write the results to a file.",
       ],
       [
-        "$0 query -i /path/to/queries.fql --extra --output /tmp/result.json --database us/example",
+        "$0 query -i /path/to/queries.fql --raw --output /tmp/result.json --database us/example",
         "Run the query and write the full API response to a file.",
       ],
     ]);

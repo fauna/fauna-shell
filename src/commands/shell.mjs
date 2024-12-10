@@ -86,12 +86,12 @@ async function shellCommand(argv) {
       },
     },
     {
-      cmd: "toggleExtra",
+      cmd: "toggleRawResponses",
       help: "Enable or disable additional output. Disabled by default. If enabled, outputs the full API response, including summary and query stats.",
       action: () => {
-        shell.context.extra = !shell.context.extra;
+        shell.context.raw = !shell.context.raw;
         logger.stderr(
-          `Additional information in shell: ${shell.context.extra ? "on" : "off"}`,
+          `Additional information in shell: ${shell.context.raw ? "on" : "off"}`,
         );
         shell.prompt();
       },
@@ -113,14 +113,14 @@ async function buildCustomEval(argv) {
       if (cmd.trim() === "") return cb();
 
       // These are options used for querying and formatting the response
-      const { apiVersion, color, extra: argvExtra } = argv;
-      const extra = ctx.extra === undefined ? argvExtra : ctx.extra;
+      const { apiVersion, color, raw: argvRaw } = argv;
+      const raw = ctx.raw === undefined ? argvRaw : ctx.raw;
 
-      if (ctx.extra === undefined) {
-        ctx.extra = argvExtra;
+      if (ctx.raw === undefined) {
+        ctx.raw = argvRaw;
       }
 
-      // Using --extra or --json output takes precedence over --format
+      // Using --raw or --json output takes precedence over --format
       const outputFormat = resolveFormat(argv);
 
       let res;
@@ -136,13 +136,13 @@ async function buildCustomEval(argv) {
           format: outputFormat,
         });
       } catch (err) {
-        logger.stderr(await formatError(err, { apiVersion, extra, color }));
+        logger.stderr(await formatError(err, { apiVersion, raw, color }));
         return cb(null);
       }
 
       const output = await formatQueryResponse(res, {
         apiVersion,
-        extra,
+        raw,
         color,
         format: outputFormat,
       });

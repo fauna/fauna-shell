@@ -285,7 +285,7 @@ describe("query", function () {
       expect(logger.stderr).to.not.be.called;
     });
 
-    it("can output additional response fields via --extra", async function () {
+    it("can output additional response fields via --raw", async function () {
       const testData = {
         name: "test",
         coll: "Database",
@@ -296,7 +296,7 @@ describe("query", function () {
       runQueryFromString.resolves(testResponse);
 
       await run(
-        `query "Database.all()" --extra --secret=foo --format json`,
+        `query "Database.all()" --raw --secret=foo --format json`,
         container,
       );
 
@@ -318,13 +318,13 @@ describe("query", function () {
       expect(logger.stderr).to.have.been.calledWith(sinon.match(/test query/));
     });
 
-    it("can output the full error object when --extra is used", async function () {
+    it("can output the full error object when --raw is used", async function () {
       const failure = createV10QueryFailure("test query");
       const error = new ServiceError(failure);
       runQueryFromString.rejects(error);
 
       try {
-        await run(`query "Database.all()" --extra --secret=foo`, container);
+        await run(`query "Database.all()" --raw --secret=foo`, container);
       } catch (e) {}
 
       expect(logger.stdout).to.not.be.called;
@@ -374,7 +374,7 @@ describe("query", function () {
       expect(logger.stderr).to.not.be.called;
     });
 
-    it("can output additional response fields via --extra", async function () {
+    it("can output additional response fields via --raw", async function () {
       const testData = {
         "@ref": {
           id: "test",
@@ -389,7 +389,7 @@ describe("query", function () {
       runQueryFromString.resolves(testResponse);
 
       await run(
-        `query "Collection('test')" --extra --apiVersion 4 --secret=foo`,
+        `query "Collection('test')" --raw --apiVersion 4 --secret=foo`,
         container,
       );
 
@@ -424,7 +424,7 @@ describe("query", function () {
       );
     });
 
-    it("can output the full error object when --extra is used", async function () {
+    it("can output the full error object when --raw is used", async function () {
       const testError = createV4QueryFailure({
         position: ["paginate", "collections"],
         code: "invalid argument",
@@ -436,7 +436,7 @@ describe("query", function () {
 
       try {
         await run(
-          `query "Paginate(Collection('x'))" --apiVersion 4 --extra --secret=foo`,
+          `query "Paginate(Collection('x'))" --apiVersion 4 --raw --secret=foo`,
           container,
         );
       } catch (e) {}

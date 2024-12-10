@@ -84,18 +84,18 @@ export const runQueryFromString = (expression, argv) => {
  * @param {object} err - The error to format
  * @param {object} opts
  * @param {string} opts.apiVersion - The API version
- * @param {boolean} opts.extra - Whether to include extra information
+ * @param {boolean} opts.raw - Whether to include full response bodies
  * @param {boolean} opts.color - Whether to colorize the error
  * @returns {Promise<string>}
  */
-export const formatError = async (err, { apiVersion, extra, color }) => {
+export const formatError = async (err, { apiVersion, raw, color }) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return faunaV4.formatError(err, { extra, color });
+    return faunaV4.formatError(err, { raw, color });
   } else {
-    return faunaV10.formatError(err, { extra, color });
+    return faunaV10.formatError(err, { raw, color });
   }
 };
 
@@ -105,27 +105,20 @@ export const formatError = async (err, { apiVersion, extra, color }) => {
  * @param {object} opts
  * @param {string} opts.apiVersion - The API version
  * @param {string} opts.format - The data format
- * @param {boolean} opts.extra - Whether to include extra information
+ * @param {boolean} opts.raw - Whether to include full response bodies
  * @param {boolean} opts.color - Whether to colorize the response
  * @returns {Promise<string>}
  */
 export const formatQueryResponse = async (
   res,
-  { apiVersion, extra, color, format },
+  { apiVersion, raw, color, format },
 ) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return await faunaV4.formatQueryResponse(res, {
-      extra,
-      color,
-    });
+    return await faunaV4.formatQueryResponse(res, { raw, color });
   } else {
-    return await faunaV10.formatQueryResponse(res, {
-      extra,
-      format,
-      color,
-    });
+    return await faunaV10.formatQueryResponse(res, { raw, format, color });
   }
 };
