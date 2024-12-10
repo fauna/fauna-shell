@@ -45,7 +45,7 @@ describe("schema diff", function () {
       { ...commonFetchParams, method: "GET" },
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
+      buildUrl("/schema/1/diff", {
         color: "ansi",
         diff: "semantic",
         force: "true",
@@ -72,7 +72,7 @@ describe("schema diff", function () {
       { ...commonFetchParams, method: "GET" },
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
+      buildUrl("/schema/1/diff", {
         color: "ansi",
         diff: "semantic",
         force: "true",
@@ -99,7 +99,7 @@ describe("schema diff", function () {
       method: "GET",
     });
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
+      buildUrl("/schema/1/diff", {
         force: "true",
         staged: "true",
         diff: "semantic",
@@ -125,7 +125,7 @@ describe("schema diff", function () {
       { ...commonFetchParams, method: "GET" },
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
+      buildUrl("/schema/1/diff", {
         force: "true",
         color: "ansi",
         staged: "true",

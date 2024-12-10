@@ -31,16 +31,14 @@ async function doPush(argv) {
       secret,
     });
   } else {
-    // Confirm diff, then push it. `force` is set on `validate` so we don't
-    // need to pass the last known schema version through.
+    // Confirm diff, then push it.
     const params = new URLSearchParams({
-      force: "true",
       staged: argv.active ? "false" : "true",
     });
 
     const response = await makeFaunaRequest({
       argv,
-      path: "/schema/1/validate",
+      path: "/schema/1/diff",
       params,
       body: fsl,
       method: "POST",

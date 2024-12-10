@@ -92,7 +92,7 @@ describe("schema status", function () {
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
+      buildUrl("/schema/1/diff", {
         diff: "summary",
         staged: "true",
         version: "0",
@@ -135,7 +135,7 @@ describe("schema status", function () {
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
+      buildUrl("/schema/1/diff", {
         diff: "summary",
         staged: "true",
         version: "0",
@@ -184,7 +184,7 @@ describe("schema status", function () {
     );
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
+      buildUrl("/schema/1/diff", {
         diff: "summary",
         staged: "true",
         version: "0",
@@ -230,7 +230,7 @@ describe("schema status", function () {
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
+      buildUrl("/schema/1/diff", {
         diff: "summary",
         staged: "true",
         version: "0",
