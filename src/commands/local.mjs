@@ -129,22 +129,23 @@ async function createContainer({
 }
 
 /**
- * Starts a container
+ * Starts a container and returns a log stream if the container is not yet running.
  * @param {string} imageName The name of the image to create the container from
  * @param {string} containerName The name of the container to start
  * @param {number} hostPort The port on the host machine mapped to the container's port
  * @param {number} containerPort The port inside the container Fauna listens on
- * @returns {Promise<Object>} The container object
+ * @returns {Promise<Object>} The log stream
  */
 async function startContainer({
   imageName,
   containerName,
-  hostPort, 
-  containerPort
- }) {
+  hostPort,
+  containerPort,
+}) {
   const logger = container.resolve("logger");
   const existingContainer = await findContainer(containerName);
   let dockerContainer = undefined;
+  let logStream = undefined;
   if (existingContainer) {
     dockerContainer = DOCKER.getContainer(existingContainer.Id);
     if (existingContainer.State === "paused") {
@@ -152,20 +153,20 @@ async function startContainer({
         `[StartContainer] Container '${containerName}' exists but is paused. Unpausing it...`,
       );
       await dockerContainer.unpause();
+      logStream = await createLogStream({ dockerContainer, containerName });
     } else if (existingContainer.State === "created") {
       logger.stderr(
         `[StartContainer] Container '${containerName}' is created but not started. Starting it...`,
       );
       await dockerContainer.start();
+      logStream = await createLogStream({ dockerContainer, containerName });
     } else {
       logger.stderr(
         `[StartContainer] Container '${containerName}' is already running.`,
       );
     }
   } else {
-    logger.stderr(
-      `[StartContainer] Starting container '${containerName}'...`,
-    );
+    logger.stderr(`[StartContainer] Starting container '${containerName}'...`);
     dockerContainer = await createContainer({
       imageName,
       containerName,
@@ -173,8 +174,9 @@ async function startContainer({
       containerPort,
     });
     await dockerContainer.start();
+    logStream = await createLogStream({ dockerContainer, containerName });
   }
-  return dockerContainer;
+  return logStream;
 }
 
 /**
@@ -287,13 +289,12 @@ async function ensureContainerRunning({
     if (pull) {
       await pullImage(imageName);
     }
-    const dockerContainer = await startContainer({
+    const logStream = await startContainer({
       imageName,
       containerName,
       hostPort,
       containerPort,
     });
-    const logStream = await createLogStream({ dockerContainer, containerName });
     logger.stderr(
       `[StartContainer] Container '${containerName}' started. Monitoring HealthCheck for readiness.`,
     );
