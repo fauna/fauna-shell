@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { JSON_FORMAT } from "./formatting/colorize.mjs";
+import { colorize, Format } from "./formatting/colorize.mjs";
 
 /**
  * Gets a secret for the current credentials.
@@ -60,9 +60,9 @@ export const runQueryFromString = (expression, argv) => {
       }),
     );
   } else {
-    const { secret, url, timeout, format, ...rest } = argv;
+    const { secret, url, timeout, format, performanceHints, ...rest } = argv;
     let apiFormat = "decorated";
-    if (format === JSON_FORMAT) {
+    if (format === Format.JSON) {
       apiFormat = "simple";
     }
 
@@ -72,8 +72,14 @@ export const runQueryFromString = (expression, argv) => {
         secret,
         url,
         client: undefined,
-        // eslint-disable-next-line camelcase
-        options: { query_timeout_ms: timeout, format: apiFormat, ...rest },
+        options: {
+          /* eslint-disable camelcase */
+          query_timeout_ms: timeout,
+          performance_hints: performanceHints,
+          /* eslint-enable camelcase */
+          format: apiFormat,
+          ...rest,
+        },
       }),
     );
   }
@@ -122,3 +128,29 @@ export const formatQueryResponse = (
     return faunaV10.formatQueryResponse(res, { raw, format, color });
   }
 };
+
+/**
+ * Formats a performance hint. If no hint is available, returns a default message. If
+ * the hint is malformed, returns the hint as is.
+ * @param {string} performanceHint - The performance hint
+ * @returns {string}
+ */
+export const formatPerformanceHint = (performanceHint) => {
+  if (
+    !performanceHint ||
+    typeof performanceHint !== "string" ||
+    !performanceHint.startsWith("performance_hint")
+  ) {
+    return "performance_hint: No performance hint available.";
+  }
+
+  try {
+    const [message, ...hints] = performanceHint.split("\n");
+    return `${message}\n${colorize(hints.join("\n"), { format: Format.FQL })}`;
+  } catch (err) {
+    const logger = container.resolve("logger");
+    logger.debug(`Unable to parse performance hint: ${err}`);
+    return performanceHint;
+  }
+};
+

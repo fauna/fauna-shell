@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { FQL_FORMAT, JSON_FORMAT } from "./formatting/colorize.mjs";
+import { Format } from "./formatting/colorize.mjs";
 
 const COMMON_OPTIONS = {
   // hidden
@@ -155,7 +155,7 @@ export const resolveFormat = (argv) => {
       "--json has taken precedence over other formatting options, using JSON output",
       "argv",
     );
-    return JSON_FORMAT;
+    return Format.JSON;
   }
 
   if (argv.raw) {
@@ -163,7 +163,7 @@ export const resolveFormat = (argv) => {
       "--raw has taken precedence over other formatting options, using JSON output",
       "argv",
     );
-    return JSON_FORMAT;
+    return Format.JSON;
   }
 
   return argv.format;
@@ -205,8 +205,8 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     alias: "f",
     description:
       "Output format for the query. When present, --json takes precedence over --format. Only applies to v10 queries.",
-    choices: [FQL_FORMAT, JSON_FORMAT],
-    default: FQL_FORMAT,
+    choices: [Format.FQL, Format.JSON],
+    default: Format.FQL,
     group: "API:",
   },
   typecheck: {
@@ -221,6 +221,13 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     description:
       "Maximum runtime, in milliseconds, for Fauna Core HTTP API requests made by the command.",
     default: 5000,
+    group: "API:",
+  },
+  performanceHints: {
+    type: "boolean",
+    description:
+      "Enable performance hints for the current query. Only applies to v10 queries.",
+    default: false,
     group: "API:",
   },
 };

@@ -340,6 +340,40 @@ describe("query", function () {
         }),
       );
     });
+
+    it("can set the performanceHints option to true", async function () {
+      await run(
+        `query "Database.all()" --performanceHints --secret=foo`,
+        container,
+      );
+      expect(runQueryFromString).to.have.been.calledWith(
+        '"Database.all()"',
+        sinon.match({
+          performanceHints: true,
+        }),
+      );
+    });
+
+    it("can display performance hints", async function () {
+      runQueryFromString.resolves({
+        summary: "performance_hint: use a more efficient query\n<diagnostics>",
+        data: "fql",
+      });
+
+      await run(
+        `query "Database.all()" --performanceHints --secret=foo`,
+        container,
+      );
+
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match(/use a more efficient query/),
+      );
+      expect(container.resolve("codeToAnsi")).to.have.been.calledWith(
+        sinon.match(/<diagnostics>/),
+        "fql",
+      );
+      expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
+    });
   });
 
   describe("v4", function () {
