@@ -145,8 +145,13 @@ export const formatPerformanceHint = (performanceHint) => {
   }
 
   try {
-    const [message, ...hints] = performanceHint.split("\n");
-    return `${message}\n${colorize(hints.join("\n"), { format: Format.FQL })}`;
+    const lines = performanceHint.split("\n").map((line) => {
+      if (line.startsWith("performance_hint")) {
+        return line;
+      }
+      return colorize(line, { format: Format.FQL });
+    });
+    return lines.join("\n");
   } catch (err) {
     const logger = container.resolve("logger");
     logger.debug(`Unable to parse performance hint: ${err}`);
