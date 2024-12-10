@@ -1,5 +1,8 @@
 //@ts-check
 
+import { container } from "../cli.mjs";
+import { FQL_FORMAT, JSON_FORMAT } from "./formatting/colorize.mjs";
+
 const COMMON_OPTIONS = {
   // hidden
   accountUrl: {
@@ -146,6 +149,28 @@ export function isUnknownError(error) {
   return !isYargsError(error) && !(error instanceof CommandError);
 }
 
+export const resolveFormat = (argv) => {
+  const logger = container.resolve("logger");
+
+  if (argv.json) {
+    logger.debug(
+      "--json has taken precedence over other formatting options, using JSON output",
+      "argv",
+    );
+    return JSON_FORMAT;
+  }
+
+  if (argv.raw) {
+    logger.debug(
+      "--raw has taken precedence over other formatting options, using JSON output",
+      "argv",
+    );
+    return JSON_FORMAT;
+  }
+
+  return argv.format;
+};
+
 /**
  * Validate that the user has specified either a database or a secret.
  * This check is not required for commands that can operate at a
@@ -177,6 +202,15 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     group: "API:",
   },
   // v10 specific options
+  format: {
+    type: "string",
+    alias: "f",
+    description:
+      "Output format for the query. When present, --json takes precedence over --format. Only applies to v10 queries.",
+    choices: [FQL_FORMAT, JSON_FORMAT],
+    default: FQL_FORMAT,
+    group: "API:",
+  },
   typecheck: {
     type: "boolean",
     description:

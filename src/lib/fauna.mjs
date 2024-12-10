@@ -13,7 +13,7 @@ import {
 
 import { container } from "../cli.mjs";
 import { ValidationError } from "./command-helpers.mjs";
-import { formatFullErrorForShell, formatObject } from "./misc.mjs";
+import { colorize, JSON_FORMAT, TEXT_FORMAT } from "./formatting/colorize.mjs";
 
 /**
  * Interprets a string as a FQL expression and returns a query.
@@ -123,7 +123,7 @@ export const runQueryFromString = async ({
  *
  * @param {any} err - An error to format
  * @param {object} [opts]
- * @param {boolean} [opts.raw] - Whether to include raw information
+ * @param {boolean} [opts.raw] - Whether to include full response bodies
  * @param {boolean} [opts.color] - Whether to colorize the error
  * @returns {string} The formatted error message
  */
@@ -137,15 +137,21 @@ export const formatError = (err, opts = {}) => {
     typeof err.queryInfo === "object" &&
     typeof err.queryInfo.summary === "string"
   ) {
-    // If you want raw information, use util.inspect to get the full error object.
+    // If you want full response, use util.inspect to get the full error object.
     if (raw) {
-      return formatFullErrorForShell(err, { color });
+      return colorize(err, { color, format: JSON_FORMAT });
     }
 
     // Otherwise, return the summary and fall back to the message.
-    return `The query failed with the following error:\n\n${err.queryInfo?.summary ?? err.message}`;
+    return colorize(
+      `The query failed with the following error:\n\n${err.queryInfo?.summary ?? err.message}`,
+      { color, format: TEXT_FORMAT },
+    );
   } else {
-    return `The query failed unexpectedly with the following error:\n\n${err.message}`;
+    return colorize(
+      `The query failed unexpectedly with the following error:\n\n${err.message}`,
+      { color, format: TEXT_FORMAT },
+    );
   }
 };
 
@@ -153,17 +159,17 @@ export const formatError = (err, opts = {}) => {
  * Formats a V10 Fauna query response.
  * @par [ am {import("fauna").QuerySuccess<any>} res
  * @param {object} [opts]
- * @param {boolean} [opts.raw] - Whether to include raw information
- * @param {boolean} [opts.json] - Whether to return the response as a JSON string
+ * @param {boolean} [opts.raw] - Whether to include full response bodies
+ * @param {string} [opts.format] - The format to use
  * @param {boolean} [opts.color] - Whether to colorize the response
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { raw } = opts;
+  const { raw, format = JSON_FORMAT, color } = opts;
 
   // If raw is set, return the full response object.
   const data = raw ? res : res.data;
-  return formatObject(data, opts);
+  return colorize(data, { format, color });
 };
 
 /**
