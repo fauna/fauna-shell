@@ -57,8 +57,10 @@ const COMMON_QUERY_OPTIONS = {
   },
   accountKey: {
     type: "string",
-    description: "The account key to use when calling Fauna",
+    description:
+      "Fauna account key used for authentication. Negates the need for a user login. The key is used to generate short-lived database secrets for the CLI. Mutually exclusive with `--user` and `--secret`.",
     required: false,
+    group: "API:",
   },
   database: {
     alias: "d",

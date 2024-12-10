@@ -50,7 +50,7 @@ export class DatabaseKeys {
     // argv.secret comes from flag, config, or FAUNA_SECRET
     if (argv.secret) {
       key = argv.secret;
-      keySource = "--secret";
+      keySource = "user";
     } else {
       key = storedKey;
       keySource = "credentials-file";
