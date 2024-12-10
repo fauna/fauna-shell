@@ -50,7 +50,7 @@ const validateQueryParams = ({ query, client, url, secret }) => {
 };
 
 /**
- * Runs a V10 Fauna query. A client may be provided, or a url
+ * Runs a v4 Fauna query. A client may be provided, or a url
  * and secret may be used to create one.
  *
  * @param {object} opts
@@ -70,9 +70,20 @@ export const runQuery = async ({
 }) => {
   validateQueryParams({ query, client, url, secret });
   let _client = client ?? (await getClient({ url, secret }));
-
+  const logger = container.resolve("logger");
   try {
-    return await _client.queryWithMetrics(query, options);
+    const result = await _client.queryWithMetrics(query, options);
+    logger.debug(
+      `Fauna v4 query result: ${JSON.stringify(result, null, 2)}`,
+      "client",
+    );
+    return result;
+  } catch (err) {
+    logger.debug(
+      `Fauna v4 query error: ${JSON.stringify(err, null, 2)}`,
+      "client",
+    );
+    throw err;
   } finally {
     if (!client && _client) {
       _client.close();

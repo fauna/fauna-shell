@@ -3,7 +3,8 @@ import { CommandError } from "../command-helpers.mjs";
 import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { SecretKeyStorage } from "../file-util.mjs";
 
-const TTL_DEFAULT_MS = 1000 * 60 * 15; // 15 minutes
+// const TTL_DEFAULT_MS = 1000 * 60 * 15; // 15 minutes
+const TTL_DEFAULT_MS = 5000;
 const DEFAULT_ROLE = "admin";
 
 /**
