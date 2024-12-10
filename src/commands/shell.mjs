@@ -2,6 +2,8 @@
 
 import repl from "node:repl";
 
+import * as esprima from "esprima";
+
 import { container } from "../cli.mjs";
 import {
   validateDatabaseOrSecret,
@@ -11,6 +13,8 @@ import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
 
 async function shellCommand(argv) {
+  const { query: v4Query } = container.resolve("faunadb");
+
   validateDatabaseOrSecret(argv);
 
   const logger = container.resolve("logger");
@@ -21,7 +25,7 @@ async function shellCommand(argv) {
 
   /** @type {import('node:repl').ReplOptions} */
   const replArgs = {
-    prompt: `${argv.db_path || ""}> `,
+    prompt: `${argv.database || ""}> `,
     ignoreUndefined: true,
     preview: argv.apiVersion !== "10",
     // TODO: integrate with fql-analyzer for completions
@@ -44,6 +48,10 @@ async function shellCommand(argv) {
 
   // eslint-disable-next-line no-console
   shell.on("error", console.error);
+
+  if (argv.apiVersion === "4") {
+    Object.assign(shell.context, v4Query);
+  }
 
   completionPromise = new Promise((resolve) => {
     shell.on("exit", resolve);
@@ -117,10 +125,19 @@ async function buildCustomEval(argv) {
       const { apiVersion, color, json } = argv;
       const { raw } = ctx;
 
+      if (apiVersion === "4") {
+        try {
+          esprima.parseScript(cmd);
+        } catch (err) {
+          return cb(new repl.Recoverable(err));
+        }
+      }
+
       let res;
       try {
         const secret = await getSecret();
         const { url, timeout, typecheck } = argv;
+
         res = await runQueryFromString(cmd, {
           apiVersion,
           secret,
