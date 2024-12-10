@@ -208,6 +208,7 @@ async function waitForHealthCheck({
 
   while (attemptCounter < maxAttempts) {
     try {
+      /* eslint-disable-next-line no-await-in-loop */
       const response = await fetch(`${url}/ping`, {
         method: "GET",
         timeout: 1000,
@@ -224,6 +225,7 @@ async function waitForHealthCheck({
     }
 
     attemptCounter++;
+    /* eslint-disable-next-line no-await-in-loop */
     await new Promise((resolve) => {
       setTimeout(resolve, delay);
     });
