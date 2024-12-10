@@ -154,7 +154,7 @@ async function buildCustomEval(argv) {
           format: outputFormat,
         });
       } catch (err) {
-        logger.stderr(await formatError(err, { apiVersion, raw, color }));
+        logger.stderr(formatError(err, { apiVersion, raw, color }));
         return cb(null);
       }
 

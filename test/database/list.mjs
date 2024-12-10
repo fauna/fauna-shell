@@ -198,7 +198,7 @@ describe("database list", () => {
         }));
 
         expect(logger.stdout).to.have.been.calledOnceWith(
-          await colorize(expectedOutput, {
+          colorize(expectedOutput, {
             format: "json",
             color: true,
           }),

@@ -18,12 +18,10 @@ default:
   # comment!
   secret: "very-secret"
   url: "https://db.fauna.com:443"
-  json: true
 
 dev:
   secret: "super-secret"
   url: "https://localhost:9999"
-  json: true
 `.trim();
 
 const jsonConfig = `
@@ -31,12 +29,10 @@ const jsonConfig = `
   "default": {
     "secret": "very-secret",
     "url": "https://db.fauna.com:443",
-    "json": true
   },
   "dev": {
     "secret": "super-secret",
     "url": "https://localhost:9999",
-    "json": true
   }
 }
 `.trim();
