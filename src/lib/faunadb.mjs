@@ -2,7 +2,7 @@
 import { createContext, runInContext } from "node:vm";
 
 import { container } from "../cli.mjs";
-import { formatFullErrorForShell, formatObject } from "./misc.mjs";
+import { colorize, JSON_FORMAT } from "./formatting/colorize.mjs";
 
 /**
  * Creates a V4 Fauna client.
@@ -100,12 +100,12 @@ export const formatError = (err, opts = {}) => {
   ) {
     // If raw is on, return the full error.
     if (raw) {
-      return formatFullErrorForShell(err, { color });
+      return colorize(err, { color, format: JSON_FORMAT });
     }
 
     const { errors } = err.requestResult.responseContent;
     if (!errors) {
-      return err.message;
+      return colorize(err.message, { color });
     }
 
     const messages = [];
@@ -113,10 +113,12 @@ export const formatError = (err, opts = {}) => {
       messages.push(`${code}: ${description} at ${position.join(", ")}\n`);
     });
 
-    return messages.join("\n").trim();
+    return colorize(messages.join("\n").trim(), {
+      color,
+    });
   }
 
-  return err.message;
+  return colorize(err.message, { color });
 };
 
 /**
@@ -126,12 +128,14 @@ export const formatError = (err, opts = {}) => {
  * @param {boolean} [opts.raw] - Whether to include full response bodies
  * @param {boolean} [opts.json] - Whether to return the response as a JSON string
  * @param {boolean} [opts.color] - Whether to colorize the response
+ * @param {string} [opts.format] - The format to use for the response
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { raw } = opts;
+  const { raw, color, format } = opts;
   const data = raw ? res : res.value;
-  return formatObject(data, opts);
+  const resolvedFormat = raw ? JSON_FORMAT : (format ?? JSON_FORMAT);
+  return colorize(data, { format: resolvedFormat, color });
 };
 
 /**

@@ -18,14 +18,13 @@ async function doLogin(argv) {
     const dashboardOAuthURL =
       await FaunaAccountClient.startOAuthRequest(authCodeParams);
     open(dashboardOAuthURL);
-    logger.stdout(`To login, open your browser to:\n ${dashboardOAuthURL}`);
+    logger.stdout(`To login, open your browser to:\n${dashboardOAuthURL}`);
   });
   oAuth.server.on("auth_code_received", async () => {
     try {
       const tokenParams = oAuth.getTokenParams();
       const accessToken = await FaunaAccountClient.getToken(tokenParams);
       await credentials.login(accessToken);
-      logger.stdout(`Login Success!\n`);
     } catch (err) {
       logger.stderr(err);
     }
