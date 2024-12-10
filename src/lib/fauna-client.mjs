@@ -87,6 +87,7 @@ export const retryInvalidCredsOnce = async (initialSecret, fn) => {
   try {
     return await fn(initialSecret);
   } catch (err) {
+    // console.log("in the retry block, got err", err.name);
     // If it's a 401, we need to refresh the secret. Let's just do type narrowing here
     // vs doing another v4 vs v10 check.
     if (
