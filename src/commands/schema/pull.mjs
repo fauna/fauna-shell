@@ -3,6 +3,7 @@
 import { container } from "../../cli.mjs";
 import {
   CommandError,
+  ValidationError,
   yargsWithCommonQueryOptions,
 } from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
@@ -36,9 +37,9 @@ async function determineFileState(argv, filenames) {
   return { adds, deletes, existing, overwrites };
 }
 
-function logDiff({ argv, adds, overwrites, deletes }) {
+function logDiff({ argv, adds, overwrites, deletes, source }) {
   const logger = container.resolve("logger");
-  logger.stdout("Pull will make the following changes:");
+  logger.stdout(`Pulling ${source} schema will make the following changes:`);
   if (argv.delete) {
     for (const deleteme of deletes) {
       logger.stdout(`delete:    ${deleteme}`);
@@ -52,19 +53,48 @@ function logDiff({ argv, adds, overwrites, deletes }) {
   }
 }
 
+/**
+ * @param {object} argv
+ * @returns {"active" | "staged" | undefined} The source to pull from
+ */
+function parsePullSource(argv) {
+  if (argv.active && argv.staged) {
+    throw new ValidationError("Cannot specify both --active and --staged.");
+  }
+
+  if (argv.active) {
+    return "active";
+  }
+
+  if (argv.staged) {
+    return "staged";
+  }
+
+  return undefined;
+}
+
 async function doPull(argv) {
   const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const secret = await getSecret();
 
+  const argvSource = parsePullSource(argv);
+  const filesParams =
+    argvSource === "staged"
+      ? new URLSearchParams({ staged: "true" })
+      : undefined;
+
   // fetch the list of remote FSL files
   const filesResponse = await makeFaunaRequest({
     argv,
     path: "/schema/1/files",
+    params: filesParams,
     method: "GET",
     secret,
   });
+
+  const version = filesResponse.version;
 
   // sort for consistent order (it's nice for tests)
   const filenames = filesResponse.files
@@ -72,31 +102,32 @@ async function doPull(argv) {
     .filter((name) => name.endsWith(".fsl"))
     .sort();
 
-  // check if there's a staged schema
+  // Get the staged schema status
+  /** @type {{ status: "none" | "pending" | "ready" | "failed" }} */
   const statusResponse = await makeFaunaRequest({
     argv,
     path: "/schema/1/staged/status",
-    params: new URLSearchParams({ version: filesResponse.version }),
+    params: new URLSearchParams({ version: version }),
     method: "GET",
     secret,
   });
 
-  // if there's a staged schema, cannot use the --active flag.
-  // getting active FSL while staged FSL exists is not yet
-  // implemented at the service level.
-  if (statusResponse.status !== "none" && argv.active) {
+  // If the source was not specified by the caller, determine it based on the status
+  if (argvSource === "staged" && statusResponse.status === "none") {
     throw new CommandError(
-      "There is a staged schema change. Remove the --active flag to pull it.",
+      "There is no staged schema to pull. Remove --staged or specify --active instead.",
     );
-  } else if (statusResponse.status === "none" && !argv.active) {
-    throw new CommandError("There are no staged schema changes to pull.");
   }
+  const source =
+    (argvSource ?? statusResponse.status === "none") ? "active" : "staged";
+
+  logger.debug(`Pulling remote ${source} schema, version '${version}'.`);
 
   const { adds, deletes, overwrites } = await determineFileState(
     argv,
     filenames,
   );
-  logDiff({ argv, adds, deletes, overwrites });
+  logDiff({ argv, adds, deletes, overwrites, source });
 
   const confirmed = await confirm({
     message: "Accept the changes?",
@@ -108,7 +139,12 @@ async function doPull(argv) {
     const getAllSchemaFileContents = container.resolve(
       "getAllSchemaFileContents",
     );
-    const contents = await getAllSchemaFileContents(filenames, argv);
+    const contents = await getAllSchemaFileContents(
+      filenames,
+      source,
+      version,
+      argv,
+    );
 
     // don't start writing or deleting files until we've successfully fetched all
     // the remote schema files
@@ -139,7 +175,13 @@ function buildPullCommand(yargs) {
       },
       active: {
         description:
-          "Pull the database's active schema files. If omitted, pulls the database's staged schema, if available.",
+          "Specify to pull the database's active schema files. If omitted, pulls the database's staged schema, if available.",
+        type: "boolean",
+        default: false,
+      },
+      staged: {
+        description:
+          "Specify to pull the database's staged schema files. Fails if there is no staged schema available.",
         type: "boolean",
         default: false,
       },

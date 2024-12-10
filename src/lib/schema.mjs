@@ -167,19 +167,33 @@ export async function writeSchemaFiles(dir, filenameToContentsDict) {
 
 /**
  * @param {string[]} filenames - A list of schema file names to fetch
+ * @param {"active" | "staged"} source - The source to pull from
+ * @param {string} version - The schema version for optimistic concurrency control
  * @param {object} argv
  * @returns {Promise<Record<string, string>>} A map of schema file names to their contents.
  */
-export async function getAllSchemaFileContents(filenames, argv) {
+export async function getAllSchemaFileContents(
+  filenames,
+  source,
+  version,
+  argv,
+) {
   const promises = [];
   /** @type Record<string, string> */
   const fileContentCollection = {};
   const secret = await getSecret();
+
+  const params = new URLSearchParams({
+    version: version,
+    staged: source === "staged" ? "true" : "false",
+  });
+
   for (const filename of filenames) {
     promises.push(
       makeFaunaRequest({
         argv,
         path: `/schema/1/files/${encodeURIComponent(filename)}`,
+        params,
         method: "GET",
         secret,
       }).then(({ content }) => {
