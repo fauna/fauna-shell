@@ -1,17 +1,18 @@
 import chalk from "chalk";
-import { readFileSync } from "fs";
+import { createRequire } from "module";
 import { createHighlighterCoreSync } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 import json from "shiki/langs/json.mjs";
 import githubDarkHighContrast from "shiki/themes/github-dark-high-contrast.mjs";
+
+const require = createRequire(import.meta.url);
+const fql = require("./fql.json");
 
 import { isTTY } from "../misc.mjs";
 
 const THEME = "github-dark-high-contrast";
 
 export const createHighlighter = () => {
-  const fql = JSON.parse(readFileSync(new URL("./fql.json", import.meta.url)));
-
   const highlighter = createHighlighterCoreSync({
     themes: [githubDarkHighContrast],
     langs: [json, fql],
