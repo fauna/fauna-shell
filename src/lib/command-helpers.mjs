@@ -158,9 +158,9 @@ export const resolveFormat = (argv) => {
     return JSON_FORMAT;
   }
 
-  if (argv.extra) {
+  if (argv.raw) {
     logger.debug(
-      "--extra has taken precedence over other formatting options, using JSON output",
+      "--raw has taken precedence over other formatting options, using JSON output",
       "argv",
     );
     return JSON_FORMAT;
