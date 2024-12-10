@@ -95,12 +95,12 @@ async function shellCommand(argv) {
       },
     },
     {
-      cmd: "toggleExtra",
+      cmd: "toggleRawResponses",
       help: "Enable or disable additional output. Disabled by default. If enabled, outputs the full API response, including summary and query stats.",
       action: () => {
-        shell.context.extra = !shell.context.extra;
+        shell.context.raw = !shell.context.raw;
         logger.stderr(
-          `Additional information in shell: ${shell.context.extra ? "on" : "off"}`,
+          `Additional information in shell: ${shell.context.raw ? "on" : "off"}`,
         );
         shell.prompt();
       },
@@ -123,7 +123,7 @@ async function buildCustomEval(argv) {
 
       // These are options used for querying and formatting the response
       const { apiVersion, color, json } = argv;
-      const { extra } = ctx;
+      const { raw } = ctx;
 
       if (apiVersion === "4") {
         try {
@@ -146,14 +146,12 @@ async function buildCustomEval(argv) {
           typecheck,
         });
       } catch (err) {
-        logger.stderr(formatError(err, { apiVersion, extra, color }));
+        logger.stderr(formatError(err, { apiVersion, raw, color }));
         return cb(null);
       }
 
-      // If extra is on, return the full response. Otherwise, return just the data.
-      logger.stdout(
-        formatQueryResponse(res, { apiVersion, extra, color, json }),
-      );
+      // If raw is on, return the full response. Otherwise, return just the data.
+      logger.stdout(formatQueryResponse(res, { apiVersion, raw, color, json }));
 
       return cb(null);
     } catch (e) {
