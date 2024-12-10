@@ -153,4 +153,3 @@ export const formatPerformanceHint = (performanceHint) => {
     return performanceHint;
   }
 };
-
