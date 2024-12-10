@@ -18,9 +18,7 @@ async function doStatus(argv) {
   let params = new URLSearchParams({ diff: "summary" });
   const secret = await getSecret();
   const gatherFSL = container.resolve("gatherFSL");
-
-  const files = await gatherFSL(argv.dir);
-  const fsl = reformatFSL(files);
+  const fsl = reformatFSL(await gatherFSL(argv.dir));
 
   const statusResponse = await makeFaunaRequest({
     argv,
