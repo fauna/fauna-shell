@@ -1,11 +1,7 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import {
-  CommandError,
-  ValidationError,
-  yargsWithCommonQueryOptions,
-} from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { localSchemaOptions } from "./schema.mjs";
 
@@ -53,33 +49,29 @@ function logDiff({ argv, adds, overwrites, deletes, source }) {
   }
 }
 
-/**
- * @param {object} argv
- * @returns {"active" | "staged" | undefined} The source to pull from
- */
-function parsePullSource(argv) {
-  if (argv.active && argv.staged) {
-    throw new ValidationError("Cannot specify both --active and --staged.");
-  } else if (argv.active) {
-    return "active";
-  } else if (argv.staged) {
-    return "staged";
-  }
-
-  return undefined;
-}
-
 async function doPull(argv) {
   const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const secret = await getSecret();
 
-  const argvSource = parsePullSource(argv);
-  const filesParams =
-    argvSource === "staged"
-      ? new URLSearchParams({ staged: "true" })
-      : undefined;
+  // Get the staged schema status
+  /** @type {{ status: "none" | "pending" | "ready" | "failed", version: string }} */
+  const statusResponse = await makeFaunaRequest({
+    argv,
+    path: "/schema/1/staged/status",
+    method: "GET",
+    secret,
+  });
+
+  const version = statusResponse.version;
+  const source =
+    argv.active || statusResponse.status === "none" ? "active" : "staged";
+
+  const filesParams = new URLSearchParams({
+    version,
+    staged: source === "staged" ? "true" : "false",
+  });
 
   // fetch the list of remote FSL files
   const filesResponse = await makeFaunaRequest({
@@ -90,32 +82,11 @@ async function doPull(argv) {
     secret,
   });
 
-  const version = filesResponse.version;
-
   // sort for consistent order (it's nice for tests)
   const filenames = filesResponse.files
     .map((file) => file.filename)
     .filter((name) => name.endsWith(".fsl"))
     .sort();
-
-  // Get the staged schema status
-  /** @type {{ status: "none" | "pending" | "ready" | "failed" }} */
-  const statusResponse = await makeFaunaRequest({
-    argv,
-    path: "/schema/1/staged/status",
-    params: new URLSearchParams({ version: version }),
-    method: "GET",
-    secret,
-  });
-
-  // If the source was not specified by the caller, determine it based on the status
-  if (argvSource === "staged" && statusResponse.status === "none") {
-    throw new CommandError(
-      "There is no staged schema to pull. Remove --staged or specify --active instead.",
-    );
-  }
-  const source =
-    (argvSource ?? statusResponse.status === "none") ? "active" : "staged";
 
   logger.debug(
     `Pulling remote ${source} schema, version '${version}'.`,
@@ -174,12 +145,6 @@ function buildPullCommand(yargs) {
       },
       active: {
         description: "Pull the database's active schema files.",
-        type: "boolean",
-        default: false,
-      },
-      staged: {
-        description:
-          "Pull the database's staged schema files. Fails if there is no staged schema available.",
         type: "boolean",
         default: false,
       },
