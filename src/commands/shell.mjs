@@ -29,8 +29,9 @@ async function shellCommand(argv) {
   const replArgs = {
     prompt: `${argv.database || ""}> `,
     ignoreUndefined: true,
-    preview: undefined,
-    completer: undefined,
+    preview: argv.apiVersion !== "10",
+    // TODO: integrate with fql-analyzer for completions
+    completer: argv.apiVersion === "10" ? () => [] : undefined,
     output: container.resolve("stdoutStream"),
     input: container.resolve("stdinStream"),
     eval: await buildCustomEval(argv),
