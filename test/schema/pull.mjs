@@ -3,7 +3,6 @@
 import * as awilix from "awilix";
 import { expect } from "chai";
 import sinon from "sinon";
-import tryToCatch from "try-to-catch";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
@@ -39,7 +38,7 @@ describe("schema pull", function () {
     gatherFSL = container.resolve("gatherFSL");
   });
 
-  it("can pull schema, adding new files and overwriting existing files", async function () {
+  it("can pull schema, adding new files and overwriting existing files", async function () {
     gatherFSL.resolves([
       {
         name: "coll.fsl",
@@ -59,17 +58,18 @@ describe("schema pull", function () {
     fetch.onCall(0).resolves(
       f({
         version: "194838274939473",
-        files: [
-          { filename: "main.fsl" },
-          { filename: "second.fsl" },
-          { filename: "third.fsl" },
-        ],
+        // assume no staged schema for this test
+        status: "none",
       }),
     );
     fetch.onCall(1).resolves(
       f({
         version: "194838274939473",
-        status: "ready",
+        files: [
+          { filename: "main.fsl" },
+          { filename: "second.fsl" },
+          { filename: "third.fsl" },
+        ],
       }),
     );
     fetch.onCall(2).resolves(
@@ -98,27 +98,36 @@ describe("schema pull", function () {
     expect(gatherFSL).to.have.been.calledWith(".");
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/files"),
+      buildUrl("/schema/1/staged/status"),
       commonFetchParams,
     );
     // the version param in the URL is important - we use it for optimistic locking
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", {
+      buildUrl("/schema/1/files", {
         version: "194838274939473",
-        color: "ansi",
+        staged: "false",
       }),
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/files/main.fsl"),
+      buildUrl("/schema/1/files/main.fsl", {
+        version: "194838274939473",
+        staged: "false",
+      }),
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/files/second.fsl"),
+      buildUrl("/schema/1/files/second.fsl", {
+        version: "194838274939473",
+        staged: "false",
+      }),
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/files/third.fsl"),
+      buildUrl("/schema/1/files/third.fsl", {
+        version: "194838274939473",
+        staged: "false",
+      }),
       commonFetchParams,
     );
 
@@ -126,7 +135,7 @@ describe("schema pull", function () {
     expect(logger.stdout).to.have.been.calledWith("add:       second.fsl");
     expect(logger.stdout).to.have.been.calledWith("add:       third.fsl");
     expect(logger.stdout).to.have.been.calledWith(
-      "Pull will make the following changes:",
+      "Pulling active schema will make the following changes:",
     );
 
     expect(fs.mkdirSync).to.have.been.calledWith(".", { recursive: true });
@@ -168,17 +177,18 @@ describe("schema pull", function () {
     fetch.onCall(0).resolves(
       f({
         version: "194838274939473",
-        files: [
-          { filename: "main.fsl" },
-          { filename: "second.fsl" },
-          { filename: "third.fsl" },
-        ],
+        // assume no staged schema for this test
+        status: "none",
       }),
     );
     fetch.onCall(1).resolves(
       f({
         version: "194838274939473",
-        status: "ready",
+        files: [
+          { filename: "main.fsl" },
+          { filename: "second.fsl" },
+          { filename: "third.fsl" },
+        ],
       }),
     );
 
@@ -189,7 +199,7 @@ describe("schema pull", function () {
     expect(logger.stdout).to.have.been.calledWith("add:       third.fsl");
     expect(logger.stdout).to.have.been.calledWith("delete:    coll.fsl");
     expect(logger.stdout).to.have.been.calledWith(
-      "Pull will make the following changes:",
+      "Pulling active schema will make the following changes:",
     );
     expect(logger.stdout).to.have.been.calledWith("Change cancelled.");
     expect(fs.writeFile).to.have.not.been.called;
@@ -215,13 +225,14 @@ describe("schema pull", function () {
     fetch.onCall(0).resolves(
       f({
         version: "194838274939473",
-        files: [{ filename: "main.fsl" }],
+        // assume no staged schema for this test
+        status: "none",
       }),
     );
     fetch.onCall(1).resolves(
       f({
         version: "194838274939473",
-        status: "ready",
+        files: [{ filename: "main.fsl" }],
       }),
     );
     fetch.onCall(2).resolves(
@@ -241,7 +252,7 @@ describe("schema pull", function () {
     expect(logger.stdout).to.have.been.calledWith("overwrite: main.fsl");
     expect(logger.stdout).to.have.been.calledWith("delete:    coll.fsl");
     expect(logger.stdout).to.have.been.calledWith(
-      "Pull will make the following changes:",
+      "Pulling active schema will make the following changes:",
     );
 
     expect(fs.mkdirSync).to.have.been.calledWith(".", { recursive: true });
@@ -255,30 +266,60 @@ describe("schema pull", function () {
 
   it.skip("does not modify the filesystem if it fails to read file contents", async function () {});
 
-  it("errors if called with the --active flag while a schema change is staged", async function () {
-    fetch.onCall(0).resolves(
-      f({
-        version: "194838274939473",
-        files: [
-          { filename: "main.fsl" },
-          { filename: "second.fsl" },
-          { filename: "third.fsl" },
-        ],
-      }),
-    );
-    fetch.onCall(1).resolves(
-      f({
-        version: "194838274939473",
-        status: "ready",
-      }),
-    );
+  [
+    { argvActive: true, remoteStaged: true, expectedStagedParam: "false" },
+    { argvActive: false, remoteStaged: false, expectedStagedParam: "false" },
+    { argvActive: false, remoteStaged: true, expectedStagedParam: "true" },
+  ].forEach(({ argvActive, remoteStaged, expectedStagedParam }) => {
+    it(`can pull ${expectedStagedParam === "true" ? "staged" : "active"} schema while schema is ${remoteStaged ? "staged" : "not staged"}, and --active is ${argvActive ? "specified" : "not specified"}`, async function () {
+      fetch.onCall(0).resolves(
+        f({
+          version: "194838274939473",
+          status: remoteStaged ? "ready" : "none",
+        }),
+      );
+      fetch.onCall(1).resolves(
+        f({
+          version: "194838274939473",
+          files: [{ filename: "main.fsl" }],
+        }),
+      );
+      fetch.onCall(2).resolves(
+        f({
+          content:
+            "collection Main {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+        }),
+      );
 
-    const [error] = await tryToCatch(() =>
-      run(`schema pull --secret "secret" --active`, container),
-    );
-    expect(error).to.have.property("code", 1);
-    expect(container.resolve("gatherFSL")).to.not.have.been.called;
+      // user accepts the changes in the interactive prompt
+      confirm.resolves(true);
+
+      await run(
+        `schema pull --secret "secret" ${argvActive ? "--active" : ""}`,
+        container,
+      );
+
+      expect(fetch).to.have.been.calledWith(
+        buildUrl("/schema/1/staged/status"),
+        commonFetchParams,
+      );
+      // the version param in the URL is important - we use it for optimistic locking
+      expect(fetch).to.have.been.calledWith(
+        buildUrl("/schema/1/files", {
+          version: "194838274939473",
+          staged: expectedStagedParam,
+        }),
+        commonFetchParams,
+      );
+      expect(fetch).to.have.been.calledWith(
+        buildUrl("/schema/1/files/main.fsl", {
+          version: "194838274939473",
+          staged: expectedStagedParam,
+        }),
+        commonFetchParams,
+      );
+
+      expect(logger.stderr).to.not.have.been.called;
+    });
   });
-
-  it.skip("errors if there are no staged schema changes to pull");
 });
