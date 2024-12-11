@@ -208,7 +208,7 @@ async function startContainer({
       });
     } else if (state === "created" || state === "exited") {
       logger.stderr(
-        `[StartContainer] Container '${containerName}' exists in state '${existingContainer.State}'. Starting it...`,
+        `[StartContainer] Container '${containerName}' exists in state '${existingContainer.State}'. Starting it ...`,
       );
       await dockerContainer.start();
       logStream = await createLogStream({
@@ -260,6 +260,8 @@ async function startContainer({
  */
 async function createLogStream({ dockerContainer, containerName }) {
   const logger = container.resolve("logger");
+  console.log("dockerContainer", dockerContainer);
+  console.log("dockerContainer.logs", dockerContainer.logs);
   let logStream = await dockerContainer.logs({
     stdout: true,
     stderr: true,
