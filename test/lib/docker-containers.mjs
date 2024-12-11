@@ -8,7 +8,7 @@ import { f } from "../helpers.mjs";
 import sinon, { stub } from "sinon";
 
 describe.only("ensureContainerRunning", () => {
-  let container, fetch, logger, stderrStream, docker;
+  let container, fetch, logger, stderrStream, docker, logsStub, startStub, unpauseStub;
 
   beforeEach(async () => {
     container = await setupTestContainer();
@@ -16,93 +16,87 @@ describe.only("ensureContainerRunning", () => {
     stderrStream = container.resolve("stderrStream");
     fetch = container.resolve("fetch");
     docker = container.resolve("docker");
-  });
-
-  it("Should show messaging to the user if the container is already started", async () => {
-    docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
-      onFinished();
-    });
-    docker.listContainers
-      .onCall(0)
-      .resolves([{ State: "running", Names: ["/faunadb"] }]);
-    fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    const logsStub = stub();
-    const startStub = stub();
-    docker.getContainer.onCall(0).returns({
-      logs: logsStub,
-      start: startStub,
-    });
-    await run("local", container);
-    expect(docker.pull).to.have.been.calledWith("fauna/faunadb:latest");
-    expect(docker.modem.followProgress).to.have.been.calledWith(sinon.matchAny, sinon.match.func);
-    expect(docker.listContainers).to.have.been.calledWith({ all: true });
-    expect(startStub).to.not.have.been.called;
-    expect(logsStub).to.not.have.been.called;
-    expect(logger.stderr).to.have.been.calledWith(
-      `[PullImage] Pulling image 'fauna/faunadb:latest'...\n`,
-    );
-    expect(logger.stderr).to.have.been.calledWith(
-      "[PullImage] Image 'fauna/faunadb:latest' pulled.",
-    );
-    expect(logger.stderr).to.have.been.calledWith(
-      "[StartContainer] Container 'faunadb' is already running.",
-    );
-    expect(logger.stderr).to.have.been.calledWith(
-      "[StartContainer] Container 'faunadb' started. Monitoring HealthCheck for readiness.",
-    );
-    expect(logger.stderr).to.have.been.calledWith(
-      "[ContainerReady] Container 'faunadb' is up and healthy.",
-    );
-  });
-
-  it("Should show messaging to the user if the container is restarting. And it should fire up a logger.", async () => {
-    docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
-      onFinished();
-    });
-    docker.listContainers
-      .onCall(0)
-      .resolves([{ State: "restarting", Names: ["/faunadb"] }]);
-    fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    const logsStub = stub();
-    const startStub = stub();
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.getContainer.onCall(0).returns({
-      logs: logsStub,
-      start: startStub,
-    });
-    await run("local", container);
-    expect(logsStub).to.have.been.calledWith({
-      stdout: true,
-      stderr: true,
-      follow: true,
-      tail: 100,
-    });
-    expect(startStub).to.not.have.been.called;
-    expect(logger.stderr).to.have.been.calledWith(
-      "[StartContainer] Container 'faunadb' is restarting.",
-    );
+    logsStub = stub();
+    startStub = stub();
+    unpauseStub = stub();
   });
 
   [
-    "created",
-    "exited",
-  ].forEach((state) => {
-    it(`Starts the container when it already exists in state '${state}'`, async () => {
+    {
+      state: "paused",
+      startMessage: `[StartContainer] Container 'faunadb' exists but is paused. Unpausing it...`,
+      expectCalls: () => {
+        expect(unpauseStub).to.have.been.called;
+        expect(startStub).not.to.have.been.called;
+        expect(logsStub).to.have.been.calledWith({
+          stdout: true,
+          stderr: true,
+          follow: true,
+          tail: 100,
+        });
+      },
+    },
+    {
+      state: "created",
+      startMessage: `[StartContainer] Container 'faunadb' exists in state 'created'. Starting it...`,
+      expectCalls: () => {
+        expect(unpauseStub).not.to.have.been.called;
+        expect(startStub).to.have.been.called;
+        expect(logsStub).to.have.been.calledWith({
+          stdout: true,
+          stderr: true,
+          follow: true,
+          tail: 100,
+        });
+      },
+    },
+    {
+      state: "exited",
+      startMessage: `[StartContainer] Container 'faunadb' exists in state 'exited'. Starting it...`,
+      expectCalls: () => {
+        expect(unpauseStub).not.to.have.been.called;
+        expect(startStub).to.have.been.called;
+        expect(logsStub).to.have.been.calledWith({
+          stdout: true,
+          stderr: true,
+          follow: true,
+          tail: 100,
+        });
+      },
+    },
+    {
+      state: "restarting",
+      startMessage: `[StartContainer] Container 'faunadb' is restarting.`,
+      expectCalls: () => {
+        expect(unpauseStub).not.to.have.been.called;
+        expect(startStub).not.to.have.been.called;
+        expect(logsStub).to.have.been.calledWith({
+          stdout: true,
+          stderr: true,
+          follow: true,
+          tail: 100,
+        });
+      },
+    },
+    {
+      state: "running",
+      startMessage: "[StartContainer] Container 'faunadb' is already running.",
+      expectCalls: () => {
+        expect(unpauseStub).not.to.have.been.called;
+        expect(startStub).not.to.have.been.called;
+        expect(logsStub).not.to.have.been.called;
+      },
+    }
+  ].forEach((test) => {
+    it(`Ensures a container in state '${test.state}' becomes running and available.`, async () => {
       docker.pull.onCall(0).resolves();
       docker.modem.followProgress.callsFake((stream, onFinished) => {
         onFinished();
       });
       docker.listContainers
         .onCall(0)
-        .resolves([{ State: state, Names: ["/faunadb"] }]);
+        .resolves([{ State: test.state, Names: ["/faunadb"] }]);
       fetch.onCall(0).resolves(f({})); // fast succeed the health check
-      const logsStub = stub();
-      const startStub = stub();
       logsStub.callsFake(async () => ({
         on: () => {},
         destroy: () => {},
@@ -110,52 +104,32 @@ describe.only("ensureContainerRunning", () => {
       docker.getContainer.onCall(0).returns({
         logs: logsStub,
         start: startStub,
+        unpause: unpauseStub,
       });
       await run("local", container);
-      expect(logsStub).to.have.been.calledWith({
-        stdout: true,
-        stderr: true,
-        follow: true,
-        tail: 100,
-      });
-      expect(startStub).to.have.been.called;
+      expect(docker.pull).to.have.been.calledWith("fauna/faunadb:latest");
+      expect(docker.modem.followProgress).to.have.been.calledWith(sinon.matchAny, sinon.match.func);
+      expect(docker.listContainers).to.have.been.calledWith({ all: true });
+      test.expectCalls();
+      expect(logger.stderr).to.have.been.calledWith(test.startMessage);
       expect(logger.stderr).to.have.been.calledWith(
-        `[StartContainer] Container 'faunadb' exists in state '${state}'. Starting it ...`,
+        `[PullImage] Pulling image 'fauna/faunadb:latest'...\n`,
+      );
+      expect(logger.stderr).to.have.been.calledWith(
+        "[PullImage] Image 'fauna/faunadb:latest' pulled.",
+      );
+      expect(logger.stderr).to.have.been.calledWith(
+        "[StartContainer] Container 'faunadb' started. Monitoring HealthCheck for readiness.",
+      );
+      expect(logger.stderr).to.have.been.calledWith(
+        "[HealthCheck] Waiting for Fauna to be ready at http://localhost:8443...",
+      );
+      expect(logger.stderr).to.have.been.calledWith(
+        "[HealthCheck] Fauna is ready at http://localhost:8443",
+      );
+      expect(logger.stderr).to.have.been.calledWith(
+        "[ContainerReady] Container 'faunadb' is up and healthy.",
       );
     });
-  });
-
-  it("Unpauses the container when it is in state 'paused'", async () => {
-    docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
-      onFinished();
-    });
-    docker.listContainers
-      .onCall(0)
-      .resolves([{ State: "paused", Names: ["/faunadb"] }]);
-    fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    const logsStub = stub();
-    const startStub = stub();
-    const pausedStub = stub();
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.getContainer.onCall(0).returns({
-      logs: logsStub,
-      start: startStub,
-      paused: pausedStub
-    });
-    await run("local", container);
-    expect(logsStub).to.have.been.calledWith({
-      stdout: true,
-      stderr: true,
-      follow: true,
-      tail: 100,
-    });
-    expect(startStub).to.have.been.called;
-    expect(logger.stderr).to.have.been.calledWith(
-      `[StartContainer] Container 'faunadb' exists in state '${state}'. Starting it ...`,
-    );
   });
 });
