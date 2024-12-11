@@ -26,7 +26,6 @@ const YARGS_STATIC_PREFIXES = [
   "Implications failed:",
 ];
 
-
 /**
  * An error that is thrown by commands that is not a validation error, but
  * a known error state that should be communicated to the user.
