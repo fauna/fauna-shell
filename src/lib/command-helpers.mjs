@@ -79,47 +79,6 @@ const COMMON_QUERY_OPTIONS = {
   },
 };
 
-export const resolveFormat = (argv) => {
-  const logger = container.resolve("logger");
-
-  if (argv.json) {
-    logger.debug(
-      "--json has taken precedence over other formatting options, using JSON output",
-      "argv",
-    );
-    return Format.JSON;
-  }
-
-  if (argv.raw) {
-    logger.debug(
-      "--raw has taken precedence over other formatting options, using JSON output",
-      "argv",
-    );
-    return Format.JSON;
-  }
-
-  return argv.format;
-};
-
-/**
- * Validate that the user has specified either a database or a secret.
- * This check is not required for commands that can operate at a
- * "root" level.
- *
- * @param {object} argv
- * @param {string} argv.database - The database to use
- * @param {string} argv.secret - The secret to use
- * @param {boolean} argv.local - Whether to use a local Fauna container
- */
-export const validateDatabaseOrSecret = (argv) => {
-  if (!argv.database && !argv.secret && !argv.local) {
-    throw new ValidationError(
-      "No database or secret specified. Please use either --database, --secret, or --local to connect to your desired Fauna database.",
-    );
-  }
-  return true;
-};
-
 // used for queries customers can configure
 const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   ...COMMON_QUERY_OPTIONS,
@@ -182,3 +141,44 @@ export function yargsWithCommonConfigurableQueryOptions(yargs) {
 export function yargsWithCommonOptions(yargs, options) {
   return yargs.options({ ...options, ...COMMON_OPTIONS });
 }
+
+export const resolveFormat = (argv) => {
+  const logger = container.resolve("logger");
+
+  if (argv.json) {
+    logger.debug(
+      "--json has taken precedence over other formatting options, using JSON output",
+      "argv",
+    );
+    return Format.JSON;
+  }
+
+  if (argv.raw) {
+    logger.debug(
+      "--raw has taken precedence over other formatting options, using JSON output",
+      "argv",
+    );
+    return Format.JSON;
+  }
+
+  return argv.format;
+};
+
+/**
+ * Validate that the user has specified either a database or a secret.
+ * This check is not required for commands that can operate at a
+ * "root" level.
+ *
+ * @param {object} argv
+ * @param {string} argv.database - The database to use
+ * @param {string} argv.secret - The secret to use
+ * @param {boolean} argv.local - Whether to use a local Fauna container
+ */
+export const validateDatabaseOrSecret = (argv) => {
+  if (!argv.database && !argv.secret && !argv.local) {
+    throw new ValidationError(
+      "No database or secret specified. Please use either --database, --secret, or --local to connect to your desired Fauna database.",
+    );
+  }
+  return true;
+};

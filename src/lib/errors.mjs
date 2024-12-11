@@ -6,6 +6,26 @@ import { container } from "../cli.mjs";
 
 const BUG_REPORT_MESSAGE = `If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues`;
 
+/*
+ * These are the error message prefixes that yargs throws during
+ * validation. To detect these errors, you can either parse the stack
+ * or the message. We've decided to parse the messages.
+ *
+ * Compiled from https://github.com/yargs/yargs/blob/main/lib/validation.ts
+ */
+const YARGS_STATIC_PREFIXES = [
+  "Unknown argument:",
+  "Unknown arguments:",
+  "Missing required argument:",
+  "Missing required arguments:",
+  "Unknown command:",
+  "Unknown commands:",
+  "Invalid values:",
+  "Not enough non-option arguments:",
+  "Too many non-option arguments:",
+  "Implications failed:",
+];
+
 /**
  * An error that is thrown by commands that is not a validation error, but
  * a known error state that should be communicated to the user.
@@ -54,13 +74,10 @@ function isYargsError(error) {
     return true;
   }
 
-  // Usage errors from yargs are thrown as plain old Error. The best
-  // you can do is check for the message.
+  // Does the message look like a yargs error?
   if (
     error.message &&
-    (error.message.startsWith("Unknown argument") ||
-      error.message.startsWith("Missing required argument") ||
-      error.message.startsWith("Unknown command"))
+    YARGS_STATIC_PREFIXES.some((prefix) => error.message.startsWith(prefix))
   ) {
     return true;
   }
