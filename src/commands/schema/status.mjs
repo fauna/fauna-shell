@@ -21,11 +21,6 @@ async function doStatus(argv) {
   const gatherFSL = container.resolve("gatherFSL");
   const fsl = reformatFSL(await gatherFSL(argv.dir));
 
-  // let hasLocalSchema = false;
-  // for (let _ of fsl.entries()) {
-  //   hasLocalSchema = true;
-  //   break;
-  // }
   const hasLocalSchema = fsl.entries().next().done === false;
 
   const statusParams = new URLSearchParams({ diff: "summary" });
