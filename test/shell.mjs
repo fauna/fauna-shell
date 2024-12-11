@@ -10,6 +10,7 @@ import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { ValidationError } from "../src/lib/command-helpers.mjs";
 import { dirExists } from "../src/lib/file-util.mjs";
 import { colorize } from "../src/lib/formatting/colorize.mjs";
 import { createV4QuerySuccess, createV10QuerySuccess } from "./helpers.mjs";
@@ -61,7 +62,7 @@ const sleep = async (ms) =>
   });
 
 describe("shell", function () {
-  let container, stdin, stdout, logger, runQueryFromString;
+  let container, stdin, stdout, stderr, logger, runQueryFromString;
 
   const promptReset = "\x1B[1G\x1B[0J> ";
   const prompt = `${EOL}${promptReset}\x1B[3G`;
@@ -79,6 +80,7 @@ describe("shell", function () {
     logger = container.resolve("logger");
     stdin = container.resolve("stdinStream");
     stdout = container.resolve("stdoutStream");
+    stderr = container.resolve("stderrStream");
     runQueryFromString = container.resolve("runQueryFromString");
   });
 
@@ -90,6 +92,20 @@ describe("shell", function () {
     it.skip("can read input from a file", async function () {});
 
     it.skip("can set a connection timeout", async function () {});
+
+    it("can fail before getting to shell if the database is not queryable", async function () {
+      container
+        .resolve("isQueryable")
+        .rejects(new ValidationError("Database not found: us/bad"));
+      const runPromise = run(`shell --format json -d us/bad`, container);
+
+      try {
+        await runPromise;
+      } catch {}
+
+      await stderr.waitForWritten();
+      expect(stderr.getWritten()).to.match(/Database not found: us\/bad/);
+    });
 
     describe("history", function () {
       const upArrow = "\x1b[A";

@@ -1,6 +1,6 @@
 import { container } from "../cli.mjs";
+import { ValidationError } from "./command-helpers.mjs";
 import { InvalidCredsError, UnauthorizedError } from "./misc.mjs";
-
 /**
  *
  * @param {Object} opts
@@ -82,6 +82,8 @@ async function parseResponse(response, shouldThrow) {
         throw new InvalidCredsError(message);
       case 403:
         throw new UnauthorizedError(message);
+      case 404:
+        throw new ValidationError(message);
       default:
         throw new Error(message);
     }
