@@ -36,7 +36,7 @@ async function doStatus(argv) {
 
   const validationResponse = await makeFaunaRequest({
     argv,
-    path: "/schema/1/validate",
+    path: "/schema/1/diff",
     params,
     method: "POST",
     body: fsl,

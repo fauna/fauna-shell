@@ -71,8 +71,7 @@ describe("schema push", function () {
     await run(`schema push --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
-        force: "true",
+      buildUrl("/schema/1/diff", {
         staged: "true",
         color: "ansi",
       }),
@@ -125,8 +124,7 @@ describe("schema push", function () {
     await run(`schema push --secret "secret" --active`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
-        force: "true",
+      buildUrl("/schema/1/diff", {
         staged: "false",
         color: "ansi",
       }),
@@ -172,8 +170,7 @@ describe("schema push", function () {
     await run(`schema push --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
-        force: "true",
+      buildUrl("/schema/1/diff", {
         staged: "true",
         color: "ansi",
       }),
@@ -215,8 +212,7 @@ describe("schema push", function () {
     await run(`schema push --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
-        force: "true",
+      buildUrl("/schema/1/diff", {
         staged: "true",
         color: "ansi",
       }),
@@ -261,8 +257,7 @@ describe("schema push", function () {
     await run(`schema push --secret "secret" --active`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/validate", {
-        force: "true",
+      buildUrl("/schema/1/diff", {
         staged: "false",
         color: "ansi",
       }),

@@ -87,7 +87,7 @@ async function doDiff(argv) {
   } else {
     const { diff } = await makeFaunaRequest({
       argv,
-      path: "/schema/1/validate",
+      path: "/schema/1/diff",
       params: buildValidateParams(argv, version),
       body: files,
       method: "POST",
