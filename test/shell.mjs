@@ -339,7 +339,8 @@ describe("shell", function () {
 
     it("can display performance hints", async function () {
       runQueryFromString.resolves({
-        summary: "performance_hint: use a more efficient query\n<diagnostics>",
+        summary:
+          "performance_hint: use a more efficient query\n1 | use a more efficient query",
         data: "fql",
       });
 

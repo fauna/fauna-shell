@@ -2,13 +2,15 @@
 
 import { container } from "../cli.mjs";
 import {
-  CommandError,
-  isUnknownError,
   resolveFormat,
   validateDatabaseOrSecret,
-  ValidationError,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
+import {
+  CommandError,
+  isUnknownError,
+  ValidationError,
+} from "../lib/errors.mjs";
 import {
   formatError,
   formatQueryResponse,
@@ -83,10 +85,10 @@ async function queryCommand(argv) {
       timeout,
       typecheck,
       apiVersion,
-      color,
-      raw,
       performanceHints,
       summary,
+      color,
+      raw,
     } = argv;
 
     // If we're writing to a file, don't colorize the output regardless of the user's preference
@@ -110,7 +112,10 @@ async function queryCommand(argv) {
     // If performance hints are enabled, print the summary to stderr.
     // This is only supported in v10.
     if ((summary || performanceHints) && apiVersion === "10") {
-      logger.stderr(formatQuerySummary(results.summary));
+      const formattedSummary = formatQuerySummary(results.summary);
+      if (formattedSummary) {
+        logger.stderr(formattedSummary);
+      }
     }
 
     const output = formatQueryResponse(results, {
@@ -123,7 +128,7 @@ async function queryCommand(argv) {
     if (argv.output) {
       container.resolve("fs").writeFileSync(argv.output, output);
     } else {
-      logger.stdout(output);
+      container.resolve("logger").stdout(output);
     }
 
     return results;

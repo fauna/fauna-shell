@@ -2,7 +2,7 @@ import yaml from "yaml";
 import yargsParser from "yargs-parser";
 
 import { container } from "../../cli.mjs";
-import { ValidationError } from "../command-helpers.mjs";
+import { ValidationError } from "../errors.mjs";
 
 export const validDefaultConfigNames = [
   "fauna.config.yaml",

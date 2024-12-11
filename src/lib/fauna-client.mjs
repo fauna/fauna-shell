@@ -153,7 +153,7 @@ export const formatQueryResponse = (
  */
 export const formatQuerySummary = (summary) => {
   if (!summary || typeof summary !== "string") {
-    return "No summary returned.";
+    return "";
   }
 
   try {

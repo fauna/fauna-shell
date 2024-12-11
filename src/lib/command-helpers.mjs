@@ -1,6 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
+import { ValidationError } from "./errors.mjs";
 import { Format } from "./formatting/colorize.mjs";
 
 const COMMON_OPTIONS = {
@@ -77,77 +78,6 @@ const COMMON_QUERY_OPTIONS = {
     group: "API:",
   },
 };
-
-/**
- * An error that is thrown by commands that is not a validation error, but
- * a known error state that should be communicated to the user.
- */
-export class CommandError extends Error {
-  /**
-   * @param {string} message
-   * @param {object} [opts]
-   * @param {number} [opts.exitCode]
-   * @param {boolean} [opts.hideHelp]
-   * @param {Error} [opts.cause]
-   */
-  constructor(message, { exitCode = 1, hideHelp = true, cause } = {}) {
-    super(message);
-    this.exitCode = exitCode;
-    this.hideHelp = hideHelp;
-    this.cause = cause;
-  }
-}
-
-/**
- * An error that is thrown when the user provides invalid input, but
- * isn't caught until command execution.
- */
-export class ValidationError extends CommandError {
-  /**
-   * @param {string} message
-   * @param {object} [opts]
-   * @param {number} [opts.exitCode]
-   * @param {boolean} [opts.hideHelp]
-   * @param {Error} [opts.cause]
-   */
-  constructor(message, { exitCode = 1, hideHelp = false, cause } = {}) {
-    super(message, { exitCode, hideHelp, cause });
-  }
-}
-
-/**
- * Returns true if the error is an error potentially thrown by yargs
- * @param {Error} error
- * @returns {boolean}
- */
-function isYargsError(error) {
-  // Sometimes they are named YError. This seems to the case in middleware.
-  if (error.name === "YError") {
-    return true;
-  }
-
-  // Usage errors from yargs are thrown as plain old Error. The best
-  // you can do is check for the message.
-  if (
-    error.message &&
-    (error.message.startsWith("Unknown argument") ||
-      error.message.startsWith("Missing required argument") ||
-      error.message.startsWith("Unknown command"))
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * Returns true if the error is not an error yargs or one we've thrown ourselves in a command
- * @param {Error} error
- * @returns {boolean}
- */
-export function isUnknownError(error) {
-  return !isYargsError(error) && !(error instanceof CommandError);
-}
 
 export const resolveFormat = (argv) => {
   const logger = container.resolve("logger");
@@ -228,14 +158,14 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   summary: {
     type: "boolean",
     description:
-      "Output the summary field of the API response. Only applies to v10 queries.",
+      "Output the summary field of the API response or nothing when it's empty. Only applies to v10 queries.",
     default: false,
     group: "API:",
   },
   performanceHints: {
     type: "boolean",
     description:
-      "Output the performance hints for the current query. Only applies to v10 queries.",
+      "Output the performance hints for the current query or nothing when no hints are available. Only applies to v10 queries.",
     default: false,
     group: "API:",
   },
