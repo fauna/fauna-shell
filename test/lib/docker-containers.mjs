@@ -26,9 +26,7 @@ describe("ensureContainerRunning", () => {
       .onCall(0)
       .resolves([{ State: "running", Names: ["/faunadb"] }]);
     fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    console.log("running");
     await run("local", container);
-    console.log("done running");
     expect(logger.stderr).to.have.been.calledWith(
       `[PullImage] Pulling image 'fauna/faunadb:latest'...\n`,
     );
@@ -44,5 +42,41 @@ describe("ensureContainerRunning", () => {
     expect(logger.stderr).to.have.been.calledWith(
       "[ContainerReady] Container 'faunadb' is up and healthy.",
     );
+  });
+
+  it.only("Should show messaging to the user if the container is restarting. And it should fire up a logger.", async () => {
+    docker.pull.onCall(0).resolves();
+    docker.modem.followProgress.callsFake((stream, onFinished) => {
+      onFinished();
+    });
+    docker.listContainers
+      .onCall(0)
+      .resolves([{ State: "restarting", Names: ["/faunadb"] }]);
+    fetch.onCall(0).resolves(f({})); // fast succeed the health check
+    docker.logs.onCall(0).resolves({
+      on: () => {},
+    });
+    await run("local", container);
+    expect(logger.stderr).to.have.been.calledWith(
+      `[PullImage] Pulling image 'fauna/faunadb:latest'...\n`,
+    );
+    expect(logger.stderr).to.have.been.calledWith(
+      "[PullImage] Image 'fauna/faunadb:latest' pulled.",
+    );
+    expect(logger.stderr).to.have.been.calledWith(
+      "[StartContainer] Container 'faunadb' is restarting.",
+    );
+    expect(logger.stderr).to.have.been.calledWith(
+      "[StartContainer] Container 'faunadb' started. Monitoring HealthCheck for readiness.",
+    );
+    expect(logger.stderr).to.have.been.calledWith(
+      "[ContainerReady] Container 'faunadb' is up and healthy.",
+    );
+    expect(docker.logs).to.have.been.calledWith({
+      stdout: true,
+      stderr: true,
+      follow: true,
+      tail: 100,
+    });
   });
 });
