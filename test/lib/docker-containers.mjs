@@ -5,6 +5,7 @@ import { expect } from "chai";
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer } from "../../src/config/setup-test-container.mjs";
 import { f } from "../helpers.mjs";
+import { stub } from "sinon";
 
 describe("ensureContainerRunning", () => {
   let container, fetch, logger, stderrStream, docker;
@@ -53,8 +54,9 @@ describe("ensureContainerRunning", () => {
       .onCall(0)
       .resolves([{ State: "restarting", Names: ["/faunadb"] }]);
     fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    docker.logs.onCall(0).resolves({
-      on: () => {},
+    const logsStub = stub();
+    docker.getContainer.onCall(0).resolves({
+      logs: logsStub,
     });
     await run("local", container);
     expect(logger.stderr).to.have.been.calledWith(
@@ -72,7 +74,7 @@ describe("ensureContainerRunning", () => {
     expect(logger.stderr).to.have.been.calledWith(
       "[ContainerReady] Container 'faunadb' is up and healthy.",
     );
-    expect(docker.logs).to.have.been.calledWith({
+    expect(logsStub).to.have.been.calledWith({
       stdout: true,
       stderr: true,
       follow: true,
