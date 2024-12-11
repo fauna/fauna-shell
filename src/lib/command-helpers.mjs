@@ -62,6 +62,15 @@ const COMMON_QUERY_OPTIONS = {
     required: false,
     group: "API:",
   },
+  keyTtlSeconds: {
+    type: "number",
+    description:
+      "The time-to-live for generated database keys, in seconds. Maximum of 900",
+    required: false,
+    hidden: true,
+    default: 900,
+    group: "API:",
+  },
   database: {
     alias: "d",
     type: "string",

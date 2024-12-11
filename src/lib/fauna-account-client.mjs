@@ -3,8 +3,6 @@
 import { container } from "../cli.mjs";
 import { InvalidCredsError } from "./misc.mjs";
 
-// const KEY_TTL_DEFAULT_MS = 1000 * 60 * 60 * 24;
-
 /**
  * Class representing a client for interacting with the Fauna account API.
  */

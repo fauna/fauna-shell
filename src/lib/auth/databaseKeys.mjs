@@ -20,7 +20,7 @@ export class DatabaseKeys {
     this.role = argv.role || DEFAULT_ROLE;
     this.keyName = DatabaseKeys.getKeyName(this.path, this.role);
     this.keyStore = new SecretKeyStorage(accountKey);
-    this.ttlMs = TTL_DEFAULT_MS;
+    this.ttlMs = Math.min(argv.keyTtlSeconds * 1000, TTL_DEFAULT_MS);
 
     const storedKey = this.keyStore.get(this.keyName)?.secret;
     const { key, keySource } = DatabaseKeys.resolveKeySources(argv, storedKey);
@@ -70,6 +70,10 @@ export class DatabaseKeys {
   }
 
   getKeyExpiration() {
+    this.logger.debug(
+      `Refreshing database key with a ttl of ${this.ttlMs} milliseconds`,
+      "creds",
+    );
     return Date.now() + this.ttlMs;
   }
 
