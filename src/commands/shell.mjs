@@ -188,7 +188,10 @@ async function buildCustomEval(argv) {
         });
 
         if ((summary || performanceHints) && apiVersion === "10") {
-          logger.stdout(formatQuerySummary(res.summary));
+          const formattedSummary = formatQuerySummary(res.summary);
+          if (formattedSummary) {
+            logger.stdout(formattedSummary);
+          }
         }
       } catch (err) {
         logger.stderr(formatError(err, { apiVersion, raw, color }));
