@@ -8,7 +8,12 @@ import sinon from "sinon";
 // small helper for sinon to wrap your return value
 // in the shape fetch would return it from the network
 export function f(returnValue, status) {
-  return { json: async () => returnValue, status: status || 200 };
+  return new Response(JSON.stringify(returnValue), {
+    status: status || 200,
+    headers: {
+      "Content-type": "application/json",
+    },
+  });
 }
 
 export const commonFetchParams = {

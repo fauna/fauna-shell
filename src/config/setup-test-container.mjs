@@ -81,15 +81,15 @@ export function setupTestContainer() {
       getSession: stub(),
     })),
     oauthClient: awilix.asFunction(stub()),
-    dockerClient: awilix.asValue(() => ({
-      start: stub(),
-      waitForHealthCheck: stub(),
+    docker: awilix.asValue({
       createContainer: stub(),
-      findContainer: stub(),
-      writePullProgress: stub(),
-      pullImage: stub(),
-      createLogStream: stub(),
-    })),
+      getContainer: stub(),
+      listContainers: stub(),
+      modem: {
+        followProgress: stub(),
+      },
+      pull: stub(),
+    }),
     credentials: awilix.asClass(stub()).singleton(),
     errorHandler: awilix.asValue((error, exitCode) => {
       error.code = exitCode;

@@ -1,4 +1,4 @@
-import { container } from "../cli.mjs";
+import { ensureContainerRunning } from "../lib/docker-containers.mjs";
 
 /**
  * Starts the local Fauna container
@@ -7,8 +7,7 @@ import { container } from "../cli.mjs";
  * It will reject if the container is not ready after the maximum number of attempts.
  */
 async function startLocal(argv) {
-  const dockerClient = container.resolve("dockerClient");
-  await dockerClient.ensureContainerRunning({
+  await ensureContainerRunning({
     imageName: argv.image,
     containerName: argv.name,
     hostPort: argv.hostPort,

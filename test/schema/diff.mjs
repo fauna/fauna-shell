@@ -31,7 +31,7 @@ describe("schema diff", function () {
   });
 
   it("can display the diff between local and staged remote schema", async function () {
-    fetch.resolves(
+    fetch.callsFake(() =>
       f({
         version: 0,
         diff: colorDiffString,
@@ -58,7 +58,7 @@ describe("schema diff", function () {
   });
 
   it("can display the diff between local and active remote schema", async function () {
-    fetch.resolves(
+    fetch.callsFake(() =>
       f({
         version: 0,
         diff: colorDiffString,
@@ -85,7 +85,7 @@ describe("schema diff", function () {
   });
 
   it("can display the diff without color (terminal escape codes)", async function () {
-    fetch.resolves(
+    fetch.callsFake(() =>
       f({
         version: 0,
         diff: noColorDiffString,
@@ -111,7 +111,7 @@ describe("schema diff", function () {
   });
 
   it("displays useful output when a diff is empty", async function () {
-    fetch.resolves(
+    fetch.callsFake(() =>
       f({
         version: 0,
         diff: "",
@@ -138,6 +138,12 @@ describe("schema diff", function () {
   });
 
   it("can parse relative paths", async function () {
+    fetch.callsFake(() =>
+      f({
+        version: 0,
+        diff: "",
+      }),
+    );
     await run(
       `schema diff --secret "secret" --dir /all/but/the/leaf/..`,
       container,
@@ -147,6 +153,12 @@ describe("schema diff", function () {
   });
 
   it("can parse home directory paths", async function () {
+    fetch.callsFake(() =>
+      f({
+        version: 0,
+        diff: "",
+      }),
+    );
     const homedir = container.resolve("homedir");
     homedir.returns("/Users/test-user");
 
