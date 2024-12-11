@@ -3,10 +3,8 @@
 import chalk from "chalk";
 
 import { container } from "../../cli.mjs";
-import {
-  ValidationError,
-  yargsWithCommonQueryOptions,
-} from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import { ValidationError } from "../../lib/errors.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
