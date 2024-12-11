@@ -1,0 +1,123 @@
+import chalk from "chalk";
+import hasAnsi from "has-ansi";
+import util from "util";
+
+import { container } from "../cli.mjs";
+
+const BUG_REPORT_MESSAGE = `If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues`;
+
+/**
+ * An error that is thrown by commands that is not a validation error, but
+ * a known error state that should be communicated to the user.
+ */
+export class CommandError extends Error {
+  /**
+   * @param {string} message
+   * @param {object} [opts]
+   * @param {number} [opts.exitCode]
+   * @param {boolean} [opts.hideHelp]
+   * @param {Error} [opts.cause]
+   */
+  constructor(message, { exitCode = 1, hideHelp = true, cause } = {}) {
+    super(message);
+    this.exitCode = exitCode;
+    this.hideHelp = hideHelp;
+    this.cause = cause;
+  }
+}
+
+/**
+ * An error that is thrown when the user provides invalid input, but
+ * isn't caught until command execution.
+ */
+export class ValidationError extends CommandError {
+  /**
+   * @param {string} message
+   * @param {object} [opts]
+   * @param {number} [opts.exitCode]
+   * @param {boolean} [opts.hideHelp]
+   * @param {Error} [opts.cause]
+   */
+  constructor(message, { exitCode = 1, hideHelp = false, cause } = {}) {
+    super(message, { exitCode, hideHelp, cause });
+  }
+}
+
+/**
+ * Returns true if the error is an error potentially thrown by yargs
+ * @param {Error} error
+ * @returns {boolean}
+ */
+function isYargsError(error) {
+  // Sometimes they are named YError. This seems to the case in middleware.
+  if (error.name === "YError") {
+    return true;
+  }
+
+  // Usage errors from yargs are thrown as plain old Error. The best
+  // you can do is check for the message.
+  if (
+    error.message &&
+    (error.message.startsWith("Unknown argument") ||
+      error.message.startsWith("Missing required argument") ||
+      error.message.startsWith("Unknown command"))
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Returns true if the error is not an error yargs or one we've thrown ourselves in a command
+ * @param {Error} error
+ * @returns {boolean}
+ */
+export function isUnknownError(error) {
+  return !isYargsError(error) && !(error instanceof CommandError);
+}
+
+export const handleParseYargsError = async (
+  e,
+  { argvInput, builtYargs, logger },
+) => {
+  let subMessage = chalk.reset(
+    "Use 'fauna <command> --help' for more information about a command.",
+  );
+  let epilogue = "";
+
+  if (argvInput.length > 0) {
+    // If the error isn't one of our known errors, wrap it in a generic error message.
+    if (isUnknownError(e)) {
+      subMessage = chalk.red(`An unexpected error occurred...\n\n${e.message}`);
+      epilogue = `\n${BUG_REPORT_MESSAGE}`;
+
+      logger.debug(`unknown error thrown: ${e.name}`, "error");
+      logger.debug(util.inspect(e, true, 2, false), "error");
+    } else {
+      // Otherwise, just use the error message
+      subMessage = hasAnsi(e.message) ? e.message : chalk.red(e.message);
+    }
+  }
+
+  // If the error has a truthy hideHelp property, do not render the help text. Otherwise, just use the error message.
+  logger.stderr(
+    `${e.hideHelp ? "" : `${chalk.reset(await builtYargs.getHelp())}\n\n`}${subMessage}`,
+  );
+
+  if (epilogue) {
+    logger.stderr(chalk.red(epilogue));
+  }
+
+  // Log the stack if it exists
+  logger.fatal(e.stack, "error");
+  if (e.cause) {
+    logger.fatal(e.cause?.stack, "error");
+  }
+
+  // If the error has an exitCode property, use that. Otherwise, use 1.
+  container.resolve("errorHandler")(
+    e,
+    e.exitCode !== undefined ? e.exitCode : 1,
+  );
+};

@@ -3,6 +3,7 @@
  * @fileoverview Fauna V10 client utilities for query execution and error handling.
  */
 
+import chalk from "chalk";
 import {
   ClientClosedError,
   ClientError,
@@ -12,7 +13,8 @@ import {
 } from "fauna";
 
 import { container } from "../cli.mjs";
-import { ValidationError } from "./command-helpers.mjs";
+import { ValidationError } from "./errors.mjs";
+import { formatQuerySummary } from "./fauna-client.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
 /**
@@ -143,15 +145,9 @@ export const formatError = (err, opts = {}) => {
     }
 
     // Otherwise, return the summary and fall back to the message.
-    return colorize(
-      `The query failed with the following error:\n\n${err.queryInfo?.summary ?? err.message}`,
-      { color, format: Format.TEXT },
-    );
+    return `${chalk.red("The query failed with the following error:")}\n\n${formatQuerySummary(err.queryInfo?.summary) ?? err.message}`;
   } else {
-    return colorize(
-      `The query failed unexpectedly with the following error:\n\n${err.message}`,
-      { color, format: Format.TEXT },
-    );
+    return `The query failed unexpectedly with the following error:\n\n${err.message}`;
   }
 };
 

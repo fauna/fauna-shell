@@ -4,10 +4,8 @@ import chalk from "chalk";
 import path from "path";
 
 import { container } from "../../cli.mjs";
-import {
-  CommandError,
-  yargsWithCommonQueryOptions,
-} from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import { CommandError } from "../../lib/errors.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
