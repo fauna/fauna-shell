@@ -12,6 +12,7 @@ import {
 import {
   formatError,
   formatQueryResponse,
+  formatQuerySummary,
   getSecret,
 } from "../lib/fauna-client.mjs";
 import { isTTY } from "../lib/misc.mjs";
@@ -65,6 +66,8 @@ const resolveInput = (argv) => {
 };
 
 async function queryCommand(argv) {
+  const logger = container.resolve("logger");
+
   // Run validation here instead of via check for more control over output
   validateDatabaseOrSecret(argv);
   validate(argv);
@@ -75,7 +78,16 @@ async function queryCommand(argv) {
   // get the query handler and run the query
   try {
     const secret = await getSecret();
-    const { url, timeout, typecheck, apiVersion, color, raw } = argv;
+    const {
+      url,
+      timeout,
+      typecheck,
+      apiVersion,
+      color,
+      raw,
+      performanceHints,
+      summary,
+    } = argv;
 
     // If we're writing to a file, don't colorize the output regardless of the user's preference
     const useColor = argv.output || !isTTY() ? false : color;
@@ -89,10 +101,17 @@ async function queryCommand(argv) {
       url,
       timeout,
       typecheck,
+      performanceHints,
       format: outputFormat,
       raw,
       color: useColor,
     });
+
+    // If performance hints are enabled, print the summary to stderr.
+    // This is only supported in v10.
+    if ((summary || performanceHints) && apiVersion === "10") {
+      logger.stderr(formatQuerySummary(results.summary));
+    }
 
     const output = formatQueryResponse(results, {
       apiVersion,
@@ -104,7 +123,7 @@ async function queryCommand(argv) {
     if (argv.output) {
       container.resolve("fs").writeFileSync(argv.output, output);
     } else {
-      container.resolve("logger").stdout(output);
+      logger.stdout(output);
     }
 
     return results;

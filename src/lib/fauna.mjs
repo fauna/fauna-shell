@@ -13,7 +13,7 @@ import {
 
 import { container } from "../cli.mjs";
 import { ValidationError } from "./command-helpers.mjs";
-import { colorize, JSON_FORMAT, TEXT_FORMAT } from "./formatting/colorize.mjs";
+import { colorize, Format } from "./formatting/colorize.mjs";
 
 /**
  * Interprets a string as a FQL expression and returns a query.
@@ -139,18 +139,18 @@ export const formatError = (err, opts = {}) => {
   ) {
     // If you want full response, use util.inspect to get the full error object.
     if (raw) {
-      return colorize(err, { color, format: JSON_FORMAT });
+      return colorize(err, { color, format: Format.JSON });
     }
 
     // Otherwise, return the summary and fall back to the message.
     return colorize(
       `The query failed with the following error:\n\n${err.queryInfo?.summary ?? err.message}`,
-      { color, format: TEXT_FORMAT },
+      { color, format: Format.TEXT },
     );
   } else {
     return colorize(
       `The query failed unexpectedly with the following error:\n\n${err.message}`,
-      { color, format: TEXT_FORMAT },
+      { color, format: Format.TEXT },
     );
   }
 };
@@ -165,7 +165,7 @@ export const formatError = (err, opts = {}) => {
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { raw, format = JSON_FORMAT, color } = opts;
+  const { raw, format = Format.JSON, color } = opts;
 
   // If raw is set, return the full response object.
   const data = raw ? res : res.data;

@@ -321,6 +321,30 @@ describe("shell", function () {
       );
     });
 
+    it("can display performance hints", async function () {
+      runQueryFromString.resolves({
+        summary: "performance_hint: use a more efficient query\n<diagnostics>",
+        data: "fql",
+      });
+
+      const runPromise = run(
+        `shell --secret "secret" --performanceHints --no-color --format json`,
+        container,
+      );
+
+      await sleep(50);
+      await stdout.waitForWritten();
+
+      stdin.push(`Database.all().take(1)\n`);
+      stdin.push(null);
+      await sleep(50);
+      await stdout.waitForWritten();
+
+      expect(stdout.getWritten()).to.match(/use a more efficient query/);
+
+      return runPromise;
+    });
+
     describe("error handling", function () {
       it.skip("can handle a client-side query syntax error", async function () {});
       it.skip("can handle a server-side query syntax error", async function () {});

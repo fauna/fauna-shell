@@ -11,7 +11,11 @@ import {
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
+import {
+  formatQueryResponse,
+  formatQuerySummary,
+  getSecret,
+} from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
 
 async function shellCommand(argv) {
@@ -105,10 +109,40 @@ async function shellCommand(argv) {
         shell.prompt();
       },
     },
+    {
+      cmd: "togglePerformanceHints",
+      help: "Enable or disable performance hints. Disabled by default. If enabled, outputs performance hints for the most recent query.",
+      action: () => {
+        shell.context.performanceHints = !shell.context.performanceHints;
+        logger.stderr(
+          `Performance hints in shell: ${shell.context.performanceHints ? "on" : "off"}`,
+        );
+        shell.prompt();
+      },
+    },
+    {
+      cmd: "toggleSummary",
+      help: "Enable or disable the summary field of the API response. Disabled by default. If enabled, outputs the summary field of the API response.",
+      action: () => {
+        shell.context.summary = !shell.context.summary;
+        logger.stderr(
+          `Summary in shell: ${shell.context.summary ? "on" : "off"}`,
+        );
+        shell.prompt();
+      },
+    },
   ].forEach(({ cmd, ...cmdOptions }) => shell.defineCommand(cmd, cmdOptions));
 
   return completionPromise;
 }
+
+const getArgvOrCtx = (key, argv, ctx) => {
+  const value = ctx[key] === undefined ? argv[key] : ctx[key];
+  if (ctx[key] === undefined) {
+    ctx[key] = value;
+  }
+  return value;
+};
 
 // caches the logger, client, and performQuery for subsequent shell calls
 async function buildCustomEval(argv) {
@@ -122,15 +156,13 @@ async function buildCustomEval(argv) {
       if (cmd.trim() === "") return cb();
 
       // These are options used for querying and formatting the response
-      const { apiVersion, color, raw: argvRaw } = argv;
-      const raw = ctx.raw === undefined ? argvRaw : ctx.raw;
-
-      if (ctx.raw === undefined) {
-        ctx.raw = argvRaw;
-      }
+      const { apiVersion, color } = argv;
+      const raw = getArgvOrCtx("raw", argv, ctx);
+      const performanceHints = getArgvOrCtx("performanceHints", argv, ctx);
+      const summary = getArgvOrCtx("summary", argv, ctx);
 
       // Using --raw or --json output takes precedence over --format
-      const outputFormat = resolveFormat(argv);
+      const outputFormat = resolveFormat({ ...argv, raw });
 
       if (apiVersion === "4") {
         try {
@@ -151,8 +183,13 @@ async function buildCustomEval(argv) {
           url,
           timeout,
           typecheck,
+          performanceHints,
           format: outputFormat,
         });
+
+        if ((summary || performanceHints) && apiVersion === "10") {
+          logger.stdout(formatQuerySummary(res.summary));
+        }
       } catch (err) {
         logger.stderr(formatError(err, { apiVersion, raw, color }));
         return cb(null);

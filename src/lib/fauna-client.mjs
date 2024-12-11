@@ -1,7 +1,9 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { JSON_FORMAT } from "./formatting/colorize.mjs";
+import { colorize, Format } from "./formatting/colorize.mjs";
+
+const SUMMARY_FQL_REGEX = /^(\s\s\|)|(\d\s\|)/;
 
 /**
  * Gets a secret for the current credentials.
@@ -60,9 +62,9 @@ export const runQueryFromString = (expression, argv) => {
       }),
     );
   } else {
-    const { secret, url, timeout, format, ...rest } = argv;
+    const { secret, url, timeout, format, performanceHints, ...rest } = argv;
     let apiFormat = "decorated";
-    if (format === JSON_FORMAT) {
+    if (format === Format.JSON) {
       apiFormat = "simple";
     }
 
@@ -72,8 +74,14 @@ export const runQueryFromString = (expression, argv) => {
         secret,
         url,
         client: undefined,
-        // eslint-disable-next-line camelcase
-        options: { query_timeout_ms: timeout, format: apiFormat, ...rest },
+        options: {
+          /* eslint-disable camelcase */
+          query_timeout_ms: timeout,
+          performance_hints: performanceHints,
+          /* eslint-enable camelcase */
+          format: apiFormat,
+          ...rest,
+        },
       }),
     );
   }
@@ -120,5 +128,30 @@ export const formatQueryResponse = (
     return faunaV4.formatQueryResponse(res, { raw, color });
   } else {
     return faunaV10.formatQueryResponse(res, { raw, format, color });
+  }
+};
+
+/**
+ * Formats a summary of a query from a fauna
+ * @param {string} summary - The summary of the query
+ * @returns {string}
+ */
+export const formatQuerySummary = (summary) => {
+  if (!summary || typeof summary !== "string") {
+    return "No summary returned.";
+  }
+
+  try {
+    const lines = summary.split("\n").map((line) => {
+      if (!line.match(SUMMARY_FQL_REGEX)) {
+        return line;
+      }
+      return colorize(line, { format: Format.FQL });
+    });
+    return lines.join("\n");
+  } catch (err) {
+    const logger = container.resolve("logger");
+    logger.debug(`Unable to parse performance hint: ${err}`);
+    return summary;
   }
 };

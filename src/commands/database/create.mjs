@@ -6,7 +6,7 @@ import { container } from "../../cli.mjs";
 import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
-import { colorize, JSON_FORMAT } from "../../lib/formatting/colorize.mjs";
+import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 
 async function runCreateQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
@@ -38,7 +38,7 @@ async function createDatabase(argv) {
     const { color, json } = argv;
     if (json) {
       logger.stdout(
-        colorize({ name: argv.name }, { color, format: JSON_FORMAT }),
+        colorize({ name: argv.name }, { color, format: Format.JSON }),
       );
     } else {
       logger.stdout(argv.name);

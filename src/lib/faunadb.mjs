@@ -2,7 +2,7 @@
 import { createContext, runInContext } from "node:vm";
 
 import { container } from "../cli.mjs";
-import { colorize, JSON_FORMAT } from "./formatting/colorize.mjs";
+import { colorize, Format } from "./formatting/colorize.mjs";
 
 /**
  * Creates a V4 Fauna client.
@@ -100,7 +100,7 @@ export const formatError = (err, opts = {}) => {
   ) {
     // If raw is on, return the full error.
     if (raw) {
-      return colorize(err, { color, format: JSON_FORMAT });
+      return colorize(err, { color, format: Format.JSON });
     }
 
     const { errors } = err.requestResult.responseContent;
@@ -134,7 +134,7 @@ export const formatError = (err, opts = {}) => {
 export const formatQueryResponse = (res, opts = {}) => {
   const { raw, color, format } = opts;
   const data = raw ? res : res.value;
-  const resolvedFormat = raw ? JSON_FORMAT : (format ?? JSON_FORMAT);
+  const resolvedFormat = raw ? Format.JSON : (format ?? Format.JSON);
   return colorize(data, { format: resolvedFormat, color });
 };
 

@@ -2,9 +2,11 @@ import stripAnsi from "strip-ansi";
 
 import { container } from "../../cli.mjs";
 
-export const FQL_FORMAT = "fql";
-export const JSON_FORMAT = "json";
-export const TEXT_FORMAT = "text";
+export const Format = {
+  FQL: "fql",
+  JSON: "json",
+  TEXT: "text",
+};
 
 const objToString = (obj) => JSON.stringify(obj, null, 2);
 
@@ -47,11 +49,11 @@ const jsonToAnsi = (obj) => {
  * @param {string} [opts.format] - The format to use
  * @returns {string} The formatted object
  */
-export const toAnsi = (obj, { format = TEXT_FORMAT } = {}) => {
+export const toAnsi = (obj, { format = Format.TEXT } = {}) => {
   switch (format) {
-    case FQL_FORMAT:
+    case Format.FQL:
       return fqlToAnsi(obj);
-    case JSON_FORMAT:
+    case Format.JSON:
       return jsonToAnsi(obj);
     default:
       return textToAnsi(obj);
@@ -66,7 +68,7 @@ export const toAnsi = (obj, { format = TEXT_FORMAT } = {}) => {
  * @param {boolean} [opts.color] - Whether to colorize the object
  * @returns {string} The formatted object
  */
-export const colorize = (obj, { color = true, format = TEXT_FORMAT } = {}) => {
+export const colorize = (obj, { color = true, format = Format.TEXT } = {}) => {
   const ansiString = toAnsi(obj, { format });
 
   if (color) {
