@@ -1,7 +1,7 @@
 import { asValue, Lifetime } from "awilix";
 
 import { container } from "../../cli.mjs";
-import { ValidationError } from "../command-helpers.mjs";
+import { ValidationError } from "../errors.mjs";
 import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { AccountKeys } from "./accountKeys.mjs";
 import { DatabaseKeys } from "./databaseKeys.mjs";
