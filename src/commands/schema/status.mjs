@@ -19,11 +19,11 @@ async function doStatus(argv) {
   const secret = await getSecret();
   const absoluteDirPath = path.resolve(argv.dir);
   const gatherFSL = container.resolve("gatherFSL");
-  const fsl = reformatFSL(await gatherFSL(argv.dir));
+  const fslFiles = await gatherFSL(argv.dir);
+  const hasLocalSchema = fslFiles.length > 0;
+  const fsl = reformatFSL(fslFiles);
 
-  const hasLocalSchema = fsl.entries().next().done === false;
-
-  const statusParams = new URLSearchParams({ diff: "summary" });
+  const statusParams = new URLSearchParams({ format: "summary" });
   const statusResponse = await makeFaunaRequest({
     argv,
     path: "/schema/1/staged/status",
@@ -35,8 +35,8 @@ async function doStatus(argv) {
   let diffResponse = null;
   if (hasLocalSchema) {
     const diffParams = new URLSearchParams({
-      diff: "summary",
       staged: "true",
+      format: "summary",
       version: statusResponse.version,
     });
     diffResponse = await makeFaunaRequest({
