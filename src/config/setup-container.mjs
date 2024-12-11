@@ -18,7 +18,11 @@ import { Credentials } from "../lib/auth/credentials.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { makeRetryableFaunaRequest } from "../lib/db.mjs";
 import * as faunaV10 from "../lib/fauna.mjs";
-import { formatError, runQueryFromString } from "../lib/fauna-client.mjs";
+import {
+  formatError,
+  isQueryable,
+  runQueryFromString,
+} from "../lib/fauna-client.mjs";
 import * as faunaV4 from "../lib/faunadb.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import { codeToAnsi } from "../lib/formatting/codeToAnsi.mjs";
@@ -85,6 +89,7 @@ export const injectables = {
   formatError: awilix.asValue(formatError),
   faunaClientV10: awilix.asValue(faunaV10),
   faunaClientV4: awilix.asValue(faunaV4),
+  isQueryable: awilix.asValue(isQueryable),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),
