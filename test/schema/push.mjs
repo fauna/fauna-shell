@@ -8,7 +8,7 @@ import { setupTestContainer as setupContainer } from "../../src/config/setup-tes
 import { reformatFSL } from "../../src/lib/schema.mjs";
 import { buildUrl, f } from "../helpers.mjs";
 
-describe.only("schema push", function () {
+describe("schema push", function () {
   const diffString =
     "\u001b[1;34m* Modifying collection `Customer`\u001b[0m at collections.fsl:2:1:\n  * Defined fields:\n\u001b[31m  - drop field `.age`\u001b[0m\n\n";
   let container, gatherFSL, fetch, logger, confirm;
