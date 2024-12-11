@@ -3,7 +3,10 @@
 import path from "path";
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import {
+  yargsWithCommonQueryOptions,
+  ValidationError,
+} from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
@@ -21,7 +24,7 @@ async function doPush(argv) {
   const fsl = reformatFSL(fslFiles);
 
   if (!hasLocalSchema) {
-    logger.stdout(
+    throw new ValidationError(
       `No schema files (*.fsl) found in '${absoluteDirPath}'. Use '--dir' to specify a different directory, or create new .fsl files in this location.`,
     );
   } else if (!argv.input) {

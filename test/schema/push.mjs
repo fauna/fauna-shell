@@ -1,9 +1,11 @@
 //@ts-check
 
 import { expect } from "chai";
+import chalk from "chalk";
+import path from "path";
 import sinon from "sinon";
 
-import { run } from "../../src/cli.mjs";
+import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import { reformatFSL } from "../../src/lib/schema.mjs";
 import { buildUrl, f } from "../helpers.mjs";
@@ -33,13 +35,16 @@ describe("schema push", function () {
 
   it("notifies the user when no schema files are found", async function () {
     gatherFSL.resolves([]);
+    const absoluteDirPath = path.resolve(".");
 
-    await run(`schema push --secret "secret"`, container);
+    try {
+      await run(`schema push --secret "secret"`, container);
+    } catch (e) {}
 
-    expect(logger.stdout).to.have.been.calledWith(
-      sinon.match(
-        /^No schema files \(\*\.fsl\) found in '.*'\. Use '--dir' to specify a different directory, or create new \.fsl files in this location\.$/,
-      ),
+    expect(logger.stderr).to.have.been.calledWith(
+      `${chalk.reset(await builtYargs.getHelp())}\n\n${chalk.red(
+        `No schema files (*.fsl) found in '${absoluteDirPath}'. Use '--dir' to specify a different directory, or create new .fsl files in this location.`,
+      )}`,
     );
   });
 
