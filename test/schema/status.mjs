@@ -2,13 +2,22 @@
 
 import { expect } from "chai";
 import chalk from "chalk";
+import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { reformatFSL } from "../../src/lib/schema.mjs";
 import { buildUrl, commonFetchParams, f } from "../helpers.mjs";
 
 describe("schema status", function () {
-  let container, fetch, logger;
+  let container, fetch, logger, gatherFSL;
+
+  let fsl = [
+    {
+      name: "collections.fsl",
+      content: "collection Customer {\n  name: String\n  email: String\n}\n",
+    },
+  ];
 
   let summaryDiff =
     "\x1B[1;34m* Adding collection `NewCollection`\x1B[0m to collections.fsl:2:1\n" +
@@ -66,9 +75,51 @@ describe("schema status", function () {
     container = setupContainer();
     fetch = container.resolve("fetch");
     logger = container.resolve("logger");
+    gatherFSL = container.resolve("gatherFSL");
+  });
+
+  it("notifies the user when no local schema is found", async function () {
+    gatherFSL.resolves([]);
+    fetch.onCall(0).resolves(
+      f({
+        version: 0,
+        status: "none",
+        diff: "Staged schema: none",
+        pending_summary: "",
+      }),
+    );
+    fetch.onCall(1).resolves(
+      f({
+        version: 0,
+        diff: "",
+      }),
+    );
+
+    await run(`schema status --secret "secret"`, container);
+
+    expect(fetch).to.have.been.calledWith(
+      buildUrl("/schema/1/staged/status", { format: "summary", color: "ansi" }),
+      commonFetchParams,
+    );
+    expect(fetch).not.to.have.been.calledWith(
+      buildUrl("/schema/1/validate", {
+        format: "summary",
+        staged: "true",
+        version: "0",
+        color: "ansi",
+      }),
+      { ...commonFetchParams, method: "POST", body: new FormData() },
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      `Staged changes: ${chalk.bold("none")}`,
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      sinon.match(/^Local changes: .*no schema files found in.*\n$/),
+    );
   });
 
   it("fetches the current status when there are no changes", async function () {
+    gatherFSL.resolves(fsl);
     fetch.onCall(0).resolves(
       f({
         version: 0,
@@ -88,17 +139,17 @@ describe("schema status", function () {
     await run(`schema status --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "summary", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "summary", color: "ansi" }),
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
       buildUrl("/schema/1/diff", {
-        diff: "summary",
+        format: "summary",
         staged: "true",
         version: "0",
         color: "ansi",
       }),
-      { ...commonFetchParams, method: "POST", body: new FormData() },
+      { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(
       `Staged changes: ${chalk.bold("none")}`,
@@ -109,6 +160,7 @@ describe("schema status", function () {
   });
 
   it("fetches the current status when there are only local changes", async function () {
+    gatherFSL.resolves(fsl);
     fetch.onCall(0).resolves(
       f({
         version: 0,
@@ -131,17 +183,17 @@ describe("schema status", function () {
     await run(`schema status --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "summary", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "summary", color: "ansi" }),
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
       buildUrl("/schema/1/diff", {
-        diff: "summary",
+        format: "summary",
         staged: "true",
         version: "0",
         color: "ansi",
       }),
-      { ...commonFetchParams, method: "POST", body: new FormData() },
+      { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(
       `Staged changes: ${chalk.bold("none")}`,
@@ -160,6 +212,7 @@ describe("schema status", function () {
   });
 
   it("fetches the current status when there are only staged changes", async function () {
+    gatherFSL.resolves(fsl);
     fetch.onCall(0).resolves(
       f({
         version: 0,
@@ -179,18 +232,18 @@ describe("schema status", function () {
     await run(`schema status --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "summary", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "summary", color: "ansi" }),
       commonFetchParams,
     );
 
     expect(fetch).to.have.been.calledWith(
       buildUrl("/schema/1/diff", {
-        diff: "summary",
+        format: "summary",
         staged: "true",
         version: "0",
         color: "ansi",
       }),
-      { ...commonFetchParams, method: "POST", body: new FormData() },
+      { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(
       `Staged changes: ${chalk.bold("ready")}`,
@@ -205,6 +258,7 @@ describe("schema status", function () {
   });
 
   it("fetches the current status when there are both local and staged changes", async function () {
+    gatherFSL.resolves(fsl);
     fetch.onCall(0).resolves(
       f({
         version: 0,
@@ -226,17 +280,17 @@ describe("schema status", function () {
     await run(`schema status --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "summary", color: "ansi" }),
+      buildUrl("/schema/1/staged/status", { format: "summary", color: "ansi" }),
       commonFetchParams,
     );
     expect(fetch).to.have.been.calledWith(
       buildUrl("/schema/1/diff", {
-        diff: "summary",
+        format: "summary",
         staged: "true",
         version: "0",
         color: "ansi",
       }),
-      { ...commonFetchParams, method: "POST", body: new FormData() },
+      { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(
       `Staged changes: ${chalk.bold("ready")}`,
@@ -270,7 +324,7 @@ describe("schema status", function () {
     await run(`schema status --no-color --secret "secret"`, container);
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/staged/status", { diff: "summary" }),
+      buildUrl("/schema/1/staged/status", { format: "summary" }),
       commonFetchParams,
     );
     expect(logger.stderr).not.to.have.been.called;
