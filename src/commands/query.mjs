@@ -112,7 +112,10 @@ async function queryCommand(argv) {
     // If performance hints are enabled, print the summary to stderr.
     // This is only supported in v10.
     if ((summary || performanceHints) && apiVersion === "10") {
-      logger.stderr(formatQuerySummary(results.summary));
+      const formattedSummary = formatQuerySummary(results.summary);
+      if (formattedSummary) {
+        logger.stderr(formattedSummary);
+      }
     }
 
     const output = formatQueryResponse(results, {
