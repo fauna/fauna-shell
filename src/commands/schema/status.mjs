@@ -1,6 +1,7 @@
 //@ts-check
 
 import chalk from "chalk";
+import path from "path";
 
 import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
@@ -13,34 +14,40 @@ async function doStatus(argv) {
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
-  let params = new URLSearchParams({ diff: "summary" });
   const secret = await getSecret();
+  const absoluteDirPath = path.resolve(argv.dir);
   const gatherFSL = container.resolve("gatherFSL");
-  const fsl = reformatFSL(await gatherFSL(argv.dir));
+  const fslFiles = await gatherFSL(argv.dir);
+  const hasLocalSchema = fslFiles.length > 0;
+  const fsl = reformatFSL(fslFiles);
 
+  const statusParams = new URLSearchParams({ format: "summary" });
   const statusResponse = await makeFaunaRequest({
     argv,
     path: "/schema/1/staged/status",
-    params,
+    params: statusParams,
     method: "GET",
     secret,
   });
 
-  params = new URLSearchParams({
-    diff: "summary",
-    staged: "true",
-    version: statusResponse.version,
-  });
+  let diffResponse = null;
+  if (hasLocalSchema) {
+    const diffParams = new URLSearchParams({
+      staged: "true",
+      format: "summary",
+      version: statusResponse.version,
+    });
+    diffResponse = await makeFaunaRequest({
+      argv,
+      path: "/schema/1/diff",
+      params: diffParams,
+      method: "POST",
+      body: fsl,
+      secret,
+    });
+  }
 
-  const validationResponse = await makeFaunaRequest({
-    argv,
-    path: "/schema/1/diff",
-    params,
-    method: "POST",
-    body: fsl,
-    secret,
-  });
-
+  // Output the status response
   logger.stdout(`Staged changes: ${chalk.bold(statusResponse.status)}`);
   if (statusResponse.pending_summary !== "") {
     logger.stdout(statusResponse.pending_summary);
@@ -50,17 +57,27 @@ async function doStatus(argv) {
     logger.stdout(statusResponse.diff.split("\n").join("\n  "));
   }
 
-  if (validationResponse.error) {
-    logger.stdout(`Local changes:`);
-    throw new CommandError(validationResponse.error.message);
-  } else if (validationResponse.diff === "") {
-    logger.stdout(`Local changes: ${chalk.bold("none")}\n`);
-  } else {
-    logger.stdout(`Local changes:\n`);
-    logger.stdout(`  ${validationResponse.diff.split("\n").join("\n  ")}`);
-    logger.stdout("(use `fauna schema diff` to display local changes)");
-    logger.stdout("(use `fauna schema push` to stage local changes)");
+  // Output the diff response
+  if (!hasLocalSchema) {
+    logger.stdout(
+      `Local changes: ${chalk.bold(`no schema files found in '${absoluteDirPath}'`)}\n`,
+    );
+    return;
   }
+
+  if (diffResponse.error) {
+    throw new CommandError(diffResponse.error.message);
+  }
+
+  if (diffResponse.diff === "") {
+    logger.stdout(`Local changes: ${chalk.bold("none")}\n`);
+    return;
+  }
+
+  logger.stdout(`Local changes:\n`);
+  logger.stdout(`  ${diffResponse.diff.split("\n").join("\n  ")}`);
+  logger.stdout("(use `fauna schema diff` to display local changes)");
+  logger.stdout("(use `fauna schema push` to stage local changes)");
 }
 
 function buildStatusCommand(yargs) {
