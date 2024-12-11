@@ -46,8 +46,21 @@ async function createDatabase(argv) {
   } catch (e) {
     if (e instanceof FaunaError) {
       throwForError(e, {
-        onConstraintFailure: () =>
-          `Constraint failure: The database '${argv.name}' already exists or one of the provided options is invalid.`,
+        onConstraintFailure: (err) => {
+          const cf = err.constraint_failures;
+          if (cf && cf.length > 0) {
+            const nameIsInvalidIdentifier = cf.some(
+              (failure) =>
+                failure?.paths?.length === 1 &&
+                failure?.paths?.[0]?.[0] === "name" &&
+                failure?.message === "Invalid identifier.",
+            );
+            if (nameIsInvalidIdentifier) {
+              return `Constraint failure: The database name '${argv.name}' is invalid. Database names must begin with letters and include only letters, numbers, and underscores.`;
+            }
+          }
+          return `Constraint failure: The database '${argv.name}' already exists or one of the provided options is invalid.`;
+        },
       });
     }
     throw e;
