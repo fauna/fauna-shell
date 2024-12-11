@@ -1,6 +1,7 @@
 //@ts-check
 
 import chalk from "chalk";
+import path from "path";
 
 import { container } from "../../cli.mjs";
 import {
@@ -15,33 +16,43 @@ async function doStatus(argv) {
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
-  let params = new URLSearchParams({ diff: "summary" });
   const secret = await getSecret();
+  const absoluteDirPath = path.resolve(argv.dir);
   const gatherFSL = container.resolve("gatherFSL");
   const fsl = reformatFSL(await gatherFSL(argv.dir));
 
+  // let hasLocalSchema = false;
+  // for (let _ of fsl.entries()) {
+  //   hasLocalSchema = true;
+  //   break;
+  // }
+  const hasLocalSchema = fsl.entries().next().done === false;
+
+  const statusParams = new URLSearchParams({ diff: "summary" });
   const statusResponse = await makeFaunaRequest({
     argv,
     path: "/schema/1/staged/status",
-    params,
+    params: statusParams,
     method: "GET",
     secret,
   });
 
-  params = new URLSearchParams({
-    diff: "summary",
-    staged: "true",
-    version: statusResponse.version,
-  });
-
-  const validationResponse = await makeFaunaRequest({
-    argv,
-    path: "/schema/1/diff",
-    params,
-    method: "POST",
-    body: fsl,
-    secret,
-  });
+  let diffResponse = null;
+  if (hasLocalSchema) {
+    const diffParams = new URLSearchParams({
+      diff: "summary",
+      staged: "true",
+      version: statusResponse.version,
+    });
+    diffResponse = await makeFaunaRequest({
+      argv,
+      path: "/schema/1/diff",
+      params: diffParams,
+      method: "POST",
+      body: fsl,
+      secret,
+    });
+  }
 
   logger.stdout(`Staged changes: ${chalk.bold(statusResponse.status)}`);
   if (statusResponse.pending_summary !== "") {
@@ -52,14 +63,18 @@ async function doStatus(argv) {
     logger.stdout(statusResponse.diff.split("\n").join("\n  "));
   }
 
-  if (validationResponse.error) {
+  if (!hasLocalSchema) {
+    logger.stdout(
+      `Local changes: ${chalk.bold(`no schema files found in '${absoluteDirPath}'`)}\n`,
+    );
+  } else if (diffResponse.error) {
     logger.stdout(`Local changes:`);
-    throw new CommandError(validationResponse.error.message);
-  } else if (validationResponse.diff === "") {
+    throw new CommandError(diffResponse.error.message);
+  } else if (diffResponse.diff === "") {
     logger.stdout(`Local changes: ${chalk.bold("none")}\n`);
   } else {
     logger.stdout(`Local changes:\n`);
-    logger.stdout(`  ${validationResponse.diff.split("\n").join("\n  ")}`);
+    logger.stdout(`  ${diffResponse.diff.split("\n").join("\n  ")}`);
     logger.stdout("(use `fauna schema diff` to display local changes)");
     logger.stdout("(use `fauna schema push` to stage local changes)");
   }
