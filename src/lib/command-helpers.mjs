@@ -228,14 +228,14 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   summary: {
     type: "boolean",
     description:
-      "Output the summary field of the API response. Only applies to v10 queries.",
+      "Output the summary field of the API response or nothing when its empty. Only applies to v10 queries.",
     default: false,
     group: "API:",
   },
   performanceHints: {
     type: "boolean",
     description:
-      "Output the performance hints for the current query. Only applies to v10 queries.",
+      "Output the performance hints for the current query or nothing when no hints are available. Only applies to v10 queries.",
     default: false,
     group: "API:",
   },
