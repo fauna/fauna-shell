@@ -1,5 +1,5 @@
 import { container } from "../../cli.mjs";
-import { CommandError } from "../command-helpers.mjs";
+import { CommandError } from "../errors.mjs";
 import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { SecretKeyStorage } from "../file-util.mjs";
 
