@@ -228,7 +228,7 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   summary: {
     type: "boolean",
     description:
-      "Output the summary field of the API response or nothing when its empty. Only applies to v10 queries.",
+      "Output the summary field of the API response or nothing when it's empty. Only applies to v10 queries.",
     default: false,
     group: "API:",
   },
