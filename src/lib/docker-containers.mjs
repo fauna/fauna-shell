@@ -1,4 +1,5 @@
 import { container } from "../cli.mjs";
+import { CommandError } from "./errors.mjs";
 
 /**
  * Ensures the container is running
@@ -17,35 +18,25 @@ export async function ensureContainerRunning({
   pull,
 }) {
   const logger = container.resolve("logger");
-  try {
-    if (pull) {
-      console.log("pull");
-      await pullImage(imageName);
-    }
-    console.log("starting");
-    const logStream = await startContainer({
-      imageName,
-      containerName,
-      hostPort,
-      containerPort,
-    });
-    console.log("started");
-    logger.stderr(
-      `[StartContainer] Container '${containerName}' started. Monitoring HealthCheck for readiness.`,
-    );
-    console.log("health checking");
-    await waitForHealthCheck({
-      url: `http://localhost:${hostPort}`,
-      logStream,
-    });
-    console.log("health checked");
-    logger.stderr(
-      `[ContainerReady] Container '${containerName}' is up and healthy.`,
-    );
-  } catch (error) {
-    logger.stderr(`[StartContainer] Error: ${error.message}`);
-    throw error;
+  if (pull) {
+    await pullImage(imageName);
   }
+  const logStream = await startContainer({
+    imageName,
+    containerName,
+    hostPort,
+    containerPort,
+  });
+  logger.stderr(
+    `[StartContainer] Container '${containerName}' started. Monitoring HealthCheck for readiness.`,
+  );
+  await waitForHealthCheck({
+    url: `http://localhost:${hostPort}`,
+    logStream,
+  });
+  logger.stderr(
+    `[ContainerReady] Container '${containerName}' is up and healthy.`,
+  );
 }
 
 /**
@@ -61,7 +52,6 @@ async function pullImage(imageName) {
 
   try {
     const stream = await docker.pull(imageName);
-    console.log("stream", stream);
     const layers = {}; // To track progress by layer
     let numLines = 0; // Tracks the number of lines being displayed
     let lastUpdate = 0;
@@ -127,7 +117,7 @@ function writePullProgress(layers, numLines) {
 /**
  * Finds a container by name
  * @param {string} containerName The name of the container to find
- * @returns {Promise<Object>} The container object if found, otherwise undefined.
+ * @returns {Promise<Object | null>} The container object if found, otherwise undefined.
  * The container object has the following properties:
  * - Id: The ID of the container
  * - Names: The names of the container
@@ -139,10 +129,9 @@ async function findContainer(containerName) {
   logger.stderr(
     `[GetContainerState] Checking state for container '${containerName}'...`,
   );
-  const containers = await docker.listContainers({ all: true });
-  return containers.find((container) =>
-    container.Names.includes(`/${containerName}`),
-  );
+  const filters = JSON.stringify({ name: [containerName] });
+  const containers = await docker.listContainers({ all: true, filters });
+  return containers.length > 0 ? containers[0] : null;
 }
 
 /**
@@ -219,20 +208,9 @@ async function startContainer({
       logger.stderr(
         `[StartContainer] Container '${containerName}' is already running.`,
       );
-    } else if (state === "restarting") {
-      logger.stderr(
-        `[StartContainer] Container '${containerName}' is restarting.`,
-      );
-      logStream = await createLogStream({
-        dockerContainer,
-        containerName,
-      });
     } else {
-      logger.stderr(
-        `[StartContainer] The container '${containerName}' is in state '${state}' and cannot be started.`,
-      );
-      throw new Error(
-        `A fauna container with name '${containerName}' cannot be started as one already exists in state '${state}`,
+      throw new CommandError(
+        `[StartContainer] Container '${containerName}' already exists in state '${state}' and cannot be started.`,
       );
     }
   } else {
@@ -260,8 +238,6 @@ async function startContainer({
  */
 async function createLogStream({ dockerContainer, containerName }) {
   const logger = container.resolve("logger");
-  console.log("dockerContainer", dockerContainer);
-  console.log("dockerContainer.logs", dockerContainer.logs);
   let logStream = await dockerContainer.logs({
     stdout: true,
     stderr: true,
@@ -321,7 +297,6 @@ async function waitForHealthCheck({
         method: "GET",
         timeout: 1000,
       });
-      console.log("response", response, response.ok);
       if (response.ok) {
         logger.stderr(`[HealthCheck] Fauna is ready at ${url}`);
         logStream?.destroy();
