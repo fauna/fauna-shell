@@ -1,5 +1,7 @@
 //@ts-check
 
+import path from "path";
+
 import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
@@ -13,10 +15,16 @@ async function doPush(argv) {
 
   const isStagedPush = !argv.active;
   const secret = await getSecret();
+  const fslFiles = await gatherFSL(argv.dir);
+  const hasLocalSchema = fslFiles.length > 0;
+  const absoluteDirPath = path.resolve(argv.dir);
+  const fsl = reformatFSL(fslFiles);
 
-  const fsl = reformatFSL(await gatherFSL(argv.dir));
-
-  if (!argv.input) {
+  if (!hasLocalSchema) {
+    logger.stdout(
+      `No schema files (*.fsl) found in '${absoluteDirPath}'. Use '--dir' to specify a different directory, or create new .fsl files in this location.`,
+    );
+  } else if (!argv.input) {
     const params = new URLSearchParams({
       force: "true",
       staged: argv.active ? "false" : "true",

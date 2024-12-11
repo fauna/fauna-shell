@@ -8,7 +8,7 @@ import { setupTestContainer as setupContainer } from "../../src/config/setup-tes
 import { reformatFSL } from "../../src/lib/schema.mjs";
 import { buildUrl, f } from "../helpers.mjs";
 
-describe("schema push", function () {
+describe.only("schema push", function () {
   const diffString =
     "\u001b[1;34m* Modifying collection `Customer`\u001b[0m at collections.fsl:2:1:\n  * Defined fields:\n\u001b[31m  - drop field `.age`\u001b[0m\n\n";
   let container, gatherFSL, fetch, logger, confirm;
@@ -29,6 +29,18 @@ describe("schema push", function () {
     confirm = container.resolve("confirm");
 
     gatherFSL.resolves(fsl);
+  });
+
+  it("notifies the user when no schema files are found", async function () {
+    gatherFSL.resolves([]);
+
+    await run(`schema push --secret "secret"`, container);
+
+    expect(logger.stdout).to.have.been.calledWith(
+      sinon.match(
+        /^No schema files \(\*\.fsl\) found in '.*'\. Use '--dir' to specify a different directory, or create new \.fsl files in this location\.$/,
+      ),
+    );
   });
 
   it("can push a schema without user input", async function () {
