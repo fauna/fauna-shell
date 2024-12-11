@@ -1,5 +1,5 @@
 import { container } from "../cli.mjs";
-import { ValidationError } from "./command-helpers.mjs";
+import { ValidationError } from "./errors.mjs";
 import { InvalidCredsError, UnauthorizedError } from "./misc.mjs";
 /**
  *

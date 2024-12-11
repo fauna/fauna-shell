@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { ValidationError } from "./command-helpers.mjs";
+import { ValidationError } from "./errors.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
 const SUMMARY_FQL_REGEX = /^(\s\s\|)|(\d\s\|)/;

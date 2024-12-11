@@ -10,7 +10,7 @@ import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import { ValidationError } from "../src/lib/command-helpers.mjs";
+import { ValidationError } from "../src/lib/errors.mjs";
 import { dirExists } from "../src/lib/file-util.mjs";
 import { colorize } from "../src/lib/formatting/colorize.mjs";
 import { createV4QuerySuccess, createV10QuerySuccess } from "./helpers.mjs";
