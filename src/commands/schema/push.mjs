@@ -3,8 +3,8 @@
 import path from "path";
 
 import { container } from "../../cli.mjs";
-import { ValidationError } from "../../lib/errors.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import { ValidationError } from "../../lib/errors.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
