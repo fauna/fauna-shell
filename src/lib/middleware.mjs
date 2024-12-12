@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import { container } from "../cli.mjs";
 import { fixPath } from "../lib/file-util.mjs";
+import { redactedStringify } from "./formatting/redact.mjs";
 
 const LOCAL_URL = "http://localhost:8443";
 const LOCAL_SECRET = "secret";
@@ -14,7 +15,7 @@ const DEFAULT_URL = "https://db.fauna.com";
 
 export function logArgv(argv) {
   const logger = container.resolve("logger");
-  logger.debug(JSON.stringify(argv, null, 4), "argv", argv);
+  logger.debug(redactedStringify(argv, null, 4), "argv", argv);
   logger.debug(
     `Existing Fauna environment variables: ${captureEnvVars()}`,
     "argv",
@@ -23,7 +24,7 @@ export function logArgv(argv) {
 }
 
 function captureEnvVars() {
-  return JSON.stringify(
+  return redactedStringify(
     Object.entries(process.env)
       .filter(([key]) => key.startsWith("FAUNA_"))
       .reduce((acc, [key, value]) => {
