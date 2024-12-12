@@ -134,7 +134,7 @@ describe.only("ensureContainerRunning", () => {
     expect(written).not.to.contain("An unexpected");
   });
 
-  it.skip("throws an error if interval is less than 0", async () => {
+  it("throws an error if interval is less than 0", async () => {
     try {
       await run("local --interval -1", container);
       throw new Error("Expected an error to be thrown.");
@@ -147,7 +147,7 @@ describe.only("ensureContainerRunning", () => {
     expect(written).not.to.contain("An unexpected");
   });
 
-  it.skip("throws an error if maxAttempts is less than 1", async () => {
+  it("throws an error if maxAttempts is less than 1", async () => {
     try {
       await run("local --maxAttempts 0", container);
       throw new Error("Expected an error to be thrown.");
