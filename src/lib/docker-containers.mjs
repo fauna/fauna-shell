@@ -1,6 +1,8 @@
 import { container } from "../cli.mjs";
 import { CommandError } from "./errors.mjs";
 
+const IMAGE_NAME = "fauna/faunadb:latest";
+
 /**
  * Ensures the container is running
  * @param {string} imageName The name of the image to create the container from
@@ -11,7 +13,6 @@ import { CommandError } from "./errors.mjs";
  * @returns {Promise<void>}
  */
 export async function ensureContainerRunning({
-  imageName,
   containerName,
   hostPort,
   containerPort,
@@ -19,10 +20,10 @@ export async function ensureContainerRunning({
 }) {
   const logger = container.resolve("logger");
   if (pull) {
-    await pullImage(imageName);
+    await pullImage(IMAGE_NAME);
   }
   const logStream = await startContainer({
-    imageName,
+    imageName: IMAGE_NAME,
     containerName,
     hostPort,
     containerPort,

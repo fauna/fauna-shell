@@ -34,11 +34,6 @@ function buildLocalCommand(yargs) {
       type: "number",
       default: "8443",
     },
-    image: {
-      describe: "The image to run locally",
-      type: "string",
-      default: "fauna/faunadb:latest",
-    },
     name: {
       describe: "The name to give the container",
       type: "string",

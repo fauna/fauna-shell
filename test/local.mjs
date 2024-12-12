@@ -3,9 +3,9 @@
 import { expect } from "chai";
 import sinon, { stub } from "sinon";
 
-import { run } from "../../src/cli.mjs";
-import { setupTestContainer } from "../../src/config/setup-test-container.mjs";
-import { f } from "../helpers.mjs";
+import { run } from "../src/cli.mjs";
+import { setupTestContainer } from "../src/config/setup-test-container.mjs";
+import { f } from "./helpers.mjs";
 
 describe("ensureContainerRunning", () => {
   let container,
