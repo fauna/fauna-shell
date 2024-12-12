@@ -11,10 +11,20 @@ import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
 
 const tab = "  ";
+
+// Helper functions to reduce repetition
 const logLineWithTab = (
   line,
   { numTabs = 1, logger = container.resolve("logger").stdout } = {},
 ) => logger(tab.repeat(numTabs) + line);
+
+const formatDatabaseName = (database) => (database ? ` for '${database}'` : "");
+
+const logDiff = (diff, numTabs = 3) => {
+  for (const line of diff.trim().split("\n")) {
+    logLineWithTab(line, { numTabs });
+  }
+};
 
 async function doStatus(argv) {
   const logger = container.resolve("logger");
@@ -54,47 +64,35 @@ async function doStatus(argv) {
   }
 
   // Output the status response
-
   switch (statusResponse.status) {
     case "none":
-      logger.stdout(
-        `No changes staged ${argv.database ? `for '${chalk.bold(argv.database)}'` : ""}.`,
-      );
+      logger.stdout(`No changes staged${formatDatabaseName(argv.database)}.`);
       break;
     case "pending":
-      logger.stdout(
-        `Staged changes ${argv.database ? `for '${chalk.bold(argv.database)}'` : ""} are ${chalk.bold(statusResponse.status)}:`,
-      );
-      if (statusResponse.pending_summary) {
-        logLineWithTab(statusResponse.pending_summary.trim());
-      }
-      break;
     case "ready":
       logger.stdout(
-        `Staged changes ${argv.database ? `for '${chalk.bold(argv.database)}'` : ""} are ${chalk.bold(statusResponse.status)}:`,
+        `Staged changes${formatDatabaseName(argv.database)} are ${chalk.bold(statusResponse.status)}:`,
       );
-      if (statusResponse.diff) {
+      if (statusResponse.status === "ready" && statusResponse.diff) {
         logLineWithTab("(use `fauna schema commit` to commit staged changes)");
-        for (const line of statusResponse.diff.trim().split("\n")) {
-          logLineWithTab(line, { numTabs: 3 });
-        }
+        logDiff(statusResponse.diff);
+      } else if (statusResponse.pending_summary) {
+        logLineWithTab(statusResponse.pending_summary.trim());
       }
       break;
     case "failed":
       logger.stdout(
-        `Staged changes ${argv.database ? `for '${chalk.bold(argv.database)}'` : ""} have ${chalk.bold(statusResponse.status)}. `,
+        `Staged changes${formatDatabaseName(argv.database)} have ${chalk.bold(statusResponse.status)}.`,
       );
       break;
     default:
       logLineWithTab(`Staged changes: ${statusResponse.status}`);
-      break;
   }
 
-  // Output the diff response
-
+  // Handle local changes
   if (!hasLocalSchema) {
     logger.stdout(
-      `\nNo local changes. No schema files found in '${chalk.bold(absoluteDirPath)}'.\n`,
+      `\nNo local changes. No schema files found in '${absoluteDirPath}'.\n`,
     );
     return;
   }
@@ -105,19 +103,16 @@ async function doStatus(argv) {
 
   if (diffResponse.diff === "") {
     logger.stdout(
-      `\nNo local changes${argv.dir !== "." ? ` in '${chalk.bold(argv.dir)}'` : ""}.\n`,
+      `\nNo local changes${argv.dir !== "." ? ` in '${argv.dir}'` : ""}.\n`,
     );
     return;
   }
 
-  logger.stdout(
-    `\nLocal changes${argv.dir !== "." ? ` in '${chalk.bold(argv.dir)}'` : ""}:`,
-  );
+  const dirInfo = argv.dir !== "." ? ` in '${argv.dir}'` : "";
+  logger.stdout(`\nLocal changes${dirInfo}:`);
   logLineWithTab("(use `fauna schema diff` to display local changes)");
   logLineWithTab("(use `fauna schema push` to stage local changes)");
-  for (const line of diffResponse.diff.trim().split("\n")) {
-    logLineWithTab(line, { numTabs: 3 });
-  }
+  logDiff(diffResponse.diff);
   logger.stdout("");
 }
 
