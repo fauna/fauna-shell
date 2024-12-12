@@ -24,7 +24,7 @@ async function startLocal(argv) {
 function buildLocalCommand(yargs) {
   return yargs.options({
     containerPort: {
-      describe: "The port inside the container Fauna listens on",
+      describe: "The port inside the container Fauna listens on.",
       type: "number",
       default: "8443",
     },
@@ -40,7 +40,7 @@ function buildLocalCommand(yargs) {
       default: "faunadb",
     },
     pull: {
-      describe: "Pull the latest image before starting the container",
+      describe: "Pull the latest image before starting the container.",
       type: "boolean",
       default: true,
     },
