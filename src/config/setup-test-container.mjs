@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import net from "node:net";
 import path from "node:path";
 import { PassThrough } from "node:stream";
 
@@ -43,6 +44,7 @@ export function setupTestContainer() {
 
   const thingsToManuallyMock = automock(container);
   const customfs = stub({ ...fs });
+  const customNet = stub({ ...net });
   // this is a mock used by the default profile behavior
   customfs.readdirSync.withArgs(process.cwd()).returns([]);
 
@@ -58,6 +60,7 @@ export function setupTestContainer() {
     // real implementation
     parseYargs: awilix.asValue(spy(parseYargs)),
     fs: awilix.asValue(customfs),
+    net: awilix.asValue(customNet),
     homedir: awilix.asValue(
       stub().returns(path.join(__dirname, "../../test/test-homedir")),
     ),

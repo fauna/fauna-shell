@@ -7,6 +7,7 @@ const IMAGE_NAME = "fauna/faunadb:latest";
  * Ensures the container is running
  * @param {string} imageName The name of the image to create the container from
  * @param {string} containerName The name of the container to start
+ * @param {string} hostIp The IP address to bind the container's exposed port on the host.
  * @param {number} hostPort The port on the host machine mapped to the container's port
  * @param {number} containerPort The port inside the container Fauna listens on
  * @param {boolean} pull Whether to pull the latest image
@@ -17,6 +18,7 @@ const IMAGE_NAME = "fauna/faunadb:latest";
  */
 export async function ensureContainerRunning({
   containerName,
+  hostIp,
   hostPort,
   containerPort,
   pull,
@@ -30,6 +32,7 @@ export async function ensureContainerRunning({
   const logStream = await startContainer({
     imageName: IMAGE_NAME,
     containerName,
+    hostIp,
     hostPort,
     containerPort,
   });
@@ -37,7 +40,7 @@ export async function ensureContainerRunning({
     `[StartContainer] Container '${containerName}' started. Monitoring HealthCheck for readiness.`,
   );
   await waitForHealthCheck({
-    url: `http://localhost:${hostPort}`,
+    url: `http://${hostIp}:${hostPort}`,
     logStream,
     interval,
     maxAttempts,
@@ -134,18 +137,45 @@ function writePullProgress(layers, numLines) {
 async function findContainer(containerName) {
   const docker = container.resolve("docker");
   const logger = container.resolve("logger"); // Dependency injection for logger
-  logger.stderr(
-    `[GetContainerState] Checking state for container '${containerName}'...`,
-  );
+  logger.stderr(`[FindContainer] Looking for container '${containerName}'...`);
   const filters = JSON.stringify({ name: [containerName] });
   const containers = await docker.listContainers({ all: true, filters });
   return containers.length > 0 ? containers[0] : null;
 }
 
 /**
+ * Checks if a port is occupied.
+ * @param {number} hostPort The port to check
+ * @param {string} hostIp The IP address to bind the container's exposed port on the host.
+ * @returns {Promise<boolean>} a promise that resolves to true if the port is occupied, false otherwise.
+ */
+async function isPortOccupied({ hostPort, hostIp }) {
+  const net = container.resolve("net");
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        resolve(true); // Port is occupied
+      } else {
+        reject(err); // Some other error occurred
+      }
+    });
+
+    server.on("listening", () => {
+      server.close(() => {
+        resolve(false); // Port is free
+      });
+    });
+
+    server.listen(hostPort, hostIp);
+  });
+}
+
+/**
  * Creates a container
  * @param {string} imageName The name of the image to create the container from
  * @param {string} containerName The name of the container to start
+ * @param {string} hostIp The IP address to bind the container's exposed port on the host.
  * @param {number} hostPort The port on the host machine mapped to the container's port
  * @param {number} containerPort The port inside the container Fauna listens on
  * @returns {Promise<Object>} The container object
@@ -153,16 +183,29 @@ async function findContainer(containerName) {
 async function createContainer({
   imageName,
   containerName,
+  hostIp,
   hostPort,
   containerPort,
 }) {
   const docker = container.resolve("docker");
+  if (await isPortOccupied({ hostIp, hostPort })) {
+    throw new CommandError(
+      `The hostPort '${hostPort}' on IP '${hostIp}' is already occupied. \
+Please pass a --hostPort other than '${hostPort}'.`,
+      { hideHelp: false },
+    );
+  }
   const dockerContainer = await docker.createContainer({
     Image: imageName,
     name: containerName,
     HostConfig: {
       PortBindings: {
-        [`${containerPort}/tcp`]: [{ HostPort: `${hostPort}` }],
+        [`${containerPort}/tcp`]: [
+          {
+            HostPort: `${hostPort}`,
+            HostIp: hostIp,
+          },
+        ],
       },
       AutoRemove: true,
     },
@@ -177,6 +220,7 @@ async function createContainer({
  * Starts a container and returns a log stream if the container is not yet running.
  * @param {string} imageName The name of the image to create the container from
  * @param {string} containerName The name of the container to start
+ * @param {string} hostIp The IP address to bind the container's exposed port on the host.
  * @param {number} hostPort The port on the host machine mapped to the container's port
  * @param {number} containerPort The port inside the container Fauna listens on
  * @returns {Promise<Object>} The log stream
@@ -184,6 +228,7 @@ async function createContainer({
 async function startContainer({
   imageName,
   containerName,
+  hostIp,
   hostPort,
   containerPort,
 }) {
@@ -226,6 +271,7 @@ async function startContainer({
     const dockerContainer = await createContainer({
       imageName,
       containerName,
+      hostIp,
       hostPort,
       containerPort,
     });

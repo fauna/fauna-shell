@@ -7,13 +7,14 @@ import { run } from "../src/cli.mjs";
 import { setupTestContainer } from "../src/config/setup-test-container.mjs";
 import { f } from "./helpers.mjs";
 
-describe("ensureContainerRunning", () => {
+describe.only("ensureContainerRunning", () => {
   let container,
     fetch,
     logger,
     stderrStream,
     docker,
     logsStub,
+    serverMock,
     startStub,
     unpauseStub;
 
@@ -26,6 +27,21 @@ describe("ensureContainerRunning", () => {
     logsStub = stub();
     startStub = stub();
     unpauseStub = stub();
+    // Requested port is free
+    serverMock = {
+      close: sinon.stub(),
+      once: sinon.stub(),
+      on: sinon.stub(),
+      listen: sinon.stub(),
+    };
+    serverMock.on.withArgs("listening").callsFake((event, callback) => {
+      callback();
+    });
+    serverMock.close.callsFake((callback) => {
+      if (callback) callback();
+    });
+    const net = container.resolve("net");
+    net.createServer.returns(serverMock);
   });
 
   it("Creates and starts a container when none exists", async () => {
@@ -58,7 +74,12 @@ describe("ensureContainerRunning", () => {
       name: "faunadb",
       HostConfig: {
         PortBindings: {
-          "8443/tcp": [{ HostPort: "8443" }],
+          "8443/tcp": [
+            {
+              HostPort: "8443",
+              HostIp: "0.0.0.0",
+            },
+          ],
         },
         AutoRemove: true,
       },
@@ -71,7 +92,7 @@ describe("ensureContainerRunning", () => {
     );
   });
 
-  it("The user can control the hostPort and containerPort", async () => {
+  it("The user can control the hostIp, hostPort, containerPort, and name", async () => {
     docker.pull.onCall(0).resolves();
     docker.modem.followProgress.callsFake((stream, onFinished) => {
       onFinished();
@@ -87,13 +108,21 @@ describe("ensureContainerRunning", () => {
       logs: logsStub,
       unpause: unpauseStub,
     });
-    await run("local --hostPort 10 --containerPort 11", container);
+    await run(
+      "local --hostPort 10 --containerPort 11 --name Taco --hostIp 127.0.0.1",
+      container,
+    );
     expect(docker.createContainer).to.have.been.calledWith({
       Image: "fauna/faunadb:latest",
-      name: "faunadb",
+      name: "Taco",
       HostConfig: {
         PortBindings: {
-          "11/tcp": [{ HostPort: "10" }],
+          "11/tcp": [
+            {
+              HostPort: "10",
+              HostIp: "127.0.0.1",
+            },
+          ],
         },
         AutoRemove: true,
       },
@@ -185,7 +214,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
     expect(written).to.contain("with HTTP status: '503'");
     expect(written).to.contain("with error:");
     expect(written).to.contain(
-      "[HealthCheck] Fauna at http://localhost:8443 is not ready after 3 attempts. Consider increasing --interval or --maxAttempts.",
+      "[HealthCheck] Fauna at http://0.0.0.0:8443 is not ready after 3 attempts. Consider increasing --interval or --maxAttempts.",
     );
     expect(written).not.to.contain("An unexpected");
     expect(written).not.to.contain("fauna local"); // help text
@@ -341,10 +370,10 @@ https://support.fauna.com/hc/en-us/requests/new`,
         "[StartContainer] Container 'faunadb' started. Monitoring HealthCheck for readiness.",
       );
       expect(logger.stderr).to.have.been.calledWith(
-        "[HealthCheck] Waiting for Fauna to be ready at http://localhost:8443...",
+        "[HealthCheck] Waiting for Fauna to be ready at http://0.0.0.0:8443...",
       );
       expect(logger.stderr).to.have.been.calledWith(
-        "[HealthCheck] Fauna is ready at http://localhost:8443",
+        "[HealthCheck] Fauna is ready at http://0.0.0.0:8443",
       );
       expect(logger.stderr).to.have.been.calledWith(
         "[ContainerReady] Container 'faunadb' is up and healthy.",

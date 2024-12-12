@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import * as fsp from "node:fs/promises";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { exit } from "node:process";
@@ -60,6 +61,7 @@ export const injectables = {
   fetch: awilix.asValue(fetchWrapper),
   fs: awilix.asValue(fs),
   fsp: awilix.asValue(fsp),
+  net: awilix.asValue(net),
   dirname: awilix.asValue(path.dirname),
   normalize: awilix.asValue(path.normalize),
   homedir: awilix.asValue(os.homedir),

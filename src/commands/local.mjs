@@ -11,6 +11,7 @@ async function startLocal(argv) {
   await ensureContainerRunning({
     imageName: argv.image,
     containerName: argv.name,
+    hostIp: argv.hostIp,
     hostPort: argv.hostPort,
     containerPort: argv.containerPort,
     pull: argv.pull,
@@ -37,6 +38,11 @@ function buildLocalCommand(yargs) {
           "The port on the host machine mapped to the container's port. This is the port you'll connect to Fauna on.",
         type: "number",
         default: 8443,
+      },
+      hostIp: {
+        describe: `The IP address to bind the container's exposed port on the host.`,
+        type: "string",
+        default: "0.0.0.0",
       },
       interval: {
         describe:
