@@ -7,7 +7,7 @@ import { run } from "../src/cli.mjs";
 import { setupTestContainer } from "../src/config/setup-test-container.mjs";
 import { f } from "./helpers.mjs";
 
-describe.only("ensureContainerRunning", () => {
+describe("ensureContainerRunning", () => {
   let container,
     fetch,
     logger,
@@ -94,8 +94,39 @@ describe.only("ensureContainerRunning", () => {
     );
   });
 
+  it("Fails start with a prompt to contact Fauna if pull fails.", async () => {
+    docker.pull.onCall(0).rejects(new Error("Remote repository not found"));
+    docker.listContainers.onCall(0).resolves([]);
+    fetch.onCall(0).resolves(f({})); // fast succeed the health check
+    logsStub.callsFake(async () => ({
+      on: () => {},
+      destroy: () => {},
+    }));
+    docker.createContainer.resolves({
+      start: startStub,
+      logs: logsStub,
+      unpause: unpauseStub,
+    });
+    try {
+      await run("local", container);
+      throw new Error("Expected an error to be thrown.");
+    } catch (_) {}
+    expect(docker.pull).to.have.been.called;
+    expect(docker.modem.followProgress).not.to.have.been.called;
+    expect(startStub).not.to.have.been.called;
+    expect(logsStub).not.to.have.been.called;
+    expect(docker.createContainer).not.to.have.been.called;
+    const written = stderrStream.getWritten();
+    expect(written).to.contain(
+      `[PullImage] Failed to pull image 'fauna/faunadb:latest': Remote repository \
+not found. If this issue persists contact support: \
+https://support.fauna.com/hc/en-us/requests/new`,
+    );
+    expect(written).not.to.contain("An unexpected");
+    expect(written).not.to.contain("fauna local"); // help text
+  });
+
   it("Throws an error if the health check fails", async () => {
-    process.env.FAUNA_LOCAL_HEALTH_CHECK_INTERVAL_MS = "1";
     docker.pull.onCall(0).resolves();
     docker.modem.followProgress.callsFake((stream, onFinished) => {
       onFinished();

@@ -1,5 +1,5 @@
 import { container } from "../cli.mjs";
-import { CommandError } from "./errors.mjs";
+import { CommandError, SUPPORT_MESSAGE } from "./errors.mjs";
 
 const IMAGE_NAME = "fauna/faunadb:latest";
 
@@ -91,10 +91,7 @@ async function pullImage(imageName) {
       );
     });
   } catch (error) {
-    logger.stderr(
-      `[PullImage] Error pulling image ${imageName}: ${error.message}`,
-    );
-    throw error;
+    throw new CommandError(`[PullImage] Failed to pull image '${imageName}': ${error.message}. ${SUPPORT_MESSAGE}`, { cause: error });
   }
 }
 
