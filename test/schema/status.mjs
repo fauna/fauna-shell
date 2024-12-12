@@ -2,7 +2,7 @@
 
 import { expect } from "chai";
 import chalk from "chalk";
-import sinon from "sinon";
+import path from "path";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
@@ -110,11 +110,11 @@ describe("schema status", function () {
       }),
       { ...commonFetchParams, method: "POST", body: new FormData() },
     );
+    expect(logger.stdout).to.have.been.calledWith(`No staged changes.`);
+
+    const absoluteDirPath = path.resolve(".");
     expect(logger.stdout).to.have.been.calledWith(
-      `Staged changes: ${chalk.bold("none")}`,
-    );
-    expect(logger.stdout).to.have.been.calledWith(
-      sinon.match(/^Local changes: .*no schema files found in.*\n$/),
+      `\nNo local changes. No schema files found in '${absoluteDirPath}'.\n`,
     );
   });
 
@@ -151,12 +151,8 @@ describe("schema status", function () {
       }),
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
-    expect(logger.stdout).to.have.been.calledWith(
-      `Staged changes: ${chalk.bold("none")}`,
-    );
-    expect(logger.stdout).to.have.been.calledWith(
-      `Local changes: ${chalk.bold("none")}\n`,
-    );
+    expect(logger.stdout).to.have.been.calledWith("No staged changes.");
+    expect(logger.stdout).to.have.been.calledWith("\nNo local changes.\n");
   });
 
   it("fetches the current status when there are only local changes", async function () {
@@ -195,18 +191,23 @@ describe("schema status", function () {
       }),
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
+    expect(logger.stdout).to.have.been.calledWith("No staged changes.");
+
+    expect(logger.stdout).to.have.been.calledWith("\nLocal changes:");
     expect(logger.stdout).to.have.been.calledWith(
-      `Staged changes: ${chalk.bold("none")}`,
-    );
-    expect(logger.stdout).to.have.been.calledWith(`Local changes:\n`);
-    expect(logger.stdout).to.have.been.calledWith(
-      `  * Adding collection \`NewCollection\` to collections.fsl:2:1\n  * Modifying collection \`OrderItem\` at collections.fsl:125:1\n  * Modifying function \`createOrUpdateCartItem\` at functions.fsl:2:1\n  `,
-    );
-    expect(logger.stdout).to.have.been.calledWith(
-      "(use `fauna schema diff` to display local changes)",
+      "  (use `fauna schema diff` to display local changes)",
     );
     expect(logger.stdout).to.have.been.calledWith(
-      "(use `fauna schema push` to stage local changes)",
+      "  (use `fauna schema push` to stage local changes)",
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      `      * Adding collection \`NewCollection\` to collections.fsl:2:1`,
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      "      * Modifying collection `OrderItem` at collections.fsl:125:1",
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      "      * Modifying function `createOrUpdateCartItem` at functions.fsl:2:1",
     );
     expect(logger.stderr).not.to.have.been.called;
   });
@@ -246,13 +247,19 @@ describe("schema status", function () {
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(
-      `Staged changes: ${chalk.bold("ready")}`,
+      `Staged changes are ${chalk.bold("ready")}:`,
     );
     expect(logger.stdout).to.have.been.calledWith(
-      `Local changes: ${chalk.bold("none")}\n`,
+      "  (use `fauna schema commit` to commit staged changes)",
     );
     expect(logger.stdout).to.have.been.calledWith(
-      summaryDiff.split("\n").join("\n  "),
+      "      " + summaryDiff.split("\n")[0],
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      "      " + summaryDiff.split("\n")[1],
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      "      " + summaryDiff.split("\n")[2],
     );
     expect(logger.stderr).not.to.have.been.called;
   });
@@ -293,22 +300,32 @@ describe("schema status", function () {
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
     expect(logger.stdout).to.have.been.calledWith(
-      `Staged changes: ${chalk.bold("ready")}`,
-    );
-    expect(logger.stdout).to.have.been.calledWith(`Staged changes:\n`);
-    expect(logger.stdout).to.have.been.calledWith(`Local changes:\n`);
-    expect(logger.stdout).to.have.been.calledWith(
-      summaryDiff.split("\n").join("\n  "),
+      `Staged changes are ${chalk.bold("ready")}:`,
     );
     expect(logger.stdout).to.have.been.calledWith(
-      "  * Adding function `newFunction` to functions.fsl:1:1\n" +
-        "  * Modifying function `createOrUpdateCartItem` at functions.fsl:5:1\n  ",
+      "  (use `fauna schema commit` to commit staged changes)",
     );
     expect(logger.stdout).to.have.been.calledWith(
-      "(use `fauna schema diff` to display local changes)",
+      "      " + summaryDiff.split("\n")[0],
     );
     expect(logger.stdout).to.have.been.calledWith(
-      "(use `fauna schema push` to stage local changes)",
+      "      " + summaryDiff.split("\n")[1],
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      "      " + summaryDiff.split("\n")[2],
+    );
+    expect(logger.stdout).to.have.been.calledWith(`\nLocal changes:`);
+    expect(logger.stdout).to.have.been.calledWith(
+      "  (use `fauna schema diff` to display local changes)",
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      "  (use `fauna schema push` to stage local changes)",
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      "      * Adding function `newFunction` to functions.fsl:1:1",
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      "      * Modifying function `createOrUpdateCartItem` at functions.fsl:5:1",
     );
     expect(logger.stderr).not.to.have.been.called;
   });
