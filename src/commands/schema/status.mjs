@@ -12,19 +12,18 @@ import { localSchemaOptions } from "./schema.mjs";
 
 const tab = "  ";
 
-// Helper functions to reduce repetition
 const logLineWithTab = (
   line,
   { numTabs = 1, logger = container.resolve("logger").stdout } = {},
 ) => logger(tab.repeat(numTabs) + line);
 
-const formatDatabaseName = (database) => (database ? ` for '${database}'` : "");
-
-const logDiff = (diff, numTabs = 3) => {
+const logBlockWithTab = (diff, numTabs = 3) => {
   for (const line of diff.trim().split("\n")) {
     logLineWithTab(line, { numTabs });
   }
 };
+
+const formatDatabaseName = (database) => (database ? ` for '${database}'` : "");
 
 async function doStatus(argv) {
   const logger = container.resolve("logger");
@@ -75,9 +74,9 @@ async function doStatus(argv) {
       );
       if (statusResponse.status === "ready" && statusResponse.diff) {
         logLineWithTab("(use `fauna schema commit` to commit staged changes)");
-        logDiff(statusResponse.diff);
+        logBlockWithTab(statusResponse.diff);
       } else if (statusResponse.pending_summary) {
-        logDiff(statusResponse.pending_summary, 1);
+        logBlockWithTab(statusResponse.pending_summary, 1);
       }
       break;
     case "failed":
@@ -112,7 +111,7 @@ async function doStatus(argv) {
   logger.stdout(`\nLocal changes${dirInfo}:`);
   logLineWithTab("(use `fauna schema diff` to display local changes)");
   logLineWithTab("(use `fauna schema push` to stage local changes)");
-  logDiff(diffResponse.diff);
+  logBlockWithTab(diffResponse.diff);
   logger.stdout("");
 }
 
