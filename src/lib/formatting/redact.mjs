@@ -1,6 +1,7 @@
 /**
- * Redacts a string by replacing everything except the last four characters with asterisks.
- * If the string is less than 12 characters long, it is completely replaced with asterisks.
+ * Redacts a string by replacing everything except the first and last four characters with asterisks.
+ * If the string is too short to display both the first and last four characters, the first four
+ * are displayed and the rest are redacted. If its less than 12 characters, the whole string is redacted.
  *
  * @param {string} text - The string to redact.
  * @returns {string} The redacted string.
@@ -8,13 +9,24 @@
 export function redact(text) {
   if (!text) return text;
 
+  // If the string is less than 12 characters long, it is completely replaced with asterisks.
+  // This is so we can guarantee that the redacted string is at least 8 characters long.
+  // This aligns with minimum password lengths.
   if (text.length < 12) {
     return "*".repeat(text.length);
   }
 
+  // If the string is less than 16, we can't redact both, so display the last four only.
+  if (text.length < 16) {
+    const lastFour = text.slice(-4);
+    return `${"*".repeat(text.length - 4)}${lastFour}`;
+  }
+
+  // Otherwise, redact the middle of the string and keep the first and last four characters.
+  const firstFour = text.slice(0, 4);
   const lastFour = text.slice(-4);
-  const redactedLength = text.length - 4;
-  return "*".repeat(redactedLength) + lastFour;
+  const middleLength = text.length - 8;
+  return `${firstFour}${"*".repeat(middleLength)}${lastFour}`;
 }
 
 /**
