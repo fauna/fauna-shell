@@ -253,13 +253,13 @@ describe("schema status", function () {
       "  (use `fauna schema commit` to commit staged changes)",
     );
     expect(logger.stdout).to.have.been.calledWith(
-      "      " + summaryDiff.split("\n")[0],
+      `      ${  summaryDiff.split("\n")[0]}`,
     );
     expect(logger.stdout).to.have.been.calledWith(
-      "      " + summaryDiff.split("\n")[1],
+      `      ${  summaryDiff.split("\n")[1]}`,
     );
     expect(logger.stdout).to.have.been.calledWith(
-      "      " + summaryDiff.split("\n")[2],
+      `      ${  summaryDiff.split("\n")[2]}`,
     );
     expect(logger.stderr).not.to.have.been.called;
   });
@@ -306,13 +306,13 @@ describe("schema status", function () {
       "  (use `fauna schema commit` to commit staged changes)",
     );
     expect(logger.stdout).to.have.been.calledWith(
-      "      " + summaryDiff.split("\n")[0],
+      `      ${  summaryDiff.split("\n")[0]}`,
     );
     expect(logger.stdout).to.have.been.calledWith(
-      "      " + summaryDiff.split("\n")[1],
+      `      ${  summaryDiff.split("\n")[1]}`,
     );
     expect(logger.stdout).to.have.been.calledWith(
-      "      " + summaryDiff.split("\n")[2],
+      `      ${  summaryDiff.split("\n")[2]}`,
     );
     expect(logger.stdout).to.have.been.calledWith(`\nLocal changes:`);
     expect(logger.stdout).to.have.been.calledWith(
