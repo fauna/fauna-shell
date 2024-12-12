@@ -117,14 +117,6 @@ export function configParser(argvInput, path) {
 
   const profile = argv.profile || process.env.FAUNA_PROFILE;
 
-  // console.log(
-  //   "in config",
-  //   argvInput,
-  //   userProvidedConfigPath,
-  //   profile,
-  //   parsedPath,
-  // );
-
   if (!parsedPath) {
     // if there no config file, we need to assert that no profile is specified
 

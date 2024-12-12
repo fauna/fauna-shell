@@ -348,6 +348,28 @@ describe("configuration file", function () {
       expect(stripAnsi(stderr.getWritten())).to.equal(message);
     });
 
+    it("ignores default config file if neither profile nor config are specified", async function () {
+      const defaultConfig = `
+      {
+        "default": {
+          "color": false,
+          "json": true,
+          "quiet": true,
+        },
+      }
+      `.trim();
+      await runArgvTest({
+        cmd: `argv`,
+        pathMatcher: path.join(__dirname, "../fauna.config.yaml"),
+        argvMatcher: sinon.match({
+          color: true,
+          json: false,
+          quiet: false,
+        }),
+        configToReturn: defaultConfig,
+      });
+    });
+
     it.skip("preserves comments in the config file", async function () {});
   });
 
