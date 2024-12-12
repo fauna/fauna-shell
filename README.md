@@ -36,7 +36,7 @@ To get started:
 1. Install the CLI:
 
    ```shell
-   npm install -g fauna-shell@beta
+   npm install -g fauna-shell@4.0.0-beta
    ```
 
 2. If you're using bash or zsh, enable auto-complete by appending the output of
@@ -55,9 +55,7 @@ To get started:
 
 4. Run CLI commands. Specify a `--database` path, including the [Region Group
    identifier](https://docs.fauna.com/fauna/current/manage/region-groups/#id) and
-   hierarchy, to run the command in. [Shorthand Region Group
-   identifiers](https://docs.fauna.com/fauna/current/manage/region-groups/#id)
-   are supported. For example:
+   hierarchy, to run the command in. For example:
 
    ```shell
    # Runs a query in the top-level 'example' database
@@ -71,13 +69,7 @@ To get started:
 During the beta, you can install v4 of the Fauna CLI globally using npm:
 
 ```sh
-npm install -g fauna-shell@beta
-```
-
-To upgrade the CLI, run:
-
-```
-npm update -g fauna-shell@beta
+npm install -g fauna-shell@4.0.0-beta
 ```
 
 ## Documentation
