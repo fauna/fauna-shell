@@ -1,4 +1,5 @@
 import { ensureContainerRunning } from "../lib/docker-containers.mjs";
+//import { CommandError } from "../lib/errors.mjs";
 
 /**
  * Starts the local Fauna container
@@ -13,6 +14,8 @@ async function startLocal(argv) {
     hostPort: argv.hostPort,
     containerPort: argv.containerPort,
     pull: argv.pull,
+    interval: argv.interval,
+    maxAttempts: argv.maxAttempts,
   });
 }
 
@@ -26,13 +29,25 @@ function buildLocalCommand(yargs) {
     containerPort: {
       describe: "The port inside the container Fauna listens on.",
       type: "number",
-      default: "8443",
+      default: 8443,
     },
     hostPort: {
       describe:
         "The port on the host machine mapped to the container's port. This is the port you'll connect to Fauna on.",
       type: "number",
-      default: "8443",
+      default: 8443,
+    },
+    interval: {
+      describe:
+        "The interval (in milliseconds) between health check attempts. Determines how often the CLI checks if the Fauna container is ready.",
+      type: "number",
+      default: 10000,
+    },
+    maxAttempts: {
+      describe:
+        "The maximum number of health check attempts before declaring the start Fauna continer process as failed.",
+      type: "number",
+      default: 100,
     },
     name: {
       describe: "The name to give the container",

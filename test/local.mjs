@@ -7,7 +7,7 @@ import { run } from "../src/cli.mjs";
 import { setupTestContainer } from "../src/config/setup-test-container.mjs";
 import { f } from "./helpers.mjs";
 
-describe("ensureContainerRunning", () => {
+describe.only("ensureContainerRunning", () => {
   let container,
     fetch,
     logger,
@@ -27,8 +27,6 @@ describe("ensureContainerRunning", () => {
     startStub = stub();
     unpauseStub = stub();
   });
-
-  it.skip("handles argv tweaks correctly", () => {});
 
   it("Creates and starts a container when none exists", async () => {
     docker.pull.onCall(0).resolves();
@@ -73,6 +71,40 @@ describe("ensureContainerRunning", () => {
     );
   });
 
+  it("Throws an error if the health check fails", async () => {
+    process.env.FAUNA_LOCAL_HEALTH_CHECK_INTERVAL_MS = "1";
+    docker.pull.onCall(0).resolves();
+    docker.modem.followProgress.callsFake((stream, onFinished) => {
+      onFinished();
+    });
+    docker.listContainers
+      .onCall(0)
+      .resolves([{ State: "created", Names: ["/faunadb"] }]);
+    logsStub.callsFake(async () => ({
+      on: () => {},
+      destroy: () => {},
+    }));
+    docker.getContainer.onCall(0).returns({
+      logs: logsStub,
+      start: startStub,
+      unpause: unpauseStub,
+    });
+    fetch.onCall(0).rejects();
+    fetch.resolves(f({}, 503)); // fail from http
+    try {
+      await run("local --interval 0 --maxAttempts 3", container);
+      throw new Error("Expected an error to be thrown.");
+    } catch (_) {}
+    const written = stderrStream.getWritten();
+    expect(written).to.contain("with HTTP status: '503'");
+    expect(written).to.contain("with error:");
+    expect(written).to.contain(
+      "[HealthCheck] Fauna at http://localhost:8443 is not ready after 3 attempts. Consider increasing --interval or --maxAttempts.",
+    );
+    expect(written).not.to.contain("An unexpected");
+    expect(written).not.to.contain("fauna local"); // help text
+  });
+
   it("exits if a container cannot be started", async () => {
     docker.pull.onCall(0).resolves();
     docker.modem.followProgress.callsFake((stream, onFinished) => {
@@ -99,6 +131,30 @@ describe("ensureContainerRunning", () => {
     expect(written).to.contain(
       "[StartContainer] Container 'faunadb' already exists in state 'dead' and cannot be started.",
     );
+    expect(written).not.to.contain("An unexpected");
+  });
+
+  it.skip("throws an error if interval is less than 0", async () => {
+    try {
+      await run("local --interval -1", container);
+      throw new Error("Expected an error to be thrown.");
+    } catch (_) {}
+    const written = stderrStream.getWritten();
+    expect(written).to.contain(
+      "--interval must be greater than or equal to 0.",
+    );
+    expect(written).to.contain("fauna local"); // help text
+    expect(written).not.to.contain("An unexpected");
+  });
+
+  it.skip("throws an error if maxAttempts is less than 1", async () => {
+    try {
+      await run("local --maxAttempts 0", container);
+      throw new Error("Expected an error to be thrown.");
+    } catch (_) {}
+    const written = stderrStream.getWritten();
+    expect(written).to.contain("--maxAttempts must be greater than 0.");
+    expect(written).to.contain("fauna local"); // help text
     expect(written).not.to.contain("An unexpected");
   });
 
@@ -180,7 +236,7 @@ describe("ensureContainerRunning", () => {
       }
       expect(docker.pull).to.have.been.calledWith("fauna/faunadb:latest");
       expect(docker.modem.followProgress).to.have.been.calledWith(
-        sinon.matchAny,
+        sinon.match.any,
         sinon.match.func,
       );
       expect(docker.listContainers).to.have.been.calledWith({
