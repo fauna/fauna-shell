@@ -7,7 +7,7 @@ import { run } from "../src/cli.mjs";
 import { setupTestContainer } from "../src/config/setup-test-container.mjs";
 import { f } from "./helpers.mjs";
 
-describe.only("ensureContainerRunning", () => {
+describe("ensureContainerRunning", () => {
   let container,
     fetch,
     logger,
