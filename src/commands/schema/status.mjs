@@ -65,7 +65,7 @@ async function doStatus(argv) {
   // Output the status response
   switch (statusResponse.status) {
     case "none":
-      logger.stdout(`No changes staged${formatDatabaseName(argv.database)}.`);
+      logger.stdout(`No staged changes${formatDatabaseName(argv.database)}.`);
       break;
     case "pending":
     case "ready":
