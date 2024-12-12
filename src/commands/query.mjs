@@ -166,7 +166,7 @@ function buildQueryCommand(yargs) {
       raw: {
         type: "boolean",
         description:
-          "Output the full API response, including summary and query stats.",
+          "Output the raw JSON query response, including summary and query stats.",
         default: false,
       },
     })
