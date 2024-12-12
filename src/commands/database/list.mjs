@@ -3,7 +3,6 @@
 import { FaunaError } from "fauna";
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { throwForError } from "../../lib/fauna.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
@@ -78,7 +77,7 @@ async function listDatabases(argv) {
 }
 
 function buildListCommand(yargs) {
-  return yargsWithCommonQueryOptions(yargs)
+  return yargs
     .options({
       pageSize: {
         type: "number",
