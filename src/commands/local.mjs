@@ -34,19 +34,19 @@ function buildLocalCommand(yargs) {
       },
       hostPort: {
         describe:
-        "The port on the host machine mapped to the container's port. This is the port you'll connect to Fauna on.",
+          "The port on the host machine mapped to the container's port. This is the port you'll connect to Fauna on.",
         type: "number",
         default: 8443,
       },
       interval: {
         describe:
-        "The interval (in milliseconds) between health check attempts. Determines how often the CLI checks if the Fauna container is ready.",
+          "The interval (in milliseconds) between health check attempts. Determines how often the CLI checks if the Fauna container is ready.",
         type: "number",
         default: 10000,
       },
       maxAttempts: {
         describe:
-        "The maximum number of health check attempts before declaring the start Fauna continer process as failed.",
+          "The maximum number of health check attempts before declaring the start Fauna continer process as failed.",
         type: "number",
         default: 100,
       },
@@ -63,10 +63,15 @@ function buildLocalCommand(yargs) {
     })
     .check((argv) => {
       if (argv.maxAttempts < 1) {
-        throw new CommandError("--maxAttempts must be greater than 0.", { hideHelp: false });
+        throw new CommandError("--maxAttempts must be greater than 0.", {
+          hideHelp: false,
+        });
       }
       if (argv.interval < 0) {
-        throw new CommandError("--interval must be greater than or equal to 0.", { hideHelp: false });
+        throw new CommandError(
+          "--interval must be greater than or equal to 0.",
+          { hideHelp: false },
+        );
       }
       return true;
     });

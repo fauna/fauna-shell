@@ -71,6 +71,29 @@ describe.only("ensureContainerRunning", () => {
     );
   });
 
+  it("Skips pull if --pull is false.", async () => {
+    docker.listContainers.onCall(0).resolves([]);
+    fetch.onCall(0).resolves(f({})); // fast succeed the health check
+    logsStub.callsFake(async () => ({
+      on: () => {},
+      destroy: () => {},
+    }));
+    docker.createContainer.resolves({
+      start: startStub,
+      logs: logsStub,
+      unpause: unpauseStub,
+    });
+    await run("local --pull false", container);
+    expect(docker.pull).not.to.have.been.called;
+    expect(docker.modem.followProgress).not.to.have.been.called;
+    expect(startStub).to.have.been.called;
+    expect(logsStub).to.have.been.called;
+    expect(docker.createContainer).to.have.been.called;
+    expect(logger.stderr).to.have.been.calledWith(
+      "[ContainerReady] Container 'faunadb' is up and healthy.",
+    );
+  });
+
   it("Throws an error if the health check fails", async () => {
     process.env.FAUNA_LOCAL_HEALTH_CHECK_INTERVAL_MS = "1";
     docker.pull.onCall(0).resolves();
