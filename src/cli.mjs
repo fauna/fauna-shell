@@ -1,17 +1,17 @@
 // @ts-check
 
-import { util } from "chai";
 import chalk from "chalk";
 import yargs from "yargs";
 
 import databaseCommand from "./commands/database/database.mjs";
+import localCommand from "./commands/local.mjs";
 import loginCommand from "./commands/login.mjs";
 import queryCommand from "./commands/query.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
 import { buildCredentials } from "./lib/auth/credentials.mjs";
-import { isUnknownError } from "./lib/command-helpers.mjs";
 import { configParser } from "./lib/config/config.mjs";
+import { handleParseYargsError } from "./lib/errors.mjs";
 import {
   applyLocalArg,
   checkForUpdates,
@@ -25,8 +25,6 @@ import {
 export let container;
 /** @type {import('yargs').Argv} */
 export let builtYargs;
-
-const BUG_REPORT_MESSAGE = `If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues`;
 
 /**
  * @param {string|string[]} _argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
@@ -45,47 +43,7 @@ export async function run(_argvInput, _container) {
     builtYargs = buildYargs(argvInput);
     await parseYargs(builtYargs);
   } catch (e) {
-    let subMessage = chalk.reset(
-      "Use 'fauna <command> --help' for more information about a command.",
-    );
-    let epilogue = "";
-
-    if (argvInput.length > 0) {
-      // If the error isn't one of our known errors, wrap it in a generic error message.
-      if (isUnknownError(e)) {
-        subMessage = chalk.red(
-          `An unexpected error occurred...\n\n${e.message}`,
-        );
-        epilogue = `\n${BUG_REPORT_MESSAGE}`;
-
-        logger.debug(`unknown error thrown: ${e.name}`, "error");
-        logger.debug(util.inspect(e, true, 2, false), "error");
-      } else {
-        // Otherwise, just use the error message
-        subMessage = chalk.red(e.message);
-      }
-    }
-
-    // If the error has a truthy hideHelp property, do not render the help text. Otherwise, just use the error message.
-    logger.stderr(
-      `${e.hideHelp ? "" : `${chalk.reset(await builtYargs.getHelp())}\n\n`}${subMessage}`,
-    );
-
-    if (epilogue) {
-      logger.stderr(chalk.red(epilogue));
-    }
-
-    // Log the stack if it exists
-    logger.fatal(e.stack, "error");
-    if (e.cause) {
-      logger.fatal(e.cause?.stack, "error");
-    }
-
-    // If the error has an exitCode property, use that. Otherwise, use 1.
-    container.resolve("errorHandler")(
-      e,
-      e.exitCode !== undefined ? e.exitCode : 1,
-    );
+    await handleParseYargsError(e, { argvInput, builtYargs, logger });
   }
 }
 
@@ -151,6 +109,7 @@ function buildYargs(argvInput) {
     .command(loginCommand)
     .command(schemaCommand)
     .command(databaseCommand)
+    .command(localCommand)
     .demandCommand()
     .strictCommands(true)
     .options({

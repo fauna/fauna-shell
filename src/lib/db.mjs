@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { CommandError } from "./command-helpers.mjs";
+import { CommandError } from "./errors.mjs";
 import { retryInvalidCredsOnce } from "./fauna-client.mjs";
 
 function buildParamsString({ argv, params, path }) {

@@ -375,6 +375,21 @@ describe("query", function () {
       );
       expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
     });
+
+    it("does not display anything if summary is empty", async function () {
+      runQueryFromString.resolves({
+        summary: "",
+        data: "fql",
+      });
+
+      await run(
+        `query "Database.all()" --performanceHints --secret=foo`,
+        container,
+      );
+
+      expect(logger.stderr).to.not.be.called;
+      expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
+    });
   });
 
   describe("v4", function () {

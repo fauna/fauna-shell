@@ -54,6 +54,22 @@ describe("database create", () => {
     },
     {
       error: new ServiceError({
+        error: {
+          code: "constraint_failure",
+          message: "whatever",
+          constraint_failures: [
+            {
+              paths: [["name"]],
+              message: "Invalid identifier.",
+            },
+          ],
+        },
+      }),
+      expectedMessage:
+        "Constraint failure: The database name 'testdb' is invalid. Database names must begin with letters and include only letters, numbers, and underscores.",
+    },
+    {
+      error: new ServiceError({
         error: { code: "unauthorized", message: "whatever" },
       }),
       expectedMessage:

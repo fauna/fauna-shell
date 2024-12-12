@@ -81,6 +81,15 @@ export function setupTestContainer() {
       getSession: stub(),
     })),
     oauthClient: awilix.asFunction(stub()),
+    docker: awilix.asValue({
+      createContainer: stub(),
+      getContainer: stub(),
+      listContainers: stub(),
+      modem: {
+        followProgress: stub(),
+      },
+      pull: stub(),
+    }),
     credentials: awilix.asClass(stub()).singleton(),
     errorHandler: awilix.asValue((error, exitCode) => {
       error.code = exitCode;
@@ -92,6 +101,7 @@ export function setupTestContainer() {
     makeFaunaRequest: awilix.asValue(spy(makeRetryableFaunaRequest)),
     makeAccountRequest: awilix.asValue(stub()),
     runQueryFromString: awilix.asValue(stub().resolves({})),
+    isQueryable: awilix.asValue(stub().resolves()),
     formatError: awilix.asValue(stub()),
     faunaClientV10: awilix.asValue({
       getClient: stub(),

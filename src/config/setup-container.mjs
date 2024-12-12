@@ -7,6 +7,7 @@ import { exit } from "node:process";
 import { confirm } from "@inquirer/prompts";
 import * as awilix from "awilix";
 import { Lifetime } from "awilix";
+import Docker from "dockerode";
 import fauna from "fauna";
 import faunadb from "faunadb";
 import open from "open";
@@ -18,7 +19,11 @@ import { Credentials } from "../lib/auth/credentials.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
 import { makeRetryableFaunaRequest } from "../lib/db.mjs";
 import * as faunaV10 from "../lib/fauna.mjs";
-import { formatError, runQueryFromString } from "../lib/fauna-client.mjs";
+import {
+  formatError,
+  isQueryable,
+  runQueryFromString,
+} from "../lib/fauna-client.mjs";
 import * as faunaV4 from "../lib/faunadb.mjs";
 import fetchWrapper from "../lib/fetch-wrapper.mjs";
 import { codeToAnsi } from "../lib/formatting/codeToAnsi.mjs";
@@ -70,6 +75,14 @@ export const injectables = {
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
   logger: awilix.asFunction(buildLogger, { lifetime: Lifetime.SINGLETON }),
+  docker: awilix.asFunction(
+    () => {
+      const dockerInstance = new Docker(); // Create instance
+      // If Docker requires additional async setup, perform it here and return a promise
+      return dockerInstance;
+    },
+    { lifetime: Lifetime.SINGLETON },
+  ),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
   makeAccountRequest: awilix.asValue(makeAccountRequest),
   makeFaunaRequest: awilix.asValue(makeRetryableFaunaRequest),
@@ -85,6 +98,7 @@ export const injectables = {
   formatError: awilix.asValue(formatError),
   faunaClientV10: awilix.asValue(faunaV10),
   faunaClientV4: awilix.asValue(faunaV4),
+  isQueryable: awilix.asValue(isQueryable),
 
   // feature-specific lib (homemade utilities)
   gatherFSL: awilix.asValue(gatherFSL),

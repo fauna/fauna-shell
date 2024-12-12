@@ -1,10 +1,8 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import {
-  CommandError,
-  yargsWithCommonQueryOptions,
-} from "../../lib/command-helpers.mjs";
+import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import { CommandError } from "../../lib/errors.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 
 async function doCommit(argv) {
