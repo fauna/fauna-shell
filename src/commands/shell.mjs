@@ -104,7 +104,7 @@ async function shellCommand(argv) {
     },
     {
       cmd: "toggleRawResponses",
-      help: "Enable or disable additional output. Disabled by default. If enabled, outputs the full API response, including summary and query stats.",
+      help: "Enable or disable additional output. Disabled by default. If enabled, outputs the raw JSON query response, including summary and query stats.",
       action: () => {
         shell.context.raw = !shell.context.raw;
         logger.stderr(
