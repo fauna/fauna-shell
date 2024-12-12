@@ -4,8 +4,10 @@ import util from "util";
 
 import { container } from "../cli.mjs";
 
-const BUG_REPORT_MESSAGE = "If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues";
-export const SUPPORT_MESSAGE = "If this issue persists contact support: https://support.fauna.com/hc/en-us/requests/new";
+const BUG_REPORT_MESSAGE =
+  "If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues";
+export const SUPPORT_MESSAGE =
+  "If this issue persists contact support: https://support.fauna.com/hc/en-us/requests/new";
 
 /*
  * These are the error message prefixes that yargs throws during

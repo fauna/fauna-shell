@@ -71,6 +71,38 @@ describe("ensureContainerRunning", () => {
     );
   });
 
+  it("The user can control the hostPort and containerPort", async () => {
+    docker.pull.onCall(0).resolves();
+    docker.modem.followProgress.callsFake((stream, onFinished) => {
+      onFinished();
+    });
+    docker.listContainers.onCall(0).resolves([]);
+    fetch.onCall(0).resolves(f({})); // fast succeed the health check
+    logsStub.callsFake(async () => ({
+      on: () => {},
+      destroy: () => {},
+    }));
+    docker.createContainer.resolves({
+      start: startStub,
+      logs: logsStub,
+      unpause: unpauseStub,
+    });
+    await run("local --hostPort 10 --containerPort 11", container);
+    expect(docker.createContainer).to.have.been.calledWith({
+      Image: "fauna/faunadb:latest",
+      name: "faunadb",
+      HostConfig: {
+        PortBindings: {
+          "11/tcp": [{ HostPort: "10" }],
+        },
+        AutoRemove: true,
+      },
+      ExposedPorts: {
+        "11/tcp": {},
+      },
+    });
+  });
+
   it("Skips pull if --pull is false.", async () => {
     docker.listContainers.onCall(0).resolves([]);
     fetch.onCall(0).resolves(f({})); // fast succeed the health check

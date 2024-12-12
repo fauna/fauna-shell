@@ -91,7 +91,10 @@ async function pullImage(imageName) {
       );
     });
   } catch (error) {
-    throw new CommandError(`[PullImage] Failed to pull image '${imageName}': ${error.message}. ${SUPPORT_MESSAGE}`, { cause: error });
+    throw new CommandError(
+      `[PullImage] Failed to pull image '${imageName}': ${error.message}. ${SUPPORT_MESSAGE}`,
+      { cause: error },
+    );
   }
 }
 
