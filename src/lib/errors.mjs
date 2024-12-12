@@ -8,8 +8,8 @@ const BUG_REPORT_MESSAGE = `If you believe this is a bug, please report this iss
 
 // This error message is used in a few places where we handle network errors.
 export const NETWORK_ERROR_MESSAGE =
-  "Unable to connect to Fauna due to a network error. If you're using --local, " +
-  "make sure your local docker container is currently running with this command: fauna local";
+  "Unable to connect to Fauna due to a network error. If using --local, " +
+  "ensure your container is running with this command: fauna local";
 
 /*
  * These are the error message prefixes that yargs throws during
