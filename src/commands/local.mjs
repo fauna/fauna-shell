@@ -22,34 +22,51 @@ async function startLocal(argv) {
  * @returns {import('yargs').Argv} The yargs instance
  */
 function buildLocalCommand(yargs) {
-  return yargs.options({
-    containerPort: {
-      describe: "The port inside the container Fauna listens on.",
-      type: "number",
-      default: "8443",
-    },
-    hostPort: {
-      describe:
-        "The port on the host machine mapped to the container's port. This is the port you'll connect to Fauna on.",
-      type: "number",
-      default: "8443",
-    },
-    name: {
-      describe: "The name to give the container",
-      type: "string",
-      default: "faunadb",
-    },
-    pull: {
-      describe: "Pull the latest image before starting the container.",
-      type: "boolean",
-      default: true,
-    },
-  });
+  return yargs
+    .options({
+      containerPort: {
+        describe: "The port inside the container Fauna listens on.",
+        type: "number",
+        default: "8443",
+      },
+      hostPort: {
+        describe:
+          "The port on the host machine mapped to the container's port. This is the port you'll connect to Fauna on.",
+        type: "number",
+        default: "8443",
+      },
+      name: {
+        describe: "Name for the container.",
+        type: "string",
+        default: "faunadb",
+      },
+      pull: {
+        describe:
+          "Pull the latest image before starting the container. Use --no-pull to disable.",
+        type: "boolean",
+        default: true,
+      },
+    })
+    .example([
+      [
+        "$0 local",
+        "Start a local Fauna container with default name and ports.",
+      ],
+      ["$0 local --name local-fauna", "Start a container named 'local-fauna'."],
+      [
+        "$0 local -hostPort 1234 --containerPort 6789",
+        "Map host port '1234' to container port '6789'. Equivalent to  '-p 1234:6789' in Docker.",
+      ],
+      [
+        "$0 local --no-pull",
+        "Don't pull the latest image before starting the container.",
+      ],
+    ]);
 }
 
 export default {
   command: "local",
-  describe: "Start a local Fauna container",
+  describe: "Start a local Fauna container.",
   builder: buildLocalCommand,
   handler: startLocal,
 };
