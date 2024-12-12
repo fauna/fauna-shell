@@ -93,7 +93,7 @@ You can also access help directly in the CLI:
 fauna --help
 
 # For a specific command:
-fauna <COMMAND> --help
+fauna <command> --help
 # For example:
 fauna query --help
 ```
