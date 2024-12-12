@@ -36,7 +36,7 @@ To get started:
 1. Install the CLI:
 
    ```shell
-   npm install -g fauna-shell@4.0.0-beta
+   npm install -g fauna-shell@">=4.0.0-beta"
    ```
 
 2. If you're using bash or zsh, enable auto-complete by appending the output of
@@ -69,7 +69,7 @@ To get started:
 During the beta, you can install v4 of the Fauna CLI globally using npm:
 
 ```sh
-npm install -g fauna-shell@4.0.0-beta
+npm install -g fauna-shell@">=4.0.0-beta"
 ```
 
 ## Documentation
