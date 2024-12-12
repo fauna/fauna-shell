@@ -17,10 +17,10 @@ You can use the CLI to:
 - Create and manage Fauna
   [databases](https://docs.fauna.com/fauna/current/learn/data-model/databases/).
 - Manage [database schema](https://docs.fauna.com/fauna/current/learn/schema/)
-  as `.fsl` files on your local machine.
+  as `.fsl` files.
 - Run [FQL queries](https://docs.fauna.com/fauna/current/learn/query/) from
   files or in an interactive REPL.
-- Run a [local Fauna container](https://docs.fauna.com/fauna/current/build/tools/docker/).
+- Run a local [Fauna container](https://docs.fauna.com/fauna/current/build/tools/docker/).
 
 ![fauna-cli](https://github.com/user-attachments/assets/d3e88ad9-68ae-4011-945a-23654f9fbd0a)
 
