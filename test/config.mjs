@@ -59,6 +59,7 @@ describe("configuration file", function () {
     fs = container.resolve("fs");
     delete process.env.FAUNA_CONFIG;
     delete process.env.FAUNA_SECRET;
+    delete process.env.FAUNA_PROFILE;
   });
 
   /**
@@ -104,7 +105,7 @@ describe("configuration file", function () {
   describe("location", function () {
     it("can be specified by setting a flag", async function () {
       await runArgvTest({
-        cmd: `argv --config ./prod.yaml`,
+        cmd: `argv --config ./prod.yaml --profile default`,
         pathMatcher: path.join(__dirname, "../prod.yaml"),
         argvMatcher: sinon.match({
           secret: "very-secret",
@@ -117,7 +118,10 @@ describe("configuration file", function () {
     it("can be specified by setting an env variable", async function () {
       await runArgvTest({
         cmd: `argv`,
-        env: { FAUNA_CONFIG: path.join(__dirname, "../prod.yaml") },
+        env: {
+          FAUNA_CONFIG: path.join(__dirname, "../prod.yaml"),
+          FAUNA_PROFILE: "default",
+        },
         pathMatcher: path.join(__dirname, "../prod.yaml"),
         argvMatcher: sinon.match({
           secret: "very-secret",
@@ -130,7 +134,7 @@ describe("configuration file", function () {
     it("a flag location is prioritized over an env var location", async function () {
       await runArgvTest({
         cmd: `argv --config ./dev.yaml`,
-        env: { FAUNA_CONFIG: "./prod.yaml" },
+        env: { FAUNA_CONFIG: "./prod.yaml", FAUNA_PROFILE: "default" },
         pathMatcher: path.join(__dirname, "../dev.yaml"),
         argvMatcher: sinon.match({
           secret: "very-secret",
@@ -152,7 +156,7 @@ describe("configuration file", function () {
       ]);
 
       await runArgvTest({
-        cmd: `argv`,
+        cmd: `argv --profile default`,
         argvMatcher: sinon.match({
           secret: "very-secret",
           url: "https://db.fauna.com:443",
@@ -247,7 +251,7 @@ describe("configuration file", function () {
         .throws(fakeFSError);
 
       try {
-        await run(`argv --config ./dev.yaml`, container);
+        await run(`argv --config ./dev.yaml --profile default`, container);
       } catch (e) {}
 
       const errorText = `Config file not found at path ${configPath}.`;
@@ -260,7 +264,7 @@ describe("configuration file", function () {
   describe("parsing", function () {
     it("can parse YAML", async function () {
       await runArgvTest({
-        cmd: `argv --config ./dev.yaml`,
+        cmd: `argv --config ./dev.yaml --profile default`,
         pathMatcher: path.join(__dirname, "../dev.yaml"),
         argvMatcher: sinon.match({
           secret: "very-secret",
@@ -273,7 +277,7 @@ describe("configuration file", function () {
 
     it("can parse JSON", async function () {
       await runArgvTest({
-        cmd: `argv --config ./dev.yaml`,
+        cmd: `argv --config ./dev.yaml --profile default`,
         pathMatcher: path.join(__dirname, "../dev.yaml"),
         argvMatcher: sinon.match({
           secret: "very-secret",
@@ -285,7 +289,7 @@ describe("configuration file", function () {
 
     it.skip("supports all global config options", async function () {});
     it.skip("does not exit with an error if the config file is empty", async function () {});
-    it("exits with an error if no profile is specified and the config does not have a 'default' key", async function () {
+    it("exits with an error if no profile is specified with user-provided config path", async function () {
       const noDefaultConfig = JSON.stringify({
         dev: {
           secret: "shouted",
@@ -295,7 +299,7 @@ describe("configuration file", function () {
 
       try {
         await runArgvTest({
-          cmd: `argv --config ./dev.yaml "Database.all()"`,
+          cmd: `argv --config ./dev.yaml`,
           pathMatcher: path.join(__dirname, "../dev.yaml"),
           argvMatcher: sinon.match({
             apiVersion: "10",
@@ -308,7 +312,7 @@ describe("configuration file", function () {
           configToReturn: noDefaultConfig,
         });
       } catch (e) {}
-      const errorText = `No "default" profile found in the config file at "${path.join(__dirname, "../dev.yaml")}". Either specify a profile with "--profile NAME" or add a "default" profile.`;
+      const errorText = `A config file was provided at "${path.join(__dirname, "../dev.yaml")}" but no profile was specified. Provide a profile value with --profile or FAUNA_PROFILE env var to use the config file.`;
       const message = `${await builtYargs.getHelp()}\n\n${errorText}\n`;
       expect(stdout.getWritten()).to.equal("");
       expect(stripAnsi(stderr.getWritten())).to.equal(message);
@@ -344,6 +348,28 @@ describe("configuration file", function () {
       expect(stripAnsi(stderr.getWritten())).to.equal(message);
     });
 
+    it("ignores default config file if neither profile nor config are specified", async function () {
+      const defaultConfig = `
+      {
+        "default": {
+          "color": false,
+          "json": true,
+          "quiet": true,
+        },
+      }
+      `.trim();
+      await runArgvTest({
+        cmd: `argv`,
+        pathMatcher: path.join(__dirname, "../fauna.config.yaml"),
+        argvMatcher: sinon.match({
+          color: true,
+          json: false,
+          quiet: false,
+        }),
+        configToReturn: defaultConfig,
+      });
+    });
+
     it.skip("preserves comments in the config file", async function () {});
   });
 
@@ -353,7 +379,7 @@ describe("configuration file", function () {
     it("prioritizes flags over env variables", async function () {
       await runArgvTest({
         cmd: `argv --secret whispered --config ./dev.yaml`,
-        env: { FAUNA_SECRET: "not-so-secret" },
+        env: { FAUNA_SECRET: "not-so-secret", FAUNA_PROFILE: "default" },
         pathMatcher: path.join(__dirname, "../dev.yaml"),
         argvMatcher: sinon.match({
           secret: "whispered",
@@ -367,7 +393,7 @@ describe("configuration file", function () {
     it("prioritizes env variables over config entries", async function () {
       await runArgvTest({
         cmd: `argv --config ./dev.yaml`,
-        env: { FAUNA_SECRET: "not-so-secret" },
+        env: { FAUNA_SECRET: "not-so-secret", FAUNA_PROFILE: "default" },
         pathMatcher: path.join(__dirname, "../dev.yaml"),
         argvMatcher: sinon.match({
           secret: "not-so-secret",

@@ -99,6 +99,8 @@ function validateConfig(profileName, profileBody, configPath) {
  * @returns {object} - The yargs parser
  */
 export function configParser(argvInput, path) {
+  const userProvidedConfigPath =
+    Boolean(process.env.FAUNA_CONFIG) || argvInput.indexOf("--config") > -1;
   let parsedPath = path;
   let parsedProfile;
   const logger = container.resolve("logger");
@@ -106,42 +108,48 @@ export function configParser(argvInput, path) {
   if (path === process.cwd()) {
     parsedPath = checkForDefaultConfig(process.cwd());
   }
+  const argv = yargsParser(argvInput, {
+    alias: {
+      profile: ["p"],
+    },
+    string: ["profile"],
+  });
+
+  const profile = argv.profile || process.env.FAUNA_PROFILE;
 
   if (!parsedPath) {
-    // if there no config file, we need to assert that no either no profile is
-    // specified or that the profile is "default"
-    const preConfigArgv = yargsParser(argvInput, {
-      alias: {
-        profile: ["p"],
-      },
-      string: ["profile"],
-    });
-    if (preConfigArgv.profile && preConfigArgv.profile !== "default") {
+    // if there no config file, we need to assert that no profile is specified
+
+    if (profile) {
       throw new ValidationError(
-        `Profile "${preConfigArgv.profile}" cannot be specified because there was no config file found at "${path}". ` +
+        `Profile "${profile}" cannot be specified because there was no config file found at "${path}". ` +
           `Remove the profile, or provide a config file.`,
       );
     }
     return {};
   }
+  if (!userProvidedConfigPath && !profile) {
+    // There is a config file, but it's in the default location, the user did not specify a path.
+    //   Ignore the config file unless they specified a profile.
+    return {};
+  }
+
+  if (userProvidedConfigPath && !profile) {
+    // The user specified a config file, but no profile. Don't just default the profile value, require it
+    //  explicitly
+    throw new ValidationError(
+      `A config file was provided at "${path}" but no profile was specified. Provide a profile value with ` +
+        `--profile or FAUNA_PROFILE env var to use the config file.`,
+    );
+  }
 
   logger.debug(`Reading config from ${parsedPath}.`, "config");
   const config = getConfig(parsedPath);
 
-  // The "default" profile will be injected here
-  const argv = yargsParser(argvInput, {
-    alias: {
-      profile: ["p"],
-    },
-    default: {
-      profile: "default",
-    },
-    string: ["profile"],
-  });
-  logger.debug(`Using profile ${argv.profile}...`, "config");
-  parsedProfile = config.toJSON()[argv.profile];
+  logger.debug(`Using profile ${profile}...`, "config");
+  parsedProfile = config.toJSON()[profile];
 
-  validateConfig(argv.profile, parsedProfile, parsedPath);
+  validateConfig(profile, parsedProfile, parsedPath);
 
   logger.debug(
     `Applying config: ${JSON.stringify(parsedProfile, null, 4)}`,
