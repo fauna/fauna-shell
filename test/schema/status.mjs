@@ -314,7 +314,7 @@ describe("schema status", function () {
   });
 
   it("can fetch status without embedded colors (terminal escape codes)", async function () {
-    fetch.resolves(
+    fetch.callsFake(() =>
       f({
         version: 0,
         status: "none",
