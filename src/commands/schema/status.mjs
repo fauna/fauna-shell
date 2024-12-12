@@ -77,7 +77,7 @@ async function doStatus(argv) {
         logLineWithTab("(use `fauna schema commit` to commit staged changes)");
         logDiff(statusResponse.diff);
       } else if (statusResponse.pending_summary) {
-        logLineWithTab(statusResponse.pending_summary.trim());
+        logDiff(statusResponse.pending_summary, 1);
       }
       break;
     case "failed":
