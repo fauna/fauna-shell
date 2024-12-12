@@ -48,14 +48,11 @@ function buildLocalCommand(yargs) {
       },
     })
     .example([
-      [
-        "$0 local",
-        "Start a local Fauna container with default name and ports.",
-      ],
+      ["$0 local", "Start a Fauna container with default name and ports."],
       ["$0 local --name local-fauna", "Start a container named 'local-fauna'."],
       [
         "$0 local -hostPort 1234 --containerPort 6789",
-        "Map host port '1234' to container port '6789'. Equivalent to  '-p 1234:6789' in Docker.",
+        "Map host port '1234' to container port '6789'. Equivalent to '-p 1234:6789' in Docker.",
       ],
       [
         "$0 local --no-pull",
