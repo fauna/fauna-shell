@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { ValidationError } from "./errors.mjs";
+import { isUnknownError, ValidationError } from "./errors.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
 const SUMMARY_FQL_REGEX = /^(\s\s\|)|(\d\s\|)/;
@@ -89,20 +89,6 @@ export const runQueryFromString = (expression, argv) => {
 };
 
 /**
- * Check if a database can be queried based on the current arguments.
- * If it can't, it will throw an error.
- * @param {*} argv
- */
-export const isQueryable = async (argv) => {
-  const runQueryFromString = container.resolve("runQueryFromString");
-  try {
-    await runQueryFromString("1+1", argv);
-  } catch (err) {
-    throw new ValidationError(err.message, { cause: err });
-  }
-};
-
-/**
  * Formats an error.
  * @param {object} err - The error to format
  * @param {object} opts
@@ -120,6 +106,35 @@ export const formatError = (err, { apiVersion, raw, color }) => {
   } else {
     return faunaV10.formatError(err, { raw, color });
   }
+};
+
+/**
+ * Check if a database can be queried based on the current arguments.
+ * If it can't, it will throw an error.
+ * @param {*} argv
+ */
+export const isQueryable = async (argv) => {
+  const runQueryFromString = container.resolve("runQueryFromString");
+  try {
+    await runQueryFromString("1+1", argv);
+  } catch (err) {
+    if (!isUnknownError(err)) {
+      throw err;
+    }
+
+    throw new ValidationError(
+      formatError(err, {
+        apiVersion: argv.apiVersion,
+        raw: false,
+        color: false,
+      }),
+      {
+        cause: err,
+      },
+    );
+  }
+
+  return true;
 };
 
 /**
