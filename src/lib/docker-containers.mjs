@@ -188,9 +188,10 @@ async function createContainer({
   containerPort,
 }) {
   const docker = container.resolve("docker");
-  if (await isPortOccupied({ hostIp, hostPort })) {
+  const occupied = await isPortOccupied({ hostIp, hostPort });
+  if (occupied) {
     throw new CommandError(
-      `The hostPort '${hostPort}' on IP '${hostIp}' is already occupied. \
+      `[StartContainer] The hostPort '${hostPort}' on IP '${hostIp}' is already occupied. \
 Please pass a --hostPort other than '${hostPort}'.`,
       { hideHelp: false },
     );

@@ -15,10 +15,12 @@ describe.only("ensureContainerRunning", () => {
     docker,
     logsStub,
     serverMock,
+    simulateError,
     startStub,
     unpauseStub;
 
   beforeEach(async () => {
+    simulateError = false;
     container = await setupTestContainer();
     logger = container.resolve("logger");
     stderrStream = container.resolve("stderrStream");
@@ -34,14 +36,70 @@ describe.only("ensureContainerRunning", () => {
       on: sinon.stub(),
       listen: sinon.stub(),
     };
-    serverMock.on.withArgs("listening").callsFake((event, callback) => {
-      callback();
+    serverMock.listen.callsFake(() => {
+      if (simulateError) {
+        // Trigger the error callback
+        const errorCallback = serverMock.once.withArgs("error").args[0]?.[1];
+        if (errorCallback) {
+          const error = new Error("Foo");
+          error.code = "EADDRINUSE";
+          errorCallback(error);
+        }
+      } else {
+        // Trigger the listening callback
+        const listeningCallback =
+          serverMock.on.withArgs("listening").args[0]?.[1];
+        if (listeningCallback) {
+          listeningCallback();
+        }
+      }
     });
+
+    serverMock.on.withArgs("listening").callsFake((event, callback) => {
+      if (simulateError) {
+        // Trigger the error callback
+        const errorCallback = serverMock.once.withArgs("error").args[0]?.[1];
+        if (errorCallback) {
+          const error = new Error("Foo");
+          error.code = "EADDRINUSE";
+          errorCallback(error);
+        }
+      } else {
+        callback();
+      }
+    });
+
     serverMock.close.callsFake((callback) => {
       if (callback) callback();
     });
     const net = container.resolve("net");
     net.createServer.returns(serverMock);
+  });
+
+  it("Shows a clear error to the user if something is already running on the desired port.", async () => {
+    simulateError = true;
+    docker.pull.onCall(0).resolves();
+    docker.modem.followProgress.callsFake((stream, onFinished) => {
+      onFinished();
+    });
+    docker.listContainers.onCall(0).resolves([]);
+    try {
+      // Run the actual command
+      await run("local", container);
+      throw new Error("Expected an error to be thrown.");
+    } catch (_) {
+      // Expected error, no action needed
+    }
+
+    const written = stderrStream.getWritten();
+
+    // Assertions
+    expect(written).to.contain(
+      "[StartContainer] The hostPort '8443' on IP '0.0.0.0' is already occupied. \
+Please pass a --hostPort other than '8443'.",
+    );
+    expect(written).to.contain("fauna local");
+    expect(written).not.to.contain("An unexpected");
   });
 
   it("Creates and starts a container when none exists", async () => {
