@@ -63,7 +63,8 @@ export const runQueryFromString = (expression, argv) => {
       }),
     );
   } else {
-    const { secret, url, timeout, format, performanceHints, ...rest } = argv;
+    const { secret, url, timeout, format, performanceHints, raw, ...rest } =
+      argv;
     let apiFormat = "decorated";
     if (format === Format.JSON) {
       apiFormat = "simple";
@@ -72,9 +73,9 @@ export const runQueryFromString = (expression, argv) => {
     return retryInvalidCredsOnce(secret, (secret) =>
       faunaV10.runQueryFromString({
         expression,
-        secret,
         url,
-        client: undefined,
+        secret,
+        raw,
         options: {
           /* eslint-disable camelcase */
           query_timeout_ms: timeout,

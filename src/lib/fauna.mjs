@@ -7,6 +7,7 @@ import chalk from "chalk";
 import {
   ClientClosedError,
   ClientError,
+  getDefaultHTTPClient,
   NetworkError,
   ProtocolError,
   ServiceError,
@@ -43,9 +44,10 @@ export const defaultV10QueryOptions = {
  * @param {object} opts
  * @param {string} opts.url
  * @param {string} opts.secret
+ * @param {import("fauna").HTTPClient | undefined} [opts.httpClient]
  * @returns {import("fauna").Client}
  */
-export const getClient = ({ url, secret }) => {
+export const getClient = ({ url, secret }, httpClient) => {
   const Client = container.resolve("fauna").Client;
 
   // Check for required arguments.
@@ -55,7 +57,10 @@ export const getClient = ({ url, secret }) => {
     );
   }
   // Create the client.
-  return new Client({ secret, endpoint: url ? new URL(url) : undefined });
+  return new Client(
+    { secret, endpoint: url ? new URL(url) : undefined },
+    httpClient,
+  );
 };
 
 /**
@@ -64,9 +69,9 @@ export const getClient = ({ url, secret }) => {
  *
  * @param {object} opts
  * @param {import("fauna").Query<any>} opts.query
- * @param {string} [opts.url]
- * @param {string} [opts.secret]
- * @param {import("fauna").Client} [opts.client]
+ * @param {string} opts.url
+ * @param {string} opts.secret
+ * @param {boolean} [opts.raw]
  * @param {import("fauna").QueryOptions} [opts.options]
  * @returns {Promise<import("fauna").QuerySuccess<any>>}
  */
@@ -74,7 +79,7 @@ export const runQuery = async ({
   query,
   url,
   secret,
-  client,
+  raw = false,
   options = {},
 }) => {
   // Check for required arguments.
@@ -82,19 +87,49 @@ export const runQuery = async ({
     throw new ValidationError("A query is required.");
   }
 
+  /** @type {import("fauna").HTTPClient | undefined}  */
+  let httpClient;
+  if (raw) {
+    httpClient = {
+      /**
+       * The Fauna Client instance must be using "simple" or "decorated" format
+       * for this to work.
+       *
+       * Either setting will assume that the response from Fauna should be used
+       * as-is, without any tagged decoding. So we can force tagged within the
+       * the request and return the response back to the client.
+       */
+      request: async (req) => {
+        const innerClient = getDefaultHTTPClient({
+          url: url,
+          // These options are required for any HTTPClient. We are not setting
+          // them elsewhere in the CLI. Specify the same defaults as Client.
+          http2_session_idle_ms: 5000, // eslint-disable-line camelcase
+          http2_max_streams: 100, // eslint-disable-line camelcase
+          fetch_keepalive: false, // eslint-disable-line camelcase
+        });
+
+        req.headers["x-format"] = "tagged";
+        return await innerClient.request(req);
+      },
+      close: () => {}, //eslint-disable-line no-empty-function
+    };
+  }
+
   // Create the client if one wasn't provided.
-  let _client =
-    client ??
-    getClient({
+  let client = getClient(
+    {
       url: /** @type {string} */ (url), // We know this is a string because we check for !url above.
       secret: /** @type {string} */ (secret), // We know this is a string because we check for !secret above.
-    });
+    },
+    httpClient,
+  );
   // Run the query.
-  return _client
+  return client
     .query(query, { ...defaultV10QueryOptions, ...options })
     .finally(() => {
       // Clean up the client if one was created internally.
-      if (!client && _client) _client.close();
+      client.close();
     });
 };
 
@@ -103,9 +138,9 @@ export const runQuery = async ({
  *
  * @param {object} opts
  * @param {string} opts.expression - The FQL expression to interpret
- * @param {string} [opts.url]
- * @param {string} [opts.secret]
- * @param {import("fauna").Client} [opts.client]
+ * @param {string} opts.url
+ * @param {string} opts.secret
+ * @param {boolean} opts.raw
  * @param {import("fauna").QueryOptions} [opts.options]
  * @returns {Promise<import("fauna").QuerySuccess<any>>}
  */
@@ -113,11 +148,11 @@ export const runQueryFromString = async ({
   expression,
   url,
   secret,
-  client,
+  raw = false,
   options = {},
 }) => {
   const query = await stringExpressionToQuery(expression);
-  return runQuery({ query, url, secret, client, options });
+  return runQuery({ query, url, secret, raw, options });
 };
 
 /**

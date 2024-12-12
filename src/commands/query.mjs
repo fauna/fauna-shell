@@ -97,7 +97,8 @@ async function queryCommand(argv) {
     // Using --json or --raw takes precedence over --format
     const outputFormat = resolveFormat(argv);
 
-    const results = await container.resolve("runQueryFromString")(expression, {
+    const runQueryFromString = container.resolve("runQueryFromString");
+    const results = await runQueryFromString(expression, {
       apiVersion,
       secret,
       url,

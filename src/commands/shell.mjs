@@ -188,6 +188,7 @@ async function buildCustomEval(argv) {
           timeout,
           typecheck,
           performanceHints,
+          raw,
           format: outputFormat,
         });
 
