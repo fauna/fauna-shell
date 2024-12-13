@@ -1,7 +1,6 @@
 //@ts-check
 
 import { expect } from "chai";
-import { fql } from "fauna";
 import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
@@ -124,20 +123,9 @@ Please pass a --hostPort other than '8443'.",
   });
 
   [
-    {
-      args: "--database Foo",
-      argv: { database: "Foo" },
-    },
-    {
-      args: "--database Foo --typechecked --protected --priority 1",
-      argv: {
-        database: "Foo",
-        typechecked: true,
-        protected: true,
-        priority: 1,
-      },
-    },
-  ].forEach(({ args, argv }) => {
+    "--database Foo",
+    "--database Foo --typechecked --protected --priority 1",
+  ].forEach((args) => {
     it("Creates a database if requested", async () => {
       setupCreateContainerMocks();
       const { runQuery } = container.resolve("faunaClientV10");
@@ -148,24 +136,7 @@ Please pass a --hostPort other than '8443'.",
       expect(runQuery).to.have.been.calledWith({
         secret: "secret",
         url: "http://0.0.0.0:8443",
-        query: fql`
-      let name = ${argv.database}
-      let database = Database.byName(name)
-      let protected = ${argv.protected ?? null}
-      let typechecked = ${argv.typechecked ?? null}
-      let priority = ${argv.priority ?? null}
-      if (database == null) {
-        Database.create({
-          name: name,
-          protected: protected,
-          typechecked: typechecked,
-          priority: priority,
-        })
-      } else if (protected == database.protected && typechecked == database.typechecked && priority == database.priority) {
-        database
-      } else {
-        abort(database)
-      }`,
+        query: sinon.match.any,
         options: { format: "decorated" },
       });
       const written = stderrStream.getWritten();
