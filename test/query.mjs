@@ -273,27 +273,6 @@ describe("query", function () {
       expect(logger.stderr).to.not.be.called;
     });
 
-    it("can output additional response fields via --raw", async function () {
-      const testData = {
-        name: "test",
-        coll: "Database",
-        ts: 'Time("2024-07-16T19:16:15.980Z")',
-        global_id: "asd7zi8pharfn",
-      };
-      const testResponse = createV10QuerySuccess(testData);
-      runQueryFromString.resolves(testResponse);
-
-      await run(
-        `query "Database.all()" --raw --secret=foo --format json`,
-        container,
-      );
-
-      expect(logger.stdout).to.have.been.calledWith(
-        colorize(testResponse, { format: "json", color: true }),
-      );
-      expect(logger.stderr).to.not.be.called;
-    });
-
     it("can output an error message", async function () {
       const testSummary = createV10QueryFailure("test query");
       runQueryFromString.rejects(new ServiceError(testSummary));
@@ -304,19 +283,6 @@ describe("query", function () {
 
       expect(logger.stdout).to.not.be.called;
       expect(logger.stderr).to.have.been.calledWith(sinon.match(/test query/));
-    });
-
-    it("can output the full error object when --raw is used", async function () {
-      const failure = createV10QueryFailure("test query");
-      const error = new ServiceError(failure);
-      runQueryFromString.rejects(error);
-
-      try {
-        await run(`query "Database.all()" --raw --secret=foo`, container);
-      } catch (e) {}
-
-      expect(logger.stdout).to.not.be.called;
-      expect(logger.stderr).to.have.been.calledWith(sinon.match(/queryInfo/));
     });
 
     it("can set the typecheck option to true", async function () {
@@ -424,31 +390,6 @@ describe("query", function () {
       expect(logger.stderr).to.not.be.called;
     });
 
-    it("can output additional response fields via --raw", async function () {
-      const testData = {
-        "@ref": {
-          id: "test",
-          collection: {
-            "@ref": {
-              id: "collections",
-            },
-          },
-        },
-      };
-      const testResponse = createV4QuerySuccess(testData);
-      runQueryFromString.resolves(testResponse);
-
-      await run(
-        `query "Collection('test')" --raw --apiVersion 4 --secret=foo`,
-        container,
-      );
-
-      expect(logger.stdout).to.have.been.calledWith(
-        colorize(testResponse, { format: "json", color: true }),
-      );
-      expect(logger.stderr).to.not.be.called;
-    });
-
     it("can output an error message", async function () {
       const testError = createV4QueryFailure({
         position: ["paginate", "collections"],
@@ -471,29 +412,6 @@ describe("query", function () {
         sinon.match(
           "invalid argument: Database Ref or Null expected, String provided. at paginate, collections",
         ),
-      );
-    });
-
-    it("can output the full error object when --raw is used", async function () {
-      const testError = createV4QueryFailure({
-        position: ["paginate", "collections"],
-        code: "invalid argument",
-        description: "Database Ref or Null expected, String provided.",
-      });
-
-      // @ts-ignore
-      runQueryFromString.rejects(testError);
-
-      try {
-        await run(
-          `query "Paginate(Collection('x'))" --apiVersion 4 --raw --secret=foo`,
-          container,
-        );
-      } catch (e) {}
-
-      expect(logger.stdout).to.not.be.called;
-      expect(logger.stderr).to.have.been.calledWith(
-        sinon.match(/requestResult/),
       );
     });
   });

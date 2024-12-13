@@ -93,18 +93,17 @@ export const runQueryFromString = (expression, argv) => {
  * @param {object} err - The error to format
  * @param {object} opts
  * @param {string} opts.apiVersion - The API version
- * @param {boolean} opts.raw - Whether to include full response bodies
  * @param {boolean} opts.color - Whether to colorize the error
  * @returns {string}
  */
-export const formatError = (err, { apiVersion, raw, color }) => {
+export const formatError = (err, { apiVersion, color }) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return faunaV4.formatError(err, { raw, color });
+    return faunaV4.formatError(err, { color });
   } else {
-    return faunaV10.formatError(err, { raw, color });
+    return faunaV10.formatError(err, { color });
   }
 };
 
@@ -125,7 +124,6 @@ export const isQueryable = async (argv) => {
     throw new ValidationError(
       formatError(err, {
         apiVersion: argv.apiVersion,
-        raw: false,
         color: false,
       }),
       {
@@ -143,21 +141,17 @@ export const isQueryable = async (argv) => {
  * @param {object} opts
  * @param {string} opts.apiVersion - The API version
  * @param {string} opts.format - The data format
- * @param {boolean} opts.raw - Whether to include full response bodies
  * @param {boolean} opts.color - Whether to colorize the response
  * @returns {string}
  */
-export const formatQueryResponse = (
-  res,
-  { apiVersion, raw, color, format },
-) => {
+export const formatQueryResponse = (res, { apiVersion, color, format }) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return faunaV4.formatQueryResponse(res, { raw, color });
+    return faunaV4.formatQueryResponse(res, { color });
   } else {
-    return faunaV10.formatQueryResponse(res, { raw, format, color });
+    return faunaV10.formatQueryResponse(res, { format, color });
   }
 };
 
