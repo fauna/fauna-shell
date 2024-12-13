@@ -2,6 +2,7 @@
 import { createContext, runInContext } from "node:vm";
 
 import { container } from "../cli.mjs";
+import { NETWORK_ERROR_MESSAGE } from "./errors.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
 /**
@@ -103,9 +104,10 @@ export const formatError = (err, opts = {}) => {
       return colorize(err, { color, format: Format.JSON });
     }
 
+    const errorPrefix = "The query failed with the following error:\n\n";
     const { errors } = err.requestResult.responseContent;
     if (!errors) {
-      return colorize(err.message, { color });
+      return colorize(errorPrefix + err.message, { color });
     }
 
     const messages = [];
@@ -113,12 +115,20 @@ export const formatError = (err, opts = {}) => {
       messages.push(`${code}: ${description} at ${position.join(", ")}\n`);
     });
 
-    return colorize(messages.join("\n").trim(), {
+    return colorize(errorPrefix + messages.join("\n").trim(), {
       color,
     });
   }
 
-  return colorize(err.message, { color });
+  const errorPrefix =
+    "The query failed unexpectedly with the following error:\n\n";
+
+  // When fetch fails, we get a TypeError with a "fetch failed" message.
+  if (err.name === "TypeError" && err.message.includes("fetch failed")) {
+    return colorize(errorPrefix + NETWORK_ERROR_MESSAGE, { color });
+  }
+
+  return colorize(errorPrefix + err.message, { color });
 };
 
 /**

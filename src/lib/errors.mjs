@@ -9,6 +9,11 @@ const BUG_REPORT_MESSAGE =
 export const SUPPORT_MESSAGE =
   "If this issue persists contact support: https://support.fauna.com/hc/en-us/requests/new";
 
+// This error message is used in a few places where we handle network errors.
+export const NETWORK_ERROR_MESSAGE =
+  "Unable to connect to Fauna due to a network error. If using --local, " +
+  "ensure your container is running with this command: fauna local";
+
 /*
  * These are the error message prefixes that yargs throws during
  * validation. To detect these errors, you can either parse the stack
