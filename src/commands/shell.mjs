@@ -151,7 +151,6 @@ async function buildCustomEval(argv) {
       // These are options used for querying and formatting the response
       const { apiVersion, color, include } = argv;
       const performanceHints = getArgvOrCtx("performanceHints", argv, ctx);
-      const summary = getArgvOrCtx("summary", argv, ctx);
 
       // Using --json output takes precedence over --format
       const outputFormat = resolveFormat({ ...argv });
@@ -179,13 +178,16 @@ async function buildCustomEval(argv) {
           format: outputFormat,
         });
 
-        if ((summary || performanceHints) && apiVersion === "10") {
-          const formattedSummary = formatQueryInfo(
-            { summary: res.summary },
-            { apiVersion, color, include },
-          );
-          if (formattedSummary) {
-            logger.stdout(formattedSummary);
+        // If any query info should be displayed, print to stderr.
+        // This is only supported in v10.
+        if (include.length > 0 && apiVersion === "10") {
+          const queryInfo = formatQueryInfo(res, {
+            apiVersion,
+            color,
+            include,
+          });
+          if (queryInfo) {
+            logger.stdout(queryInfo);
           }
         }
       } catch (err) {
