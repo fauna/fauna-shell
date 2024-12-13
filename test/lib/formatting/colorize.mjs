@@ -4,6 +4,9 @@ import { run } from "../../../src/cli.mjs";
 import { setupRealContainer } from "../../../src/config/setup-container.mjs";
 import { colorize, Format } from "../../../src/lib/formatting/colorize.mjs";
 
+/* eslint-disable-next-line no-control-regex */
+const ansiRegex = /\u001b\[\d{1,2}(;\d{1,2})*m/g;
+
 describe("colorize", () => {
   [
     { format: Format.LOG, input: "Taco 8443 'Bell'", expected: "succeed" },
@@ -31,9 +34,9 @@ describe("colorize", () => {
       expect(fail).to.equal(expected === "fail");
       if (!fail) {
         if (format !== Format.TEXT) {
-          expect(result).to.not.equal(input);
+          expect(ansiRegex.test(result)).to.be.true;
         } else {
-          expect(result).to.equal(input);
+          expect(ansiRegex.test(result)).to.be.false;
         }
       }
     });
