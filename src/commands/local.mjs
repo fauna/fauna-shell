@@ -81,7 +81,8 @@ function buildLocalCommand(yargs) {
         );
       }
       return true;
-    }).example([
+    })
+    .example([
       ["$0 local", "Start a Fauna container with default name and ports."],
       ["$0 local --name local-fauna", "Start a container named 'local-fauna'."],
       [
@@ -97,7 +98,7 @@ function buildLocalCommand(yargs) {
 
 export default {
   command: "local",
-  describe: "Start a local Fauna container",
+  describe: "Start a local Fauna container.",
   builder: buildLocalCommand,
   handler: startLocal,
 };
