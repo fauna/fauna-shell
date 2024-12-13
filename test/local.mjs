@@ -106,7 +106,6 @@ describe("ensureContainerRunning", () => {
     try {
       // Run the actual command
       await run("local --no-color", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {
       // Expected error, no action needed
     }
@@ -142,6 +141,25 @@ Please pass a --hostPort other than '8443'.",
       const written = stderrStream.getWritten();
       expect(written).to.contain("[CreateDatabase] Database 'Foo' created.");
       expect(written).to.contain('"name": "Foo"');
+    });
+  });
+
+  [
+    "--typechecked",
+    "--protected",
+    "--priority 1",
+  ].forEach((args) => {
+    it("Rejects invalid create database args", async () => {
+      setupCreateContainerMocks();
+      const { runQuery } = container.resolve("faunaClientV10");
+      try {
+        await run(`local --no-color ${args}`, container);
+      } catch (_) {}
+      expect(runQuery).not.to.have.been.called;
+      const written = stderrStream.getWritten();
+      expect(written).to.contain("fauna local");
+      expect(written).not.to.contain("An unexpected");
+      expect(written).to.contain("can only be set if");
     });
   });
 
@@ -223,7 +241,6 @@ Please pass a --hostPort other than '8443'.",
     docker.pull.onCall(0).rejects(new Error("Remote repository not found"));
     try {
       await run("local --no-color", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     expect(docker.pull).to.have.been.called;
     expect(docker.modem.followProgress).not.to.have.been.called;
@@ -246,7 +263,6 @@ https://support.fauna.com/hc/en-us/requests/new`,
     fetch.resolves(f({}, 503)); // fail from http
     try {
       await run("local --no-color --interval 0 --maxAttempts 3", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
     expect(written).to.contain("with HTTP status: '503'");
@@ -282,7 +298,6 @@ https://support.fauna.com/hc/en-us/requests/new`,
     });
     try {
       await run("local --no-color", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
     expect(written).to.contain(
@@ -294,7 +309,6 @@ https://support.fauna.com/hc/en-us/requests/new`,
   it("throws an error if interval is less than 0", async () => {
     try {
       await run("local --no-color --interval -1", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
     expect(written).to.contain(
@@ -307,7 +321,6 @@ https://support.fauna.com/hc/en-us/requests/new`,
   it("throws an error if maxAttempts is less than 1", async () => {
     try {
       await run("local --no-color --maxAttempts 0", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
     expect(written).to.contain("--maxAttempts must be greater than 0.");
@@ -447,7 +460,6 @@ https://support.fauna.com/hc/en-us/requests/new`,
 
     try {
       await run(`local --hostPort ${desiredPort}`, container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     expect(docker.listContainers).to.have.been.calledWith({
       all: true,
