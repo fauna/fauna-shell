@@ -6,6 +6,7 @@ import sinon, { stub } from "sinon";
 import { run } from "../src/cli.mjs";
 import { setupTestContainer } from "../src/config/setup-test-container.mjs";
 import { f } from "./helpers.mjs";
+import { AbortError } from "fauna";
 
 describe("ensureContainerRunning", () => {
   let container,
@@ -144,11 +145,26 @@ Please pass a --hostPort other than '8443'.",
     });
   });
 
-  [
-    "--typechecked",
-    "--protected",
-    "--priority 1",
-  ].forEach((args) => {
+  it("Exits with an expected error if teh query aborts", async () => {
+    setupCreateContainerMocks();
+    const { runQuery } = container.resolve("faunaClientV10");
+    runQuery.rejects(new AbortError({ error: { abort: "Taco" }}));
+    try {
+      await run(`local --no-color --database Foo`, container);
+    } catch (_) {}
+    expect(runQuery).to.have.been.calledWith({
+      secret: "secret",
+      url: "http://0.0.0.0:8443",
+      query: sinon.match.any,
+      options: { format: "decorated" },
+    });
+    const written = stderrStream.getWritten();
+    expect(written).to.contain('Taco');
+    expect(written).not.to.contain("fauna local");
+    expect(written).not.to.contain("An unexpected");
+  });
+
+  ["--typechecked", "--protected", "--priority 1"].forEach((args) => {
     it("Rejects invalid create database args", async () => {
       setupCreateContainerMocks();
       const { runQuery } = container.resolve("faunaClientV10");
