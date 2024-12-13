@@ -1,12 +1,12 @@
 //@ts-check
 
 import { expect } from "chai";
+import { AbortError } from "fauna";
 import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer } from "../src/config/setup-test-container.mjs";
 import { f } from "./helpers.mjs";
-import { AbortError } from "fauna";
 
 describe("ensureContainerRunning", () => {
   let container,
@@ -148,7 +148,7 @@ Please pass a --hostPort other than '8443'.",
   it("Exits with an expected error if teh query aborts", async () => {
     setupCreateContainerMocks();
     const { runQuery } = container.resolve("faunaClientV10");
-    runQuery.rejects(new AbortError({ error: { abort: "Taco" }}));
+    runQuery.rejects(new AbortError({ error: { abort: "Taco" } }));
     try {
       await run(`local --no-color --database Foo`, container);
     } catch (_) {}
@@ -159,7 +159,7 @@ Please pass a --hostPort other than '8443'.",
       options: { format: "decorated" },
     });
     const written = stderrStream.getWritten();
-    expect(written).to.contain('Taco');
+    expect(written).to.contain("Taco");
     expect(written).not.to.contain("fauna local");
     expect(written).not.to.contain("An unexpected");
   });
