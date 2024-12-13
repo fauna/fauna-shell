@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { InvalidCredsError } from "./misc.mjs";
+import { InvalidCredsError } from "./errors.mjs";
 
 // const KEY_TTL_DEFAULT_MS = 1000 * 60 * 60 * 24;
 

@@ -6,6 +6,8 @@ import { container } from "../cli.mjs";
 
 const BUG_REPORT_MESSAGE = `If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues`;
 
+export const INVALID_CREDS_MESSAGE = `Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.`;
+
 /*
  * These are the error message prefixes that yargs throws during
  * validation. To detect these errors, you can either parse the stack
@@ -40,6 +42,7 @@ export class CommandError extends Error {
    */
   constructor(message, { exitCode = 1, hideHelp = true, cause } = {}) {
     super(message);
+    this.name = "CommandError";
     this.exitCode = exitCode;
     this.hideHelp = hideHelp;
     this.cause = cause;
@@ -60,6 +63,40 @@ export class ValidationError extends CommandError {
    */
   constructor(message, { exitCode = 1, hideHelp = false, cause } = {}) {
     super(message, { exitCode, hideHelp, cause });
+    this.name = "ValidationError";
+  }
+}
+
+/**
+ * An error that is thrown when the user provides invalid credentials.
+ * @param {string} message
+ * @param {object} [opts]
+ * @param {number} [opts.exitCode]
+ * @param {boolean} [opts.hideHelp]
+ * @param {Error} [opts.cause]
+ */
+export class InvalidCredsError extends CommandError {
+  constructor(
+    message = INVALID_CREDS_MESSAGE,
+    { exitCode = 1, hideHelp = true, cause } = {},
+  ) {
+    super(message, { exitCode, hideHelp, cause });
+    this.name = "InvalidCredsError";
+  }
+}
+
+/**
+ * An error that is thrown when the user is not authorized to perform an action.
+ * @param {string} message
+ * @param {object} [opts]
+ * @param {number} [opts.exitCode]
+ * @param {boolean} [opts.hideHelp]
+ * @param {Error} [opts.cause]
+ */
+export class UnauthorizedError extends CommandError {
+  constructor(message, { exitCode = 1, hideHelp = true, cause } = {}) {
+    super(message, { exitCode, hideHelp, cause });
+    this.name = "UnauthorizedError";
   }
 }
 
@@ -91,7 +128,13 @@ function isYargsError(error) {
  * @returns {boolean}
  */
 export function isUnknownError(error) {
-  return !isYargsError(error) && !(error instanceof CommandError);
+  return (
+    !isYargsError(error) &&
+    !(error instanceof CommandError) &&
+    !(error instanceof ValidationError) &&
+    !(error instanceof UnauthorizedError) &&
+    !(error instanceof InvalidCredsError)
+  );
 }
 
 export const handleParseYargsError = async (

@@ -2,6 +2,7 @@
 import { createContext, runInContext } from "node:vm";
 
 import { container } from "../cli.mjs";
+import { InvalidCredsError, UnauthorizedError } from "./errors.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
 /**
@@ -73,6 +74,14 @@ export const runQuery = async ({
 
   try {
     return await _client.queryWithMetrics(query, options);
+  } catch (e) {
+    if (e.requestResult.statusCode === 401) {
+      throw new InvalidCredsError(undefined, { cause: e });
+    }
+    if (e.requestResult.statusCode === 403) {
+      throw new UnauthorizedError(e.message, { cause: e });
+    }
+    throw e;
   } finally {
     if (!client && _client) {
       _client.close();

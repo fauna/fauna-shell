@@ -1,7 +1,6 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { ValidationError } from "./errors.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
 const SUMMARY_FQL_REGEX = /^(\s\s\|)|(\d\s\|)/;
@@ -95,11 +94,9 @@ export const runQueryFromString = (expression, argv) => {
  */
 export const isQueryable = async (argv) => {
   const runQueryFromString = container.resolve("runQueryFromString");
-  try {
-    await runQueryFromString("1+1", argv);
-  } catch (err) {
-    throw new ValidationError(err.message, { cause: err });
-  }
+  await runQueryFromString("1+1", argv);
+
+  return true;
 };
 
 /**
