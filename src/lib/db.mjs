@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { CommandError } from "./errors.mjs";
+import { CommandError, NETWORK_ERROR_MESSAGE } from "./errors.mjs";
 import { retryInvalidCredsOnce } from "./fauna-client.mjs";
 
 function buildParamsString({ argv, params, path }) {
@@ -31,6 +31,7 @@ function buildParamsString({ argv, params, path }) {
 /**
  * @param {fetchParameters} args
  */
+// eslint-disable-next-line complexity
 export async function makeFaunaRequest({
   argv,
   path,
@@ -60,7 +61,17 @@ export async function makeFaunaRequest({
 
   if (body) fetchArgs.body = body;
 
-  const response = await fetch(fullUrl, fetchArgs);
+  let response;
+  try {
+    response = await fetch(fullUrl, fetchArgs);
+  } catch (err) {
+    if (err.name === "TypeError" && err.message.includes("fetch failed")) {
+      throw new CommandError(NETWORK_ERROR_MESSAGE);
+    }
+
+    throw err;
+  }
+
   const obj = await response.json();
 
   if (obj.error && shouldThrow) {

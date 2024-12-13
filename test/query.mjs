@@ -1,11 +1,12 @@
 //@ts-check
 
 import { expect } from "chai";
-import { ServiceError } from "fauna";
+import { NetworkError, ServiceError } from "fauna";
 import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { NETWORK_ERROR_MESSAGE } from "../src/lib/errors.mjs";
 import { colorize } from "../src/lib/formatting/colorize.mjs";
 import {
   createV4QueryFailure,
@@ -170,19 +171,6 @@ describe("query", function () {
       expect(logger.stdout).to.have.been.calledWith(
         colorize([], { format: "json", color: false }),
       );
-    });
-
-    // This test is disabled because the argv fallback requires a real process.argv
-    // and there's no way blessed way to override it in the test environment.
-    it.skip("can mute stderr if --quiet is used", async function () {
-      runQueryFromString.rejects(new Error("test error"));
-
-      try {
-        await run(`query "Database.all()" --quiet --secret=foo`, container);
-      } catch (e) {}
-
-      expect(logger.stdout).to.not.be.called;
-      expect(logger.stderr).to.not.be.called;
     });
   });
 
@@ -389,6 +377,18 @@ describe("query", function () {
 
       expect(logger.stderr).to.not.be.called;
       expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
+    });
+
+    it("can handle network errors", async function () {
+      runQueryFromString.rejects(new NetworkError("test error", { cause: {} }));
+
+      try {
+        await run(`query "Database.all()" --local`, container);
+      } catch (e) {}
+
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match(NETWORK_ERROR_MESSAGE),
+      );
     });
   });
 
