@@ -6,6 +6,7 @@ import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { AUTHENTICATION_ERROR_MESSAGE } from "../../src/lib/errors.mjs";
 import { colorize } from "../../src/lib/formatting/colorize.mjs";
 import { mockAccessKeysFile } from "../helpers.mjs";
 
@@ -126,8 +127,7 @@ describe("database list", () => {
         error: new ServiceError({
           error: { code: "unauthorized", message: "whatever" },
         }),
-        expectedMessage:
-          "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.",
+        expectedMessage: AUTHENTICATION_ERROR_MESSAGE,
       },
     ].forEach(({ error, expectedMessage }) => {
       it(`handles ${error.code} errors when calling fauna`, async () => {

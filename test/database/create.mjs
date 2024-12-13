@@ -6,6 +6,7 @@ import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { AUTHENTICATION_ERROR_MESSAGE } from "../../src/lib/errors.mjs";
 import { mockAccessKeysFile } from "../helpers.mjs";
 
 describe("database create", () => {
@@ -50,7 +51,7 @@ describe("database create", () => {
         error: { code: "constraint_failure", message: "whatever" },
       }),
       expectedMessage:
-        "Constraint failure: The database 'testdb' already exists or one of the provided options is invalid.",
+        "The database 'testdb' already exists or one of the provided options is invalid.",
     },
     {
       error: new ServiceError({
@@ -66,14 +67,13 @@ describe("database create", () => {
         },
       }),
       expectedMessage:
-        "Constraint failure: The database name 'testdb' is invalid. Database names must begin with letters and include only letters, numbers, and underscores.",
+        "The database name 'testdb' is invalid. Database names must begin with letters and include only letters, numbers, and underscores.",
     },
     {
       error: new ServiceError({
         error: { code: "unauthorized", message: "whatever" },
       }),
-      expectedMessage:
-        "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.",
+      expectedMessage: AUTHENTICATION_ERROR_MESSAGE,
     },
   ].forEach(({ error, expectedMessage }) => {
     it(`handles ${error.code} errors when calling fauna`, async () => {
@@ -155,9 +155,7 @@ describe("database create", () => {
 
       expect(makeAccountRequest).to.not.have.been.called;
       expect(logger.stderr).to.have.been.calledWith(
-        sinon.match(
-          "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.",
-        ),
+        sinon.match(AUTHENTICATION_ERROR_MESSAGE),
       );
     });
   });

@@ -1,9 +1,7 @@
 //@ts-check
 
-import { FaunaError } from "fauna";
-
 import { container } from "../../cli.mjs";
-import { throwForError } from "../../lib/fauna.mjs";
+import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 
@@ -61,10 +59,7 @@ async function listDatabasesWithSecret(argv) {
       .resolve("logger")
       .stdout(formatQueryResponse(result, { format: Format.JSON, color }));
   } catch (e) {
-    if (e instanceof FaunaError) {
-      throwForError(e);
-    }
-    throw e;
+    faunaToCommandError(e);
   }
 }
 
