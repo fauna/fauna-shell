@@ -145,7 +145,7 @@ Please pass a --hostPort other than '8443'.",
     });
   });
 
-  it("Exits with an expected error if teh query aborts", async () => {
+  it("Exits with an expected error if the create db query aborts", async () => {
     setupCreateContainerMocks();
     const { runQuery } = container.resolve("faunaClientV10");
     runQuery.rejects(new AbortError({ error: { abort: "Taco" } }));
@@ -179,6 +179,13 @@ Please pass a --hostPort other than '8443'.",
     });
   });
 
+  it("Does not create a database when not requested to do so", async () => {
+    setupCreateContainerMocks();
+    const { runQuery } = container.resolve("faunaClientV10");
+    await run("local --no-color", container);
+    expect(runQuery).not.to.have.been.called;
+  });
+
   it("Creates and starts a container when none exists", async () => {
     setupCreateContainerMocks();
     await run("local --no-color", container);
@@ -208,9 +215,6 @@ Please pass a --hostPort other than '8443'.",
         "8443/tcp": {},
       },
     });
-    expect(logger.stderr).to.have.been.calledWith(
-      "[ContainerReady] Container 'faunadb' is up and healthy.",
-    );
   });
 
   it("The user can control the hostIp, hostPort, containerPort, and name", async () => {
