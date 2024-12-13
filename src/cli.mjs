@@ -1,5 +1,9 @@
 // @ts-check
 
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import chalk from "chalk";
 import yargs from "yargs";
 
@@ -25,6 +29,9 @@ import {
 export let container;
 /** @type {import('yargs').Argv} */
 export let builtYargs;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * @param {string|string[]} _argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
@@ -169,7 +176,15 @@ function buildYargs(argvInput) {
     .alias("help", "h")
     .fail(false)
     .exitProcess(false)
-    .version()
+    .version(
+      "version",
+      "Show the fauna CLI version.",
+      JSON.parse(
+        fs.readFileSync(path.join(__dirname, "../package.json"), {
+          encoding: "utf8",
+        }),
+      ).version,
+    )
     .completion(
       "completion",
       "Output bash/zsh script to enable shell completions. See command output for installation instructions.",
