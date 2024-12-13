@@ -6,11 +6,13 @@ import path from "node:path";
 
 import * as awilix from "awilix";
 import { expect } from "chai";
+import { NetworkError } from "fauna";
 import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import { ValidationError } from "../src/lib/errors.mjs";
+import { NETWORK_ERROR_MESSAGE, ValidationError } from "../src/lib/errors.mjs";
+import { isQueryable } from "../src/lib/fauna-client.mjs";
 import { dirExists } from "../src/lib/file-util.mjs";
 import { colorize } from "../src/lib/formatting/colorize.mjs";
 import { createV4QuerySuccess, createV10QuerySuccess } from "./helpers.mjs";
@@ -105,6 +107,22 @@ describe("shell", function () {
 
       await stderr.waitForWritten();
       expect(stderr.getWritten()).to.match(/Database not found: us\/bad/);
+    });
+
+    it("can handle network errors", async function () {
+      runQueryFromString.rejects(new NetworkError("test error", { cause: {} }));
+      container.register({
+        isQueryable: awilix.asValue(isQueryable),
+      });
+      const runPromise = run(`shell --format json -d us/bad`, container);
+
+      try {
+        await runPromise;
+      } catch {}
+
+      await stderr.waitForWritten();
+
+      expect(stderr.getWritten()).to.contain(NETWORK_ERROR_MESSAGE);
     });
 
     describe("history", function () {
