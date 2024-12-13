@@ -1,9 +1,11 @@
 import stripAnsi from "strip-ansi";
 
 import { container } from "../../cli.mjs";
+import { codeToAnsi } from "./codeToAnsi.mjs";
 
 export const Format = {
   FQL: "fql",
+  LOG: "log",
   JSON: "json",
   TEXT: "text",
 };
@@ -42,6 +44,14 @@ const jsonToAnsi = (obj) => {
   return res.trim();
 };
 
+const logToAnsi = (obj) => {
+  if (typeof obj !== "string") {
+    throw new Error("Unable to format LOG unless it is already a string.");
+  }
+  const res = codeToAnsi(obj, "log");
+  return res.trim();
+};
+
 /**
  * Formats an object for display with ANSI color codes.
  * @param {any} obj - The object to format
@@ -55,6 +65,8 @@ export const toAnsi = (obj, { format = Format.TEXT } = {}) => {
       return fqlToAnsi(obj);
     case Format.JSON:
       return jsonToAnsi(obj);
+    case Format.LOG:
+      return logToAnsi(obj);
     default:
       return textToAnsi(obj);
   }

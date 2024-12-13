@@ -17,6 +17,7 @@ async function startLocal(argv) {
     pull: argv.pull,
     interval: argv.interval,
     maxAttempts: argv.maxAttempts,
+    color: argv.color,
   });
 }
 
