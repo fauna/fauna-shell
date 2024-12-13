@@ -1,4 +1,5 @@
 import { ensureContainerRunning } from "../lib/docker-containers.mjs";
+import { CommandError } from "../lib/errors.mjs";
 
 /**
  * Starts the local Fauna container
@@ -10,9 +11,13 @@ async function startLocal(argv) {
   await ensureContainerRunning({
     imageName: argv.image,
     containerName: argv.name,
+    hostIp: argv.hostIp,
     hostPort: argv.hostPort,
     containerPort: argv.containerPort,
     pull: argv.pull,
+    interval: argv.interval,
+    maxAttempts: argv.maxAttempts,
+    color: argv.color,
   });
 }
 
@@ -27,27 +32,56 @@ function buildLocalCommand(yargs) {
       containerPort: {
         describe: "The port inside the container Fauna listens on.",
         type: "number",
-        default: "8443",
+        default: 8443,
       },
       hostPort: {
         describe:
           "The port on the host machine mapped to the container's port. This is the port you'll connect to Fauna on.",
         type: "number",
-        default: "8443",
+        default: 8443,
+      },
+      hostIp: {
+        describe: `The IP address to bind the container's exposed port on the host.`,
+        type: "string",
+        default: "0.0.0.0",
+      },
+      interval: {
+        describe:
+          "The interval (in milliseconds) between health check attempts. Determines how often the CLI checks if the Fauna container is ready.",
+        type: "number",
+        default: 10000,
+      },
+      maxAttempts: {
+        describe:
+          "The maximum number of health check attempts before declaring the start Fauna continer process as failed.",
+        type: "number",
+        default: 100,
       },
       name: {
-        describe: "Name for the container.",
+        describe: "The name to give the container",
         type: "string",
         default: "faunadb",
       },
       pull: {
-        describe:
-          "Pull the latest image before starting the container. Use --no-pull to disable.",
+        describe: "Pull the latest image before starting the container.",
         type: "boolean",
         default: true,
       },
     })
-    .example([
+    .check((argv) => {
+      if (argv.maxAttempts < 1) {
+        throw new CommandError("--maxAttempts must be greater than 0.", {
+          hideHelp: false,
+        });
+      }
+      if (argv.interval < 0) {
+        throw new CommandError(
+          "--interval must be greater than or equal to 0.",
+          { hideHelp: false },
+        );
+      }
+      return true;
+    }).example([
       ["$0 local", "Start a Fauna container with default name and ports."],
       ["$0 local --name local-fauna", "Start a container named 'local-fauna'."],
       [
@@ -63,7 +97,7 @@ function buildLocalCommand(yargs) {
 
 export default {
   command: "local",
-  describe: "Start a local Fauna container.",
+  describe: "Start a local Fauna container",
   builder: buildLocalCommand,
   handler: startLocal,
 };
