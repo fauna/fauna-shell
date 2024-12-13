@@ -125,7 +125,7 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   performanceHints: {
     type: "boolean",
     description:
-      "Output the performance hints for the current query or nothing when no hints are available. Only applies to v10 queries. Sets the '--includes summary'",
+      "Output the performance hints for the current query or nothing when no hints are available. Only applies to v10 queries. Sets '--include summary'",
     default: false,
     group: "API:",
   },
@@ -133,7 +133,7 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     type: "array",
     choices: ["all", ...QUERY_INFO_CHOICES],
     default: [],
-    describe: "Select additional query information to include in the output",
+    describe: "Include additional query response data in the output.",
   },
 };
 
