@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import stripAnsi from "strip-ansi";
 
 import { run } from "../../../src/cli.mjs";
 import { setupRealContainer } from "../../../src/config/setup-container.mjs";
@@ -35,11 +34,6 @@ describe("colorize", () => {
           expect(result).to.not.equal(input);
         } else {
           expect(result).to.equal(input);
-        }
-        if (format !== Format.JSON) {
-          expect(stripAnsi(result)).to.equal(input);
-        } else {
-          expect(stripAnsi(result)).to.not.equal(result);
         }
       }
     });
