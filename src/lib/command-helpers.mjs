@@ -153,14 +153,6 @@ export const resolveFormat = (argv) => {
     return Format.JSON;
   }
 
-  if (argv.raw) {
-    logger.debug(
-      "--raw has taken precedence over other formatting options, using JSON output",
-      "argv",
-    );
-    return Format.JSON;
-  }
-
   return argv.format;
 };
 

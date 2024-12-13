@@ -88,13 +88,12 @@ async function queryCommand(argv) {
       performanceHints,
       summary,
       color,
-      raw,
     } = argv;
 
     // If we're writing to a file, don't colorize the output regardless of the user's preference
     const useColor = argv.output || !isTTY() ? false : color;
 
-    // Using --json or --raw takes precedence over --format
+    // Using --json takes precedence over --format
     const outputFormat = resolveFormat(argv);
 
     const results = await container.resolve("runQueryFromString")(expression, {
@@ -105,7 +104,6 @@ async function queryCommand(argv) {
       typecheck,
       performanceHints,
       format: outputFormat,
-      raw,
       color: useColor,
     });
 
@@ -121,7 +119,6 @@ async function queryCommand(argv) {
     const output = formatQueryResponse(results, {
       apiVersion,
       format: outputFormat,
-      raw,
       color: useColor,
     });
 
@@ -137,8 +134,8 @@ async function queryCommand(argv) {
       throw err;
     }
 
-    const { apiVersion, raw, color } = argv;
-    throw new CommandError(formatError(err, { apiVersion, raw, color }), {
+    const { apiVersion, color } = argv;
+    throw new CommandError(formatError(err, { apiVersion, color }), {
       cause: err,
     });
   }
@@ -162,12 +159,6 @@ function buildQueryCommand(yargs) {
         type: "string",
         description:
           "Path to a file where query results are written. Defaults to stdout.",
-      },
-      raw: {
-        type: "boolean",
-        description:
-          "Output the raw JSON query response, including summary and query stats.",
-        default: false,
       },
     })
     .example([
@@ -194,10 +185,6 @@ function buildQueryCommand(yargs) {
       [
         "$0 query -i /path/to/queries.fql --output /tmp/result.json --database us/example",
         "Run the query and write the results to a file.",
-      ],
-      [
-        "$0 query -i /path/to/queries.fql --raw --output /tmp/result.json --database us/example",
-        "Run the query and write the full API response to a file.",
       ],
     ]);
 }

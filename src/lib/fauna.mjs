@@ -125,13 +125,11 @@ export const runQueryFromString = async ({
  *
  * @param {any} err - An error to format
  * @param {object} [opts]
- * @param {boolean} [opts.raw] - Whether to include full response bodies
  * @param {boolean} [opts.color] - Whether to colorize the error
  * @returns {string} The formatted error message
  */
-export const formatError = (err, opts = {}) => {
-  const { raw, color } = opts;
-
+// eslint-disable-next-line no-unused-vars
+export const formatError = (err, _opts = {}) => {
   // If the error has a queryInfo object with a summary property, we can format it.
   // Doing this check allows this code to avoid a fauna direct dependency.
   if (
@@ -139,11 +137,6 @@ export const formatError = (err, opts = {}) => {
     typeof err.queryInfo === "object" &&
     typeof err.queryInfo.summary === "string"
   ) {
-    // If you want full response, use util.inspect to get the full error object.
-    if (raw) {
-      return colorize(err, { color, format: Format.JSON });
-    }
-
     // Otherwise, return the summary and fall back to the message.
     return `${chalk.red("The query failed with the following error:")}\n\n${formatQuerySummary(err.queryInfo?.summary) ?? err.message}`;
   } else {
@@ -159,16 +152,14 @@ export const formatError = (err, opts = {}) => {
  * Formats a V10 Fauna query response.
  * @par [ am {import("fauna").QuerySuccess<any>} res
  * @param {object} [opts]
- * @param {boolean} [opts.raw] - Whether to include full response bodies
  * @param {string} [opts.format] - The format to use
  * @param {boolean} [opts.color] - Whether to colorize the response
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { raw, format = Format.JSON, color } = opts;
+  const { format = Format.JSON, color } = opts;
 
-  // If raw is set, return the full response object.
-  const data = raw ? res : res.data;
+  const data = res.data;
   return colorize(data, { format, color });
 };
 
