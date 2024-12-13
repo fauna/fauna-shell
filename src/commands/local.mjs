@@ -46,19 +46,18 @@ async function createDatabase(argv) {
       secret: "secret",
       url: `http://${argv.hostIp}:${argv.hostPort}`,
       query: fql`
-      let name = ${argv.name}
+      let name = ${argv.database}
       let database = Database.byName(name)
       let protected = ${argv.protected ?? null}
       let typechecked = ${argv.typechecked ?? null}
       let priority = ${argv.priority ?? null}
-      let params = {
-        name: name,
-        protected: ${argv.protected ?? null},
-        typechecked: ${argv.typechecked ?? null},
-        priority: ${argv.priority ?? null},
-      }
       if (database == null) {
-        Database.create(params)
+        Database.create({
+          name: name,
+          protected: protected,
+          typechecked: typechecked,
+          priority: priority,
+        })
       } else if (protected == database.protected && typechecked == database.typechecked && priority == database.priority) {
         database
       } else {
@@ -81,7 +80,6 @@ async function createDatabase(argv) {
 ${colorize(e.abort, { format: Format.FQL, color })}
 -----------------
 ${chalk.red("Please use choose a different name using --name or align the --typechecked, --priority, and --protected with what is currently present.")}`,
-        { hideHelp: false },
       );
     }
     throw e;

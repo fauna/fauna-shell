@@ -1,6 +1,7 @@
 //@ts-check
 
 import { expect } from "chai";
+import { fql } from "fauna";
 import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
@@ -78,6 +79,24 @@ describe("ensureContainerRunning", () => {
     net.createServer.returns(serverMock);
   });
 
+  function setupCreateContainerMocks() {
+    docker.pull.onCall(0).resolves();
+    docker.modem.followProgress.callsFake((stream, onFinished) => {
+      onFinished();
+    });
+    docker.listContainers.onCall(0).resolves([]);
+    fetch.onCall(0).resolves(f({})); // fast succeed the health check
+    logsStub.callsFake(async () => ({
+      on: () => {},
+      destroy: () => {},
+    }));
+    docker.createContainer.resolves({
+      start: startStub,
+      logs: logsStub,
+      unpause: unpauseStub,
+    });
+  }
+
   it("Shows a clear error to the user if something is already running on the desired port.", async () => {
     simulateError = true;
     docker.pull.onCall(0).resolves();
@@ -100,26 +119,63 @@ describe("ensureContainerRunning", () => {
       "[StartContainer] The hostPort '8443' on IP '0.0.0.0' is already occupied. \
 Please pass a --hostPort other than '8443'.",
     );
-    expect(written).to.contain("fauna local");
+    expect(written).not.to.contain("fauna local");
     expect(written).not.to.contain("An unexpected");
   });
 
+  [
+    {
+      args: "--database Foo",
+      argv: { database: "Foo" },
+    },
+    {
+      args: "--database Foo --typechecked --protected --priority 1",
+      argv: {
+        database: "Foo",
+        typechecked: true,
+        protected: true,
+        priority: 1,
+      },
+    },
+  ].forEach(({ args, argv }) => {
+    it("Creates a database if requested", async () => {
+      setupCreateContainerMocks();
+      const { runQuery } = container.resolve("faunaClientV10");
+      runQuery.resolves({
+        data: JSON.stringify({ name: "Foo" }, null, 2),
+      });
+      await run(`local --no-color ${args}`, container);
+      expect(runQuery).to.have.been.calledWith({
+        secret: "secret",
+        url: "http://0.0.0.0:8443",
+        query: fql`
+      let name = ${argv.database}
+      let database = Database.byName(name)
+      let protected = ${argv.protected ?? null}
+      let typechecked = ${argv.typechecked ?? null}
+      let priority = ${argv.priority ?? null}
+      if (database == null) {
+        Database.create({
+          name: name,
+          protected: protected,
+          typechecked: typechecked,
+          priority: priority,
+        })
+      } else if (protected == database.protected && typechecked == database.typechecked && priority == database.priority) {
+        database
+      } else {
+        abort(database)
+      }`,
+        options: { format: "decorated" },
+      });
+      const written = stderrStream.getWritten();
+      expect(written).to.contain("[CreateDatabase] Database 'Foo' created.");
+      expect(written).to.contain('"name": "Foo"');
+    });
+  });
+
   it("Creates and starts a container when none exists", async () => {
-    docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
-      onFinished();
-    });
-    docker.listContainers.onCall(0).resolves([]);
-    fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.createContainer.resolves({
-      start: startStub,
-      logs: logsStub,
-      unpause: unpauseStub,
-    });
+    setupCreateContainerMocks();
     await run("local --no-color", container);
     expect(unpauseStub).not.to.have.been.called;
     expect(startStub).to.have.been.called;
@@ -153,21 +209,7 @@ Please pass a --hostPort other than '8443'.",
   });
 
   it("The user can control the hostIp, hostPort, containerPort, and name", async () => {
-    docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
-      onFinished();
-    });
-    docker.listContainers.onCall(0).resolves([]);
-    fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.createContainer.resolves({
-      start: startStub,
-      logs: logsStub,
-      unpause: unpauseStub,
-    });
+    setupCreateContainerMocks();
     await run(
       "local --no-color --hostPort 10 --containerPort 11 --name Taco --hostIp 127.0.0.1",
       container,
@@ -193,17 +235,7 @@ Please pass a --hostPort other than '8443'.",
   });
 
   it("Skips pull if --pull is false.", async () => {
-    docker.listContainers.onCall(0).resolves([]);
-    fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.createContainer.resolves({
-      start: startStub,
-      logs: logsStub,
-      unpause: unpauseStub,
-    });
+    setupCreateContainerMocks();
     await run("local --no-color --pull false", container);
     expect(docker.pull).not.to.have.been.called;
     expect(docker.modem.followProgress).not.to.have.been.called;
@@ -216,18 +248,8 @@ Please pass a --hostPort other than '8443'.",
   });
 
   it("Fails start with a prompt to contact Fauna if pull fails.", async () => {
+    setupCreateContainerMocks();
     docker.pull.onCall(0).rejects(new Error("Remote repository not found"));
-    docker.listContainers.onCall(0).resolves([]);
-    fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.createContainer.resolves({
-      start: startStub,
-      logs: logsStub,
-      unpause: unpauseStub,
-    });
     try {
       await run("local --no-color", container);
       throw new Error("Expected an error to be thrown.");
@@ -248,26 +270,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
   });
 
   it("Throws an error if the health check fails", async () => {
-    docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
-      onFinished();
-    });
-    docker.listContainers.onCall(0).resolves([
-      {
-        State: "created",
-        Names: ["/faunadb"],
-        Ports: [{ PublicPort: 8443 }],
-      },
-    ]);
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.getContainer.onCall(0).returns({
-      logs: logsStub,
-      start: startStub,
-      unpause: unpauseStub,
-    });
+    setupCreateContainerMocks();
     fetch.onCall(0).rejects();
     fetch.resolves(f({}, 503)); // fail from http
     try {
@@ -489,6 +492,6 @@ Please use a new name via arguments --name <newName> --hostPort ${desiredPort} \
 to start the container.`,
     );
     expect(written).not.to.contain("An unexpected");
-    expect(written).to.contain("fauna local"); // help text
+    expect(written).not.to.contain("fauna local"); // help text
   });
 });
