@@ -21,7 +21,6 @@ async function runCreateQuery(secret, argv) {
         typechecked: ${argv.typechecked ?? null},
         priority: ${argv.priority ?? null},
       })`,
-    options: { format: "decorated" },
   });
 }
 
