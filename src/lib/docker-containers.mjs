@@ -161,8 +161,9 @@ arguments --name <newName> --hostPort ${hostPort} to start the container.`,
 
 /**
  * Checks if a port is occupied.
- * @param {number} hostPort The port to check
- * @param {string} hostIp The IP address to bind the container's exposed port on the host.
+ * @param {Object} options The options object
+ * @param {number} options.hostPort The port to check
+ * @param {string} options.hostIp The IP address to bind the container's exposed port on the host.
  * @returns {Promise<boolean>} a promise that resolves to true if the port is occupied, false otherwise.
  */
 async function isPortOccupied({ hostPort, hostIp }) {
@@ -236,11 +237,12 @@ Please pass a --hostPort other than '${hostPort}'.`,
 
 /**
  * Starts a container and returns a log stream if the container is not yet running.
- * @param {string} imageName The name of the image to create the container from
- * @param {string} containerName The name of the container to start
- * @param {string} hostIp The IP address to bind the container's exposed port on the host.
- * @param {number} hostPort The port on the host machine mapped to the container's port
- * @param {number} containerPort The port inside the container Fauna listens on
+ * @param {Object} options The options object
+ * @param {string} options.imageName The name of the image to create the container from
+ * @param {string} options.containerName The name of the container to start
+ * @param {string} options.hostIp The IP address to bind the container's exposed port on the host.
+ * @param {number} options.hostPort The port on the host machine mapped to the container's port
+ * @param {number} options.containerPort The port inside the container Fauna listens on
  * @returns {Promise<Object>} The log stream
  */
 async function startContainer({
