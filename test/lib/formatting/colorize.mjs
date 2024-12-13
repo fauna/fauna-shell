@@ -6,12 +6,6 @@ import { setupRealContainer } from "../../../src/config/setup-container.mjs";
 import { colorize, Format } from "../../../src/lib/formatting/colorize.mjs";
 
 describe("colorize", () => {
-  beforeEach(async () => {
-    // hack to get the codeToAnsi hooked up.
-    const container = await setupRealContainer();
-    await run("--version", container);
-  });
-
   [
     { format: Format.LOG, input: "Taco 8443 'Bell'", expected: "succeed" },
     { format: Format.LOG, input: { hi: "Taco 8443 'Bell'" }, expected: "fail" },
@@ -25,10 +19,18 @@ describe("colorize", () => {
     },
     { format: Format.JSON, input: { string: "23" }, expected: "succeed" },
   ].forEach(({ format, input, expected }) => {
-    it(`should ${expected} for ${JSON.stringify(input)} in format ${format}`, () => {
+    it(`should ${expected} for ${JSON.stringify(input)} in format ${format}`, async () => {
+      const container = await setupRealContainer();
+      await run("--version", container);
       let fail = false;
+      let result;
       try {
-        const result = colorize(input, { format });
+        result = colorize(input, { format });
+      } catch (e) {
+        fail = true;
+      }
+      expect(fail).to.equal(expected === "fail");
+      if (!fail) {
         if (format !== Format.TEXT) {
           expect(result).to.not.equal(input);
         } else {
@@ -39,10 +41,7 @@ describe("colorize", () => {
         } else {
           expect(stripAnsi(result)).to.not.equal(result);
         }
-      } catch (e) {
-        fail = true;
       }
-      expect(fail).to.equal(expected === "fail");
     });
   });
 
