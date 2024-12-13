@@ -41,6 +41,7 @@ describe("ensureContainerRunning", () => {
         // Trigger the error callback
         const errorCallback = serverMock.once.withArgs("error").args[0]?.[1];
         if (errorCallback) {
+          /** @type {Error & {code?: string}} */
           const error = new Error("Foo");
           error.code = "EADDRINUSE";
           errorCallback(error);
@@ -60,6 +61,7 @@ describe("ensureContainerRunning", () => {
         // Trigger the error callback
         const errorCallback = serverMock.once.withArgs("error").args[0]?.[1];
         if (errorCallback) {
+          /** @type {Error & {code?: string}} */
           const error = new Error("Foo");
           error.code = "EADDRINUSE";
           errorCallback(error);
@@ -250,9 +252,13 @@ https://support.fauna.com/hc/en-us/requests/new`,
     docker.modem.followProgress.callsFake((stream, onFinished) => {
       onFinished();
     });
-    docker.listContainers
-      .onCall(0)
-      .resolves([{ State: "created", Names: ["/faunadb"] }]);
+    docker.listContainers.onCall(0).resolves([
+      {
+        State: "created",
+        Names: ["/faunadb"],
+        Ports: [{ PublicPort: 8443 }],
+      },
+    ]);
     logsStub.callsFake(async () => ({
       on: () => {},
       destroy: () => {},
@@ -283,9 +289,13 @@ https://support.fauna.com/hc/en-us/requests/new`,
     docker.modem.followProgress.callsFake((stream, onFinished) => {
       onFinished();
     });
-    docker.listContainers
-      .onCall(0)
-      .resolves([{ State: "dead", Names: ["/faunadb"] }]);
+    docker.listContainers.onCall(0).resolves([
+      {
+        State: "dead",
+        Names: ["/faunadb"],
+        Ports: [{ PublicPort: 8443 }],
+      },
+    ]);
     fetch.onCall(0).resolves(f({})); // fast succeed the health check
     logsStub.callsFake(async () => ({
       on: () => {},
@@ -389,9 +399,13 @@ https://support.fauna.com/hc/en-us/requests/new`,
       docker.modem.followProgress.callsFake((stream, onFinished) => {
         onFinished();
       });
-      docker.listContainers
-        .onCall(0)
-        .resolves([{ State: test.state, Names: ["/faunadb"] }]);
+      docker.listContainers.onCall(0).resolves([
+        {
+          State: test.state,
+          Names: ["/faunadb"],
+          Ports: [{ PublicPort: 8443, Type: "tcp" }],
+        },
+      ]);
       fetch.onCall(0).resolves(f({})); // fast succeed the health check
       logsStub.callsFake(async () => ({
         on: () => {},
@@ -437,5 +451,44 @@ https://support.fauna.com/hc/en-us/requests/new`,
         "[ContainerReady] Container 'faunadb' is up and healthy.",
       );
     });
+  });
+
+  it("should throw if container exists with same name but different port", async () => {
+    const desiredPort = 8443;
+    docker.pull.onCall(0).resolves();
+    docker.modem.followProgress.callsFake((stream, onFinished) => {
+      onFinished();
+    });
+    // Mock existing container with different port
+    docker.listContainers.onCall(0).resolves([
+      {
+        Id: "mock-container-id",
+        Names: ["/faunadb"],
+        State: "running",
+        Ports: [
+          { PublicPort: 9999, Type: "tcp" }, // Different port than desired
+        ],
+      },
+    ]);
+
+    try {
+      await run(`local --hostPort ${desiredPort}`, container);
+      throw new Error("Expected an error to be thrown.");
+    } catch (_) {}
+    expect(docker.listContainers).to.have.been.calledWith({
+      all: true,
+      filters: JSON.stringify({ name: ["faunadb"] }),
+    });
+    expect(startStub).not.to.have.been.called;
+    expect(unpauseStub).not.to.have.been.called;
+    expect(logsStub).not.to.have.been.called;
+    const written = stderrStream.getWritten();
+    expect(written).to.contain(
+      `[FindContainer] Container 'faunadb' is already in use on hostPort '9999'. \
+Please use a new name via arguments --name <newName> --hostPort ${desiredPort} \
+to start the container.`,
+    );
+    expect(written).not.to.contain("An unexpected");
+    expect(written).to.contain("fauna local"); // help text
   });
 });

@@ -5,15 +5,14 @@ const IMAGE_NAME = "fauna/faunadb:latest";
 
 /**
  * Ensures the container is running
- * @param {string} imageName The name of the image to create the container from
- * @param {string} containerName The name of the container to start
- * @param {string} hostIp The IP address to bind the container's exposed port on the host.
- * @param {number} hostPort The port on the host machine mapped to the container's port
- * @param {number} containerPort The port inside the container Fauna listens on
- * @param {boolean} pull Whether to pull the latest image
- * @param {number | undefined} interval The interval (in milliseconds) between health check attempts.
- * @param {number | undefined} maxAttempts The maximum number of health check attempts before
- * declaring the start Fauna continer process as failed.
+ * @param {Object} options The options object
+ * @param {string} options.containerName The name of the container to start
+ * @param {string} options.hostIp The IP address to bind the container's exposed port on the host
+ * @param {number} options.hostPort The port on the host machine mapped to the container's port
+ * @param {number} options.containerPort The port inside the container Fauna listens on
+ * @param {boolean} options.pull Whether to pull the latest image
+ * @param {number} [options.interval] The interval (in milliseconds) between health check attempts
+ * @param {number} [options.maxAttempts] The maximum number of health check attempts before declaring the start Fauna continer process as failed
  * @returns {Promise<void>}
  */
 export async function ensureContainerRunning({
@@ -127,20 +126,37 @@ function writePullProgress(layers, numLines) {
 
 /**
  * Finds a container by name
- * @param {string} containerName The name of the container to find
+ * @param {Object} options The options object
+ * @param {string} options.containerName The name of the container to find
+ * @param {number} options.hostPort The port to check
  * @returns {Promise<Object | null>} The container object if found, otherwise undefined.
  * The container object has the following properties:
  * - Id: The ID of the container
  * - Names: The names of the container
  * - State: The state of the container
  */
-async function findContainer(containerName) {
+async function findContainer({ containerName, hostPort }) {
   const docker = container.resolve("docker");
   const logger = container.resolve("logger"); // Dependency injection for logger
   logger.stderr(`[FindContainer] Looking for container '${containerName}'...`);
   const filters = JSON.stringify({ name: [containerName] });
   const containers = await docker.listContainers({ all: true, filters });
-  return containers.length > 0 ? containers[0] : null;
+  if (containers.length === 0) {
+    return null;
+  }
+  const result = containers[0];
+  const diffPort = result.Ports.find(
+    (c) => c.PublicPort !== undefined && c.PublicPort !== hostPort,
+  );
+  if (diffPort) {
+    throw new CommandError(
+      `[FindContainer] Container '${containerName}' is already \
+in use on hostPort '${diffPort.PublicPort}'. Please use a new name via \
+arguments --name <newName> --hostPort ${hostPort} to start the container.`,
+      { hideHelp: false },
+    );
+  }
+  return result;
 }
 
 /**
@@ -173,11 +189,12 @@ async function isPortOccupied({ hostPort, hostIp }) {
 
 /**
  * Creates a container
- * @param {string} imageName The name of the image to create the container from
- * @param {string} containerName The name of the container to start
- * @param {string} hostIp The IP address to bind the container's exposed port on the host.
- * @param {number} hostPort The port on the host machine mapped to the container's port
- * @param {number} containerPort The port inside the container Fauna listens on
+ * @param {Object} options The options object
+ * @param {string} options.imageName The name of the image to create the container from
+ * @param {string} options.containerName The name of the container to start
+ * @param {string} options.hostIp The IP address to bind the container's exposed port on the host
+ * @param {number} options.hostPort The port on the host machine mapped to the container's port
+ * @param {number} options.containerPort The port inside the container Fauna listens on
  * @returns {Promise<Object>} The container object
  */
 async function createContainer({
@@ -235,7 +252,7 @@ async function startContainer({
 }) {
   const docker = container.resolve("docker");
   const logger = container.resolve("logger");
-  const existingContainer = await findContainer(containerName);
+  const existingContainer = await findContainer({ containerName, hostPort });
   let logStream = undefined;
   if (existingContainer) {
     const dockerContainer = docker.getContainer(existingContainer.Id);
@@ -287,8 +304,9 @@ async function startContainer({
 
 /**
  * Creates a log stream for the container
- * @param {Object} dockerContainer The container object
- * @param {string} containerName The name of the container
+ * @param {Object} options The options object
+ * @param {Object} options.dockerContainer The container object
+ * @param {string} options.containerName The name of the container
  * @returns {Promise<Object>} The log stream
  */
 async function createLogStream({ dockerContainer, containerName }) {
@@ -326,10 +344,11 @@ async function createLogStream({ dockerContainer, containerName }) {
 
 /**
  * Waits for the container to be ready
- * @param {string} url The url to check
- * @param {number} maxAttempts The maximum number of attempts to check
- * @param {number} interval The interval between attempts in milliseconds
- * @param {Object} logStream The log stream to destroy when the container is ready
+ * @param {Object} options The options object
+ * @param {string} options.url The url to check
+ * @param {number} [options.maxAttempts=100] The maximum number of attempts to check
+ * @param {number} [options.interval=10000] The interval between attempts in milliseconds
+ * @param {Object} options.logStream The log stream to destroy when the container is ready
  * @returns {Promise<void>} a promise that resolves when the container is ready.
  * It will reject if the container is not ready after the maximum number of attempts.
  */
