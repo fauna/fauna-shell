@@ -87,7 +87,7 @@ describe("ensureContainerRunning", () => {
     docker.listContainers.onCall(0).resolves([]);
     try {
       // Run the actual command
-      await run("local", container);
+      await run("local --no-color", container);
       throw new Error("Expected an error to be thrown.");
     } catch (_) {
       // Expected error, no action needed
@@ -120,7 +120,7 @@ Please pass a --hostPort other than '8443'.",
       logs: logsStub,
       unpause: unpauseStub,
     });
-    await run("local", container);
+    await run("local --no-color", container);
     expect(unpauseStub).not.to.have.been.called;
     expect(startStub).to.have.been.called;
     expect(logsStub).to.have.been.calledWith({
@@ -169,7 +169,7 @@ Please pass a --hostPort other than '8443'.",
       unpause: unpauseStub,
     });
     await run(
-      "local --hostPort 10 --containerPort 11 --name Taco --hostIp 127.0.0.1",
+      "local --no-color --hostPort 10 --containerPort 11 --name Taco --hostIp 127.0.0.1",
       container,
     );
     expect(docker.createContainer).to.have.been.calledWith({
@@ -204,7 +204,7 @@ Please pass a --hostPort other than '8443'.",
       logs: logsStub,
       unpause: unpauseStub,
     });
-    await run("local --pull false", container);
+    await run("local --no-color --pull false", container);
     expect(docker.pull).not.to.have.been.called;
     expect(docker.modem.followProgress).not.to.have.been.called;
     expect(startStub).to.have.been.called;
@@ -229,7 +229,7 @@ Please pass a --hostPort other than '8443'.",
       unpause: unpauseStub,
     });
     try {
-      await run("local", container);
+      await run("local --no-color", container);
       throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     expect(docker.pull).to.have.been.called;
@@ -271,7 +271,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
     fetch.onCall(0).rejects();
     fetch.resolves(f({}, 503)); // fail from http
     try {
-      await run("local --interval 0 --maxAttempts 3", container);
+      await run("local --no-color --interval 0 --maxAttempts 3", container);
       throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
@@ -307,7 +307,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
       unpause: unpauseStub,
     });
     try {
-      await run("local", container);
+      await run("local --no-color", container);
       throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
@@ -319,7 +319,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
 
   it("throws an error if interval is less than 0", async () => {
     try {
-      await run("local --interval -1", container);
+      await run("local --no-color --interval -1", container);
       throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
@@ -332,7 +332,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
 
   it("throws an error if maxAttempts is less than 1", async () => {
     try {
-      await run("local --maxAttempts 0", container);
+      await run("local --no-color --maxAttempts 0", container);
       throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
@@ -417,7 +417,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
         unpause: unpauseStub,
       });
       try {
-        await run("local", container);
+        await run("local --no-color", container);
       } catch (_) {
         expect(test.state).to.equal("dead");
       }
@@ -433,7 +433,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
       test.expectCalls();
       expect(logger.stderr).to.have.been.calledWith(test.startMessage);
       expect(logger.stderr).to.have.been.calledWith(
-        `[PullImage] Pulling image 'fauna/faunadb:latest'...\n`,
+        `[PullImage] Pulling image 'fauna/faunadb:latest'...`,
       );
       expect(logger.stderr).to.have.been.calledWith(
         "[PullImage] Image 'fauna/faunadb:latest' pulled.",
