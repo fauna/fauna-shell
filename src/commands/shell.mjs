@@ -7,6 +7,7 @@ import * as esprima from "esprima";
 
 import { container } from "../cli.mjs";
 import {
+  QUERY_INFO_CHOICES,
   resolveFormat,
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
@@ -66,6 +67,8 @@ async function shellCommand(argv) {
     shell.on("exit", resolve);
   });
 
+  shell.context.include = argv.include;
+
   [
     {
       cmd: "clear",
@@ -114,13 +117,21 @@ async function shellCommand(argv) {
       },
     },
     {
-      cmd: "toggleSummary",
-      help: "Enable or disable the summary field of the API response. Disabled by default. If enabled, outputs the summary field of the API response.",
+      cmd: "toggleInfo",
+      help: "Enable or disable the query info fields of the API response. Disabled by default. If enabled, outputs the included fields of the API response.",
       action: () => {
-        shell.context.summary = !shell.context.summary;
+        shell.context.include =
+          shell.context.include.length === 0
+            ? // if we are toggling on and no include was provided, turn everything on
+              argv.include.length === 0
+              ? QUERY_INFO_CHOICES
+              : argv.include
+            : [];
+
         logger.stderr(
-          `Summary in shell: ${shell.context.summary ? "on" : "off"}`,
+          `Query info in shell: ${shell.context.include.length === 0 ? "off" : shell.context.include.join(", ")}`,
         );
+
         shell.prompt();
       },
     },
@@ -149,7 +160,8 @@ async function buildCustomEval(argv) {
       if (cmd.trim() === "") return cb();
 
       // These are options used for querying and formatting the response
-      const { apiVersion, color, include } = argv;
+      const { apiVersion, color } = argv;
+      const include = getArgvOrCtx("include", argv, ctx);
       const performanceHints = getArgvOrCtx("performanceHints", argv, ctx);
 
       // Using --json output takes precedence over --format

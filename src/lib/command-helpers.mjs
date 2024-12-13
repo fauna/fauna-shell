@@ -79,6 +79,14 @@ const COMMON_QUERY_OPTIONS = {
   },
 };
 
+export const QUERY_INFO_CHOICES = [
+  "txnTs",
+  "schemaVersion",
+  "summary",
+  "queryTags",
+  "stats",
+];
+
 // used for queries customers can configure
 const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   ...COMMON_QUERY_OPTIONS,
@@ -123,7 +131,7 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   },
   include: {
     type: "array",
-    choices: ["all", "txnTs", "schemaVersion", "summary", "queryTags", "stats"],
+    choices: ["all", ...QUERY_INFO_CHOICES],
     default: [],
     describe: "Select additional query information to include in the output",
   },
