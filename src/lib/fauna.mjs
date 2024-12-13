@@ -138,7 +138,7 @@ export const formatError = (err, _opts = {}) => {
     typeof err.queryInfo.summary === "string"
   ) {
     // Otherwise, return the summary and fall back to the message.
-    return `${chalk.red("The query failed with the following error:")}\n\n${formatQuerySummary(err.queryInfo?.summary) ?? err.message}`;
+    return `${chalk.red("The query failed with the following error:")}\n\n${formatQuerySummary(err.queryInfo?.summary, { color: color ?? true }) ?? err.message}`;
   } else {
     if (err.name === "NetworkError") {
       return `The query failed unexpectedly with the following error:\n\n${NETWORK_ERROR_MESSAGE}`;

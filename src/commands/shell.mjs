@@ -12,8 +12,8 @@ import {
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
 import {
+  formatQueryInfo,
   formatQueryResponse,
-  formatQuerySummary,
   getSecret,
 } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
@@ -149,7 +149,7 @@ async function buildCustomEval(argv) {
       if (cmd.trim() === "") return cb();
 
       // These are options used for querying and formatting the response
-      const { apiVersion, color } = argv;
+      const { apiVersion, color, include } = argv;
       const performanceHints = getArgvOrCtx("performanceHints", argv, ctx);
       const summary = getArgvOrCtx("summary", argv, ctx);
 
@@ -167,7 +167,7 @@ async function buildCustomEval(argv) {
       let res;
       try {
         const secret = await getSecret();
-        const { url, timeout, typecheck } = argv;
+        const { color, timeout, typecheck, url } = argv;
 
         res = await runQueryFromString(cmd, {
           apiVersion,
@@ -180,7 +180,10 @@ async function buildCustomEval(argv) {
         });
 
         if ((summary || performanceHints) && apiVersion === "10") {
-          const formattedSummary = formatQuerySummary(res.summary);
+          const formattedSummary = formatQueryInfo(
+            { summary: res.summary },
+            { apiVersion, color, include },
+          );
           if (formattedSummary) {
             logger.stdout(formattedSummary);
           }

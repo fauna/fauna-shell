@@ -114,19 +114,18 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     default: 5000,
     group: "API:",
   },
-  summary: {
-    type: "boolean",
-    description:
-      "Output the summary field of the API response or nothing when it's empty. Only applies to v10 queries.",
-    default: false,
-    group: "API:",
-  },
   performanceHints: {
     type: "boolean",
     description:
-      "Output the performance hints for the current query or nothing when no hints are available. Only applies to v10 queries.",
+      "Output the performance hints for the current query or nothing when no hints are available. Only applies to v10 queries. Sets the '--includes summary'",
     default: false,
     group: "API:",
+  },
+  include: {
+    type: "array",
+    choices: ["all", "txnTs", "schemaVersion", "summary", "queryTags", "stats"],
+    default: [],
+    describe: "Select additional query information to include in the output",
   },
 };
 
@@ -135,7 +134,24 @@ export function yargsWithCommonQueryOptions(yargs) {
 }
 
 export function yargsWithCommonConfigurableQueryOptions(yargs) {
-  return yargsWithCommonOptions(yargs, COMMON_CONFIGURABLE_QUERY_OPTIONS);
+  return yargsWithCommonOptions(
+    yargs,
+    COMMON_CONFIGURABLE_QUERY_OPTIONS,
+  ).middleware((argv) => {
+    if (argv.include.includes("all")) {
+      argv.include = [
+        "txnTs",
+        "schemaVersion",
+        "summary",
+        "queryTags",
+        "stats",
+      ];
+    }
+
+    if (argv.performanceHints && !argv.include.includes("summary")) {
+      argv.include.push("summary");
+    }
+  });
 }
 
 export function yargsWithCommonOptions(yargs, options) {
