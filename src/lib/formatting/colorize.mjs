@@ -56,7 +56,7 @@ const logToAnsi = (obj) => {
 
 const yamlToAnsi = (obj) => {
   const codeToAnsi = container.resolve("codeToAnsi");
-  const stringified = YAML.stringify(obj);
+  const stringified = YAML.stringify(obj, { lineWidth: 0 });
   const res = codeToAnsi(stringified, "yaml");
 
   if (!res) {
