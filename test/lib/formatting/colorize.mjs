@@ -5,7 +5,7 @@ import { run } from "../../../src/cli.mjs";
 import { setupRealContainer } from "../../../src/config/setup-container.mjs";
 import { colorize, Format } from "../../../src/lib/formatting/colorize.mjs";
 
-describe.only("colorize", () => {
+describe("colorize", () => {
   beforeEach(async () => {
     // hack to get the codeToAnsi hooked up.
     const container = await setupRealContainer();
