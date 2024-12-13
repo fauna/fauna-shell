@@ -4,7 +4,10 @@ import util from "util";
 
 import { container } from "../cli.mjs";
 
-const BUG_REPORT_MESSAGE = `If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues`;
+const BUG_REPORT_MESSAGE =
+  "If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues";
+export const SUPPORT_MESSAGE =
+  "If this issue persists contact support: https://support.fauna.com/hc/en-us/requests/new";
 
 // This error message is used in a few places where we handle network errors.
 export const NETWORK_ERROR_MESSAGE =
@@ -117,6 +120,8 @@ export const handleParseYargsError = async (
       logger.debug(`unknown error thrown: ${e.name}`, "error");
       logger.debug(util.inspect(e, true, 2, false), "error");
     } else {
+      logger.debug(`known error thrown: ${e.name}`, "error");
+      logger.debug(util.inspect(e, true, 2, false), "error");
       // Otherwise, just use the error message
       subMessage = hasAnsi(e.message) ? e.message : chalk.red(e.message);
     }

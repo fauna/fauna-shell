@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { createHighlighterCoreSync } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 import json from "shiki/langs/json.mjs";
+import log from "shiki/langs/log.mjs";
 import githubDarkHighContrast from "shiki/themes/github-dark-high-contrast.mjs";
 
 import { isTTY } from "../misc.mjs";
@@ -12,7 +13,7 @@ const THEME = "github-dark-high-contrast";
 export const createHighlighter = () => {
   const highlighter = createHighlighterCoreSync({
     themes: [githubDarkHighContrast],
-    langs: [json, fql],
+    langs: [fql, log, json],
     engine: createJavaScriptRegexEngine(),
   });
 
@@ -64,7 +65,7 @@ const { codeToTokensBase, getTheme } = createHighlighter();
  * Returns a string with ANSI codes applied to the code. This is a JS port of the
  * TypeScript codeToAnsi function from the Shiki library.
  * @param {*} code - The code to format.
- * @param {"json" | "fql"} language - The language of the code.
+ * @param {"fql" | "log" | "json"} language - The language of the code.
  * @returns {string} - The formatted code with ANSI codes applied.
  */
 export function codeToAnsi(code, language) {
