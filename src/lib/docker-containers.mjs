@@ -1,22 +1,28 @@
 import { container } from "../cli.mjs";
-import { CommandError } from "./errors.mjs";
+import { CommandError, SUPPORT_MESSAGE } from "./errors.mjs";
 
 const IMAGE_NAME = "fauna/faunadb:latest";
 
 /**
  * Ensures the container is running
- * @param {string} imageName The name of the image to create the container from
- * @param {string} containerName The name of the container to start
- * @param {number} hostPort The port on the host machine mapped to the container's port
- * @param {number} containerPort The port inside the container Fauna listens on
- * @param {boolean} pull Whether to pull the latest image
+ * @param {Object} options The options object
+ * @param {string} options.containerName The name of the container to start
+ * @param {string} options.hostIp The IP address to bind the container's exposed port on the host
+ * @param {number} options.hostPort The port on the host machine mapped to the container's port
+ * @param {number} options.containerPort The port inside the container Fauna listens on
+ * @param {boolean} options.pull Whether to pull the latest image
+ * @param {number} [options.interval] The interval (in milliseconds) between health check attempts
+ * @param {number} [options.maxAttempts] The maximum number of health check attempts before declaring the start Fauna continer process as failed
  * @returns {Promise<void>}
  */
 export async function ensureContainerRunning({
   containerName,
+  hostIp,
   hostPort,
   containerPort,
   pull,
+  interval,
+  maxAttempts,
 }) {
   const logger = container.resolve("logger");
   if (pull) {
@@ -25,6 +31,7 @@ export async function ensureContainerRunning({
   const logStream = await startContainer({
     imageName: IMAGE_NAME,
     containerName,
+    hostIp,
     hostPort,
     containerPort,
   });
@@ -32,8 +39,10 @@ export async function ensureContainerRunning({
     `[StartContainer] Container '${containerName}' started. Monitoring HealthCheck for readiness.`,
   );
   await waitForHealthCheck({
-    url: `http://localhost:${hostPort}`,
+    url: `http://${hostIp}:${hostPort}`,
     logStream,
+    interval,
+    maxAttempts,
   });
   logger.stderr(
     `[ContainerReady] Container '${containerName}' is up and healthy.`,
@@ -84,10 +93,10 @@ async function pullImage(imageName) {
       );
     });
   } catch (error) {
-    logger.stderr(
-      `[PullImage] Error pulling image ${imageName}: ${error.message}`,
+    throw new CommandError(
+      `[PullImage] Failed to pull image '${imageName}': ${error.message}. ${SUPPORT_MESSAGE}`,
+      { cause: error },
     );
-    throw error;
   }
 }
 
@@ -117,45 +126,105 @@ function writePullProgress(layers, numLines) {
 
 /**
  * Finds a container by name
- * @param {string} containerName The name of the container to find
+ * @param {Object} options The options object
+ * @param {string} options.containerName The name of the container to find
+ * @param {number} options.hostPort The port to check
  * @returns {Promise<Object | null>} The container object if found, otherwise undefined.
  * The container object has the following properties:
  * - Id: The ID of the container
  * - Names: The names of the container
  * - State: The state of the container
  */
-async function findContainer(containerName) {
+async function findContainer({ containerName, hostPort }) {
   const docker = container.resolve("docker");
   const logger = container.resolve("logger"); // Dependency injection for logger
-  logger.stderr(
-    `[GetContainerState] Checking state for container '${containerName}'...`,
-  );
+  logger.stderr(`[FindContainer] Looking for container '${containerName}'...`);
   const filters = JSON.stringify({ name: [containerName] });
   const containers = await docker.listContainers({ all: true, filters });
-  return containers.length > 0 ? containers[0] : null;
+  if (containers.length === 0) {
+    return null;
+  }
+  const result = containers[0];
+  const diffPort = result.Ports.find(
+    (c) => c.PublicPort !== undefined && c.PublicPort !== hostPort,
+  );
+  if (diffPort) {
+    throw new CommandError(
+      `[FindContainer] Container '${containerName}' is already \
+in use on hostPort '${diffPort.PublicPort}'. Please use a new name via \
+arguments --name <newName> --hostPort ${hostPort} to start the container.`,
+      { hideHelp: false },
+    );
+  }
+  return result;
+}
+
+/**
+ * Checks if a port is occupied.
+ * @param {Object} options The options object
+ * @param {number} options.hostPort The port to check
+ * @param {string} options.hostIp The IP address to bind the container's exposed port on the host.
+ * @returns {Promise<boolean>} a promise that resolves to true if the port is occupied, false otherwise.
+ */
+async function isPortOccupied({ hostPort, hostIp }) {
+  const net = container.resolve("net");
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        resolve(true); // Port is occupied
+      } else {
+        reject(err); // Some other error occurred
+      }
+    });
+
+    server.on("listening", () => {
+      server.close(() => {
+        resolve(false); // Port is free
+      });
+    });
+
+    server.listen(hostPort, hostIp);
+  });
 }
 
 /**
  * Creates a container
- * @param {string} imageName The name of the image to create the container from
- * @param {string} containerName The name of the container to start
- * @param {number} hostPort The port on the host machine mapped to the container's port
- * @param {number} containerPort The port inside the container Fauna listens on
+ * @param {Object} options The options object
+ * @param {string} options.imageName The name of the image to create the container from
+ * @param {string} options.containerName The name of the container to start
+ * @param {string} options.hostIp The IP address to bind the container's exposed port on the host
+ * @param {number} options.hostPort The port on the host machine mapped to the container's port
+ * @param {number} options.containerPort The port inside the container Fauna listens on
  * @returns {Promise<Object>} The container object
  */
 async function createContainer({
   imageName,
   containerName,
+  hostIp,
   hostPort,
   containerPort,
 }) {
   const docker = container.resolve("docker");
+  const occupied = await isPortOccupied({ hostIp, hostPort });
+  if (occupied) {
+    throw new CommandError(
+      `[StartContainer] The hostPort '${hostPort}' on IP '${hostIp}' is already occupied. \
+Please pass a --hostPort other than '${hostPort}'.`,
+      { hideHelp: false },
+    );
+  }
   const dockerContainer = await docker.createContainer({
     Image: imageName,
     name: containerName,
     HostConfig: {
       PortBindings: {
-        [`${containerPort}/tcp`]: [{ HostPort: hostPort }],
+        [`${containerPort}/tcp`]: [
+          {
+            HostPort: `${hostPort}`,
+            HostIp: hostIp,
+          },
+        ],
       },
       AutoRemove: true,
     },
@@ -168,21 +237,24 @@ async function createContainer({
 
 /**
  * Starts a container and returns a log stream if the container is not yet running.
- * @param {string} imageName The name of the image to create the container from
- * @param {string} containerName The name of the container to start
- * @param {number} hostPort The port on the host machine mapped to the container's port
- * @param {number} containerPort The port inside the container Fauna listens on
+ * @param {Object} options The options object
+ * @param {string} options.imageName The name of the image to create the container from
+ * @param {string} options.containerName The name of the container to start
+ * @param {string} options.hostIp The IP address to bind the container's exposed port on the host.
+ * @param {number} options.hostPort The port on the host machine mapped to the container's port
+ * @param {number} options.containerPort The port inside the container Fauna listens on
  * @returns {Promise<Object>} The log stream
  */
 async function startContainer({
   imageName,
   containerName,
+  hostIp,
   hostPort,
   containerPort,
 }) {
   const docker = container.resolve("docker");
   const logger = container.resolve("logger");
-  const existingContainer = await findContainer(containerName);
+  const existingContainer = await findContainer({ containerName, hostPort });
   let logStream = undefined;
   if (existingContainer) {
     const dockerContainer = docker.getContainer(existingContainer.Id);
@@ -219,6 +291,7 @@ async function startContainer({
     const dockerContainer = await createContainer({
       imageName,
       containerName,
+      hostIp,
       hostPort,
       containerPort,
     });
@@ -233,8 +306,9 @@ async function startContainer({
 
 /**
  * Creates a log stream for the container
- * @param {Object} dockerContainer The container object
- * @param {string} containerName The name of the container
+ * @param {Object} options The options object
+ * @param {Object} options.dockerContainer The container object
+ * @param {string} options.containerName The name of the container
  * @returns {Promise<Object>} The log stream
  */
 async function createLogStream({ dockerContainer, containerName }) {
@@ -272,17 +346,18 @@ async function createLogStream({ dockerContainer, containerName }) {
 
 /**
  * Waits for the container to be ready
- * @param {string} url The url to check
- * @param {number} maxAttempts The maximum number of attempts to check
- * @param {number} delay The delay between attempts in milliseconds
- * @param {Object} logStream The log stream to destroy when the container is ready
+ * @param {Object} options The options object
+ * @param {string} options.url The url to check
+ * @param {number} [options.maxAttempts=100] The maximum number of attempts to check
+ * @param {number} [options.interval=10000] The interval between attempts in milliseconds
+ * @param {Object} options.logStream The log stream to destroy when the container is ready
  * @returns {Promise<void>} a promise that resolves when the container is ready.
  * It will reject if the container is not ready after the maximum number of attempts.
  */
 async function waitForHealthCheck({
   url,
   maxAttempts = 100,
-  delay = 10000,
+  interval = 10000,
   logStream,
 }) {
   const logger = container.resolve("logger");
@@ -290,7 +365,7 @@ async function waitForHealthCheck({
   logger.stderr(`[HealthCheck] Waiting for Fauna to be ready at ${url}...`);
 
   let attemptCounter = 0;
-
+  let errorMessage = "";
   while (attemptCounter < maxAttempts) {
     try {
       /* eslint-disable-next-line no-await-in-loop */
@@ -303,23 +378,24 @@ async function waitForHealthCheck({
         logStream?.destroy();
         return;
       }
-    } catch (error) {
-      logger.stderr(
-        `[HealthCheck] Fauna is not yet ready. Attempt ${attemptCounter + 1}/${maxAttempts} failed: ${error.message}. Retrying in ${delay / 1000} seconds...`,
-      );
+      errorMessage = `with HTTP status: '${response.status}'`;
+    } catch (e) {
+      errorMessage = `with error: ${e.message}`;
     }
-
+    logger.stderr(
+      `[HealthCheck] Fauna is not yet ready. Attempt ${attemptCounter + 1}/${maxAttempts} failed ${errorMessage}. Retrying in ${interval / 1000} seconds...`,
+    );
     attemptCounter++;
     /* eslint-disable-next-line no-await-in-loop */
     await new Promise((resolve) => {
-      setTimeout(resolve, delay);
+      setTimeout(resolve, interval);
     });
   }
 
   logger.stderr(
     `[HealthCheck] Max attempts reached. Service at ${url} did not respond.`,
   );
-  throw new Error(
-    `[HealthCheck] Fauna at ${url} is not ready after ${maxAttempts} attempts.`,
+  throw new CommandError(
+    `[HealthCheck] Fauna at ${url} is not ready after ${maxAttempts} attempts. Consider increasing --interval or --maxAttempts.`,
   );
 }
