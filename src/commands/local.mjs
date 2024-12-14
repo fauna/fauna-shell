@@ -3,7 +3,7 @@ import { AbortError } from "fauna";
 
 import { container } from "../cli.mjs";
 import { ensureContainerRunning } from "../lib/docker-containers.mjs";
-import { CommandError } from "../lib/errors.mjs";
+import { CommandError, ValidationError } from "../lib/errors.mjs";
 import { colorize, Format } from "../lib/formatting/colorize.mjs";
 
 /**
@@ -155,32 +155,26 @@ function buildLocalCommand(yargs) {
     })
     .check((argv) => {
       if (argv.maxAttempts < 1) {
-        throw new CommandError("--maxAttempts must be greater than 0.", {
-          hideHelp: false,
-        });
+        throw new ValidationError("--maxAttempts must be greater than 0.");
       }
       if (argv.interval < 0) {
-        throw new CommandError(
+        throw new ValidationError(
           "--interval must be greater than or equal to 0.",
-          { hideHelp: false },
         );
       }
       if (argv.typechecked && !argv.database) {
-        throw new CommandError(
+        throw new ValidationError(
           "--typechecked can only be set if --database is set.",
-          { hideHelp: false },
         );
       }
       if (argv.protected && !argv.database) {
-        throw new CommandError(
+        throw new ValidationError(
           "--protected can only be set if --database is set.",
-          { hideHelp: false },
         );
       }
       if (argv.priority && !argv.database) {
-        throw new CommandError(
+        throw new ValidationError(
           "--priority can only be set if --database is set.",
-          { hideHelp: false },
         );
       }
       return true;
