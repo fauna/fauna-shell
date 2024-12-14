@@ -131,8 +131,8 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   },
   include: {
     type: "array",
-    choices: ["all", ...QUERY_INFO_CHOICES],
-    default: [],
+    choices: ["all", "none", ...QUERY_INFO_CHOICES],
+    default: ["summary"],
     describe: "Include additional query response data in the output.",
   },
 };
@@ -146,6 +146,15 @@ export function yargsWithCommonConfigurableQueryOptions(yargs) {
     yargs,
     COMMON_CONFIGURABLE_QUERY_OPTIONS,
   ).middleware((argv) => {
+    if (argv.include.includes("none")) {
+      if (argv.include.length !== 1) {
+        throw new ValidationError(
+          `'--include none' cannot be used with other include options. Provided options: '${argv.include.join(", ")}'`,
+        );
+      }
+      argv.include = [];
+    }
+
     if (argv.include.includes("all")) {
       argv.include = [
         "txnTs",
