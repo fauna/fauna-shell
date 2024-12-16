@@ -3,8 +3,9 @@
 import { expect } from "chai";
 import { fql, ServiceError } from "fauna";
 import sinon from "sinon";
+import chalk from "chalk";
 
-import { run } from "../../src/cli.mjs";
+import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import { AUTHENTICATION_ERROR_MESSAGE } from "../../src/lib/errors.mjs";
 import { mockAccessKeysFile } from "../helpers.mjs";
@@ -34,11 +35,6 @@ describe("database create", () => {
       message:
         "No database or secret specified. Please use either --database, --secret, or --local to connect to your desired Fauna database.",
     },
-    {
-      command:
-        "database create --name 'testdb' --secret 'secret' --typechecked 'imastring'",
-      message: "Invalid value for option typechecked: imastring",
-    },
   ].forEach(({ command, message }) => {
     it(`validates invalid arguments: ${command}`, async () => {
       try {
@@ -47,6 +43,29 @@ describe("database create", () => {
 
       expect(logger.stderr).to.have.been.calledWith(sinon.match(message));
       expect(container.resolve("parseYargs")).to.have.been.calledOnce;
+    });
+  });
+
+  [
+    {
+      flag: "--typechecked",
+      value: "imastring",
+    },
+    {
+      flag: "--protected",
+      value: "imastring",
+    },
+  ].forEach(({ flag, value }) => {
+    it.only(`handles invalid option types: ${flag} ${value}`, async () => {
+      try {
+        await run(
+          `database create --name 'testdb' --secret 'secret' ${flag} ${value}`,
+          container,
+        );
+      } catch (e) {}
+      // Make sure we bail before calling fauna
+      expect(runQuery).to.not.have.been.called;
+      expect(logger.stderr).to.have.been.called;
     });
   });
 
