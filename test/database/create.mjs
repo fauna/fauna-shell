@@ -34,6 +34,11 @@ describe("database create", () => {
       message:
         "No database or secret specified. Please use either --database, --secret, or --local to connect to your desired Fauna database.",
     },
+    {
+      command:
+        "database create --name 'testdb' --secret 'secret' --typechecked 'imastring'",
+      message: "Invalid value for option typechecked: imastring",
+    },
   ].forEach(({ command, message }) => {
     it(`validates invalid arguments: ${command}`, async () => {
       try {
