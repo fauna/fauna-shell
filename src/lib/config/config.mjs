@@ -35,6 +35,10 @@ export function getConfig(path) {
   return yaml.parseDocument(fileBody);
 }
 
+export function locateConfig(path) {
+  return path === process.cwd() ? checkForDefaultConfig(process.cwd()) : path;
+}
+
 /**
  * Checks the specified directory for default configuration files.
  *
@@ -96,7 +100,7 @@ function validateConfig(profileName, profileBody, configPath) {
  *
  * @param {string|string[]} argvInput - The raw command line arguments.
  * @param {string} path
- * @returns {object} - The yargs parser
+ * @returns {object} - The parsed argv
  */
 export function configParser(argvInput, path) {
   const userProvidedConfigPath =

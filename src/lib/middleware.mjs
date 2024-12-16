@@ -72,11 +72,11 @@ export function checkForUpdates(argv) {
  * If --local is provided and --secret is not, argv.secret is
  * set to 'secret'.
  * @param {import('yargs').Arguments} argv
- * @returns {import('yargs').Arguments}
+ * @returns {void}
  */
 export function applyLocalArg(argv) {
   applyLocalToUrl(argv);
-  return applyLocalToSecret(argv);
+  applyLocalToSecret(argv);
 }
 
 /**

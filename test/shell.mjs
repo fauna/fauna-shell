@@ -123,6 +123,7 @@ describe("shell", function () {
       await stderr.waitForWritten();
 
       expect(stderr.getWritten()).to.contain(NETWORK_ERROR_MESSAGE);
+      expect(stderr.getWritten()).to.not.contain("failed unexpectedly");
     });
 
     describe("history", function () {

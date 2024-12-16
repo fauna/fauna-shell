@@ -1,9 +1,7 @@
 //@ts-check
 
-import { FaunaError } from "fauna";
-
 import { container } from "../../cli.mjs";
-import { throwForError } from "../../lib/fauna.mjs";
+import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 
@@ -28,51 +26,50 @@ function pickOutputFields(databases, argv) {
 }
 
 async function listDatabasesWithAccountAPI(argv) {
-  const { pageSize, database, color } = argv;
+  const { pageSize, database } = argv;
   const accountClient = new FaunaAccountClient();
   const response = await accountClient.listDatabases({
     pageSize,
     path: database,
   });
-  const output = pickOutputFields(response.results, argv);
-
-  container.resolve("logger").stdout(
-    colorize(output, {
-      format: Format.JSON,
-      color: color,
-    }),
-  );
+  return pickOutputFields(response.results, argv);
 }
 
 async function listDatabasesWithSecret(argv) {
-  const { url, secret, pageSize, color } = argv;
-  const { runQueryFromString, formatQueryResponse } =
-    container.resolve("faunaClientV10");
+  const { url, secret, pageSize } = argv;
+  const { runQueryFromString } = container.resolve("faunaClientV10");
 
   try {
-    const result = await runQueryFromString({
+    return await runQueryFromString({
       url,
       secret,
       // This gives us back an array of database names. If we want to
       // provide the after token at some point this query will need to be updated.
       expression: `Database.all().paginate(${pageSize}).data { ${getOutputFields(argv)} }`,
     });
-    container
-      .resolve("logger")
-      .stdout(formatQueryResponse(result, { format: Format.JSON, color }));
   } catch (e) {
-    if (e instanceof FaunaError) {
-      throwForError(e);
-    }
-    throw e;
+    return faunaToCommandError(e);
   }
 }
 
-async function listDatabases(argv) {
+export async function listDatabases(argv) {
+  let databases;
   if (argv.secret) {
-    return listDatabasesWithSecret(argv);
+    databases = await listDatabasesWithSecret(argv);
   } else {
-    return listDatabasesWithAccountAPI(argv);
+    databases = await listDatabasesWithAccountAPI(argv);
+  }
+  return databases;
+}
+
+async function doListDatabases(argv) {
+  const logger = container.resolve("logger");
+  const { formatQueryResponse } = container.resolve("faunaClientV10");
+  const res = await listDatabases(argv);
+  if (argv.secret) {
+    logger.stdout(formatQueryResponse(res, argv));
+  } else {
+    logger.stdout(colorize(res, { format: Format.JSON, color: argv.color }));
   }
 }
 
@@ -110,5 +107,5 @@ export default {
   command: "list",
   description: "List databases.",
   builder: buildListCommand,
-  handler: listDatabases,
+  handler: doListDatabases,
 };

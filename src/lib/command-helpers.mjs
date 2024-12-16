@@ -165,8 +165,12 @@ export const resolveFormat = (argv) => {
  * @param {string} argv.database - The database to use
  * @param {string} argv.secret - The secret to use
  * @param {boolean} argv.local - Whether to use a local Fauna container
+ * @param {boolean|undefined} argv.getYargsCompletions - Whether this CLI run is to generate completions
  */
 export const validateDatabaseOrSecret = (argv) => {
+  // don't validate completion invocations
+  if (argv.getYargsCompletions) return true;
+
   if (!argv.database && !argv.secret && !argv.local) {
     throw new ValidationError(
       "No database or secret specified. Please use either --database, --secret, or --local to connect to your desired Fauna database.",
