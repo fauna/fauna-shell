@@ -21,7 +21,11 @@ describe("local command", () => {
     simulateError,
     startStub,
     unpauseStub,
-    gatherFSL;
+    gatherFSL,
+    confirm;
+
+  const diffString =
+    "\u001b[1;34m* Modifying collection `Customer`\u001b[0m at collections.fsl:2:1:\n  * Defined fields:\n\u001b[31m  - drop field `.age`\u001b[0m\n\n";
 
   const fsl = [
     {
@@ -67,7 +71,7 @@ describe("local command", () => {
         }
       }
       gatherFSL = container.resolve("gatherFSL");
-      //      confirm = container.resolve("confirm");
+      confirm = container.resolve("confirm");
 
       gatherFSL.resolves(fsl);
     });
@@ -186,6 +190,57 @@ Please pass a --hostPort other than '8443'.",
       expect(written).to.contain(
         "[CreateDatabaseSchema] Schema for database 'Foo' created from directory './bar'.",
       );
+    });
+  });
+
+  [
+    "--database Foo --dir ./bar",
+    "--database Foo --directory ./bar",
+    "--database Foo --project-directory ./bar",
+  ].forEach((args) => {
+    it("Creates a staged schema without forcing if requested", async () => {
+      const baseUrl = "http://0.0.0.0:8443/schema/1/update";
+      confirm.resolves(true);
+      setupCreateContainerMocks();
+      fetch.onCall(0).resolves();
+      fetch.onCall(1).resolves(f({
+        version: 1728675598430000,
+        diff: diffString,
+      }));
+      fetch.onCall(2).resolves(f({
+        version: 1728677126240000,
+      }));
+      const { runQuery } = container.resolve("faunaClientV10");
+      runQuery.resolves({
+        data: JSON.stringify({ name: "Foo" }, null, 2),
+      });
+      await run(`local --no-color ${args}`, container);
+      expect(gatherFSL).to.have.been.calledWith("bar");
+      expect(fetch).to.have.been.calledWith(
+        `${baseUrl}?staged=true&color=ansi`,
+        {
+          method: "POST",
+          headers: { AUTHORIZATION: "Bearer secret" },
+          body: reformatFSL(fsl),
+        },
+      );
+      expect(fetch).to.have.been.calledWith(
+        `${baseUrl}?staged=true`,
+        {
+          method: "POST",
+          headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+          body: reformatFSL(fsl),
+        },
+      );
+      expect(logger.stdout).to.have.been.calledWith("Proposed diff:\n");
+      const written = stderrStream.getWritten();
+      expect(written).to.contain(
+        "[CreateDatabaseSchema] Schema for database 'Foo' created from directory './bar'.",
+      );
+      expect(confirm).to.have.been.calledWith(
+        sinon.match.has("message", "Stage the above changes?"),
+      );
+      expect(logger.stdout).to.have.been.calledWith(diffString);
     });
   });
 

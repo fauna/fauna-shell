@@ -199,7 +199,7 @@ describe("query", function () {
         sinon.match({
           apiVersion: "10",
           secret: "secret",
-          url: "http://localhost:8443",
+          url: "http://0.0.0.0:8443",
         }),
       );
     });
@@ -216,7 +216,7 @@ describe("query", function () {
         sinon.match({
           apiVersion: "10",
           secret: "secret:Taco:admin",
-          url: "http://localhost:8443",
+          url: "http://0.0.0.0:8443",
         }),
       );
     });
@@ -233,7 +233,7 @@ describe("query", function () {
         sinon.match({
           apiVersion: "10",
           secret: "secret:MyRole",
-          url: "http://localhost:8443",
+          url: "http://0.0.0.0:8443",
         }),
       );
     });
@@ -253,7 +253,7 @@ describe("query", function () {
         sinon.match({
           apiVersion: "10",
           secret: "secret:Db:MyRole",
-          url: "http://localhost:8443",
+          url: "http://0.0.0.0:8443",
         }),
       );
     });
