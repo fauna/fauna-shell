@@ -47,6 +47,29 @@ describe("database create", () => {
 
   [
     {
+      flag: "--typechecked",
+      value: "imastring",
+    },
+    {
+      flag: "--protected",
+      value: "imastring",
+    },
+  ].forEach(({ flag, value }) => {
+    it(`handles invalid option types: ${flag} ${value}`, async () => {
+      try {
+        await run(
+          `database create --name 'testdb' --secret 'secret' ${flag} ${value}`,
+          container,
+        );
+      } catch (e) {}
+      // Make sure we bail before calling fauna
+      expect(runQuery).to.not.have.been.called;
+      expect(logger.stderr).to.have.been.called;
+    });
+  });
+
+  [
+    {
       error: new ServiceError({
         error: { code: "constraint_failure", message: "whatever" },
       }),
