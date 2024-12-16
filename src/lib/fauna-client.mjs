@@ -125,10 +125,11 @@ export const isQueryable = async (argv) => {
       throw err;
     }
 
+    const { color } = argv;
     if (argv.apiVersion === "4") {
-      faunadbToCommandError(err);
+      faunadbToCommandError({ err, color });
     } else {
-      faunaToCommandError(err);
+      faunaToCommandError({ err, color });
     }
   }
 

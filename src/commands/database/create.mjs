@@ -44,28 +44,32 @@ async function createDatabase(argv) {
       logger.stdout(argv.name);
     }
   } catch (e) {
-    faunaToCommandError(e, (err) => {
-      if (err instanceof ServiceError && err.code === "constraint_failure") {
-        const cf = err.constraint_failures;
-        if (cf && cf.length > 0) {
-          const nameIsInvalidIdentifier = cf.some(
-            (failure) =>
-              failure?.paths?.length === 1 &&
-              failure?.paths?.[0]?.[0] === "name" &&
-              failure?.message === "Invalid identifier.",
-          );
-          if (nameIsInvalidIdentifier) {
-            throw new CommandError(
-              `The database name '${argv.name}' is invalid. Database names must begin with letters and include only letters, numbers, and underscores.`,
-              { cause: err },
+    faunaToCommandError({
+      err: e,
+      color: argv.color,
+      handler: (err) => {
+        if (err instanceof ServiceError && err.code === "constraint_failure") {
+          const cf = err.constraint_failures;
+          if (cf && cf.length > 0) {
+            const nameIsInvalidIdentifier = cf.some(
+              (failure) =>
+                failure?.paths?.length === 1 &&
+                failure?.paths?.[0]?.[0] === "name" &&
+                failure?.message === "Invalid identifier.",
             );
+            if (nameIsInvalidIdentifier) {
+              throw new CommandError(
+                `The database name '${argv.name}' is invalid. Database names must begin with letters and include only letters, numbers, and underscores.`,
+                { cause: err },
+              );
+            }
           }
+          throw new CommandError(
+            `The database '${argv.name}' already exists or one of the provided options is invalid.`,
+            { cause: err },
+          );
         }
-        throw new CommandError(
-          `The database '${argv.name}' already exists or one of the provided options is invalid.`,
-          { cause: err },
-        );
-      }
+      },
     });
   }
 }

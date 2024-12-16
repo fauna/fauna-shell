@@ -48,7 +48,7 @@ async function listDatabasesWithSecret(argv) {
       expression: `Database.all().paginate(${pageSize}).data { ${getOutputFields(argv)} }`,
     });
   } catch (e) {
-    return faunaToCommandError(e);
+    return faunaToCommandError({ err: e, color: argv.color });
   }
 }
 
