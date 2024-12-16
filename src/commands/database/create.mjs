@@ -79,7 +79,7 @@ function buildCreateCommand(yargs) {
         description: "Name of the child database to create.",
       },
       typechecked: {
-        type: "string",
+        type: "boolean",
         description:
           "Enable typechecking for the database. Defaults to the typechecking setting of the parent database.",
       },
