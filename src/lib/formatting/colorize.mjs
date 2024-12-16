@@ -1,4 +1,5 @@
 import stripAnsi from "strip-ansi";
+import YAML from "yaml";
 
 import { container } from "../../cli.mjs";
 import { codeToAnsi } from "./codeToAnsi.mjs";
@@ -8,6 +9,7 @@ export const Format = {
   LOG: "log",
   JSON: "json",
   TEXT: "text",
+  YAML: "yaml",
 };
 
 const objToString = (obj) => JSON.stringify(obj, null, 2);
@@ -52,6 +54,18 @@ const logToAnsi = (obj) => {
   return res.trim();
 };
 
+const yamlToAnsi = (obj) => {
+  const codeToAnsi = container.resolve("codeToAnsi");
+  const stringified = YAML.stringify(obj, { lineWidth: 0 });
+  const res = codeToAnsi(stringified, "yaml");
+
+  if (!res) {
+    return "";
+  }
+
+  return res.trim();
+};
+
 /**
  * Formats an object for display with ANSI color codes.
  * @param {any} obj - The object to format
@@ -67,6 +81,8 @@ export const toAnsi = (obj, { format = Format.TEXT } = {}) => {
       return jsonToAnsi(obj);
     case Format.LOG:
       return logToAnsi(obj);
+    case Format.YAML:
+      return yamlToAnsi(obj);
     default:
       return textToAnsi(obj);
   }

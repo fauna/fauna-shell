@@ -123,7 +123,7 @@ function buildLocalCommand(yargs) {
         default: 100,
       },
       name: {
-        describe: "The name to give the container",
+        describe: "The name to give the container.",
         type: "string",
         default: "faunadb",
       },
@@ -183,7 +183,7 @@ function buildLocalCommand(yargs) {
 
 export default {
   command: "local",
-  describe: "Start a local Fauna container",
+  describe: "Start a local Fauna container.",
   builder: buildLocalCommand,
   handler: startLocal,
 };
