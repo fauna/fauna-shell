@@ -1,8 +1,15 @@
 // @ts-check
 import { createContext, runInContext } from "node:vm";
 
+import faunadb from "faunadb";
+
 import { container } from "../cli.mjs";
-import { NETWORK_ERROR_MESSAGE } from "./errors.mjs";
+import {
+  AuthenticationError,
+  AuthorizationError,
+  CommandError,
+  NETWORK_ERROR_MESSAGE,
+} from "./errors.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
 /**
@@ -123,6 +130,37 @@ export const formatError = (err, opts = {}) => {
   }
 
   return colorize(errorPrefix + err.message, { color });
+};
+
+/**
+ * Converts a Fauna HTTP error to a CommandError.
+ * @param {any} err - The error to convert
+ * @param {(e: import("fauna").FaunaError) => void} [handler] - Optional error handler to handle and throw in
+ */
+export const faunadbToCommandError = (err, handler) => {
+  if (handler) {
+    handler(err);
+  }
+
+  if (err instanceof faunadb.errors.FaunaHTTPError) {
+    switch (err.name) {
+      case "Unauthorized":
+        throw new AuthenticationError({ cause: err });
+      case "PermissionDenied":
+        throw new AuthorizationError({ cause: err });
+      case "BadRequest":
+      case "NotFound":
+        throw new CommandError(formatError(err, { raw: true }), { cause: err });
+      default:
+        throw err;
+    }
+  }
+
+  if (err.name === "TypeError" && err.message.includes("fetch failed")) {
+    throw new CommandError(NETWORK_ERROR_MESSAGE, { cause: err });
+  }
+
+  throw err;
 };
 
 /**

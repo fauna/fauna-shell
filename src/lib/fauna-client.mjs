@@ -1,7 +1,9 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { isUnknownError, ValidationError } from "./errors.mjs";
+import { isUnknownError } from "./errors.mjs";
+import { faunaToCommandError } from "./fauna.mjs";
+import { faunadbToCommandError } from "./faunadb.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
 const SUMMARY_FQL_REGEX = /^(\s\s\|)|(\d\s\|)/;
@@ -117,19 +119,17 @@ export const isQueryable = async (argv) => {
   try {
     await runQueryFromString("1+1", argv);
   } catch (err) {
+    // Three things can throw errors here. Stuff we know,
+    // like authx, v10 errors, and v4 errors or stuff we don't know.
     if (!isUnknownError(err)) {
       throw err;
     }
 
-    throw new ValidationError(
-      formatError(err, {
-        apiVersion: argv.apiVersion,
-        color: false,
-      }),
-      {
-        cause: err,
-      },
-    );
+    if (argv.apiVersion === "4") {
+      faunadbToCommandError(err);
+    } else {
+      faunaToCommandError(err);
+    }
   }
 
   return true;

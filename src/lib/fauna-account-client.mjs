@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { InvalidCredsError } from "./misc.mjs";
+import { AuthenticationError } from "./errors.mjs";
 
 // const KEY_TTL_DEFAULT_MS = 1000 * 60 * 60 * 24;
 
@@ -20,7 +20,7 @@ export class FaunaAccountClient {
       try {
         result = await original(await this.getRequestArgs(args));
       } catch (e) {
-        if (e instanceof InvalidCredsError) {
+        if (e instanceof AuthenticationError) {
           try {
             logger.debug(
               "401 in account api, attempting to refresh session",
@@ -31,7 +31,7 @@ export class FaunaAccountClient {
             const updatedArgs = await this.getRequestArgs(args);
             result = await original(updatedArgs);
           } catch (e) {
-            if (e instanceof InvalidCredsError) {
+            if (e instanceof AuthenticationError) {
               logger.debug(
                 "Failed to refresh session, expired or missing refresh token",
                 "creds",

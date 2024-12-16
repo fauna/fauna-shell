@@ -1,8 +1,7 @@
 import { container } from "../../cli.mjs";
-import { CommandError } from "../errors.mjs";
+import { AuthenticationError, CommandError } from "../errors.mjs";
 import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { AccountKeyStorage } from "../file-util.mjs";
-import { InvalidCredsError } from "../misc.mjs";
 
 /**
  * Class representing the account key(s) available to the user.
@@ -118,7 +117,7 @@ export class AccountKeys {
       const databaseKeys = container.resolve("credentials").databaseKeys;
       databaseKeys.updateAccountKey(newAccountKey.accountKey);
     } catch (e) {
-      if (e instanceof InvalidCredsError) {
+      if (e instanceof AuthenticationError) {
         this.promptLogin();
       } else {
         throw e;

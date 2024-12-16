@@ -6,6 +6,7 @@ import sinon from "sinon";
 
 import { run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { AUTHENTICATION_ERROR_MESSAGE } from "../../src/lib/errors.mjs";
 import { mockAccessKeysFile } from "../helpers.mjs";
 
 describe("database delete", () => {
@@ -49,15 +50,14 @@ describe("database delete", () => {
       error: new ServiceError({
         error: { code: "unauthorized", message: "whatever" },
       }),
-      expectedMessage:
-        "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.",
+      expectedMessage: AUTHENTICATION_ERROR_MESSAGE,
     },
     {
       error: new ServiceError({
         error: { code: "document_not_found", message: "whatever" },
       }),
       expectedMessage:
-        "Not found: Database 'testdb' not found. Please check the database name and try again.",
+        "Database 'testdb' not found. Please check the database name and try again.",
     },
   ].forEach(({ error, expectedMessage }) => {
     it(`handles ${error.code} errors when calling fauna`, async () => {
@@ -120,9 +120,7 @@ describe("database delete", () => {
 
       expect(makeAccountRequest).to.not.have.been.called;
       expect(logger.stderr).to.have.been.calledWith(
-        sinon.match(
-          "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.",
-        ),
+        sinon.match(AUTHENTICATION_ERROR_MESSAGE),
       );
     });
   });

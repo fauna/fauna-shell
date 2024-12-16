@@ -4,16 +4,16 @@
  */
 
 import chalk from "chalk";
-import {
-  ClientClosedError,
-  ClientError,
-  NetworkError,
-  ProtocolError,
-  ServiceError,
-} from "fauna";
+import { NetworkError, ServiceError } from "fauna";
 
 import { container } from "../cli.mjs";
-import { NETWORK_ERROR_MESSAGE, ValidationError } from "./errors.mjs";
+import {
+  AuthenticationError,
+  AuthorizationError,
+  CommandError,
+  NETWORK_ERROR_MESSAGE,
+  ValidationError,
+} from "./errors.mjs";
 import { formatQuerySummary } from "./fauna-client.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
@@ -170,66 +170,32 @@ export const formatQueryResponse = (res, opts = {}) => {
  * commands on the users behalf and want to provide a more helpful error message.
  *
  * @param {import("fauna").FaunaError} e - The Fauna error to handle
- * @param {object} [handlers] - Optional error handlers
- * @param {(e: ServiceError) => string} [handlers.onInvalidQuery] - Handler for invalid query errors
- * @param {(e: ServiceError) => string} [handlers.onInvalidRequest] - Handler for invalid request errors
- * @param {(e: ServiceError) => string} [handlers.onAbort] - Handler for aborted operation errors
- * @param {(e: ServiceError) => string} [handlers.onConstraintFailure] - Handler for constraint violation errors
- * @param {(e: ServiceError) => string} [handlers.onUnauthorized] - Handler for unauthorized access errors
- * @param {(e: ServiceError) => string} [handlers.onForbidden] - Handler for forbidden access errors
- * @param {(e: ServiceError) => string} [handlers.onContendedTransaction] - Handler for transaction contention errors
- * @param {(e: ServiceError) => string} [handlers.onLimitExceeded] - Handler for rate/resource limit errors
- * @param {(e: ServiceError) => string} [handlers.onTimeOut] - Handler for timeout errors
- * @param {(e: ServiceError) => string} [handlers.onInternalError] - Handler for internal server errors
- * @param {(e: ServiceError) => string} [handlers.onDocumentNotFound] - Handler for document not found errors
- * @param {(e: ClientError) => string} [handlers.onClientError] - Handler for general client errors
- * @param {(e: ClientClosedError) => string} [handlers.onClientClosedError] - Handler for closed client errors
- * @param {(e: NetworkError) => string} [handlers.onNetworkError] - Handler for network-related errors
- * @param {(e: ProtocolError) => string} [handlers.onProtocolError] - Handler for protocol-related errors
+ * @param {(e: import("fauna").FaunaError) => void} [handler] - Optional error handler to handle and throw in
  * @throws {Error} Always throws an error with a message based on the error code or handler response
  * @returns {never} This function always throws an error
  */
-// eslint-disable-next-line complexity
-export const throwForError = (e, handlers = {}) => {
+
+export const faunaToCommandError = (e, handler) => {
+  if (handler) {
+    handler(e);
+  }
+
   if (e instanceof ServiceError) {
     switch (e.code) {
-      case "invalid_query":
-        throw new Error(handlers.onInvalidQuery?.(e) ?? formatError(e));
-      case "invalid_request ":
-        throw new Error(handlers.onInvalidRequest?.(e) ?? formatError(e));
-      case "abort":
-        throw new Error(handlers.onAbort?.(e) ?? formatError(e));
-      case "constraint_failure":
-        throw new Error(handlers.onConstraintFailure?.(e) ?? formatError(e));
       case "unauthorized":
-        throw new Error(
-          handlers.onUnauthorized?.(e) ??
-            "Authentication failed: Please either log in using 'fauna login' or provide a valid database secret with '--secret'.",
-        );
+        throw new AuthenticationError({ cause: e });
       case "forbidden":
-        throw new Error(handlers.onForbidden?.(e) ?? formatError(e));
-      case "contended_transaction":
-        throw new Error(handlers.onContendedTransaction?.(e) ?? formatError(e));
-      case "limit_exceeded":
-        throw new Error(handlers.onLimitExceeded?.(e) ?? formatError(e));
-      case "time_out":
-        throw new Error(handlers.onTimeOut?.(e) ?? formatError(e));
-      case "internal_error":
-        throw new Error(handlers.onInternalError?.(e) ?? formatError(e));
-      case "document_not_found":
-        throw new Error(handlers.onDocumentNotFound?.(e) ?? formatError(e));
+        throw new AuthorizationError({ cause: e });
+      case "permission_denied":
+        throw new AuthorizationError({ cause: e });
       default:
-        throw e;
+        throw new CommandError(formatError(e), { cause: e });
     }
-  } else if (e instanceof ClientError) {
-    throw new Error(handlers.onClientError?.(e) ?? formatError(e));
-  } else if (e instanceof ClientClosedError) {
-    throw new Error(handlers.onClientClosedError?.(e) ?? formatError(e));
-  } else if (e instanceof NetworkError) {
-    throw new Error(handlers.onNetworkError?.(e) ?? formatError(e));
-  } else if (e instanceof ProtocolError) {
-    throw new Error(handlers.onProtocolError?.(e) ?? formatError(e));
-  } else {
-    throw e;
   }
+
+  if (e instanceof NetworkError) {
+    throw new CommandError(NETWORK_ERROR_MESSAGE, { cause: e });
+  }
+
+  throw e;
 };
