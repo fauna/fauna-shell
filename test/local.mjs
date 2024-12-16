@@ -219,11 +219,14 @@ Please pass a --hostPort other than '8443'.",
         headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
         body: reformatFSL(fsl),
       });
-      expect(fetch).to.have.been.calledWith(`${baseUrl}/update?version=1728675598430000&staged=true`, {
-        method: "POST",
-        headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
-        body: reformatFSL(fsl),
-      });
+      expect(fetch).to.have.been.calledWith(
+        `${baseUrl}/update?version=1728675598430000&staged=true`,
+        {
+          method: "POST",
+          headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+          body: reformatFSL(fsl),
+        },
+      );
       expect(logger.stdout).to.have.been.calledWith("Proposed diff:\n");
       const written = stderrStream.getWritten();
       expect(written).to.contain(
@@ -236,7 +239,7 @@ Please pass a --hostPort other than '8443'.",
     });
   });
 
-  it.skip("Shows errors on schema problems", () => { });
+  it.skip("Shows errors on schema problems", () => {});
 
   it("Exits with an expected error if the create db query aborts", async () => {
     setupCreateContainerMocks();
