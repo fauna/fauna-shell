@@ -1,10 +1,11 @@
 //@ts-check
 
-import { FaunaError } from "fauna";
+import { ServiceError } from "fauna";
 
 import { container } from "../../cli.mjs";
 import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
-import { throwForError } from "../../lib/fauna.mjs";
+import { CommandError } from "../../lib/errors.mjs";
+import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
 
 async function runDeleteQuery(secret, argv) {
@@ -29,13 +30,13 @@ async function deleteDatabase(argv) {
     // We use stderr for messaging and there's no stdout output for a deleted database
     logger.stderr(`Database '${argv.name}' was successfully deleted.`);
   } catch (e) {
-    if (e instanceof FaunaError) {
-      throwForError(e, {
-        onDocumentNotFound: () =>
-          `Not found: Database '${argv.name}' not found. Please check the database name and try again.`,
-      });
-    }
-    throw e;
+    faunaToCommandError(e, (err) => {
+      if (err instanceof ServiceError && err.code === "document_not_found") {
+        throw new CommandError(
+          `Database '${argv.name}' not found. Please check the database name and try again.`,
+        );
+      }
+    });
   }
 }
 
