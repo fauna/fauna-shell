@@ -1,4 +1,5 @@
 //@ts-check
+/* eslint-disable max-lines */
 
 import { expect } from "chai";
 import { AbortError } from "fauna";
@@ -8,7 +9,7 @@ import { run } from "../src/cli.mjs";
 import { setupTestContainer } from "../src/config/setup-test-container.mjs";
 import { f } from "./helpers.mjs";
 
-describe("ensureContainerRunning", () => {
+describe("local command", () => {
   let container,
     fetch,
     logger,
@@ -145,6 +146,33 @@ Please pass a --hostPort other than '8443'.",
     });
   });
 
+  [
+    "--database Foo --dir ./bar",
+    "--database Foo --directory ./bar",
+    "--database Foo --project-directory ./bar",
+  ].forEach((args) => {
+    it("Creates a schema if requested", async () => {
+      setupCreateContainerMocks();
+      const { runQuery } = container.resolve("faunaClientV10");
+      runQuery.resolves({
+        data: JSON.stringify({ name: "Foo" }, null, 2),
+      });
+      await run(`local --no-color ${args}`, container);
+      expect(runQuery).to.have.been.calledWith({
+        secret: "secret",
+        url: "http://0.0.0.0:8443",
+        query: sinon.match.any,
+        options: { format: "decorated" },
+      });
+      const written = stderrStream.getWritten();
+      expect(written).to.contain("[CreateDatabase] Database 'Foo' created.");
+      expect(written).to.contain('"name": "Foo"');
+      expect(written).to.contain(
+        "[CreateDatabaseSchema] Creating schema for database 'Foo' from directory './bar'.",
+      );
+    });
+  });
+
   it("Exits with an expected error if the create db query aborts", async () => {
     setupCreateContainerMocks();
     const { runQuery } = container.resolve("faunaClientV10");
@@ -164,20 +192,22 @@ Please pass a --hostPort other than '8443'.",
     expect(written).not.to.contain("An unexpected");
   });
 
-  ["--typechecked", "--protected", "--priority 1"].forEach((args) => {
-    it("Rejects invalid create database args", async () => {
-      setupCreateContainerMocks();
-      const { runQuery } = container.resolve("faunaClientV10");
-      try {
-        await run(`local --no-color ${args}`, container);
-      } catch (_) {}
-      expect(runQuery).not.to.have.been.called;
-      const written = stderrStream.getWritten();
-      expect(written).to.contain("fauna local");
-      expect(written).not.to.contain("An unexpected");
-      expect(written).to.contain("can only be set if");
-    });
-  });
+  ["--typechecked", "--protected", "--priority 1", "--directory foo"].forEach(
+    (args) => {
+      it("Rejects invalid create database args", async () => {
+        setupCreateContainerMocks();
+        const { runQuery } = container.resolve("faunaClientV10");
+        try {
+          await run(`local --no-color ${args}`, container);
+        } catch (_) {}
+        expect(runQuery).not.to.have.been.called;
+        const written = stderrStream.getWritten();
+        expect(written).to.contain("fauna local");
+        expect(written).not.to.contain("An unexpected");
+        expect(written).to.contain("can only be set if");
+      });
+    },
+  );
 
   it("Does not create a database when not requested to do so", async () => {
     setupCreateContainerMocks();
