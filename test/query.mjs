@@ -175,14 +175,13 @@ describe("query", function () {
 
     it("cannot specify '--include none' with any other options", async function () {
       try {
-        await run(
-          `query "foo" --secret=foo --include none summary`,
-          container,
-        );
+        await run(`query "foo" --secret=foo --include none summary`, container);
       } catch (e) {}
 
       expect(logger.stderr).to.have.been.calledWith(
-        sinon.match("'--include none' cannot be used with other include options."),
+        sinon.match(
+          "'--include none' cannot be used with other include options.",
+        ),
       );
     });
   });
