@@ -166,7 +166,6 @@ async function findContainer({ containerName, hostPort }) {
       `[FindContainer] Container '${containerName}' is already \
 in use on hostPort '${diffPort.PublicPort}'. Please use a new name via \
 arguments --name <newName> --hostPort ${hostPort} to start the container.`,
-      { hideHelp: false },
     );
   }
   return result;
@@ -224,7 +223,6 @@ async function createContainer({
     throw new CommandError(
       `[StartContainer] The hostPort '${hostPort}' on IP '${hostIp}' is already occupied. \
 Please pass a --hostPort other than '${hostPort}'.`,
-      { hideHelp: false },
     );
   }
   const dockerContainer = await docker.createContainer({

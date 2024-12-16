@@ -8,6 +8,10 @@ const BUG_REPORT_MESSAGE =
   "If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues";
 export const SUPPORT_MESSAGE =
   "If this issue persists contact support: https://support.fauna.com/hc/en-us/requests/new";
+export const AUTHENTICATION_ERROR_MESSAGE =
+  "Authentication failed. Log in using 'fauna login' or provide a valid database secret with --secret.";
+export const AUTHORIZATION_ERROR_MESSAGE =
+  "Authorization failed. The current user or secret does not have the required permissions to complete this action.";
 
 // This error message is used in a few places where we handle network errors.
 export const NETWORK_ERROR_MESSAGE =
@@ -72,6 +76,63 @@ export class ValidationError extends CommandError {
 }
 
 /**
+ * An error that is thrown when the user provides invalid credentials.
+ */
+export class AuthenticationError extends CommandError {
+  /**
+   * @param {string | opts} [messageOrOpts]
+   * @param {object} [opts]
+   * @param {number} [opts.exitCode]
+   * @param {boolean} [opts.hideHelp]
+   * @param {Error} [opts.cause]
+   */
+  constructor(messageOrOpts = AUTHENTICATION_ERROR_MESSAGE, opts = {}) {
+    let message = AUTHENTICATION_ERROR_MESSAGE;
+    let resolvedOpts = {
+      exitCode: 1,
+      hideHelp: true,
+      cause: undefined,
+      ...opts,
+    };
+
+    if (typeof messageOrOpts === "string") {
+      message = messageOrOpts;
+    } else {
+      resolvedOpts = { ...resolvedOpts, ...messageOrOpts };
+    }
+
+    super(message, resolvedOpts);
+    this.name = "AuthenticationError";
+  }
+}
+
+export class AuthorizationError extends CommandError {
+  /**
+   * @param {string | opts} [messageOrOpts]
+   * @param {object} [opts]
+   * @param {number} [opts.exitCode]
+   * @param {boolean} [opts.hideHelp]
+   * @param {Error} [opts.cause]
+   */
+  constructor(messageOrOpts = AUTHORIZATION_ERROR_MESSAGE, opts = {}) {
+    let message = AUTHORIZATION_ERROR_MESSAGE;
+    let resolvedOpts = {
+      exitCode: 1,
+      hideHelp: true,
+      cause: undefined,
+      ...opts,
+    };
+    if (typeof messageOrOpts === "string") {
+      message = messageOrOpts;
+    } else {
+      resolvedOpts = { ...resolvedOpts, ...messageOrOpts };
+    }
+    super(message, resolvedOpts);
+    this.name = "AuthorizationError";
+  }
+}
+
+/**
  * Returns true if the error is an error potentially thrown by yargs
  * @param {Error} error
  * @returns {boolean}
@@ -99,7 +160,13 @@ function isYargsError(error) {
  * @returns {boolean}
  */
 export function isUnknownError(error) {
-  return !isYargsError(error) && !(error instanceof CommandError);
+  return (
+    !isYargsError(error) &&
+    !(error instanceof CommandError) &&
+    !(error instanceof ValidationError) &&
+    !(error instanceof AuthorizationError) &&
+    !(error instanceof AuthenticationError)
+  );
 }
 
 export const handleParseYargsError = async (

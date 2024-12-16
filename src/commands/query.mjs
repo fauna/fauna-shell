@@ -23,6 +23,9 @@ function validate(argv) {
   const { existsSync, accessSync, constants } = container.resolve("fs");
   const dirname = container.resolve("dirname");
 
+  // don't validate completion invocations
+  if (argv.getYargsCompletions) return;
+
   if (argv.input && argv.fql) {
     throw new ValidationError("Cannot specify both --input and [fql]");
   }
