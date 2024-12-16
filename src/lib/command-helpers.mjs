@@ -79,6 +79,14 @@ const COMMON_QUERY_OPTIONS = {
   },
 };
 
+export const QUERY_INFO_CHOICES = [
+  "txnTs",
+  "schemaVersion",
+  "summary",
+  "queryTags",
+  "stats",
+];
+
 // used for queries customers can configure
 const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   ...COMMON_QUERY_OPTIONS,
@@ -114,19 +122,18 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     default: 5000,
     group: "API:",
   },
-  summary: {
-    type: "boolean",
-    description:
-      "Output the summary field of the API response or nothing when it's empty. Only applies to v10 queries.",
-    default: false,
-    group: "API:",
-  },
   performanceHints: {
     type: "boolean",
     description:
-      "Output the performance hints for the current query or nothing when no hints are available. Only applies to v10 queries.",
+      "Output the performance hints for the current query or nothing when no hints are available. Only applies to v10 queries. Sets '--include summary'",
     default: false,
     group: "API:",
+  },
+  include: {
+    type: "array",
+    choices: ["all", "none", ...QUERY_INFO_CHOICES],
+    default: ["summary"],
+    describe: "Include additional query response data in the output.",
   },
 };
 
@@ -135,7 +142,27 @@ export function yargsWithCommonQueryOptions(yargs) {
 }
 
 export function yargsWithCommonConfigurableQueryOptions(yargs) {
-  return yargsWithCommonOptions(yargs, COMMON_CONFIGURABLE_QUERY_OPTIONS);
+  return yargsWithCommonOptions(
+    yargs,
+    COMMON_CONFIGURABLE_QUERY_OPTIONS,
+  ).middleware((argv) => {
+    if (argv.include.includes("none")) {
+      if (argv.include.length !== 1) {
+        throw new ValidationError(
+          `'--include none' cannot be used with other include options. Provided options: '${argv.include.join(", ")}'`,
+        );
+      }
+      argv.include = [];
+    }
+
+    if (argv.include.includes("all")) {
+      argv.include = [...QUERY_INFO_CHOICES];
+    }
+
+    if (argv.performanceHints && !argv.include.includes("summary")) {
+      argv.include.push("summary");
+    }
+  });
 }
 
 export function yargsWithCommonOptions(yargs, options) {

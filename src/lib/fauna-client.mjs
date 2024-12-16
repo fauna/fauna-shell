@@ -179,3 +179,70 @@ export const formatQuerySummary = (summary) => {
     return summary;
   }
 };
+
+/**
+ * Selects a subset of query info fields from a v10 query response.
+ * @param {import("fauna").QueryInfo} response - The query response
+ * @param {string[]} include - The query info fields to include
+ * @returns {object} An object with the selected query info fields
+ */
+const pickAndCamelCaseQueryInfo = (response, include) => {
+  const queryInfo = {};
+
+  if (include.includes("txnTs") && response.txn_ts)
+    queryInfo.txnTs = response.txn_ts;
+  if (include.includes("schemaVersion") && response.schema_version)
+    queryInfo.schemaVersion = response.schema_version.toString();
+  if (include.includes("summary") && response.summary)
+    queryInfo.summary = response.summary;
+  if (include.includes("queryTags") && response.query_tags)
+    queryInfo.queryTags = response.query_tags;
+  if (include.includes("stats") && response.stats)
+    queryInfo.stats = response.stats;
+
+  return queryInfo;
+};
+
+/**
+ *
+ * @param {object} response - The v4 or v10 query response with query info
+ * @param {object} opts
+ * @param {string} opts.apiVersion - The API version
+ * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
+ * @returns
+ */
+export const formatQueryInfo = (response, { apiVersion, color, include }) => {
+  if (apiVersion === "4" && include.includes("stats")) {
+    /** @type {import("faunadb").MetricsResponse} */
+    const metricsResponse = response;
+    const colorized = colorize(
+      { metrics: metricsResponse.metrics },
+      { color, format: Format.YAML },
+    );
+
+    return `${colorized}\n`;
+  } else if (apiVersion === "10") {
+    const queryInfoToDisplay = pickAndCamelCaseQueryInfo(response, include);
+
+    if (Object.keys(queryInfoToDisplay).length === 0) return "";
+
+    const SUMMARY_IN_QUERY_INFO_FQL_REGEX = /^(\s\s\s\s\|)|(\d\s\|)/;
+    const colorized = colorize(queryInfoToDisplay, {
+      color,
+      format: Format.YAML,
+    })
+      .split("\n")
+      .map((line) => {
+        if (!line.match(SUMMARY_IN_QUERY_INFO_FQL_REGEX)) {
+          return line;
+        }
+        return colorize(line, { format: Format.FQL });
+      })
+      .join("\n");
+
+    return `${colorized}\n`;
+  }
+
+  return "";
+};

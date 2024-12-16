@@ -7,13 +7,14 @@ import * as esprima from "esprima";
 
 import { container } from "../cli.mjs";
 import {
+  QUERY_INFO_CHOICES,
   resolveFormat,
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
 import {
+  formatQueryInfo,
   formatQueryResponse,
-  formatQuerySummary,
   getSecret,
 } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
@@ -66,6 +67,8 @@ async function shellCommand(argv) {
     shell.on("exit", resolve);
   });
 
+  shell.context.include = argv.include;
+
   [
     {
       cmd: "clear",
@@ -114,13 +117,21 @@ async function shellCommand(argv) {
       },
     },
     {
-      cmd: "toggleSummary",
-      help: "Enable or disable the summary field of the API response. Disabled by default. If enabled, outputs the summary field of the API response.",
+      cmd: "toggleInfo",
+      help: "Enable or disable the query info fields of the API response. Disabled by default. If enabled, outputs the included fields of the API response.",
       action: () => {
-        shell.context.summary = !shell.context.summary;
+        shell.context.include =
+          shell.context.include.length === 0
+            ? // if we are toggling on and no include was provided, turn everything on
+              argv.include.length === 0
+              ? QUERY_INFO_CHOICES
+              : argv.include
+            : [];
+
         logger.stderr(
-          `Summary in shell: ${shell.context.summary ? "on" : "off"}`,
+          `Query info in shell: ${shell.context.include.length === 0 ? "off" : shell.context.include.join(", ")}`,
         );
+
         shell.prompt();
       },
     },
@@ -150,8 +161,8 @@ async function buildCustomEval(argv) {
 
       // These are options used for querying and formatting the response
       const { apiVersion, color } = argv;
+      const include = getArgvOrCtx("include", argv, ctx);
       const performanceHints = getArgvOrCtx("performanceHints", argv, ctx);
-      const summary = getArgvOrCtx("summary", argv, ctx);
 
       // Using --json output takes precedence over --format
       const outputFormat = resolveFormat({ ...argv });
@@ -167,7 +178,7 @@ async function buildCustomEval(argv) {
       let res;
       try {
         const secret = await getSecret();
-        const { url, timeout, typecheck } = argv;
+        const { color, timeout, typecheck, url } = argv;
 
         res = await runQueryFromString(cmd, {
           apiVersion,
@@ -179,10 +190,16 @@ async function buildCustomEval(argv) {
           format: outputFormat,
         });
 
-        if ((summary || performanceHints) && apiVersion === "10") {
-          const formattedSummary = formatQuerySummary(res.summary);
-          if (formattedSummary) {
-            logger.stdout(formattedSummary);
+        // If any query info should be displayed, print to stderr.
+        // This is only supported in v10.
+        if (include.length > 0 && apiVersion === "10") {
+          const queryInfo = formatQueryInfo(res, {
+            apiVersion,
+            color,
+            include,
+          });
+          if (queryInfo) {
+            logger.stdout(queryInfo);
           }
         }
       } catch (err) {
