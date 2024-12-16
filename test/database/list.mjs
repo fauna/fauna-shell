@@ -11,12 +11,7 @@ import { colorize } from "../../src/lib/formatting/colorize.mjs";
 import { mockAccessKeysFile } from "../helpers.mjs";
 
 describe("database list", () => {
-  let container,
-    fs,
-    logger,
-    runQueryFromString,
-    makeAccountRequest,
-    formatQueryResponse;
+  let container, fs, logger, stdout, runQueryFromString, makeAccountRequest;
 
   beforeEach(() => {
     // reset the container before each test
@@ -24,9 +19,8 @@ describe("database list", () => {
     fs = container.resolve("fs");
     logger = container.resolve("logger");
     runQueryFromString = container.resolve("faunaClientV10").runQueryFromString;
-    formatQueryResponse =
-      container.resolve("faunaClientV10").formatQueryResponse;
     makeAccountRequest = container.resolve("makeAccountRequest");
+    stdout = container.resolve("stdoutStream");
   });
 
   describe("when --local is provided", () => {
@@ -51,17 +45,11 @@ describe("database list", () => {
           url: "http://localhost:8443",
         },
       },
-      {
-        args: "--local --json",
-        expected: {
-          secret: "secret",
-          json: true,
-          url: "http://localhost:8443",
-        },
-      },
     ].forEach(({ args, expected }) => {
       it(`calls fauna with the correct args: ${args}`, async () => {
-        const stubbedResponse = { data: [{ name: "testdb" }] };
+        const stubbedResponse = {
+          data: [{ name: "testdb" }, { name: "testdb2" }],
+        };
         runQueryFromString.resolves(stubbedResponse);
 
         await run(`database list ${args}`, container);
@@ -72,13 +60,9 @@ describe("database list", () => {
           expression: `Database.all().paginate(${expected.pageSize ?? 1000}).data { name }`,
         });
 
-        expect(logger.stdout).to.have.been.calledOnceWith(
-          formatQueryResponse(stubbedResponse, {
-            format: "json",
-            color: true,
-          }),
-        );
+        await stdout.waitForWritten();
 
+        expect(stdout.getWritten()).to.equal("testdb\ntestdb2\n");
         expect(makeAccountRequest).to.not.have.been.called;
       });
     });
@@ -94,10 +78,6 @@ describe("database list", () => {
         args: "--secret 'secret' --pageSize 10",
         expected: { secret: "secret", pageSize: 10 },
       },
-      {
-        args: "--secret 'secret' --json",
-        expected: { secret: "secret", json: true },
-      },
     ].forEach(({ args, expected }) => {
       it(`calls fauna with the correct args: ${args}`, async () => {
         const stubbedResponse = { data: [{ name: "testdb" }] };
@@ -111,13 +91,7 @@ describe("database list", () => {
           expression: `Database.all().paginate(${expected.pageSize ?? 1000}).data { name }`,
         });
 
-        expect(logger.stdout).to.have.been.calledOnceWith(
-          formatQueryResponse(stubbedResponse, {
-            format: "json",
-            color: true,
-          }),
-        );
-
+        expect(stdout.getWritten()).to.equal("testdb\n");
         expect(makeAccountRequest).to.not.have.been.called;
       });
     });
@@ -158,10 +132,6 @@ describe("database list", () => {
         args: "--database 'us/example'",
         expected: { database: "us-std/example" },
       },
-      {
-        args: "--database 'us/example' --json",
-        expected: { database: "us-std/example", json: true },
-      },
     ].forEach(({ args, expected }) => {
       it(`calls the account api with the correct args: ${args}`, async () => {
         mockAccessKeysFile({ fs });
@@ -172,6 +142,9 @@ describe("database list", () => {
               ...(expected.regionGroup
                 ? { region_group: expected.regionGroup }
                 : {}),
+              path: expected.regionGroup
+                ? `${expected.regionGroup}/test`
+                : `${expected.database}/test`,
             },
           ],
         };
@@ -189,19 +162,44 @@ describe("database list", () => {
           },
         });
 
-        const expectedOutput = stubbedResponse.results.map((d) => ({
-          name: d.name,
-          // region group is only returned when listing top level databases
-          ...(expected.regionGroup
-            ? { region_group: expected.regionGroup }
-            : {}),
-        }));
+        expect(stdout.getWritten()).to.equal(
+          `${stubbedResponse.results.map((d) => d.path).join("\n")}\n`,
+        );
+      });
+    });
+  });
 
-        expect(logger.stdout).to.have.been.calledOnceWith(
-          colorize(expectedOutput, {
-            format: "json",
-            color: true,
-          }),
+  describe("when --json is provided", () => {
+    [
+      "--local",
+      "--secret=test-secret",
+      "--database=us/example",
+      "--pageSize 10",
+    ].forEach((args) => {
+      it(`outputs json when using ${args}`, async () => {
+        mockAccessKeysFile({ fs });
+
+        let data;
+        if (args.includes("--local") || args.includes("--secret")) {
+          data = [{ name: "testdb" }];
+          runQueryFromString.resolves({ data });
+        } else {
+          data = [
+            {
+              path: "us-std/test",
+              name: "test",
+            },
+          ];
+          makeAccountRequest.resolves({
+            results: data,
+          });
+        }
+
+        await run(`database list ${args} --json`, container);
+        await stdout.waitForWritten();
+
+        expect(stdout.getWritten().trim()).to.equal(
+          `${colorize(data, { format: "json" })}`,
         );
       });
     });

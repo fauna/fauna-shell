@@ -1,29 +1,10 @@
 //@ts-check
+import chalk from "chalk";
 
 import { container } from "../../cli.mjs";
 import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
-
-// Narrow the output fields based on the provided flags.
-const getOutputFields = (argv) => {
-  if (!argv.secret && !argv.database) {
-    // If we are listing top level databases the region group
-    // needs to be included as database names can be re-used across
-    // regions.
-    return ["name", "region_group"];
-  }
-  return ["name"];
-};
-
-function pickOutputFields(databases, argv) {
-  return databases.map((d) =>
-    getOutputFields(argv).reduce((acc, field) => {
-      acc[field] = d[field];
-      return acc;
-    }, {}),
-  );
-}
 
 async function listDatabasesWithAccountAPI(argv) {
   const { pageSize, database } = argv;
@@ -32,7 +13,8 @@ async function listDatabasesWithAccountAPI(argv) {
     pageSize,
     path: database,
   });
-  return pickOutputFields(response.results, argv);
+
+  return response.results.map(({ path, name }) => ({ path, name }));
 }
 
 async function listDatabasesWithSecret(argv) {
@@ -40,36 +22,45 @@ async function listDatabasesWithSecret(argv) {
   const { runQueryFromString } = container.resolve("faunaClientV10");
 
   try {
-    return await runQueryFromString({
+    const res = await runQueryFromString({
       url,
       secret,
       // This gives us back an array of database names. If we want to
       // provide the after token at some point this query will need to be updated.
-      expression: `Database.all().paginate(${pageSize}).data { ${getOutputFields(argv)} }`,
+      expression: `Database.all().paginate(${pageSize}).data { name }`,
     });
+    return res.data;
   } catch (e) {
     return faunaToCommandError(e);
   }
 }
 
 export async function listDatabases(argv) {
-  let databases;
   if (argv.secret) {
-    databases = await listDatabasesWithSecret(argv);
+    return await listDatabasesWithSecret(argv);
   } else {
-    databases = await listDatabasesWithAccountAPI(argv);
+    return await listDatabasesWithAccountAPI(argv);
   }
-  return databases;
 }
 
 async function doListDatabases(argv) {
   const logger = container.resolve("logger");
-  const { formatQueryResponse } = container.resolve("faunaClientV10");
   const res = await listDatabases(argv);
+
   if (argv.secret) {
-    logger.stdout(formatQueryResponse(res, argv));
-  } else {
+    logger.stderr(
+      chalk.yellow(
+        "Warning: Full database paths are not available when using --secret. Use --database if a full path, including the Region Group identified and hierarchy, is needed.",
+      ),
+    );
+  }
+
+  if (argv.json) {
     logger.stdout(colorize(res, { format: Format.JSON, color: argv.color }));
+  } else {
+    res.forEach(({ path, name }) => {
+      logger.stdout(path ?? name);
+    });
   }
 }
 
