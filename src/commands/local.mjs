@@ -123,18 +123,18 @@ ${chalk.red("Please use choose a different name using --name or align the --type
 function buildLocalCommand(yargs) {
   return yargs
     .options({
-      containerPort: {
+      "container-port": {
         describe: "The port inside the container Fauna listens on.",
         type: "number",
         default: 8443,
       },
-      hostPort: {
+      "host-port": {
         describe:
           "The port on the host machine mapped to the container's port. This is the port you'll connect to Fauna on.",
         type: "number",
         default: 8443,
       },
-      hostIp: {
+      "host-ip": {
         describe: `The IP address to bind the container's exposed port on the host.`,
         type: "string",
         default: "0.0.0.0",
@@ -145,7 +145,7 @@ function buildLocalCommand(yargs) {
         type: "number",
         default: 10000,
       },
-      maxAttempts: {
+      "max-attempts": {
         describe:
           "The maximum number of health check attempts before declaring the start Fauna continer process as failed.",
         type: "number",
@@ -202,7 +202,7 @@ function buildLocalCommand(yargs) {
     })
     .check((argv) => {
       if (argv.maxAttempts < 1) {
-        throw new ValidationError("--maxAttempts must be greater than 0.");
+        throw new ValidationError("--max-attempts must be greater than 0.");
       }
       if (argv.interval < 0) {
         throw new ValidationError(

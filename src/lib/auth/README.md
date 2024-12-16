@@ -26,7 +26,7 @@ If no account key is provided, the CLI will prompt a login via the dashboard whe
 
 ### The CLI will look for account keys in this order:
 
-- `--accountKey` flag
+- `--account-key` flag
 - `FAUNA_ACCOUNT_KEY` environment variable
 - `--config` file `accountKey` value
 - `~/.fauna/credentials/access_keys`
