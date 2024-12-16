@@ -3,9 +3,7 @@
 import { expect } from "chai";
 import { fql, ServiceError } from "fauna";
 import sinon from "sinon";
-import chalk from "chalk";
 
-import { builtYargs, run } from "../../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 import { AUTHENTICATION_ERROR_MESSAGE } from "../../src/lib/errors.mjs";
 import { mockAccessKeysFile } from "../helpers.mjs";
