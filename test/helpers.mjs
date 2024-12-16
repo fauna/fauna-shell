@@ -208,3 +208,18 @@ export const mockSecretKeysFile = ({
       `{${accountKey}: { "${path}:${role}": {"secret": "${secret}", "expiresAt": ${expiresAt}}}}`,
     );
 };
+
+/**
+ * retry an assertion repeatedly until it succeeds
+ * @param {function} evaluator - any function that throws if a condition isn't met.
+ * @param {number} [ms=50] - the number of milliseconds to wait for the condition. set it lower than mocha's timeout to re-throw the underlying error and have usable test failure logs.
+ */
+export async function eventually(evaluator, ms = 50) {
+  try {
+    return evaluator();
+  } catch (e) {
+    if (ms <= 0) throw e;
+    await new Promise((resolve) => setTimeout(resolve, 1)); // eslint-disable-line no-promise-executor-return
+    return eventually(evaluator, ms - 1);
+  }
+}
