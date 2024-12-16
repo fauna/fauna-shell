@@ -2,10 +2,10 @@ import chalk from "chalk";
 import { AbortError } from "fauna";
 
 import { container } from "../cli.mjs";
+import { pushSchema } from "../commands/schema/push.mjs";
 import { ensureContainerRunning } from "../lib/docker-containers.mjs";
 import { CommandError, ValidationError } from "../lib/errors.mjs";
 import { colorize, Format } from "../lib/formatting/colorize.mjs";
-import { pushSchema } from "../lib/schema.mjs";
 
 /**
  * Starts the local Fauna container
