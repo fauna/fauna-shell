@@ -156,13 +156,7 @@ export function yargsWithCommonConfigurableQueryOptions(yargs) {
     }
 
     if (argv.include.includes("all")) {
-      argv.include = [
-        "txnTs",
-        "schemaVersion",
-        "summary",
-        "queryTags",
-        "stats",
-      ];
+      argv.include = [...QUERY_INFO_CHOICES];
     }
 
     if (argv.performanceHints && !argv.include.includes("summary")) {
