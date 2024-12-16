@@ -1,6 +1,7 @@
 //@ts-check
 
 import { expect } from "chai";
+import { AbortError } from "fauna";
 import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
@@ -78,33 +79,7 @@ describe("ensureContainerRunning", () => {
     net.createServer.returns(serverMock);
   });
 
-  it("Shows a clear error to the user if something is already running on the desired port.", async () => {
-    simulateError = true;
-    docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
-      onFinished();
-    });
-    docker.listContainers.onCall(0).resolves([]);
-    try {
-      // Run the actual command
-      await run("local --no-color", container);
-      throw new Error("Expected an error to be thrown.");
-    } catch (_) {
-      // Expected error, no action needed
-    }
-
-    const written = stderrStream.getWritten();
-
-    // Assertions
-    expect(written).to.contain(
-      "[StartContainer] The hostPort '8443' on IP '0.0.0.0' is already occupied. \
-Please pass a --hostPort other than '8443'.",
-    );
-    expect(written).to.contain("fauna local");
-    expect(written).not.to.contain("An unexpected");
-  });
-
-  it("Creates and starts a container when none exists", async () => {
+  function setupCreateContainerMocks() {
     docker.pull.onCall(0).resolves();
     docker.modem.followProgress.callsFake((stream, onFinished) => {
       onFinished();
@@ -120,6 +95,99 @@ Please pass a --hostPort other than '8443'.",
       logs: logsStub,
       unpause: unpauseStub,
     });
+  }
+
+  it("Shows a clear error to the user if something is already running on the desired port.", async () => {
+    simulateError = true;
+    docker.pull.onCall(0).resolves();
+    docker.modem.followProgress.callsFake((stream, onFinished) => {
+      onFinished();
+    });
+    docker.listContainers.onCall(0).resolves([]);
+    try {
+      // Run the actual command
+      await run("local --no-color", container);
+    } catch (_) {
+      // Expected error, no action needed
+    }
+
+    const written = stderrStream.getWritten();
+
+    // Assertions
+    expect(written).to.contain(
+      "[StartContainer] The hostPort '8443' on IP '0.0.0.0' is already occupied. \
+Please pass a --hostPort other than '8443'.",
+    );
+    expect(written).not.to.contain("fauna local");
+    expect(written).not.to.contain("An unexpected");
+  });
+
+  [
+    "--database Foo",
+    "--database Foo --typechecked --protected --priority 1",
+  ].forEach((args) => {
+    it("Creates a database if requested", async () => {
+      setupCreateContainerMocks();
+      const { runQuery } = container.resolve("faunaClientV10");
+      runQuery.resolves({
+        data: JSON.stringify({ name: "Foo" }, null, 2),
+      });
+      await run(`local --no-color ${args}`, container);
+      expect(runQuery).to.have.been.calledWith({
+        secret: "secret",
+        url: "http://0.0.0.0:8443",
+        query: sinon.match.any,
+        options: { format: "decorated" },
+      });
+      const written = stderrStream.getWritten();
+      expect(written).to.contain("[CreateDatabase] Database 'Foo' created.");
+      expect(written).to.contain('"name": "Foo"');
+    });
+  });
+
+  it("Exits with an expected error if the create db query aborts", async () => {
+    setupCreateContainerMocks();
+    const { runQuery } = container.resolve("faunaClientV10");
+    runQuery.rejects(new AbortError({ error: { abort: "Taco" } }));
+    try {
+      await run(`local --no-color --database Foo`, container);
+    } catch (_) {}
+    expect(runQuery).to.have.been.calledWith({
+      secret: "secret",
+      url: "http://0.0.0.0:8443",
+      query: sinon.match.any,
+      options: { format: "decorated" },
+    });
+    const written = stderrStream.getWritten();
+    expect(written).to.contain("Taco");
+    expect(written).not.to.contain("fauna local");
+    expect(written).not.to.contain("An unexpected");
+  });
+
+  ["--typechecked", "--protected", "--priority 1"].forEach((args) => {
+    it("Rejects invalid create database args", async () => {
+      setupCreateContainerMocks();
+      const { runQuery } = container.resolve("faunaClientV10");
+      try {
+        await run(`local --no-color ${args}`, container);
+      } catch (_) {}
+      expect(runQuery).not.to.have.been.called;
+      const written = stderrStream.getWritten();
+      expect(written).to.contain("fauna local");
+      expect(written).not.to.contain("An unexpected");
+      expect(written).to.contain("can only be set if");
+    });
+  });
+
+  it("Does not create a database when not requested to do so", async () => {
+    setupCreateContainerMocks();
+    const { runQuery } = container.resolve("faunaClientV10");
+    await run("local --no-color", container);
+    expect(runQuery).not.to.have.been.called;
+  });
+
+  it("Creates and starts a container when none exists", async () => {
+    setupCreateContainerMocks();
     await run("local --no-color", container);
     expect(unpauseStub).not.to.have.been.called;
     expect(startStub).to.have.been.called;
@@ -147,27 +215,10 @@ Please pass a --hostPort other than '8443'.",
         "8443/tcp": {},
       },
     });
-    expect(logger.stderr).to.have.been.calledWith(
-      "[ContainerReady] Container 'faunadb' is up and healthy.",
-    );
   });
 
   it("The user can control the hostIp, hostPort, containerPort, and name", async () => {
-    docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
-      onFinished();
-    });
-    docker.listContainers.onCall(0).resolves([]);
-    fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.createContainer.resolves({
-      start: startStub,
-      logs: logsStub,
-      unpause: unpauseStub,
-    });
+    setupCreateContainerMocks();
     await run(
       "local --no-color --hostPort 10 --containerPort 11 --name Taco --hostIp 127.0.0.1",
       container,
@@ -193,17 +244,7 @@ Please pass a --hostPort other than '8443'.",
   });
 
   it("Skips pull if --pull is false.", async () => {
-    docker.listContainers.onCall(0).resolves([]);
-    fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.createContainer.resolves({
-      start: startStub,
-      logs: logsStub,
-      unpause: unpauseStub,
-    });
+    setupCreateContainerMocks();
     await run("local --no-color --pull false", container);
     expect(docker.pull).not.to.have.been.called;
     expect(docker.modem.followProgress).not.to.have.been.called;
@@ -216,21 +257,10 @@ Please pass a --hostPort other than '8443'.",
   });
 
   it("Fails start with a prompt to contact Fauna if pull fails.", async () => {
+    setupCreateContainerMocks();
     docker.pull.onCall(0).rejects(new Error("Remote repository not found"));
-    docker.listContainers.onCall(0).resolves([]);
-    fetch.onCall(0).resolves(f({})); // fast succeed the health check
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.createContainer.resolves({
-      start: startStub,
-      logs: logsStub,
-      unpause: unpauseStub,
-    });
     try {
       await run("local --no-color", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     expect(docker.pull).to.have.been.called;
     expect(docker.modem.followProgress).not.to.have.been.called;
@@ -248,31 +278,11 @@ https://support.fauna.com/hc/en-us/requests/new`,
   });
 
   it("Throws an error if the health check fails", async () => {
-    docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
-      onFinished();
-    });
-    docker.listContainers.onCall(0).resolves([
-      {
-        State: "created",
-        Names: ["/faunadb"],
-        Ports: [{ PublicPort: 8443 }],
-      },
-    ]);
-    logsStub.callsFake(async () => ({
-      on: () => {},
-      destroy: () => {},
-    }));
-    docker.getContainer.onCall(0).returns({
-      logs: logsStub,
-      start: startStub,
-      unpause: unpauseStub,
-    });
+    setupCreateContainerMocks();
     fetch.onCall(0).rejects();
     fetch.resolves(f({}, 503)); // fail from http
     try {
       await run("local --no-color --interval 0 --maxAttempts 3", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
     expect(written).to.contain("with HTTP status: '503'");
@@ -308,7 +318,6 @@ https://support.fauna.com/hc/en-us/requests/new`,
     });
     try {
       await run("local --no-color", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
     expect(written).to.contain(
@@ -320,7 +329,6 @@ https://support.fauna.com/hc/en-us/requests/new`,
   it("throws an error if interval is less than 0", async () => {
     try {
       await run("local --no-color --interval -1", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
     expect(written).to.contain(
@@ -333,7 +341,6 @@ https://support.fauna.com/hc/en-us/requests/new`,
   it("throws an error if maxAttempts is less than 1", async () => {
     try {
       await run("local --no-color --maxAttempts 0", container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     const written = stderrStream.getWritten();
     expect(written).to.contain("--maxAttempts must be greater than 0.");
@@ -473,7 +480,6 @@ https://support.fauna.com/hc/en-us/requests/new`,
 
     try {
       await run(`local --hostPort ${desiredPort}`, container);
-      throw new Error("Expected an error to be thrown.");
     } catch (_) {}
     expect(docker.listContainers).to.have.been.calledWith({
       all: true,
@@ -489,6 +495,6 @@ Please use a new name via arguments --name <newName> --hostPort ${desiredPort} \
 to start the container.`,
     );
     expect(written).not.to.contain("An unexpected");
-    expect(written).to.contain("fauna local"); // help text
+    expect(written).not.to.contain("fauna local"); // help text
   });
 });

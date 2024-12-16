@@ -1,5 +1,10 @@
+import chalk from "chalk";
+import { AbortError } from "fauna";
+
+import { container } from "../cli.mjs";
 import { ensureContainerRunning } from "../lib/docker-containers.mjs";
-import { CommandError } from "../lib/errors.mjs";
+import { CommandError, ValidationError } from "../lib/errors.mjs";
+import { colorize, Format } from "../lib/formatting/colorize.mjs";
 
 /**
  * Starts the local Fauna container
@@ -8,6 +13,7 @@ import { CommandError } from "../lib/errors.mjs";
  * It will reject if the container is not ready after the maximum number of attempts.
  */
 async function startLocal(argv) {
+  const color = argv.color;
   await ensureContainerRunning({
     imageName: argv.image,
     containerName: argv.name,
@@ -17,8 +23,67 @@ async function startLocal(argv) {
     pull: argv.pull,
     interval: argv.interval,
     maxAttempts: argv.maxAttempts,
-    color: argv.color,
+    color,
   });
+  if (argv.database) {
+    await createDatabase(argv);
+  }
+}
+
+async function createDatabase(argv) {
+  const { fql } = container.resolve("fauna");
+  const { runQuery } = container.resolve("faunaClientV10");
+  const logger = container.resolve("logger");
+  const color = argv.color;
+  logger.stderr(
+    colorize(`[CreateDatabase] Creating database '${argv.database}'...`, {
+      format: Format.LOG,
+      color,
+    }),
+  );
+  try {
+    const db = await runQuery({
+      secret: "secret",
+      url: `http://${argv.hostIp}:${argv.hostPort}`,
+      query: fql`
+      let name = ${argv.database}
+      let database = Database.byName(name)
+      let protected = ${argv.protected ?? null}
+      let typechecked = ${argv.typechecked ?? null}
+      let priority = ${argv.priority ?? null}
+      if (database == null) {
+        Database.create({
+          name: name,
+          protected: protected,
+          typechecked: typechecked,
+          priority: priority,
+        })
+      } else if (protected == database.protected && typechecked == database.typechecked && priority == database.priority) {
+        database
+      } else {
+        abort(database)
+      }`,
+      options: { format: "decorated" },
+    });
+    logger.stderr(
+      colorize(`[CreateDatabase] Database '${argv.database}' created.`, {
+        format: Format.LOG,
+        color,
+      }),
+    );
+    logger.stderr(colorize(db.data, { format: Format.FQL, color }));
+  } catch (e) {
+    if (e instanceof AbortError) {
+      throw new CommandError(
+        `${chalk.red(`[CreateDatabase] Database '${argv.database}' already exists but with differrent properties than requested:\n`)}
+-----------------
+${colorize(e.abort, { format: Format.FQL, color })}
+-----------------
+${chalk.red("Please use choose a different name using --name or align the --typechecked, --priority, and --protected with what is currently present.")}`,
+      );
+    }
+    throw e;
+  }
 }
 
 /**
@@ -67,17 +132,49 @@ function buildLocalCommand(yargs) {
         type: "boolean",
         default: true,
       },
+      database: {
+        describe:
+          "The name of a database to create in the container. Omit to create no database.",
+        type: "string",
+      },
+      typechecked: {
+        describe:
+          "Enable typechecking for the database. Valid only if --database is set.",
+        type: "boolean",
+      },
+      protected: {
+        describe:
+          "Enable protected mode for the database. Protected mode disallows destructive schema changes. Valid only if --database is set.",
+        type: "boolean",
+      },
+      priority: {
+        type: "number",
+        description:
+          "User-defined priority for the database. Valid only if --database is set.",
+      },
     })
     .check((argv) => {
       if (argv.maxAttempts < 1) {
-        throw new CommandError("--maxAttempts must be greater than 0.", {
-          hideHelp: false,
-        });
+        throw new ValidationError("--maxAttempts must be greater than 0.");
       }
       if (argv.interval < 0) {
-        throw new CommandError(
+        throw new ValidationError(
           "--interval must be greater than or equal to 0.",
-          { hideHelp: false },
+        );
+      }
+      if (argv.typechecked && !argv.database) {
+        throw new ValidationError(
+          "--typechecked can only be set if --database is set.",
+        );
+      }
+      if (argv.protected && !argv.database) {
+        throw new ValidationError(
+          "--protected can only be set if --database is set.",
+        );
+      }
+      if (argv.priority && !argv.database) {
+        throw new ValidationError(
+          "--priority can only be set if --database is set.",
         );
       }
       return true;

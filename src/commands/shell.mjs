@@ -103,17 +103,6 @@ async function shellCommand(argv) {
       },
     },
     {
-      cmd: "toggleRawResponses",
-      help: "Enable or disable additional output. Disabled by default. If enabled, outputs the raw JSON query response, including summary and query stats.",
-      action: () => {
-        shell.context.raw = !shell.context.raw;
-        logger.stderr(
-          `Additional information in shell: ${shell.context.raw ? "on" : "off"}`,
-        );
-        shell.prompt();
-      },
-    },
-    {
       cmd: "togglePerformanceHints",
       help: "Enable or disable performance hints. Disabled by default. If enabled, outputs performance hints for the most recent query.",
       action: () => {
@@ -161,12 +150,11 @@ async function buildCustomEval(argv) {
 
       // These are options used for querying and formatting the response
       const { apiVersion, color } = argv;
-      const raw = getArgvOrCtx("raw", argv, ctx);
       const performanceHints = getArgvOrCtx("performanceHints", argv, ctx);
       const summary = getArgvOrCtx("summary", argv, ctx);
 
-      // Using --raw or --json output takes precedence over --format
-      const outputFormat = resolveFormat({ ...argv, raw });
+      // Using --json output takes precedence over --format
+      const outputFormat = resolveFormat({ ...argv });
 
       if (apiVersion === "4") {
         try {
@@ -198,13 +186,12 @@ async function buildCustomEval(argv) {
           }
         }
       } catch (err) {
-        logger.stderr(formatError(err, { apiVersion, raw, color }));
+        logger.stderr(formatError(err, { apiVersion, color }));
         return cb(null);
       }
 
       const output = formatQueryResponse(res, {
         apiVersion,
-        raw,
         color,
         format: outputFormat,
       });

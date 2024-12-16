@@ -1,8 +1,15 @@
 // @ts-check
 import { createContext, runInContext } from "node:vm";
 
+import faunadb from "faunadb";
+
 import { container } from "../cli.mjs";
-import { NETWORK_ERROR_MESSAGE } from "./errors.mjs";
+import {
+  AuthenticationError,
+  AuthorizationError,
+  CommandError,
+  NETWORK_ERROR_MESSAGE,
+} from "./errors.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
 /**
@@ -85,12 +92,11 @@ export const runQuery = async ({
  * Formats a V4 Fauna error for display.
  * @param {any} err - An error to format
  * @param {object} [opts]
- * @param {boolean} [opts.raw] - Whether to include full response bodies
  * @param {boolean} [opts.color] - Whether to colorize the error
  * @returns {string} The formatted error message
  */
 export const formatError = (err, opts = {}) => {
-  const { raw, color } = opts;
+  const { color } = opts;
 
   // By doing this we can avoid requiring a faunadb direct dependency
   if (
@@ -99,11 +105,6 @@ export const formatError = (err, opts = {}) => {
     typeof err.requestResult.responseContent === "object" &&
     Array.isArray(err.requestResult.responseContent.errors)
   ) {
-    // If raw is on, return the full error.
-    if (raw) {
-      return colorize(err, { color, format: Format.JSON });
-    }
-
     const errorPrefix = "The query failed with the following error:\n\n";
     const { errors } = err.requestResult.responseContent;
     if (!errors) {
@@ -132,19 +133,49 @@ export const formatError = (err, opts = {}) => {
 };
 
 /**
+ * Converts a Fauna HTTP error to a CommandError.
+ * @param {any} err - The error to convert
+ * @param {(e: import("fauna").FaunaError) => void} [handler] - Optional error handler to handle and throw in
+ */
+export const faunadbToCommandError = (err, handler) => {
+  if (handler) {
+    handler(err);
+  }
+
+  if (err instanceof faunadb.errors.FaunaHTTPError) {
+    switch (err.name) {
+      case "Unauthorized":
+        throw new AuthenticationError({ cause: err });
+      case "PermissionDenied":
+        throw new AuthorizationError({ cause: err });
+      case "BadRequest":
+      case "NotFound":
+        throw new CommandError(formatError(err, { raw: true }), { cause: err });
+      default:
+        throw err;
+    }
+  }
+
+  if (err.name === "TypeError" && err.message.includes("fetch failed")) {
+    throw new CommandError(NETWORK_ERROR_MESSAGE, { cause: err });
+  }
+
+  throw err;
+};
+
+/**
  * Formats a V4 Fauna query response.
  * @param {any} res - The query response to format
  * @param {object} [opts]
- * @param {boolean} [opts.raw] - Whether to include full response bodies
  * @param {boolean} [opts.json] - Whether to return the response as a JSON string
  * @param {boolean} [opts.color] - Whether to colorize the response
  * @param {string} [opts.format] - The format to use for the response
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { raw, color, format } = opts;
-  const data = raw ? res : res.value;
-  const resolvedFormat = raw ? Format.JSON : (format ?? Format.JSON);
+  const { color, format } = opts;
+  const data = res.value;
+  const resolvedFormat = format ?? Format.JSON;
   return colorize(data, { format: resolvedFormat, color });
 };
 
