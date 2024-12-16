@@ -199,39 +199,31 @@ Please pass a --hostPort other than '8443'.",
     "--database Foo --project-directory ./bar",
   ].forEach((args) => {
     it("Creates a staged schema without forcing if requested", async () => {
-      const baseUrl = "http://0.0.0.0:8443/schema/1/update";
+      const baseUrl = "http://0.0.0.0:8443/schema/1";
       confirm.resolves(true);
       setupCreateContainerMocks();
-      fetch.onCall(0).resolves();
-      fetch.onCall(1).resolves(f({
-        version: 1728675598430000,
-        diff: diffString,
-      }));
-      fetch.onCall(2).resolves(f({
-        version: 1728677126240000,
-      }));
+      fetch.resolves(
+        f({
+          version: 1728675598430000,
+          diff: diffString,
+        }),
+      );
       const { runQuery } = container.resolve("faunaClientV10");
       runQuery.resolves({
         data: JSON.stringify({ name: "Foo" }, null, 2),
       });
       await run(`local --no-color ${args}`, container);
       expect(gatherFSL).to.have.been.calledWith("bar");
-      expect(fetch).to.have.been.calledWith(
-        `${baseUrl}?staged=true&color=ansi`,
-        {
-          method: "POST",
-          headers: { AUTHORIZATION: "Bearer secret" },
-          body: reformatFSL(fsl),
-        },
-      );
-      expect(fetch).to.have.been.calledWith(
-        `${baseUrl}?staged=true`,
-        {
-          method: "POST",
-          headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
-          body: reformatFSL(fsl),
-        },
-      );
+      expect(fetch).to.have.been.calledWith(`${baseUrl}/diff?staged=true`, {
+        method: "POST",
+        headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+        body: reformatFSL(fsl),
+      });
+      expect(fetch).to.have.been.calledWith(`${baseUrl}/update?version=1728675598430000&staged=true`, {
+        method: "POST",
+        headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+        body: reformatFSL(fsl),
+      });
       expect(logger.stdout).to.have.been.calledWith("Proposed diff:\n");
       const written = stderrStream.getWritten();
       expect(written).to.contain(
@@ -243,6 +235,8 @@ Please pass a --hostPort other than '8443'.",
       expect(logger.stdout).to.have.been.calledWith(diffString);
     });
   });
+
+  it.skip("Shows errors on schema problems", () => { });
 
   it("Exits with an expected error if the create db query aborts", async () => {
     setupCreateContainerMocks();
