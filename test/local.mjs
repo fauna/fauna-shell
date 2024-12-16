@@ -7,6 +7,7 @@ import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer } from "../src/config/setup-test-container.mjs";
+import { reformatFSL } from "../src/lib/schema.mjs";
 import { f } from "./helpers.mjs";
 
 describe("local command", () => {
@@ -19,7 +20,16 @@ describe("local command", () => {
     serverMock,
     simulateError,
     startStub,
-    unpauseStub;
+    unpauseStub,
+    gatherFSL;
+
+  const fsl = [
+    {
+      name: "coll.fsl",
+      content:
+        "collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+    },
+  ];
 
   beforeEach(async () => {
     simulateError = false;
@@ -56,6 +66,10 @@ describe("local command", () => {
           listeningCallback();
         }
       }
+      gatherFSL = container.resolve("gatherFSL");
+      //      confirm = container.resolve("confirm");
+
+      gatherFSL.resolves(fsl);
     });
 
     serverMock.on.withArgs("listening").callsFake((event, callback) => {
@@ -147,28 +161,30 @@ Please pass a --hostPort other than '8443'.",
   });
 
   [
-    "--database Foo --dir ./bar",
-    "--database Foo --directory ./bar",
-    "--database Foo --project-directory ./bar",
+    "--database Foo --dir ./bar --no-input --active",
+    "--database Foo --directory ./bar --no-input --active",
+    "--database Foo --project-directory ./bar --no-input --active",
   ].forEach((args) => {
     it("Creates a schema if requested", async () => {
       setupCreateContainerMocks();
+      fetch.resolves(f({}));
       const { runQuery } = container.resolve("faunaClientV10");
       runQuery.resolves({
         data: JSON.stringify({ name: "Foo" }, null, 2),
       });
       await run(`local --no-color ${args}`, container);
-      expect(runQuery).to.have.been.calledWith({
-        secret: "secret",
-        url: "http://0.0.0.0:8443",
-        query: sinon.match.any,
-        options: { format: "decorated" },
-      });
+      expect(gatherFSL).to.have.been.calledWith("bar");
+      expect(fetch).to.have.been.calledWith(
+        "http://0.0.0.0:8443/schema/1/update?force=true&staged=false",
+        {
+          method: "POST",
+          headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+          body: reformatFSL(fsl),
+        },
+      );
       const written = stderrStream.getWritten();
-      expect(written).to.contain("[CreateDatabase] Database 'Foo' created.");
-      expect(written).to.contain('"name": "Foo"');
       expect(written).to.contain(
-        "[CreateDatabaseSchema] Creating schema for database 'Foo' from directory './bar'.",
+        "[CreateDatabaseSchema] Schema for database 'Foo' created from directory './bar'.",
       );
     });
   });

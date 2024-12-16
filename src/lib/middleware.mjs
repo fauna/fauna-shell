@@ -9,7 +9,7 @@ import { container } from "../cli.mjs";
 import { fixPath } from "../lib/file-util.mjs";
 import { redactedStringify } from "./formatting/redact.mjs";
 
-const LOCAL_URL = "http://localhost:8443";
+const LOCAL_URL = "http://0.0.0.0:8443";
 const LOCAL_SECRET = "secret";
 const DEFAULT_URL = "https://db.fauna.com";
 

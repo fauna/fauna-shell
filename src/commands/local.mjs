@@ -50,7 +50,7 @@ async function createDatabaseSchema(argv) {
   await pushSchema(argv);
   logger.stderr(
     colorize(
-      `[CreateDatabaseSchema] Schema for database '${argv.database}' created.`,
+      `[CreateDatabaseSchema] Schema for database '${argv.database}' created from directory '${argv.directory}'.`,
       {
         format: Format.LOG,
         color: argv.color,
