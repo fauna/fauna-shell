@@ -390,7 +390,7 @@ async function waitForHealthCheck({
     `[HealthCheck] Max attempts reached. Service at ${url} did not respond.`,
   );
   throw new CommandError(
-    `[HealthCheck] Fauna at ${url} is not ready after ${maxAttempts} attempts. Consider increasing --interval or --maxAttempts.`,
+    `[HealthCheck] Fauna at ${url} is not ready after ${maxAttempts} attempts. Consider increasing --interval or --max-attempts.`,
   );
 }
 

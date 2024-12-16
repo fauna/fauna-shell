@@ -6,19 +6,19 @@ import { Format } from "./formatting/colorize.mjs";
 
 const COMMON_OPTIONS = {
   // hidden
-  accountUrl: {
+  "account-url": {
     type: "string",
     description: "the Fauna account URL to query",
     default: "https://account.fauna.com",
     hidden: true,
   },
-  clientId: {
+  "client-id": {
     type: "string",
     description: "the client id to use when calling Fauna",
     required: false,
     hidden: true,
   },
-  clientSecret: {
+  "client-secret": {
     type: "string",
     description: "the client secret to use when calling Fauna",
     required: false,
@@ -56,7 +56,7 @@ const COMMON_QUERY_OPTIONS = {
     required: false,
     group: "API:",
   },
-  accountKey: {
+  "account-key": {
     type: "string",
     description:
       "Fauna account key used for authentication. Negates the need for a user login. The key is used to generate short-lived database secrets for the CLI. Mutually exclusive with `--user` and `--secret`.",
@@ -82,7 +82,7 @@ const COMMON_QUERY_OPTIONS = {
 // used for queries customers can configure
 const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   ...COMMON_QUERY_OPTIONS,
-  apiVersion: {
+  "api-version": {
     description: "FQL version to use.",
     type: "string",
     alias: "v",
@@ -121,7 +121,7 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     default: false,
     group: "API:",
   },
-  performanceHints: {
+  "performance-hints": {
     type: "boolean",
     description:
       "Output the performance hints for the current query or nothing when no hints are available. Only applies to v10 queries.",
