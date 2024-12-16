@@ -210,7 +210,7 @@ async function createContainer({
   if (occupied) {
     throw new CommandError(
       `[StartContainer] The hostPort '${hostPort}' on IP '${hostIp}' is already occupied. \
-Please pass a --hostPort other than '${hostPort}'.`,
+Please pass a --host-port other than '${hostPort}'.`,
     );
   }
   const dockerContainer = await docker.createContainer({

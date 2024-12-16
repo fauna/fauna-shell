@@ -116,7 +116,7 @@ describe("ensureContainerRunning", () => {
     // Assertions
     expect(written).to.contain(
       "[StartContainer] The hostPort '8443' on IP '0.0.0.0' is already occupied. \
-Please pass a --hostPort other than '8443'.",
+Please pass a --host-port other than '8443'.",
     );
     expect(written).not.to.contain("fauna local");
     expect(written).not.to.contain("An unexpected");
