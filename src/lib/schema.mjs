@@ -69,6 +69,7 @@ export async function pushSchema(argv) {
         ? "Stage the file contents anyway?"
         : "Push the file contents anyway?";
     }
+
     const confirm = container.resolve("confirm");
     const confirmed = await confirm({
       message,

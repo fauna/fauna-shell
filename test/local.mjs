@@ -45,6 +45,11 @@ describe("local command", () => {
     logsStub = stub();
     startStub = stub();
     unpauseStub = stub();
+    confirm = container.resolve("confirm");
+
+    gatherFSL = container.resolve("gatherFSL");
+    gatherFSL.resolves(fsl);
+
     // Requested port is free
     serverMock = {
       close: sinon.stub(),
@@ -70,13 +75,9 @@ describe("local command", () => {
           listeningCallback();
         }
       }
-      gatherFSL = container.resolve("gatherFSL");
-      confirm = container.resolve("confirm");
-
-      gatherFSL.resolves(fsl);
     });
 
-    serverMock.on.withArgs("listening").callsFake((event, callback) => {
+    serverMock.on.withArgs("listening").callsFake((_event, callback) => {
       if (simulateError) {
         // Trigger the error callback
         const errorCallback = serverMock.once.withArgs("error").args[0]?.[1];
@@ -100,7 +101,7 @@ describe("local command", () => {
 
   function setupCreateContainerMocks() {
     docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
+    docker.modem.followProgress.callsFake((_stream, onFinished) => {
       onFinished();
     });
     docker.listContainers.onCall(0).resolves([]);
@@ -119,7 +120,7 @@ describe("local command", () => {
   it("Shows a clear error to the user if something is already running on the desired port.", async () => {
     simulateError = true;
     docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
+    docker.modem.followProgress.callsFake((_stream, onFinished) => {
       onFinished();
     });
     docker.listContainers.onCall(0).resolves([]);
@@ -198,21 +199,34 @@ Please pass a --hostPort other than '8443'.",
     "--database Foo --directory ./bar",
     "--database Foo --project-directory ./bar",
   ].forEach((args) => {
-    it("Creates a staged schema without forcing if requested", async () => {
+    it(`Creates a staged schema without forcing if requested using ${args}`, async () => {
       const baseUrl = "http://0.0.0.0:8443/schema/1";
+      const { runQuery } = container.resolve("faunaClientV10");
+
       confirm.resolves(true);
       setupCreateContainerMocks();
-      fetch.resolves(
-        f({
-          version: 1728675598430000,
-          diff: diffString,
-        }),
-      );
-      const { runQuery } = container.resolve("faunaClientV10");
       runQuery.resolves({
         data: JSON.stringify({ name: "Foo" }, null, 2),
       });
+
+      // The first call pings the container, then the second creates the diff...
+      fetch
+        .onCall(1)
+        .resolves(
+          f({
+            version: 1728675598430000,
+            diff: diffString,
+          }),
+        )
+        .onCall(2)
+        .resolves(
+          f({
+            version: 1728675598430000,
+          }),
+        );
+
       await run(`local --no-color ${args}`, container);
+
       expect(gatherFSL).to.have.been.calledWith("bar");
       expect(fetch).to.have.been.calledWith(`${baseUrl}/diff?staged=true`, {
         method: "POST",
@@ -220,7 +234,7 @@ Please pass a --hostPort other than '8443'.",
         body: reformatFSL(fsl),
       });
       expect(fetch).to.have.been.calledWith(
-        `${baseUrl}/update?version=1728675598430000&staged=true`,
+        `${baseUrl}/update?staged=true&version=1728675598430000`,
         {
           method: "POST",
           headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
@@ -394,7 +408,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
 
   it("exits if a container cannot be started", async () => {
     docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
+    docker.modem.followProgress.callsFake((_stream, onFinished) => {
       onFinished();
     });
     docker.listContainers.onCall(0).resolves([
@@ -501,7 +515,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
   ].forEach((test) => {
     it(`Ensures a container in state '${test.state}' becomes running and available.`, async () => {
       docker.pull.onCall(0).resolves();
-      docker.modem.followProgress.callsFake((stream, onFinished) => {
+      docker.modem.followProgress.callsFake((_stream, onFinished) => {
         onFinished();
       });
       docker.listContainers.onCall(0).resolves([
@@ -561,7 +575,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
   it("should throw if container exists with same name but different port", async () => {
     const desiredPort = 8443;
     docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
+    docker.modem.followProgress.callsFake((_stream, onFinished) => {
       onFinished();
     });
     // Mock existing container with different port
