@@ -54,7 +54,7 @@ describe("database create", () => {
       value: "imastring",
     },
   ].forEach(({ flag, value }) => {
-    it.only(`handles invalid option types: ${flag} ${value}`, async () => {
+    it(`handles invalid option types: ${flag} ${value}`, async () => {
       try {
         await run(
           `database create --name 'testdb' --secret 'secret' ${flag} ${value}`,
