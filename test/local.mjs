@@ -57,7 +57,7 @@ describe("ensureContainerRunning", () => {
       }
     });
 
-    serverMock.on.withArgs("listening").callsFake((event, callback) => {
+    serverMock.on.withArgs("listening").callsFake((_event, callback) => {
       if (simulateError) {
         // Trigger the error callback
         const errorCallback = serverMock.once.withArgs("error").args[0]?.[1];
@@ -81,7 +81,7 @@ describe("ensureContainerRunning", () => {
 
   function setupCreateContainerMocks() {
     docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
+    docker.modem.followProgress.callsFake((_stream, onFinished) => {
       onFinished();
     });
     docker.listContainers.onCall(0).resolves([]);
@@ -100,7 +100,7 @@ describe("ensureContainerRunning", () => {
   it("Shows a clear error to the user if something is already running on the desired port.", async () => {
     simulateError = true;
     docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
+    docker.modem.followProgress.callsFake((_stream, onFinished) => {
       onFinished();
     });
     docker.listContainers.onCall(0).resolves([]);
@@ -116,7 +116,7 @@ describe("ensureContainerRunning", () => {
     // Assertions
     expect(written).to.contain(
       "[StartContainer] The hostPort '8443' on IP '0.0.0.0' is already occupied. \
-Please pass a --hostPort other than '8443'.",
+Please pass a --host-port other than '8443'.",
     );
     expect(written).not.to.contain("fauna local");
     expect(written).not.to.contain("An unexpected");
@@ -282,13 +282,13 @@ https://support.fauna.com/hc/en-us/requests/new`,
     fetch.onCall(0).rejects();
     fetch.resolves(f({}, 503)); // fail from http
     try {
-      await run("local --no-color --interval 0 --maxAttempts 3", container);
+      await run("local --no-color --interval 0 --max-attempts 3", container);
     } catch (_) {}
     const written = stderrStream.getWritten();
     expect(written).to.contain("with HTTP status: '503'");
     expect(written).to.contain("with error:");
     expect(written).to.contain(
-      "[HealthCheck] Fauna at http://0.0.0.0:8443 is not ready after 3 attempts. Consider increasing --interval or --maxAttempts.",
+      "[HealthCheck] Fauna at http://0.0.0.0:8443 is not ready after 3 attempts. Consider increasing --interval or --max-attempts.",
     );
     expect(written).not.to.contain("An unexpected");
     expect(written).not.to.contain("fauna local"); // help text
@@ -296,7 +296,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
 
   it("exits if a container cannot be started", async () => {
     docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
+    docker.modem.followProgress.callsFake((_stream, onFinished) => {
       onFinished();
     });
     docker.listContainers.onCall(0).resolves([
@@ -340,10 +340,10 @@ https://support.fauna.com/hc/en-us/requests/new`,
 
   it("throws an error if maxAttempts is less than 1", async () => {
     try {
-      await run("local --no-color --maxAttempts 0", container);
+      await run("local --no-color --max-attempts 0", container);
     } catch (_) {}
     const written = stderrStream.getWritten();
-    expect(written).to.contain("--maxAttempts must be greater than 0.");
+    expect(written).to.contain("--max-attempts must be greater than 0.");
     expect(written).to.contain("fauna local"); // help text
     expect(written).not.to.contain("An unexpected");
   });
@@ -403,7 +403,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
   ].forEach((test) => {
     it(`Ensures a container in state '${test.state}' becomes running and available.`, async () => {
       docker.pull.onCall(0).resolves();
-      docker.modem.followProgress.callsFake((stream, onFinished) => {
+      docker.modem.followProgress.callsFake((_stream, onFinished) => {
         onFinished();
       });
       docker.listContainers.onCall(0).resolves([
@@ -463,7 +463,7 @@ https://support.fauna.com/hc/en-us/requests/new`,
   it("should throw if container exists with same name but different port", async () => {
     const desiredPort = 8443;
     docker.pull.onCall(0).resolves();
-    docker.modem.followProgress.callsFake((stream, onFinished) => {
+    docker.modem.followProgress.callsFake((_stream, onFinished) => {
       onFinished();
     });
     // Mock existing container with different port

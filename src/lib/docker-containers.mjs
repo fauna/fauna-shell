@@ -210,7 +210,7 @@ async function createContainer({
   if (occupied) {
     throw new CommandError(
       `[StartContainer] The hostPort '${hostPort}' on IP '${hostIp}' is already occupied. \
-Please pass a --hostPort other than '${hostPort}'.`,
+Please pass a --host-port other than '${hostPort}'.`,
     );
   }
   const dockerContainer = await docker.createContainer({
@@ -390,7 +390,7 @@ async function waitForHealthCheck({
     `[HealthCheck] Max attempts reached. Service at ${url} did not respond.`,
   );
   throw new CommandError(
-    `[HealthCheck] Fauna at ${url} is not ready after ${maxAttempts} attempts. Consider increasing --interval or --maxAttempts.`,
+    `[HealthCheck] Fauna at ${url} is not ready after ${maxAttempts} attempts. Consider increasing --interval or --max-attempts.`,
   );
 }
 
