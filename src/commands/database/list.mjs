@@ -76,7 +76,7 @@ async function doListDatabases(argv) {
 function buildListCommand(yargs) {
   return yargs
     .options({
-      pageSize: {
+      "page-size": {
         type: "number",
         description: "Maximum number of databases to return.",
         default: 1000,
@@ -97,7 +97,7 @@ function buildListCommand(yargs) {
         "List all top-level databases and output as JSON.",
       ],
       [
-        "$0 database list --pageSize 10",
+        "$0 database list --page-size 10",
         "List the first 10 top-level databases.",
       ],
     ]);

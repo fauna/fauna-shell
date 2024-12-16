@@ -34,6 +34,7 @@ describe("redactedStringify", () => {
       secret: "hide-me",
       mySecret: "hide-this-too",
       secret_key: "also-hidden",
+      "account-key": "also-hidden",
       bigSecret: "this-is-a-long-secret",
     };
     const result = JSON.parse(redactedStringify(obj));
@@ -41,7 +42,7 @@ describe("redactedStringify", () => {
     expect(result.normal).to.equal("visible");
     expect(result.secret).to.equal("*******");
     expect(result.mySecret).to.equal("*********-too");
-    expect(result.secret_key).to.equal("***********");
+    expect(result["account-key"]).to.equal("***********");
     expect(result.bigSecret).to.equal("this*************cret");
   });
 
