@@ -3,18 +3,19 @@ import { asValue, Lifetime } from "awilix";
 import { container } from "../../cli.mjs";
 import { ValidationError } from "../errors.mjs";
 import { FaunaAccountClient } from "../fauna-account-client.mjs";
+import { isLocal } from "../middleware.mjs";
 import { AccountKeys } from "./accountKeys.mjs";
 import { DatabaseKeys } from "./databaseKeys.mjs";
 
 const validateCredentialArgs = (argv) => {
   const logger = container.resolve("logger");
   const illegalArgCombos = [
-    ["accountKey", "secret", "local"],
-    ["secret", "database", "local"],
-    ["secret", "role", "local"],
+    ["accountKey", "secret", isLocal],
+    ["secret", "database", isLocal],
+    ["secret", "role", isLocal],
   ];
   for (const [first, second, conditional] of illegalArgCombos) {
-    if (argv[first] && argv[second] && !argv[conditional]) {
+    if (argv[first] && argv[second] && !conditional(argv)) {
       throw new ValidationError(
         `Cannot use both the '--${first}' and '--${second}' options together. Please specify only one.`,
       );

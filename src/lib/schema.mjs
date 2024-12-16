@@ -10,7 +10,7 @@ import { dirExists, dirIsWriteable } from "./file-util.mjs";
 
 /**
  * Pushes a schema (FSL) based on argv.
- * @param {import("yargs").Argv} yargs
+ * @param {import("yargs").Argv & {dir: string, active: boolean, input: boolean}} argv
  */
 export async function pushSchema(argv) {
   const logger = container.resolve("logger");

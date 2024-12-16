@@ -5,6 +5,7 @@ import { container } from "../cli.mjs";
 import { ensureContainerRunning } from "../lib/docker-containers.mjs";
 import { CommandError, ValidationError } from "../lib/errors.mjs";
 import { colorize, Format } from "../lib/formatting/colorize.mjs";
+import { pushSchema } from "../lib/schema.mjs";
 
 /**
  * Starts the local Fauna container
@@ -38,6 +39,18 @@ async function createDatabaseSchema(argv) {
   logger.stderr(
     colorize(
       `[CreateDatabaseSchema] Creating schema for database '${argv.database}' from directory '${argv.directory}'...`,
+      {
+        format: Format.LOG,
+        color: argv.color,
+      },
+    ),
+  );
+  // hack to let us push schema to the local database
+  argv.secret = `secret:${argv.database}:admin`;
+  await pushSchema(argv);
+  logger.stderr(
+    colorize(
+      `[CreateDatabaseSchema] Schema for database '${argv.database}' created.`,
       {
         format: Format.LOG,
         color: argv.color,
