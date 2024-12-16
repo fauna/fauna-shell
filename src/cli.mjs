@@ -123,9 +123,6 @@ function buildYargs(argvInput) {
     .completion(
       "completion",
       "Output bash/zsh script to enable shell completions. See command output for installation instructions.",
-    )
-    .completion(
-      "completion",
       async function (currentWord, argv, defaultCompletions, done) {
         // this is pretty hard to debug - if you need to, run
         // `fauna --get-yargs-completions <command> <flag> <string to match>`
@@ -229,8 +226,5 @@ function buildYargs(argvInput) {
           encoding: "utf8",
         }),
       ).version,
-    )
-    .completion(
-      "completion",
-      "Output bash/zsh script to enable shell completions. See command output for installation instructions.",
     );
+}
