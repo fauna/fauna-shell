@@ -47,7 +47,7 @@ async function createDatabaseSchema(argv) {
   );
   // hack to let us push schema to the local database
   argv.secret = `secret:${argv.database}:admin`;
-  await pushSchema(argv);
+  await pushSchema({ ...argv, active: true, input: false });
   logger.stderr(
     colorize(
       `[CreateDatabaseSchema] Schema for database '${argv.database}' created from directory '${argv.directory}'.`,
@@ -186,18 +186,6 @@ function buildLocalCommand(yargs) {
         alias: ["dir", "directory"],
         description:
           "Path to a local directory containing `.fsl` files for the database. Valid only if --database is set.",
-      },
-      active: {
-        description:
-          "Immediately applies the local schema to the database's active schema, skipping staging the schema. To disable this, use `--no-active` or `--active=false`.",
-        type: "boolean",
-        default: true,
-      },
-      input: {
-        description:
-          "Prompt for schema input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
-        default: true,
-        type: "boolean",
       },
     })
     .check((argv) => {
