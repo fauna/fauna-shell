@@ -124,35 +124,35 @@ function buildLocalCommand(yargs) {
   return yargs
     .options({
       "container-port": {
-        describe: "The port inside the container Fauna listens on.",
+        describe: "Port inside the container Fauna listens on.",
         type: "number",
         default: 8443,
       },
       "host-port": {
         describe:
-          "The port on the host machine mapped to the container's port. This is the port you'll connect to Fauna on.",
+          "Port on the host machine mapped to the container's port. Clients send requests to Fauna on this port.",
         type: "number",
         default: 8443,
       },
       "host-ip": {
-        describe: `The IP address to bind the container's exposed port on the host.`,
+        describe: `IP address to bind to the container's exposed port on the host.`,
         type: "string",
         default: "0.0.0.0",
       },
       interval: {
         describe:
-          "The interval (in milliseconds) between health check attempts. Determines how often the CLI checks if the Fauna container is ready.",
+          "Interval, in milliseconds, between health check attempts. How often the CLI checks if the container is ready.",
         type: "number",
         default: 10000,
       },
       "max-attempts": {
         describe:
-          "The maximum number of health check attempts before declaring the start Fauna continer process as failed.",
+          "Maximum number of health check attempts allowed before container startup fails.",
         type: "number",
         default: 100,
       },
       name: {
-        describe: "The name to give the container.",
+        describe: "Name for the container.",
         type: "string",
         default: "faunadb",
       },
@@ -162,8 +162,7 @@ function buildLocalCommand(yargs) {
         default: true,
       },
       database: {
-        describe:
-          "The name of a database to create in the container. Omit to create no database.",
+        describe: "Name of the database to create. Omit to create no database.",
         type: "string",
       },
       typechecked: {
@@ -185,17 +184,16 @@ function buildLocalCommand(yargs) {
         type: "string",
         alias: ["dir", "directory"],
         description:
-          "Path to a local directory containing `.fsl` files for the database. Valid only if --database is set.",
+          "Path to a local directory containing .fsl files for the database. Valid only if --database is set.",
       },
       active: {
         description:
-          "Immediately applies the local schema to the database's active schema, skipping staging the schema. To disable this, use `--no-active` or `--active=false`.",
+          "Apply the local schema to the database's active schema. Skips staging the schema. Use --no-active to disable.",
         type: "boolean",
         default: true,
       },
       input: {
-        description:
-          "Prompt for schema input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
+        description: "Prompt for input. Use --no-input to disable.",
         default: true,
         type: "boolean",
       },
@@ -230,7 +228,23 @@ function buildLocalCommand(yargs) {
         );
       }
       return true;
-    });
+    })
+    .example([
+      ["$0 local", "Start a Fauna container with default name and ports."],
+      ["$0 local --name local-fauna", "Start a container named 'local-fauna'."],
+      [
+        "$0 local --host-port 123 --container-port 6789",
+        "Map host port `1234` to container port `6789`.",
+      ],
+      [
+        "$0 local --database example",
+        "Start a local Fauna container with the 'example' database.",
+      ],
+      [
+        "$0 local --database example --dir /path/to/schema/dir",
+        "Start a local Fauna container with a database with specified schema.",
+      ],
+    ]);
 }
 
 export default {

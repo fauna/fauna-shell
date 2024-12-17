@@ -53,8 +53,8 @@ To get started:
    fauna login
    ```
 
-4. Run CLI commands. Specify a `--database` path, including the [Region Group
-   identifier](https://docs.fauna.com/fauna/current/manage/region-groups/#id) and
+4. Run CLI commands. Specify a `--database`, including the [Region
+   Group](https://docs.fauna.com/fauna/current/manage/region-groups/#id) and
    hierarchy, to run the command in. For example:
 
    ```shell

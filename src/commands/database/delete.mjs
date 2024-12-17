@@ -56,19 +56,23 @@ function buildDeleteCommand(yargs) {
     .check(validateDatabaseOrSecret)
     .example([
       [
-        "$0 database delete --name my_database --database us/example",
-        "Delete a database named 'my_database' directly under 'us/example'.",
+        "$0 database delete --name example --database us",
+        "Delete the top-level 'example' database in the 'us' Region Group.",
       ],
       [
-        "$0 database delete --name my_database --secret my-secret",
-        "Delete a database named 'my_database' directly under the database scoped to a secret.",
+        "$0 database delete --name my_db --database us/example",
+        "Delete the 'my_db' child database directly under 'us/example'.",
+      ],
+      [
+        "$0 database delete --name my_db --secret my-secret",
+        "Delete the 'my_db' child database directly under the database scoped to a secret.",
       ],
     ]);
 }
 
 export default {
   command: "delete",
-  description: "Delete a child database.",
+  description: "Delete a database.",
   builder: buildDeleteCommand,
   handler: deleteDatabase,
 };

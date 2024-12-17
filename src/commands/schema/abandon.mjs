@@ -68,8 +68,7 @@ function buildAbandonCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
-        description:
-          "Prompt for input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
+        description: "Prompt for input. Use --no-input to disable.",
         default: true,
         type: "boolean",
       },

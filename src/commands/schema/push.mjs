@@ -101,14 +101,13 @@ function buildPushCommand(yargs) {
   return yargsWithCommonQueryOptions(yargs)
     .options({
       input: {
-        description:
-          "Prompt for input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
+        description: "Prompt for input. Use --no-input to disable.",
         default: true,
         type: "boolean",
       },
       active: {
         description:
-          "Immediately apply the local schema to the database's active schema. Skips staging the schema. Can result in temporarily unavailable indexes.",
+          "Apply the local schema to the database's active schema. Can result in temporarily unavailable indexes.",
         type: "boolean",
         default: false,
       },
@@ -116,19 +115,19 @@ function buildPushCommand(yargs) {
     })
     .example([
       [
-        "$0 schema push --database us/example --dir /path/to/schema",
+        "$0 schema push --database us/example --dir /path/to/schema/dir",
         "Stage schema changes for the 'us/example' database. If schema is already staged, replace the staged schema.",
       ],
       [
-        "$0 schema push --secret my-secret --dir /path/to/schema",
+        "$0 schema push --secret my-secret --dir /path/to/schema/dir",
         "Stage schema changes for the database scoped to a secret. If schema is already staged, replace the staged schema.",
       ],
       [
-        "$0 schema push --database us/example --dir /path/to/schema --active",
+        "$0 schema push --database us/example --dir /path/to/schema/dir --active",
         "Immediately apply changes to the 'us/example' database's active schema.",
       ],
       [
-        "$0 schema push --database us/example --dir /path/to/schema --no-input",
+        "$0 schema push --database us/example --dir /path/to/schema/dir --no-input",
         "Run the command without input prompts.",
       ],
     ]);

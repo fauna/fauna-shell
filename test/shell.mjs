@@ -364,7 +364,7 @@ describe("shell", function () {
       });
 
       const runPromise = run(
-        `shell --secret "secret" --performanceHints --no-color --format json`,
+        `shell --secret "secret" --performance-hints --no-color --format json`,
         container,
       );
 

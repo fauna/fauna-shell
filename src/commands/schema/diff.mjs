@@ -132,23 +132,23 @@ function buildDiffCommand(yargs) {
     })
     .example([
       [
-        "$0 schema diff --database us/example --dir /path/to/schema",
+        "$0 schema diff --database us/example --dir /path/to/schema/dir",
         "Compare the 'us/example' database's staged schema to the local schema. If no schema is staged, compare the database's active schema to the local schema.",
       ],
       [
-        "$0 schema diff --database us/example --dir /path/to/schema --active",
+        "$0 schema diff --database us/example --dir /path/to/schema/dir --active",
         "Compare the 'us/example' database's active schema to the local schema.",
       ],
       [
-        "$0 schema diff --secret my-secret --dir /path/to/schema --active",
+        "$0 schema diff --secret my-secret --dir /path/to/schema/dir --active",
         "Compare the active schema of the database scoped to a secret to the local schema.",
       ],
       [
-        "$0 schema diff --database us/example --dir /path/to/schema --staged",
+        "$0 schema diff --database us/example --dir /path/to/schema/dir --staged",
         "Compare the 'us/example' database's active schema to its staged schema.",
       ],
       [
-        "$0 schema diff --database us/example --dir /path/to/schema --text",
+        "$0 schema diff --database us/example --dir /path/to/schema/dir --text",
         "Show a text diff instead of a semantic diff.",
       ],
     ]);

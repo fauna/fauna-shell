@@ -32,34 +32,34 @@ const COMMON_QUERY_OPTIONS = {
     alias: "u",
     type: "string",
     description:
-      "User used to run the command. You must first log in as the user using `fauna login`.",
+      "CLI user to run the command as. You must first log in as the user using 'fauna login'.",
     default: "default",
     group: "API:",
   },
   local: {
     type: "boolean",
     describe:
-      'Use a local Fauna container. If not otherwise specified, sets `--url` to http://localhost:8443 and `--secret` to "secret".',
+      "Use a local Fauna container. Sets --url to 'http://0.0.0.0:8443' and --secret to 'secret'.",
     default: false,
     group: "API:",
   },
   url: {
     type: "string",
     description:
-      "URL for Fauna Core HTTP API requests made by the command. Defaults to https://db.fauna.com.",
+      "URL for Core HTTP API requests made by the command. Defaults to https://db.fauna.com.",
     group: "API:",
   },
   secret: {
     type: "string",
     description:
-      "Authentication secret for Fauna Core HTTP API requests made by the command. Mutually exclusive with `--database` and `--role`.",
+      "Secret used for authentication. Can't be used with --database or --role.",
     required: false,
     group: "API:",
   },
   "account-key": {
     type: "string",
     description:
-      "Fauna account key used for authentication. Negates the need for a user login. The key is used to generate short-lived database secrets for the CLI. Mutually exclusive with `--user` and `--secret`.",
+      "Fauna account key used for authentication. Can't be used with --user or --secret.",
     required: false,
     group: "API:",
   },
@@ -67,14 +67,13 @@ const COMMON_QUERY_OPTIONS = {
     alias: "d",
     type: "string",
     description:
-      "Path, including Region Group identifier and hierarchy, for the database to run the command in. Mutually exclusive with `--secret`.",
+      "Database, including Region Group and hierarchy, to run the command in. Ex: 'us/my_db', 'eu/parent_db/child_db', 'global/db'. Can't be used with --secret.",
     group: "API:",
   },
   role: {
     alias: "r",
     type: "string",
-    description:
-      "Role used to run the command. Mutually exclusive with `--secret`.",
+    description: "Role used to run the command. Can't be used with --secret.",
     group: "API:",
   },
 };
@@ -118,14 +117,14 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
   timeout: {
     type: "number",
     description:
-      "Maximum runtime, in milliseconds, for Fauna Core HTTP API requests made by the command.",
+      "Maximum query runtime in milliseconds. Only applies to v10 queries.",
     default: 5000,
     group: "API:",
   },
-  performanceHints: {
+  "performance-hints": {
     type: "boolean",
     description:
-      "Output the performance hints for the current query or nothing when no hints are available. Only applies to v10 queries. Sets '--include summary'",
+      "Output performance hints. Sets --include summary. Only applies to v10 queries. If no performance hints are returned, no hints are output.",
     default: false,
     group: "API:",
   },
@@ -133,7 +132,8 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
     type: "array",
     choices: ["all", "none", ...QUERY_INFO_CHOICES],
     default: ["summary"],
-    describe: "Include additional query response data in the output.",
+    describe:
+      "Query response info to output. Pass values as a space-separated list. Ex: --include summary queryTags.",
   },
 };
 

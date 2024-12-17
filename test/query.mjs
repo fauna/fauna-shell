@@ -310,7 +310,7 @@ describe("query", function () {
 
     it("can set the performanceHints option to true", async function () {
       await run(
-        `query "Database.all()" --performanceHints --secret=foo`,
+        `query "Database.all()" --performance-hints --secret=foo`,
         container,
       );
       expect(runQueryFromString).to.have.been.calledWith(
@@ -329,7 +329,7 @@ describe("query", function () {
         });
 
         await run(
-          `query "Database.all()" --performanceHints --secret=foo`,
+          `query "Database.all()" --performance-hints --secret=foo`,
           container,
         );
 
@@ -351,7 +351,7 @@ describe("query", function () {
         });
 
         await run(
-          `query "Database.all()" --performanceHints --secret=foo --include none`,
+          `query "Database.all()" --performance-hints --secret=foo --include none`,
           container,
         );
 

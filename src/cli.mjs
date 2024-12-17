@@ -122,7 +122,7 @@ function buildYargs(argvInput) {
     .strictCommands(true)
     .completion(
       "completion",
-      "Output bash/zsh script to enable shell completions. See command output for installation instructions.",
+      "Output a bash/zsh script for CLI auto-completions. See command output for installation instructions.",
       async function (currentWord, argv, defaultCompletions, done) {
         // this is pretty hard to debug - if you need to, run
         // `fauna --get-yargs-completions <command> <flag> <string to match>`
@@ -163,8 +163,7 @@ function buildYargs(argvInput) {
     )
     .options({
       color: {
-        description:
-          "Enable color formatting for the output. Uses ANSI escape codes. Enabled by default if supported by the terminal. Use `--no-color` or `--color=false` to disable.",
+        description: "Enable color formatting. Use --no-color to disable.",
         type: "boolean",
         // https://github.com/chalk/chalk?tab=readme-ov-file#chalklevel
         default: chalk.level > 0,
@@ -173,15 +172,14 @@ function buildYargs(argvInput) {
       config: {
         type: "string",
         description:
-          "Path to a CLI config file to use. Use `--profile` to select a profile from the file.",
+          "Path to a CLI config file to use. If provided, you must specify a profile.",
         default: ".",
         group: "Config:",
       },
       profile: {
         alias: "p",
         type: "string",
-        description:
-          "Profile from the CLI config file to use. Each profile specifies a set of CLI settings. Defaults to the 'default' profile when a config file is provided.",
+        description: "Profile from the CLI config file to use.",
         group: "Config:",
       },
       json: {
@@ -193,21 +191,21 @@ function buildYargs(argvInput) {
       quiet: {
         type: "boolean",
         description:
-          "Only output the results of the command. Useful for scripts, CI/CD, and automation workflows.",
+          "Suppress all log messages except fatal errors. Overrides --verbosity and --verbose-component.",
         default: false,
         group: "Output:",
       },
       "verbose-component": {
         description:
-          "Components to emit diagnostic logs for. Takes precedence over the `--verbosity` flag. Pass components as a space-separated list, such as `--verbose-component fetch error`, or as separate flags, such as `--verbose-component fetch --verbose-component error`.",
+          "Components to emit logs for. Overrides the --verbosity flag. Pass values as a space-separated list. Ex: --verbose-component fetch error.",
         type: "array",
         default: [],
-        choices: ["fetch", "error", "config", "argv", "creds", "completion"],
+        choices: ["argv", "completion", "config", "creds", "error", "fetch"],
         group: "Debug:",
       },
       verbosity: {
         description:
-          "Maximum verbosity level for log messages. Accepts 1 (fatal) to 5 (debug). Lower values represent more critical logs.",
+          "Least critical log level to emit. Accepts 1 (fatal) to 5 (debug). Lower values represent more critical logs.",
         type: "number",
         default: 0,
         group: "Debug:",

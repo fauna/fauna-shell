@@ -80,7 +80,7 @@ function buildCreateCommand(yargs) {
       name: {
         type: "string",
         required: true,
-        description: "Name of the child database to create.",
+        description: "Name of the database to create.",
       },
       typechecked: {
         type: "boolean",
@@ -100,19 +100,23 @@ function buildCreateCommand(yargs) {
     .check(validateDatabaseOrSecret)
     .example([
       [
-        "$0 database create --name my_database --database us/example",
-        "Create a database named 'my_database' directly under 'us/example'.",
+        "$0 database create --name example --database us",
+        "Create the top-level 'example' database in the 'us' Region Group.",
       ],
       [
-        "$0 database create --name my_database --secret my-secret",
-        "Create a database named 'my_database' directly under the database scoped to a secret.",
+        "$0 database create --name my_db --database us/example",
+        "Create the 'my_db' child database directly under 'us/example'.",
       ],
       [
-        "$0 database create --name my_database --database us/example --typechecked",
+        "$0 database create --name my_db --secret my-secret",
+        "Create the 'my_db' child database directly under the database scoped to a secret.",
+      ],
+      [
+        "$0 database create --name example --database us --typechecked",
         "Create a database with typechecking enabled.",
       ],
       [
-        "$0 database create --name my_database --database us/example --protected",
+        "$0 database create --name example --database us --protected",
         "Create a database with protected mode enabled.",
       ],
     ]);
@@ -120,7 +124,7 @@ function buildCreateCommand(yargs) {
 
 export default {
   command: "create",
-  description: "Create a child database.",
+  description: "Create a database.",
   builder: buildCreateCommand,
   handler: createDatabase,
 };
