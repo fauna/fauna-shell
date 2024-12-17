@@ -13,7 +13,7 @@ export const localSchemaOptions = {
     alias: ["directory", "dir"],
     type: "string",
     description:
-      "Path to a local directory containing `.fsl` files for the database.",
+      "Path to a local directory containing .fsl files for the database.",
     default: ".",
   },
 };
