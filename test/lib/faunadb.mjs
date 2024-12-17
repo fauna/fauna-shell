@@ -17,7 +17,7 @@ describe("faunadbToCommandError", () => {
       },
     });
 
-    expect(() => faunadbToCommandError(faunaError)).to.throw(
+    expect(() => faunadbToCommandError({ err: faunaError })).to.throw(
       AuthenticationError,
     );
   });
@@ -29,7 +29,7 @@ describe("faunadbToCommandError", () => {
       },
     });
 
-    expect(() => faunadbToCommandError(faunaError)).to.throw(
+    expect(() => faunadbToCommandError({ err: faunaError })).to.throw(
       AuthorizationError,
     );
   });
@@ -41,7 +41,9 @@ describe("faunadbToCommandError", () => {
       },
     });
 
-    expect(() => faunadbToCommandError(faunaError)).to.throw(CommandError);
+    expect(() => faunadbToCommandError({ err: faunaError })).to.throw(
+      CommandError,
+    );
   });
 
   it("should convert NotFound error to CommandError", () => {
@@ -51,13 +53,15 @@ describe("faunadbToCommandError", () => {
       },
     });
 
-    expect(() => faunadbToCommandError(faunaError)).to.throw(CommandError);
+    expect(() => faunadbToCommandError({ err: faunaError })).to.throw(
+      CommandError,
+    );
   });
 
   it("should convert network error to CommandError with network message", () => {
     const networkError = new TypeError("fetch failed");
 
-    expect(() => faunadbToCommandError(networkError)).to.throw(
+    expect(() => faunadbToCommandError({ err: networkError })).to.throw(
       CommandError,
       NETWORK_ERROR_MESSAGE,
     );
@@ -70,7 +74,7 @@ describe("faunadbToCommandError", () => {
       },
     });
 
-    expect(() => faunadbToCommandError(faunaError)).to.throw(
+    expect(() => faunadbToCommandError({ err: faunaError })).to.throw(
       faunadb.errors.FaunaHTTPError,
     );
   });
@@ -78,7 +82,7 @@ describe("faunadbToCommandError", () => {
   it("should pass through other errors unchanged", () => {
     const genericError = new Error("Generic error");
 
-    expect(() => faunadbToCommandError(genericError)).to.throw(Error);
+    expect(() => faunadbToCommandError({ err: genericError })).to.throw(Error);
   });
 
   it("should call optional error handler if provided", () => {
@@ -89,7 +93,7 @@ describe("faunadbToCommandError", () => {
     const error = new Error("Test error");
 
     try {
-      faunadbToCommandError(error, handler);
+      faunadbToCommandError({ err: error, handler });
     } catch (e) {
       // Expected to throw
     }

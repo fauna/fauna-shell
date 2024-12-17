@@ -19,7 +19,7 @@ describe("faunaToCommandError", () => {
     });
 
     try {
-      faunaToCommandError(serviceError);
+      faunaToCommandError({ err: serviceError });
     } catch (error) {
       expect(error).to.be.instanceOf(AuthenticationError);
       expect(error.cause).to.equal(serviceError);
@@ -35,7 +35,7 @@ describe("faunaToCommandError", () => {
     });
 
     try {
-      faunaToCommandError(serviceError);
+      faunaToCommandError({ err: serviceError });
     } catch (error) {
       expect(error).to.be.instanceOf(AuthorizationError);
       expect(error.cause).to.equal(serviceError);
@@ -51,7 +51,7 @@ describe("faunaToCommandError", () => {
     });
 
     try {
-      faunaToCommandError(serviceError);
+      faunaToCommandError({ err: serviceError });
     } catch (error) {
       expect(error).to.be.instanceOf(AuthorizationError);
       expect(error.cause).to.equal(serviceError);
@@ -67,7 +67,7 @@ describe("faunaToCommandError", () => {
     });
 
     try {
-      faunaToCommandError(serviceError);
+      faunaToCommandError({ err: serviceError });
     } catch (error) {
       expect(error).to.be.instanceOf(CommandError);
       expect(error.cause).to.equal(serviceError);
@@ -78,7 +78,7 @@ describe("faunaToCommandError", () => {
     const networkError = new NetworkError("Network failure");
 
     try {
-      faunaToCommandError(networkError);
+      faunaToCommandError({ err: networkError });
     } catch (error) {
       expect(error).to.be.instanceOf(CommandError);
       expect(error.message).to.equal(NETWORK_ERROR_MESSAGE);
@@ -90,7 +90,7 @@ describe("faunaToCommandError", () => {
     const genericError = new Error("Generic error");
 
     try {
-      faunaToCommandError(genericError);
+      faunaToCommandError({ err: genericError });
     } catch (error) {
       expect(error).to.equal(genericError);
     }
@@ -111,7 +111,7 @@ describe("faunaToCommandError", () => {
     };
 
     try {
-      faunaToCommandError(serviceError, handler);
+      faunaToCommandError({ err: serviceError, handler });
     } catch (error) {
       expect(handlerCalled).to.be.true;
       expect(error).to.be.instanceOf(AuthenticationError);
