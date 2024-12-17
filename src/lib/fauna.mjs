@@ -168,34 +168,35 @@ export const formatQueryResponse = (res, opts = {}) => {
  * can be provided for different types of errors, and a default error
  * message is thrown if no handler is provided. This may be used when we run
  * commands on the users behalf and want to provide a more helpful error message.
- *
- * @param {import("fauna").FaunaError} e - The Fauna error to handle
- * @param {(e: import("fauna").FaunaError) => void} [handler] - Optional error handler to handle and throw in
+ * @param {object} opts
+ * @param {import("fauna").FaunaError} opts.err - The Fauna error to handle
+ * @param {(e: import("fauna").FaunaError) => void} [opts.handler] - Optional error handler to handle and throw in
+ * @param {boolean} [opts.color] - Whether to colorize the error
  * @throws {Error} Always throws an error with a message based on the error code or handler response
  * @returns {never} This function always throws an error
  */
 
-export const faunaToCommandError = (e, handler) => {
+export const faunaToCommandError = ({ err, handler, color }) => {
   if (handler) {
-    handler(e);
+    handler(err);
   }
 
-  if (e instanceof ServiceError) {
-    switch (e.code) {
+  if (err instanceof ServiceError) {
+    switch (err.code) {
       case "unauthorized":
-        throw new AuthenticationError({ cause: e });
+        throw new AuthenticationError({ cause: err });
       case "forbidden":
-        throw new AuthorizationError({ cause: e });
+        throw new AuthorizationError({ cause: err });
       case "permission_denied":
-        throw new AuthorizationError({ cause: e });
+        throw new AuthorizationError({ cause: err });
       default:
-        throw new CommandError(formatError(e), { cause: e });
+        throw new CommandError(formatError(err, { color }), { cause: err });
     }
   }
 
-  if (e instanceof NetworkError) {
-    throw new CommandError(NETWORK_ERROR_MESSAGE, { cause: e });
+  if (err instanceof NetworkError) {
+    throw new CommandError(NETWORK_ERROR_MESSAGE, { cause: err });
   }
 
-  throw e;
+  throw err;
 };

@@ -134,10 +134,13 @@ export const formatError = (err, opts = {}) => {
 
 /**
  * Converts a Fauna HTTP error to a CommandError.
- * @param {any} err - The error to convert
- * @param {(e: import("fauna").FaunaError) => void} [handler] - Optional error handler to handle and throw in
+ * @param {object} opts
+ * @param {any} opts.err - The error to convert
+ * @param {(e: import("fauna").FaunaError) => void} [opts.handler] - Optional error handler to handle and throw in
+ * @param {boolean} [opts.color] - Whether to colorize the error
+ * @returns {void}
  */
-export const faunadbToCommandError = (err, handler) => {
+export const faunadbToCommandError = ({ err, handler, color }) => {
   if (handler) {
     handler(err);
   }
@@ -150,7 +153,7 @@ export const faunadbToCommandError = (err, handler) => {
         throw new AuthorizationError({ cause: err });
       case "BadRequest":
       case "NotFound":
-        throw new CommandError(formatError(err, { raw: true }), { cause: err });
+        throw new CommandError(formatError(err, { color }), { cause: err });
       default:
         throw err;
     }
