@@ -3,12 +3,13 @@
 import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { CommandError } from "../../lib/errors.mjs";
-import { getSecret } from "../../lib/fauna-client.mjs";
 
 async function doCommit(argv) {
-  const makeFaunaRequest = container.resolve("makeFaunaRequest");
-  const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
+  const { getSecret } = container.resolve("faunaClient");
+  const logger = container.resolve("logger");
+  const makeFaunaRequest = container.resolve("makeFaunaRequest");
+
   const secret = await getSecret();
 
   if (!argv.input) {

@@ -2,7 +2,6 @@
 
 import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
-import { getSecret } from "../../lib/fauna-client.mjs";
 import { localSchemaOptions } from "./schema.mjs";
 
 async function determineFileState(argv, filenames) {
@@ -50,9 +49,11 @@ function logDiff({ argv, adds, overwrites, deletes, source }) {
 }
 
 async function doPull(argv) {
-  const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
+  const { getSecret } = container.resolve("faunaClient");
+  const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
+
   const secret = await getSecret();
 
   // Get the staged schema status

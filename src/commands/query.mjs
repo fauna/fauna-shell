@@ -11,11 +11,6 @@ import {
   isUnknownError,
   ValidationError,
 } from "../lib/errors.mjs";
-import {
-  formatError,
-  formatQueryResponse,
-  getSecret,
-} from "../lib/fauna-client.mjs";
 import { isTTY } from "../lib/misc.mjs";
 
 function validate(argv) {
@@ -70,7 +65,14 @@ const resolveInput = (argv) => {
 };
 
 async function queryCommand(argv) {
-  const formatQueryInfo = container.resolve("formatQueryInfo");
+  const {
+    formatError,
+    formatQueryInfo,
+    formatQueryResponse,
+    getSecret,
+    runQueryFromString,
+  } = container.resolve("faunaClient");
+
   const logger = container.resolve("logger");
 
   // Run validation here instead of via check for more control over output
@@ -99,7 +101,7 @@ async function queryCommand(argv) {
     // Using --json takes precedence over --format
     const outputFormat = resolveFormat(argv);
 
-    const results = await container.resolve("runQueryFromString")(expression, {
+    const results = await runQueryFromString(expression, {
       apiVersion,
       secret,
       url,

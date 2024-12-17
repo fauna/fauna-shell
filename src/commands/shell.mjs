@@ -12,16 +12,15 @@ import {
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
 
 async function shellCommand(argv) {
+  const { getSecret, isQueryable } = container.resolve("faunaClient");
   const { query: v4Query } = container.resolve("faunadb");
 
   validateDatabaseOrSecret(argv);
 
   // Fast fail if the database is not queryable
-  const isQueryable = container.resolve("isQueryable");
   await isQueryable({ ...argv, secret: await getSecret() });
 
   const logger = container.resolve("logger");
@@ -146,9 +145,13 @@ const getArgvOrCtx = (key, argv, ctx) => {
 
 // caches the logger, client, and performQuery for subsequent shell calls
 async function buildCustomEval(argv) {
-  const formatError = container.resolve("formatError");
-  const formatQueryInfo = container.resolve("formatQueryInfo");
-  const runQueryFromString = container.resolve("runQueryFromString");
+  const {
+    formatError,
+    getSecret,
+    formatQueryInfo,
+    formatQueryResponse,
+    runQueryFromString,
+  } = container.resolve("faunaClient");
 
   return async (cmd, ctx, _filename, cb) => {
     try {
