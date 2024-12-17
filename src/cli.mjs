@@ -218,7 +218,7 @@ function buildYargs(argvInput) {
     .exitProcess(false)
     .version(
       "version",
-      "Show the fauna CLI version.",
+      "Show the Fauna CLI version.",
       JSON.parse(
         fs.readFileSync(path.join(__dirname, "../package.json"), {
           encoding: "utf8",
