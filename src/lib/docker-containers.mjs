@@ -14,7 +14,7 @@ let color = false;
  * @param {number} options.containerPort The port inside the container Fauna listens on
  * @param {boolean} options.pull Whether to pull the latest image
  * @param {number} [options.interval] The interval (in milliseconds) between health check attempts
- * @param {number} [options.maxAttempts] The maximum number of health check attempts before declaring the start Fauna continer process as failed
+ * @param {number} [options.maxAttempts] The maximum number of health check attempts before declaring the start Fauna container process as failed
  * @returns {Promise<void>}
  */
 export async function ensureContainerRunning({

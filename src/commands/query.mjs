@@ -152,7 +152,7 @@ function buildQueryCommand(yargs) {
   return yargsWithCommonConfigurableQueryOptions(yargs)
     .positional("fql", {
       type: "string",
-      description: "FQL query to run. Use `-` to read from stdin.",
+      description: "FQL query to run. Use - to read from stdin.",
     })
     .nargs("fql", 1)
     .options({

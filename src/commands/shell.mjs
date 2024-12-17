@@ -118,7 +118,7 @@ async function shellCommand(argv) {
     },
     {
       cmd: "toggleInfo",
-      help: "Enable or disable the query info fields of the API response. Disabled by default. If enabled, outputs the included fields of the API response.",
+      help: "Enable or disable output of --include info. Disabled by default.",
       action: () => {
         shell.context.include =
           shell.context.include.length === 0
