@@ -237,11 +237,11 @@ function buildLocalCommand(yargs) {
         "Map host port `1234` to container port `6789`.",
       ],
       [
-        "$0 local --database example",
-        "Start a local Fauna container with the 'example' database.",
+        "$0 local --database my_db",
+        "Start a local Fauna container with the 'my_db' database.",
       ],
       [
-        "$0 local --database example --dir /path/to/schema/dir",
+        "$0 local --database my_db --dir /path/to/schema/dir",
         "Start a local Fauna container with a database with specified schema.",
       ],
     ]);

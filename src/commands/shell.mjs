@@ -223,12 +223,12 @@ function buildShellCommand(yargs) {
   return yargsWithCommonConfigurableQueryOptions(yargs)
     .example([
       [
-        "$0 shell --database us/example",
-        "Run queries in the 'us/example' database.",
+        "$0 shell --database us/my_db",
+        "Run queries in the 'us/my_db' database.",
       ],
       [
-        "$0 shell --database us/example --role server",
-        "Run queries in the 'us/example' database using the 'server' role.",
+        "$0 shell --database us/my_db --role server",
+        "Run queries in the 'us/my_db' database using the 'server' role.",
       ],
       [
         "$0 shell --secret my-secret",

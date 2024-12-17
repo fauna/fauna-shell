@@ -170,27 +170,27 @@ function buildQueryCommand(yargs) {
     })
     .example([
       [
-        '$0 query "Collection.all()" --database us/example',
-        "Run the query in the 'us/example' database and write the results to stdout.",
+        '$0 query "Collection.all()" --database us/my_db',
+        "Run the query in the 'us/my_db' database and write the results to stdout.",
       ],
       [
-        '$0 query "Collection.all()" --database us/example --role server',
-        "Run the query in the 'us/example' database using the 'server' role.",
+        '$0 query "Collection.all()" --database us/my_db --role server',
+        "Run the query in the 'us/my_db' database using the 'server' role.",
       ],
       [
         '$0 query "Collection.all()" --secret my-secret',
         "Run the query in the database scoped to a secret.",
       ],
       [
-        "$0 query -i /path/to/query.fql --database us/example",
+        "$0 query -i /path/to/query.fql --database us/my_db",
         "Run the query from a file.",
       ],
       [
-        'echo "1 + 1" | $0 query - --database us/example',
+        'echo "1 + 1" | $0 query - --database us/my_db',
         "Run the query from stdin.",
       ],
       [
-        "$0 query -i /path/to/queries.fql --output /tmp/result.json --database us/example",
+        "$0 query -i /path/to/query.fql --output /tmp/result.json --database us/my_db",
         "Run the query and write the results to a file.",
       ],
     ]);

@@ -76,8 +76,8 @@ function buildListCommand(yargs) {
     .example([
       ["$0 database list", "List all top-level databases."],
       [
-        "$0 database list --database us/example",
-        "List all child databases directly under the 'us/example' database.",
+        "$0 database list --database us/parent_db",
+        "List all child databases directly under the 'us/parent_db' database.",
       ],
       [
         "$0 database list --secret my-secret",

@@ -85,8 +85,8 @@ function buildStatusCommand(yargs) {
     .options(localSchemaOptions)
     .example([
       [
-        "$0 schema status --database us/example",
-        "Get the staged schema status for the 'us/example' database.",
+        "$0 schema status --database us/my_db",
+        "Get the staged schema status for the 'us/my_db' database.",
       ],
       [
         "$0 schema status --secret my-secret",
