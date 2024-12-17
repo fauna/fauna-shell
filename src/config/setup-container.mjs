@@ -22,6 +22,7 @@ import { makeRetryableFaunaRequest } from "../lib/db.mjs";
 import * as faunaV10 from "../lib/fauna.mjs";
 import {
   formatError,
+  formatQueryInfo,
   isQueryable,
   runQueryFromString,
 } from "../lib/fauna-client.mjs";
@@ -98,6 +99,7 @@ export const injectables = {
   // utilities for interacting with Fauna
   runQueryFromString: awilix.asValue(runQueryFromString),
   formatError: awilix.asValue(formatError),
+  formatQueryInfo: awilix.asValue(formatQueryInfo),
   faunaClientV10: awilix.asValue(faunaV10),
   faunaClientV4: awilix.asValue(faunaV4),
   isQueryable: awilix.asValue(isQueryable),

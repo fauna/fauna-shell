@@ -13,7 +13,6 @@ import {
 } from "../lib/errors.mjs";
 import {
   formatError,
-  formatQueryInfo,
   formatQueryResponse,
   getSecret,
 } from "../lib/fauna-client.mjs";
@@ -71,6 +70,7 @@ const resolveInput = (argv) => {
 };
 
 async function queryCommand(argv) {
+  const formatQueryInfo = container.resolve("formatQueryInfo");
   const logger = container.resolve("logger");
 
   // Run validation here instead of via check for more control over output
