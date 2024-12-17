@@ -308,9 +308,9 @@ describe("query", function () {
       );
     });
 
-    it("can set the performance-hints option to true", async function () {
+    it("can set the performanceHints option to true", async function () {
       await run(
-        `query "Database.all()" --performance-hints --secret=foo`,
+        `query "Database.all()" --performanceHints --secret=foo`,
         container,
       );
       expect(runQueryFromString).to.have.been.calledWith(
@@ -343,10 +343,12 @@ describe("query", function () {
         expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
       });
 
-      await run(
-        `query "Database.all()" --performance-hints --secret=foo`,
-        container,
-      );
+      it("still displays performance hints if '--include none' is used", async function () {
+        runQueryFromString.resolves({
+          summary:
+            "performance_hint: use a more efficient query\n1 | use a more efficient query",
+          data: "fql",
+        });
 
         await run(
           `query "Database.all()" --performanceHints --secret=foo --include none`,
@@ -363,10 +365,15 @@ describe("query", function () {
         expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
       });
 
-      await run(
-        `query "Database.all()" --performance-hints --secret=foo --include none`,
-        container,
-      );
+      it("does not display anything if info fields are empty", async function () {
+        runQueryFromString.resolves({
+          txn_ts: "",
+          schema_version: "",
+          summary: "",
+          query_tags: "",
+          stats: "",
+          data: "fql",
+        });
 
         await run(`query "test" --secret=foo --include all`, container);
 
