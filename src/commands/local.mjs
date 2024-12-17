@@ -189,9 +189,9 @@ function buildLocalCommand(yargs) {
       },
       active: {
         description:
-          "Immediately apply the local schema to the database's active schema. Skips staging the schema. Can result in temporarily unavailable indexes.",
+          "Immediately applies the local schema to the database's active schema, skipping staging the schema. To disable this, use `--no-active` or `--active=false`.",
         type: "boolean",
-        default: false,
+        default: true,
       },
       input: {
         description:

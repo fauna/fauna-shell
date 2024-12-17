@@ -166,21 +166,46 @@ Please pass a --host-port other than '8443'.",
   });
 
   [
-    "--database Foo --dir ./bar --no-input --active",
-    "--database Foo --directory ./bar --no-input --active",
-    "--database Foo --project-directory ./bar --no-input --active",
+    "--database Foo --dir ./bar ",
+    "--database Foo --directory ./bar ",
+    "--database Foo --project-directory ./bar",
   ].forEach((args) => {
     it("Creates a schema if requested", async () => {
-      setupCreateContainerMocks();
-      fetch.resolves(f({}));
+      const baseUrl = "http://0.0.0.0:8443/schema/1";
       const { runQuery } = container.resolve("faunaClientV10");
+
+      confirm.resolves(true);
+      setupCreateContainerMocks();
       runQuery.resolves({
         data: JSON.stringify({ name: "Foo" }, null, 2),
       });
+
+      // The first call pings the container, then the second creates the diff...
+      fetch
+        .onCall(1)
+        .resolves(
+          f({
+            version: 1728675598430000,
+            diff: diffString,
+          }),
+        )
+        .onCall(2)
+        .resolves(
+          f({
+            version: 1728675598430000,
+          }),
+        );
+
       await run(`local --no-color ${args}`, container);
+
       expect(gatherFSL).to.have.been.calledWith("bar");
+      expect(fetch).to.have.been.calledWith(`${baseUrl}/diff?staged=false`, {
+        method: "POST",
+        headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+        body: reformatFSL(fsl),
+      });
       expect(fetch).to.have.been.calledWith(
-        "http://0.0.0.0:8443/schema/1/update?force=true&staged=false",
+        `${baseUrl}/update?staged=false&version=1728675598430000`,
         {
           method: "POST",
           headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
@@ -195,9 +220,9 @@ Please pass a --host-port other than '8443'.",
   });
 
   [
-    "--database Foo --dir ./bar",
-    "--database Foo --directory ./bar",
-    "--database Foo --project-directory ./bar",
+    "--database Foo --dir ./bar --no-active",
+    "--database Foo --directory ./bar --no-active",
+    "--database Foo --project-directory ./bar --no-active",
   ].forEach((args) => {
     it(`Creates a staged schema without forcing if requested using ${args}`, async () => {
       const baseUrl = "http://0.0.0.0:8443/schema/1";
