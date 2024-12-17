@@ -6,6 +6,7 @@ import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { QUERY_INFO_CHOICES } from "../src/lib/command-helpers.mjs";
 import { NETWORK_ERROR_MESSAGE } from "../src/lib/errors.mjs";
 import { colorize } from "../src/lib/formatting/colorize.mjs";
 import {
@@ -321,9 +322,44 @@ describe("query", function () {
     });
 
     // Add FormatQueryInfo to container in order to test which options are were passed
-    it.skip("can set the include option to an array");
-    it.skip("can specify '--include all' to set all include options");
-    it.skip("can specify '--include none' to set no include options");
+    it("can set the include option to '[summary]' by default", async function () {
+      const formatQueryInfo = container.resolve("formatQueryInfo");
+
+      await run(`query "foo" --secret=foo`, container);
+
+      expect(formatQueryInfo.getCall(0).args[1].include).to.deep.equal([
+        "summary",
+      ]);
+    });
+
+    it("can set the include option to an array", async function () {
+      const formatQueryInfo = container.resolve("formatQueryInfo");
+
+      await run(`query "foo" --secret=foo --include summary stats`, container);
+
+      expect(formatQueryInfo.getCall(0).args[1].include).to.deep.equal([
+        "summary",
+        "stats",
+      ]);
+    });
+
+    it("can specify '--include all' to set all include options", async function () {
+      const formatQueryInfo = container.resolve("formatQueryInfo");
+
+      await run(`query "foo" --secret=foo --include all`, container);
+
+      expect(formatQueryInfo.getCall(0).args[1].include).to.deep.equal(
+        QUERY_INFO_CHOICES,
+      );
+    });
+
+    it("can specify '--include none' to set no include options", async function () {
+      const formatQueryInfo = container.resolve("formatQueryInfo");
+
+      await run(`query "foo" --secret=foo --include none`, container);
+
+      expect(formatQueryInfo).to.not.be.called;
+    });
 
     it("displays summary by default", async function () {
       runQueryFromString.resolves({

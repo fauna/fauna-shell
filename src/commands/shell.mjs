@@ -13,7 +13,6 @@ import {
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
 import {
-  formatQueryInfo,
   formatQueryResponse,
   getSecret,
 } from "../lib/fauna-client.mjs";
@@ -150,8 +149,9 @@ const getArgvOrCtx = (key, argv, ctx) => {
 
 // caches the logger, client, and performQuery for subsequent shell calls
 async function buildCustomEval(argv) {
-  const runQueryFromString = container.resolve("runQueryFromString");
   const formatError = container.resolve("formatError");
+  const formatQueryInfo = container.resolve("formatQueryInfo");
+  const runQueryFromString = container.resolve("runQueryFromString");
 
   return async (cmd, ctx, _filename, cb) => {
     try {

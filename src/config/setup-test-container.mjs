@@ -11,6 +11,7 @@ import { f, InMemoryWritableStream } from "../../test/helpers.mjs";
 import { parseYargs } from "../cli.mjs";
 import { makeRetryableFaunaRequest } from "../lib/db.mjs";
 import * as faunaClientV10 from "../lib/fauna.mjs";
+import { formatQueryInfo } from "../lib/fauna-client.mjs";
 import * as faunaClientV4 from "../lib/faunadb.mjs";
 import buildLogger from "../lib/logger.mjs";
 import { injectables, setupCommonContainer } from "./setup-container.mjs";
@@ -106,6 +107,7 @@ export function setupTestContainer() {
     runQueryFromString: awilix.asValue(stub().resolves({})),
     isQueryable: awilix.asValue(stub().resolves()),
     formatError: awilix.asValue(stub()),
+    formatQueryInfo: awilix.asValue(spy(formatQueryInfo)),
     faunaClientV10: awilix.asValue({
       getClient: stub(),
       runQuery: stub(),
