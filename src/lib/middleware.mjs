@@ -9,7 +9,7 @@ import { container } from "../cli.mjs";
 import { fixPath } from "../lib/file-util.mjs";
 import { redactedStringify } from "./formatting/redact.mjs";
 
-const LOCAL_URL = "http://localhost:8443";
+const LOCAL_URL = "http://0.0.0.0:8443";
 const LOCAL_SECRET = "secret";
 const DEFAULT_URL = "https://db.fauna.com";
 
@@ -80,6 +80,15 @@ export function applyLocalArg(argv) {
 }
 
 /**
+ * @param {import('yargs').Arguments} argv
+ * @returns {boolean} true if this command acts on a local
+ * container, false otherwise.
+ */
+export function isLocal(argv) {
+  return argv.local || argv._[0] === "local";
+}
+
+/**
  * Mutates argv.url appropriately for local Fauna usage
  * (i.e. local container usage). If --local is provided
  * and --url is not, argv.url is set to 'http://localhost:8443'.
@@ -89,7 +98,7 @@ export function applyLocalArg(argv) {
 function applyLocalToUrl(argv) {
   const logger = container.resolve("logger");
   if (!argv.url) {
-    if (argv.local) {
+    if (isLocal(argv)) {
       argv.url = LOCAL_URL;
       logger.debug(
         `Set url to '${LOCAL_URL}' as --local was given and --url was not`,
@@ -120,7 +129,7 @@ function applyLocalToUrl(argv) {
  */
 function applyLocalToSecret(argv) {
   const logger = container.resolve("logger");
-  if (!argv.secret && argv.local) {
+  if (!argv.secret && isLocal(argv)) {
     if (argv.role && argv.database) {
       argv.secret = `${LOCAL_SECRET}:${argv.database}:${argv.role}`;
     } else if (argv.role) {

@@ -29,13 +29,17 @@ async function deleteDatabase(argv) {
 
     // We use stderr for messaging and there's no stdout output for a deleted database
     logger.stderr(`Database '${argv.name}' was successfully deleted.`);
-  } catch (e) {
-    faunaToCommandError(e, (err) => {
-      if (err instanceof ServiceError && err.code === "document_not_found") {
-        throw new CommandError(
-          `Database '${argv.name}' not found. Please check the database name and try again.`,
-        );
-      }
+  } catch (err) {
+    faunaToCommandError({
+      err,
+      color: argv.color,
+      handler: (err) => {
+        if (err instanceof ServiceError && err.code === "document_not_found") {
+          throw new CommandError(
+            `Database '${argv.name}' not found. Please check the database name and try again.`,
+          );
+        }
+      },
     });
   }
 }

@@ -27,7 +27,7 @@ describe("database list", () => {
     [
       {
         args: "--local",
-        expected: { secret: "secret", url: "http://localhost:8443" },
+        expected: { secret: "secret", url: "http://0.0.0.0:8443" },
       },
       {
         args: "--local --url http://yo_dog:8443",
@@ -35,14 +35,14 @@ describe("database list", () => {
       },
       {
         args: "--local --secret taco",
-        expected: { secret: "taco", url: "http://localhost:8443" },
+        expected: { secret: "taco", url: "http://0.0.0.0:8443" },
       },
       {
         args: "--local --pageSize 10",
         expected: {
           secret: "secret",
           pageSize: 10,
-          url: "http://localhost:8443",
+          url: "http://0.0.0.0:8443",
         },
       },
     ].forEach(({ args, expected }) => {
