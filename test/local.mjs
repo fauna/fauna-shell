@@ -1,4 +1,5 @@
 //@ts-check
+/* eslint-disable max-lines */
 
 import { expect } from "chai";
 import { AbortError } from "fauna";
@@ -6,9 +7,10 @@ import sinon, { stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer } from "../src/config/setup-test-container.mjs";
+import { reformatFSL } from "../src/lib/schema.mjs";
 import { f } from "./helpers.mjs";
 
-describe("ensureContainerRunning", () => {
+describe("local command", () => {
   let container,
     fetch,
     logger,
@@ -18,7 +20,20 @@ describe("ensureContainerRunning", () => {
     serverMock,
     simulateError,
     startStub,
-    unpauseStub;
+    unpauseStub,
+    gatherFSL,
+    confirm;
+
+  const diffString =
+    "\u001b[1;34m* Modifying collection `Customer`\u001b[0m at collections.fsl:2:1:\n  * Defined fields:\n\u001b[31m  - drop field `.age`\u001b[0m\n\n";
+
+  const fsl = [
+    {
+      name: "coll.fsl",
+      content:
+        "collection MyColl {\\n  name: String\\n  index byName {\\n    terms [.name]\\n  }\\n}\\n",
+    },
+  ];
 
   beforeEach(async () => {
     simulateError = false;
@@ -30,6 +45,11 @@ describe("ensureContainerRunning", () => {
     logsStub = stub();
     startStub = stub();
     unpauseStub = stub();
+    confirm = container.resolve("confirm");
+
+    gatherFSL = container.resolve("gatherFSL");
+    gatherFSL.resolves(fsl);
+
     // Requested port is free
     serverMock = {
       close: sinon.stub(),
@@ -145,6 +165,121 @@ Please pass a --host-port other than '8443'.",
     });
   });
 
+  [
+    "--database Foo --dir ./bar ",
+    "--database Foo --directory ./bar ",
+    "--database Foo --project-directory ./bar",
+  ].forEach((args) => {
+    it("Creates a schema if requested", async () => {
+      const baseUrl = "http://0.0.0.0:8443/schema/1";
+      const { runQuery } = container.resolve("faunaClientV10");
+
+      confirm.resolves(true);
+      setupCreateContainerMocks();
+      runQuery.resolves({
+        data: JSON.stringify({ name: "Foo" }, null, 2),
+      });
+
+      // The first call pings the container, then the second creates the diff...
+      fetch
+        .onCall(1)
+        .resolves(
+          f({
+            version: 1728675598430000,
+            diff: diffString,
+          }),
+        )
+        .onCall(2)
+        .resolves(
+          f({
+            version: 1728675598430000,
+          }),
+        );
+
+      await run(`local --no-color ${args}`, container);
+
+      expect(gatherFSL).to.have.been.calledWith("bar");
+      expect(fetch).to.have.been.calledWith(`${baseUrl}/diff?staged=false`, {
+        method: "POST",
+        headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+        body: reformatFSL(fsl),
+      });
+      expect(fetch).to.have.been.calledWith(
+        `${baseUrl}/update?staged=false&version=1728675598430000`,
+        {
+          method: "POST",
+          headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+          body: reformatFSL(fsl),
+        },
+      );
+      const written = stderrStream.getWritten();
+      expect(written).to.contain(
+        "[CreateDatabaseSchema] Schema for database 'Foo' created from directory './bar'.",
+      );
+    });
+  });
+
+  [
+    "--database Foo --dir ./bar --no-active",
+    "--database Foo --directory ./bar --no-active",
+    "--database Foo --project-directory ./bar --no-active",
+  ].forEach((args) => {
+    it(`Creates a staged schema without forcing if requested using ${args}`, async () => {
+      const baseUrl = "http://0.0.0.0:8443/schema/1";
+      const { runQuery } = container.resolve("faunaClientV10");
+
+      confirm.resolves(true);
+      setupCreateContainerMocks();
+      runQuery.resolves({
+        data: JSON.stringify({ name: "Foo" }, null, 2),
+      });
+
+      // The first call pings the container, then the second creates the diff...
+      fetch
+        .onCall(1)
+        .resolves(
+          f({
+            version: 1728675598430000,
+            diff: diffString,
+          }),
+        )
+        .onCall(2)
+        .resolves(
+          f({
+            version: 1728675598430000,
+          }),
+        );
+
+      await run(`local --no-color ${args}`, container);
+
+      expect(gatherFSL).to.have.been.calledWith("bar");
+      expect(fetch).to.have.been.calledWith(`${baseUrl}/diff?staged=true`, {
+        method: "POST",
+        headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+        body: reformatFSL(fsl),
+      });
+      expect(fetch).to.have.been.calledWith(
+        `${baseUrl}/update?staged=true&version=1728675598430000`,
+        {
+          method: "POST",
+          headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+          body: reformatFSL(fsl),
+        },
+      );
+      expect(logger.stdout).to.have.been.calledWith("Proposed diff:\n");
+      const written = stderrStream.getWritten();
+      expect(written).to.contain(
+        "[CreateDatabaseSchema] Schema for database 'Foo' created from directory './bar'.",
+      );
+      expect(confirm).to.have.been.calledWith(
+        sinon.match.has("message", "Stage the above changes?"),
+      );
+      expect(logger.stdout).to.have.been.calledWith(diffString);
+    });
+  });
+
+  it.skip("Shows errors on schema problems", () => {});
+
   it("Exits with an expected error if the create db query aborts", async () => {
     setupCreateContainerMocks();
     const { runQuery } = container.resolve("faunaClientV10");
@@ -164,20 +299,22 @@ Please pass a --host-port other than '8443'.",
     expect(written).not.to.contain("An unexpected");
   });
 
-  ["--typechecked", "--protected", "--priority 1"].forEach((args) => {
-    it("Rejects invalid create database args", async () => {
-      setupCreateContainerMocks();
-      const { runQuery } = container.resolve("faunaClientV10");
-      try {
-        await run(`local --no-color ${args}`, container);
-      } catch (_) {}
-      expect(runQuery).not.to.have.been.called;
-      const written = stderrStream.getWritten();
-      expect(written).to.contain("fauna local");
-      expect(written).not.to.contain("An unexpected");
-      expect(written).to.contain("can only be set if");
-    });
-  });
+  ["--typechecked", "--protected", "--priority 1", "--directory foo"].forEach(
+    (args) => {
+      it("Rejects invalid create database args", async () => {
+        setupCreateContainerMocks();
+        const { runQuery } = container.resolve("faunaClientV10");
+        try {
+          await run(`local --no-color ${args}`, container);
+        } catch (_) {}
+        expect(runQuery).not.to.have.been.called;
+        const written = stderrStream.getWritten();
+        expect(written).to.contain("fauna local");
+        expect(written).not.to.contain("An unexpected");
+        expect(written).to.contain("can only be set if");
+      });
+    },
+  );
 
   it("Does not create a database when not requested to do so", async () => {
     setupCreateContainerMocks();

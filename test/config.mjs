@@ -177,13 +177,13 @@ describe("configuration file", function () {
       });
     });
 
-    it("--local arg sets the argv.url to http://localhost:8443 if no --url is given", async function () {
+    it("--local arg sets the argv.url to http://0.0.0.0:8443 if no --url is given", async function () {
       fs.readdirSync.withArgs(process.cwd()).returns([]);
       await runArgvTest({
         cmd: `argv --secret "no-config" --local`,
         argvMatcher: sinon.match({
           secret: "no-config",
-          url: "http://localhost:8443",
+          url: "http://0.0.0.0:8443",
         }),
       });
     });
@@ -205,7 +205,7 @@ describe("configuration file", function () {
         cmd: `argv --local`,
         argvMatcher: sinon.match({
           secret: "secret",
-          url: "http://localhost:8443",
+          url: "http://0.0.0.0:8443",
         }),
       });
     });
@@ -216,7 +216,7 @@ describe("configuration file", function () {
         cmd: `argv --local --secret "sauce"`,
         argvMatcher: sinon.match({
           secret: "sauce",
-          url: "http://localhost:8443",
+          url: "http://0.0.0.0:8443",
         }),
       });
     });

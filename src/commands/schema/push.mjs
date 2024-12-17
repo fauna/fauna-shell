@@ -9,7 +9,11 @@ import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
 
-async function doPush(argv) {
+/**
+ * Pushes a schema (FSL) based on argv.
+ * @param {import("yargs").Argv & {dir: string, active: boolean, input: boolean}} argv
+ */
+export async function pushSchema(argv) {
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const gatherFSL = container.resolve("gatherFSL");
@@ -66,6 +70,7 @@ async function doPush(argv) {
         ? "Stage the file contents anyway?"
         : "Push the file contents anyway?";
     }
+
     const confirm = container.resolve("confirm");
     const confirmed = await confirm({
       message,
@@ -133,5 +138,5 @@ export default {
   command: "push",
   description: "Push local .fsl schema files to Fauna.",
   builder: buildPushCommand,
-  handler: doPush,
+  handler: pushSchema,
 };

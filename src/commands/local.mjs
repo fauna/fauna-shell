@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { AbortError } from "fauna";
 
 import { container } from "../cli.mjs";
+import { pushSchema } from "../commands/schema/push.mjs";
 import { ensureContainerRunning } from "../lib/docker-containers.mjs";
 import { CommandError, ValidationError } from "../lib/errors.mjs";
 import { colorize, Format } from "../lib/formatting/colorize.mjs";
@@ -28,6 +29,34 @@ async function startLocal(argv) {
   if (argv.database) {
     await createDatabase(argv);
   }
+  if (argv.directory) {
+    await createDatabaseSchema(argv);
+  }
+}
+
+async function createDatabaseSchema(argv) {
+  const logger = container.resolve("logger");
+  logger.stderr(
+    colorize(
+      `[CreateDatabaseSchema] Creating schema for database '${argv.database}' from directory '${argv.directory}'...`,
+      {
+        format: Format.LOG,
+        color: argv.color,
+      },
+    ),
+  );
+  // hack to let us push schema to the local database
+  argv.secret = `secret:${argv.database}:admin`;
+  await pushSchema(argv);
+  logger.stderr(
+    colorize(
+      `[CreateDatabaseSchema] Schema for database '${argv.database}' created from directory '${argv.directory}'.`,
+      {
+        format: Format.LOG,
+        color: argv.color,
+      },
+    ),
+  );
 }
 
 async function createDatabase(argv) {
@@ -152,6 +181,24 @@ function buildLocalCommand(yargs) {
         description:
           "User-defined priority for the database. Valid only if --database is set.",
       },
+      "project-directory": {
+        type: "string",
+        alias: ["dir", "directory"],
+        description:
+          "Path to a local directory containing `.fsl` files for the database. Valid only if --database is set.",
+      },
+      active: {
+        description:
+          "Immediately applies the local schema to the database's active schema, skipping staging the schema. To disable this, use `--no-active` or `--active=false`.",
+        type: "boolean",
+        default: true,
+      },
+      input: {
+        description:
+          "Prompt for schema input, such as confirmation. To disable prompts, use `--no-input` or `--input=false`. Disabled prompts are useful for scripts, CI/CD, and automation workflows.",
+        default: true,
+        type: "boolean",
+      },
     })
     .check((argv) => {
       if (argv.maxAttempts < 1) {
@@ -175,6 +222,11 @@ function buildLocalCommand(yargs) {
       if (argv.priority && !argv.database) {
         throw new ValidationError(
           "--priority can only be set if --database is set.",
+        );
+      }
+      if (argv.directory && !argv.database) {
+        throw new ValidationError(
+          "--directory,--dir can only be set if --database is set.",
         );
       }
       return true;

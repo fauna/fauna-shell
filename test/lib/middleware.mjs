@@ -14,10 +14,10 @@ describe("middlewares", function () {
       setupTestContainer();
     });
 
-    it("should set url to localhost:8443 when --local is true and no url provided", function () {
+    it("should set url to 0.0.0.0:8443 when --local is true and no url provided", function () {
       const argv = { ...baseArgv, local: true };
       applyLocalArg(argv);
-      expect(argv.url).to.equal("http://localhost:8443");
+      expect(argv.url).to.equal("http://0.0.0.0:8443");
       expect(argv.secret).to.equal("secret");
     });
 
@@ -38,7 +38,7 @@ describe("middlewares", function () {
     it("should not modify secret if already provided", function () {
       const argv = { ...baseArgv, local: true, secret: "custom-secret" };
       applyLocalArg(argv);
-      expect(argv.url).to.equal("http://localhost:8443");
+      expect(argv.url).to.equal("http://0.0.0.0:8443");
       expect(argv.secret).to.equal("custom-secret");
     });
 
