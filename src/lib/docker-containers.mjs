@@ -28,16 +28,28 @@ export async function ensureContainerRunning({
   color: _color,
 }) {
   color = _color;
-  if (pull) {
-    await pullImage(IMAGE_NAME);
+  let logStream;
+  try {
+    if (pull) {
+      await pullImage(IMAGE_NAME);
+    }
+    logStream = await startContainer({
+      imageName: IMAGE_NAME,
+      containerName,
+      hostIp,
+      hostPort,
+      containerPort,
+    });
+  } catch (error) {
+    if (error.message.includes("connect ENOENT /var/run/docker.sock")) {
+      throw new CommandError(
+        "Could not connect to docker daemon. Please ensure that it is currently running.",
+      );
+    } else {
+      throw error;
+    }
   }
-  const logStream = await startContainer({
-    imageName: IMAGE_NAME,
-    containerName,
-    hostIp,
-    hostPort,
-    containerPort,
-  });
+
   stderr(
     `[StartContainer] Container '${containerName}' started. Monitoring HealthCheck for readiness.`,
   );
