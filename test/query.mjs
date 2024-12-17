@@ -321,101 +321,91 @@ describe("query", function () {
       );
     });
 
-    // Add FormatQueryInfo to container in order to test which options are were passed
-    it("can set the include option to '[summary]' by default", async function () {
-      const formatQueryInfo = container.resolve("formatQueryInfo");
+    describe("query info", function () {
+      it("displays summary by default", async function () {
+        runQueryFromString.resolves({
+          summary: "info at *query*:1: hello world",
+          data: "fql",
+        });
 
-      await run(`query "foo" --secret=foo`, container);
+        await run(
+          `query "Database.all()" --performanceHints --secret=foo`,
+          container,
+        );
 
-      expect(formatQueryInfo.getCall(0).args[1].include).to.deep.equal([
-        "summary",
-      ]);
-    });
-
-    it("can set the include option to an array", async function () {
-      const formatQueryInfo = container.resolve("formatQueryInfo");
-
-      await run(`query "foo" --secret=foo --include summary stats`, container);
-
-      expect(formatQueryInfo.getCall(0).args[1].include).to.deep.equal([
-        "summary",
-        "stats",
-      ]);
-    });
-
-    it("can specify '--include all' to set all include options", async function () {
-      const formatQueryInfo = container.resolve("formatQueryInfo");
-
-      await run(`query "foo" --secret=foo --include all`, container);
-
-      expect(formatQueryInfo.getCall(0).args[1].include).to.deep.equal(
-        QUERY_INFO_CHOICES,
-      );
-    });
-
-    it("can specify '--include none' to set no include options", async function () {
-      const formatQueryInfo = container.resolve("formatQueryInfo");
-
-      await run(`query "foo" --secret=foo --include none`, container);
-
-      expect(formatQueryInfo).to.not.be.called;
-    });
-
-    it("displays summary by default", async function () {
-      runQueryFromString.resolves({
-        summary: "info at *query*:1: hello world",
-        data: "fql",
+        expect(logger.stderr).to.have.been.calledWith(
+          sinon.match(/hello world/),
+        );
+        expect(container.resolve("codeToAnsi")).to.have.been.calledWith(
+          sinon.match(/hello world/),
+          "yaml",
+        );
+        expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
       });
 
-      await run(
-        `query "Database.all()" --performanceHints --secret=foo`,
-        container,
-      );
+      it("still displays performance hints if '--include none' is used", async function () {
+        runQueryFromString.resolves({
+          summary:
+            "performance_hint: use a more efficient query\n1 | use a more efficient query",
+          data: "fql",
+        });
 
-      expect(logger.stderr).to.have.been.calledWith(sinon.match(/hello world/));
-      expect(container.resolve("codeToAnsi")).to.have.been.calledWith(
-        sinon.match(/hello world/),
-        "yaml",
-      );
-      expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
-    });
+        await run(
+          `query "Database.all()" --performanceHints --secret=foo --include none`,
+          container,
+        );
 
-    it("still displays performance hints if '--include none' is used", async function () {
-      runQueryFromString.resolves({
-        summary:
-          "performance_hint: use a more efficient query\n1 | use a more efficient query",
-        data: "fql",
+        expect(logger.stderr).to.have.been.calledWith(
+          sinon.match(/use a more efficient query/),
+        );
+        expect(container.resolve("codeToAnsi")).to.have.been.calledWith(
+          sinon.match(/use a more efficient query/),
+          "fql",
+        );
+        expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
       });
 
-      await run(
-        `query "Database.all()" --performanceHints --secret=foo --include none`,
-        container,
-      );
+      it("does not display anything if info fields are empty", async function () {
+        runQueryFromString.resolves({
+          txn_ts: "",
+          schema_version: "",
+          summary: "",
+          query_tags: "",
+          stats: "",
+          data: "fql",
+        });
 
-      expect(logger.stderr).to.have.been.calledWith(
-        sinon.match(/use a more efficient query/),
-      );
-      expect(container.resolve("codeToAnsi")).to.have.been.calledWith(
-        sinon.match(/use a more efficient query/),
-        "fql",
-      );
-      expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
-    });
+        await run(`query "test" --secret=foo --include all`, container);
 
-    it("does not display anything if info fields are empty", async function () {
-      runQueryFromString.resolves({
-        txnTs: "",
-        schemaVersion: "",
-        summary: "",
-        queryTags: "",
-        stats: "",
-        data: "fql",
+        expect(logger.stderr).to.not.be.called;
+        expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
       });
 
-      await run(`query "Database.all()" --secret=foo --include all`, container);
+      QUERY_INFO_CHOICES.forEach((choice) => {
+        it(`displays ${choice} if '--include ${choice}' is used, but not others`, async function () {
+          runQueryFromString.resolves({
+            txn_ts: "foo",
+            schema_version: "foo",
+            summary: "foo",
+            query_tags: "foo",
+            stats: "foo",
+            data: "fql",
+          });
 
-      expect(logger.stderr).to.not.be.called;
-      expect(logger.stdout).to.have.been.calledWith(sinon.match(/fql/));
+          await run(`query "test" --secret=foo --include ${choice}`, container);
+
+          expect(logger.stderr).to.have.been.calledWith(
+            sinon.match(new RegExp(`${choice}:`)),
+          );
+
+          const ignoredChoices = QUERY_INFO_CHOICES.filter((o) => o !== choice);
+          for (const ignored of ignoredChoices) {
+            expect(logger.stderr).to.not.have.been.calledWith(
+              sinon.match(new RegExp(`${ignored}:`)),
+            );
+          }
+        });
+      });
     });
 
     it("can handle network errors", async function () {
