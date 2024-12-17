@@ -12,10 +12,7 @@ import {
   validateDatabaseOrSecret,
   yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
-import {
-  formatQueryResponse,
-  getSecret,
-} from "../lib/fauna-client.mjs";
+import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
 
 async function shellCommand(argv) {
