@@ -85,7 +85,7 @@ function buildCreateCommand(yargs) {
       typechecked: {
         type: "boolean",
         description:
-          "Enable typechecking for the database. Defaults to the typechecking setting of the parent database.",
+          "Enable typechecking for the database. Use --no-typechecked to disable. Defaults to enabled for top-level databases. Inherits the parent database's setting for child databases.",
       },
       protected: {
         type: "boolean",

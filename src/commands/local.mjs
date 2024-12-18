@@ -70,6 +70,15 @@ async function createDatabase(argv) {
       color,
     }),
   );
+
+  // In the docker container, typechecked will be false by default if not set.
+  // We need to set it to true if it's not set. We can't do it in the options,
+  // because we don't want to validate it unless --database is set.
+  let typechecked = argv.typechecked;
+  if (argv.database && argv.typechecked === undefined) {
+    typechecked = true;
+  }
+
   try {
     const db = await runQuery({
       secret: "secret",
@@ -78,7 +87,7 @@ async function createDatabase(argv) {
       let name = ${argv.database}
       let database = Database.byName(name)
       let protected = ${argv.protected ?? null}
-      let typechecked = ${argv.typechecked ?? null}
+      let typechecked = ${typechecked}
       let priority = ${argv.priority ?? null}
       if (database == null) {
         Database.create({
@@ -167,8 +176,9 @@ function buildLocalCommand(yargs) {
       },
       typechecked: {
         describe:
-          "Enable typechecking for the database. Valid only if --database is set.",
+          "Enable typechecking for the database. Use --no-typechecked to disable. Defaults to enabled. Valid only if --database is set.",
         type: "boolean",
+        default: undefined,
       },
       protected: {
         describe:
@@ -196,7 +206,7 @@ function buildLocalCommand(yargs) {
           "--interval must be greater than or equal to 0.",
         );
       }
-      if (argv.typechecked && !argv.database) {
+      if (argv.typechecked !== undefined && !argv.database) {
         throw new ValidationError(
           "--typechecked can only be set if --database is set.",
         );
