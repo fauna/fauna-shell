@@ -24,7 +24,6 @@ describe("local command", () => {
     gatherFSL,
     confirm;
 
-
   const fsl = [
     {
       name: "coll.fsl",
