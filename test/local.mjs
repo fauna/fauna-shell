@@ -163,7 +163,7 @@ Please pass a --host-port other than '8443'.",
   [
     "--database Foo --dir ./bar ",
     "--database Foo --directory ./bar ",
-    "--database Foo --project-directory ./bar",
+    "--database Foo --fsl-directory ./bar",
   ].forEach((args) => {
     it("Creates a schema if requested", async () => {
       const baseUrl = "http://0.0.0.0:8443/schema/1";

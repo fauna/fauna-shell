@@ -9,7 +9,7 @@ import pushCommand from "./push.mjs";
 import statusCommand from "./status.mjs";
 
 export const localSchemaOptions = {
-  "project-directory": {
+  "fsl-directory": {
     alias: ["directory", "dir"],
     type: "string",
     description:

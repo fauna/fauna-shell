@@ -190,7 +190,7 @@ function buildLocalCommand(yargs) {
         description:
           "User-defined priority for the database. Valid only if --database is set.",
       },
-      "project-directory": {
+      "fsl-directory": {
         type: "string",
         alias: ["dir", "directory"],
         description:
