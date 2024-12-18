@@ -5,7 +5,7 @@
   "author": "Fauna",
   "type": "module",
   "bin": {
-    "fauna": "./dist/cli.cjs"
+    "fauna": "dist/cli.cjs"
   },
   "bugs": "https://github.com/fauna/fauna-shell/issues",
   "dependencies": {
@@ -72,7 +72,10 @@
   ],
   "license": "MPL-2.0",
   "main": "./src/user-entrypoint.mjs",
-  "repository": "fauna/fauna-shell",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fauna/fauna-shell.git"
+  },
   "scripts": {
     "lint": "eslint . --fix",
     "test": "npm run test:local",
