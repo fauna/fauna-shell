@@ -56,16 +56,16 @@ function buildDeleteCommand(yargs) {
     .check(validateDatabaseOrSecret)
     .example([
       [
-        "$0 database delete --name example --database us",
-        "Delete the top-level 'example' database in the 'us' Region Group.",
+        "$0 database delete --name my_db --database us",
+        "Delete the top-level 'my_db' database in the 'us' Region Group.",
       ],
       [
-        "$0 database delete --name my_db --database us/example",
-        "Delete the 'my_db' child database directly under 'us/example'.",
+        "$0 database delete --name child_db --database us/parent_db",
+        "Delete the 'child_db' child database directly under 'us/parent_db'.",
       ],
       [
-        "$0 database delete --name my_db --secret my-secret",
-        "Delete the 'my_db' child database directly under the database scoped to a secret.",
+        "$0 database delete --name child_db --secret my-secret",
+        "Delete the 'child_db' child database directly under the database scoped to a secret.",
       ],
     ]);
 }

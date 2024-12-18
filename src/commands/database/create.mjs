@@ -100,23 +100,23 @@ function buildCreateCommand(yargs) {
     .check(validateDatabaseOrSecret)
     .example([
       [
-        "$0 database create --name example --database us",
-        "Create the top-level 'example' database in the 'us' Region Group.",
+        "$0 database create --name my_db --database us",
+        "Create the top-level 'my_db' database in the 'us' Region Group.",
       ],
       [
-        "$0 database create --name my_db --database us/example",
-        "Create the 'my_db' child database directly under 'us/example'.",
+        "$0 database create --name child_db --database us/parent_db",
+        "Create the 'child_db' child database directly under 'us/parent_db'.",
       ],
       [
-        "$0 database create --name my_db --secret my-secret",
-        "Create the 'my_db' child database directly under the database scoped to a secret.",
+        "$0 database create --name child_db --secret my-secret",
+        "Create the 'child_db' child database directly under the database scoped to a secret.",
       ],
       [
-        "$0 database create --name example --database us --typechecked",
+        "$0 database create --name my_db --database us --typechecked",
         "Create a database with typechecking enabled.",
       ],
       [
-        "$0 database create --name example --database us --protected",
+        "$0 database create --name my_db --database us --protected",
         "Create a database with protected mode enabled.",
       ],
     ]);

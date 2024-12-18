@@ -58,10 +58,10 @@ To get started:
    hierarchy, to run the command in. For example:
 
    ```shell
-   # Runs a query in the top-level 'example' database
+   # Runs a query in the top-level 'my_db' database
    # in the 'us' Region Group. Use the default admin role.
    fauna query "Collection.all()" \
-     --database us/example
+     --database us/my_db
    ```
 
 ## Installation

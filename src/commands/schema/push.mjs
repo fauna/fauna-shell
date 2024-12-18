@@ -115,19 +115,19 @@ function buildPushCommand(yargs) {
     })
     .example([
       [
-        "$0 schema push --database us/example --dir /path/to/schema/dir",
-        "Stage schema changes for the 'us/example' database. If schema is already staged, replace the staged schema.",
+        "$0 schema push --database us/my_db --dir /path/to/schema/dir",
+        "Stage schema changes for the 'us/my_db' database. If schema is already staged, replace the staged schema.",
       ],
       [
         "$0 schema push --secret my-secret --dir /path/to/schema/dir",
         "Stage schema changes for the database scoped to a secret. If schema is already staged, replace the staged schema.",
       ],
       [
-        "$0 schema push --database us/example --dir /path/to/schema/dir --active",
-        "Immediately apply changes to the 'us/example' database's active schema.",
+        "$0 schema push --database us/my_db --dir /path/to/schema/dir --active",
+        "Immediately apply changes to the 'us/my_db' database's active schema.",
       ],
       [
-        "$0 schema push --database us/example --dir /path/to/schema/dir --no-input",
+        "$0 schema push --database us/my_db --dir /path/to/schema/dir --no-input",
         "Run the command without input prompts.",
       ],
     ]);
