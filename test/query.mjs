@@ -17,12 +17,15 @@ import {
 } from "./helpers.mjs";
 
 describe("query", function () {
-  let container, logger, runQueryFromString;
+  let container, formatQueryInfo, logger, runQueryFromString;
 
   beforeEach(() => {
     container = setupContainer();
     logger = container.resolve("logger");
-    runQueryFromString = container.resolve("runQueryFromString");
+
+    const faunaClient = container.resolve("faunaClient");
+    runQueryFromString = faunaClient.runQueryFromString;
+    formatQueryInfo = faunaClient.formatQueryInfo;
 
     // Set a default empty response for all queries
     runQueryFromString.resolves({ data: "test" });
@@ -321,7 +324,41 @@ describe("query", function () {
       );
     });
 
-    describe("query info", function () {
+    describe("--include usage", function () {
+      it("can set the include option to '[summary]' by default", async function () {
+        await run(`query "foo" --secret=foo`, container);
+
+        expect(formatQueryInfo.getCall(0).args[1].include).to.deep.equal([
+          "summary",
+        ]);
+      });
+
+      it("can set the include option to an array", async function () {
+        await run(
+          `query "foo" --secret=foo --include summary stats`,
+          container,
+        );
+
+        expect(formatQueryInfo.getCall(0).args[1].include).to.deep.equal([
+          "summary",
+          "stats",
+        ]);
+      });
+
+      it("can specify '--include all' to set all include options", async function () {
+        await run(`query "foo" --secret=foo --include all`, container);
+
+        expect(formatQueryInfo.getCall(0).args[1].include).to.deep.equal(
+          QUERY_INFO_CHOICES,
+        );
+      });
+
+      it("can specify '--include none' to set no include options", async function () {
+        await run(`query "foo" --secret=foo --include none`, container);
+
+        expect(formatQueryInfo).to.not.be.called;
+      });
+
       it("displays summary by default", async function () {
         runQueryFromString.resolves({
           summary: "info at *query*:1: hello world",

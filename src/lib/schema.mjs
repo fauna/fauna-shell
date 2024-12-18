@@ -4,7 +4,6 @@ import * as path from "path";
 
 import { container } from "../cli.mjs";
 import { makeFaunaRequest } from "../lib/db.mjs";
-import { getSecret } from "./fauna-client.mjs";
 import { dirExists, dirIsWriteable } from "./file-util.mjs";
 
 /**
@@ -178,6 +177,8 @@ export async function getAllSchemaFileContents(
   version,
   argv,
 ) {
+  const { getSecret } = container.resolve("faunaClient");
+
   const promises = [];
   /** @type Record<string, string> */
   const fileContentCollection = {};

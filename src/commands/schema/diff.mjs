@@ -5,7 +5,6 @@ import chalk from "chalk";
 import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
-import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
 
@@ -57,11 +56,12 @@ function buildValidateParams(argv, version) {
 }
 
 async function doDiff(argv) {
-  const [source, target] = parseTarget(argv);
-
+  const { getSecret } = container.resolve("faunaClient");
   const gatherFSL = container.resolve("gatherFSL");
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
+
+  const [source, target] = parseTarget(argv);
   const secret = await getSecret();
   const files = reformatFSL(await gatherFSL(argv.dir));
 

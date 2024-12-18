@@ -5,7 +5,6 @@ import path from "path";
 import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
-import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
 
@@ -14,9 +13,10 @@ import { localSchemaOptions } from "./schema.mjs";
  * @param {import("yargs").Argv & {dir: string, active: boolean, input: boolean}} argv
  */
 export async function pushSchema(argv) {
+  const { getSecret } = container.resolve("faunaClient");
+  const gatherFSL = container.resolve("gatherFSL");
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
-  const gatherFSL = container.resolve("gatherFSL");
 
   const isStagedPush = !argv.active;
   const secret = await getSecret();

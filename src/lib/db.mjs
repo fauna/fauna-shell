@@ -6,7 +6,6 @@ import {
   CommandError,
   NETWORK_ERROR_MESSAGE,
 } from "./errors.mjs";
-import { retryInvalidCredsOnce } from "./fauna-client.mjs";
 
 function buildParamsString({ argv, params, path }) {
   const routesWithColor = ["/schema/1/staged/status", "/schema/1/diff"];
@@ -96,6 +95,8 @@ export async function makeFaunaRequest({
  * @returns {Promise<Object>}
  */
 export function makeRetryableFaunaRequest(opts) {
+  const { retryInvalidCredsOnce } = container.resolve("faunaClient");
+
   return retryInvalidCredsOnce(opts.secret, (secret) =>
     makeFaunaRequest({ ...opts, secret }),
   );

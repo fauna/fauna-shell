@@ -6,17 +6,17 @@ import path from "path";
 import { container } from "../../cli.mjs";
 import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { CommandError } from "../../lib/errors.mjs";
-import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
 
 async function doStatus(argv) {
+  const { getSecret } = container.resolve("faunaClient");
+  const gatherFSL = container.resolve("gatherFSL");
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
   const secret = await getSecret();
   const absoluteDirPath = path.resolve(argv.dir);
-  const gatherFSL = container.resolve("gatherFSL");
   const fslFiles = await gatherFSL(argv.dir);
   const hasLocalSchema = fslFiles.length > 0;
   const fsl = reformatFSL(fslFiles);

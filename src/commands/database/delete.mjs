@@ -6,7 +6,6 @@ import { container } from "../../cli.mjs";
 import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 import { CommandError } from "../../lib/errors.mjs";
 import { faunaToCommandError } from "../../lib/fauna.mjs";
-import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
 
 async function runDeleteQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
@@ -19,6 +18,8 @@ async function runDeleteQuery(secret, argv) {
 }
 
 async function deleteDatabase(argv) {
+  const { getSecret, retryInvalidCredsOnce } = container.resolve("faunaClient");
+
   const secret = await getSecret();
   const logger = container.resolve("logger");
 
