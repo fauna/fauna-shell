@@ -141,7 +141,7 @@ function buildYargs(argvInput) {
           .filter((key) => previousWord === key)
           .pop();
 
-        // TODO: this doesn't handle aliasing, and it needs to
+        // This doesn't handle aliasing, and it needs to
         if (
           currentWord === "--profile" ||
           currentWordFlag === "profile" ||

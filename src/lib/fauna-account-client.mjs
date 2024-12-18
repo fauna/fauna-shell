@@ -131,8 +131,6 @@ export class FaunaAccountClient {
    * @returns {Promise<{accountKey: string, refreshToken: string}>} - The session information.
    * @throws {Error} - Throws an error if there is an issue during session retrieval.
    */
-
-  // TODO: get/set expiration details
   static async getSession(accessToken) {
     const makeAccountRequest = container.resolve("makeAccountRequest");
     try {
@@ -149,7 +147,6 @@ export class FaunaAccountClient {
     }
   }
 
-  // TODO: get/set expiration details
   /**
    * Uses refreshToken to get a new accountKey and refreshToken.
    * @param {*} refreshToken
