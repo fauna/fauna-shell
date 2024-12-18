@@ -21,11 +21,7 @@ describe("local command", () => {
     simulateError,
     startStub,
     unpauseStub,
-    gatherFSL,
-    confirm;
-
-  const diffString =
-    "\u001b[1;34m* Modifying collection `Customer`\u001b[0m at collections.fsl:2:1:\n  * Defined fields:\n\u001b[31m  - drop field `.age`\u001b[0m\n\n";
+    gatherFSL;
 
   const fsl = [
     {
@@ -45,7 +41,6 @@ describe("local command", () => {
     logsStub = stub();
     startStub = stub();
     unpauseStub = stub();
-    confirm = container.resolve("confirm");
 
     gatherFSL = container.resolve("gatherFSL");
     gatherFSL.resolves(fsl);
@@ -174,38 +169,23 @@ Please pass a --host-port other than '8443'.",
       const baseUrl = "http://0.0.0.0:8443/schema/1";
       const { runQuery } = container.resolve("faunaClientV10");
 
-      confirm.resolves(true);
       setupCreateContainerMocks();
       runQuery.resolves({
         data: JSON.stringify({ name: "Foo" }, null, 2),
       });
 
       // The first call pings the container, then the second creates the diff...
-      fetch
-        .onCall(1)
-        .resolves(
-          f({
-            version: 1728675598430000,
-            diff: diffString,
-          }),
-        )
-        .onCall(2)
-        .resolves(
-          f({
-            version: 1728675598430000,
-          }),
-        );
+      fetch.onCall(1).resolves(
+        f({
+          version: 1728675598430000,
+        }),
+      );
 
       await run(`local --no-color ${args}`, container);
 
       expect(gatherFSL).to.have.been.calledWith("bar");
-      expect(fetch).to.have.been.calledWith(`${baseUrl}/diff?staged=false`, {
-        method: "POST",
-        headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
-        body: reformatFSL(fsl),
-      });
       expect(fetch).to.have.been.calledWith(
-        `${baseUrl}/update?staged=false&version=1728675598430000`,
+        `${baseUrl}/update?force=true&staged=false`,
         {
           method: "POST",
           headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
@@ -216,65 +196,6 @@ Please pass a --host-port other than '8443'.",
       expect(written).to.contain(
         "[CreateDatabaseSchema] Schema for database 'Foo' created from directory './bar'.",
       );
-    });
-  });
-
-  [
-    "--database Foo --dir ./bar --no-active",
-    "--database Foo --directory ./bar --no-active",
-    "--database Foo --project-directory ./bar --no-active",
-  ].forEach((args) => {
-    it(`Creates a staged schema without forcing if requested using ${args}`, async () => {
-      const baseUrl = "http://0.0.0.0:8443/schema/1";
-      const { runQuery } = container.resolve("faunaClientV10");
-
-      confirm.resolves(true);
-      setupCreateContainerMocks();
-      runQuery.resolves({
-        data: JSON.stringify({ name: "Foo" }, null, 2),
-      });
-
-      // The first call pings the container, then the second creates the diff...
-      fetch
-        .onCall(1)
-        .resolves(
-          f({
-            version: 1728675598430000,
-            diff: diffString,
-          }),
-        )
-        .onCall(2)
-        .resolves(
-          f({
-            version: 1728675598430000,
-          }),
-        );
-
-      await run(`local --no-color ${args}`, container);
-
-      expect(gatherFSL).to.have.been.calledWith("bar");
-      expect(fetch).to.have.been.calledWith(`${baseUrl}/diff?staged=true`, {
-        method: "POST",
-        headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
-        body: reformatFSL(fsl),
-      });
-      expect(fetch).to.have.been.calledWith(
-        `${baseUrl}/update?staged=true&version=1728675598430000`,
-        {
-          method: "POST",
-          headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
-          body: reformatFSL(fsl),
-        },
-      );
-      expect(logger.stdout).to.have.been.calledWith("Proposed diff:\n");
-      const written = stderrStream.getWritten();
-      expect(written).to.contain(
-        "[CreateDatabaseSchema] Schema for database 'Foo' created from directory './bar'.",
-      );
-      expect(confirm).to.have.been.calledWith(
-        sinon.match.has("message", "Stage the above changes?"),
-      );
-      expect(logger.stdout).to.have.been.calledWith(diffString);
     });
   });
 
