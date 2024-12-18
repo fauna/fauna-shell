@@ -181,26 +181,29 @@ export const formatQuerySummary = (summary) => {
   }
 };
 
-/**
- * Selects a subset of query info fields from a v10 query response.
- * @param {import("fauna").QueryInfo} response - The query response
- * @param {string[]} include - The query info fields to include
- * @returns {object} An object with the selected query info fields
- */
-const pickAndCamelCaseQueryInfo = (response, include) => {
+const getQueryInfoValue = (response, field) => {
+  switch (field) {
+    case "txnTs":
+      return response.txn_ts;
+    case "schemaVersion":
+      return response.schema_version?.toString();
+    case "summary":
+      return response.summary;
+    case "queryTags":
+      return response.query_tags;
+    case "stats":
+      return response.stats;
+    default:
+      return undefined;
+  }
+};
+
+const getIncludedQueryInfo = (response, include) => {
   const queryInfo = {};
-
-  if (include.includes("txnTs") && response.txn_ts)
-    queryInfo.txnTs = response.txn_ts;
-  if (include.includes("schemaVersion") && response.schema_version)
-    queryInfo.schemaVersion = response.schema_version.toString();
-  if (include.includes("summary") && response.summary)
-    queryInfo.summary = response.summary;
-  if (include.includes("queryTags") && response.query_tags)
-    queryInfo.queryTags = response.query_tags;
-  if (include.includes("stats") && response.stats)
-    queryInfo.stats = response.stats;
-
+  include.forEach((field) => {
+    const value = getQueryInfoValue(response, field);
+    if (value) queryInfo[field] = value;
+  });
   return queryInfo;
 };
 
@@ -224,7 +227,7 @@ export const formatQueryInfo = (response, { apiVersion, color, include }) => {
 
     return `${colorized}\n`;
   } else if (apiVersion === "10") {
-    const queryInfoToDisplay = pickAndCamelCaseQueryInfo(response, include);
+    const queryInfoToDisplay = getIncludedQueryInfo(response, include);
 
     if (Object.keys(queryInfoToDisplay).length === 0) return "";
 

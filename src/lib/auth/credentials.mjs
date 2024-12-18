@@ -64,7 +64,6 @@ export class Credentials {
     this.accountKeys.keyStore.save({
       accountKey,
       refreshToken,
-      // TODO: set expiration
     });
     this.accountKeys.key = accountKey;
   }

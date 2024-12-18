@@ -91,7 +91,6 @@ describe("schema commit", function () {
   });
 
   it("errors if the schema is not in a ready state", async function () {
-    // TODO: what are the valid statuses? !none, !ready results in this case
     fetch.onCall(0).resolves(f({ status: "building", diff: diff }));
 
     const [error] = await tryToCatch(() =>
