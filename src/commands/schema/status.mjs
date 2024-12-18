@@ -10,6 +10,21 @@ import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
 import { localSchemaOptions } from "./schema.mjs";
 
+const tab = "  ";
+
+const logLineWithTab = (
+  line,
+  { numTabs = 1, logger = container.resolve("logger").stdout } = {},
+) => logger(tab.repeat(numTabs) + line);
+
+const logBlockWithTab = (diff, numTabs = 3) => {
+  for (const line of diff.trim().split("\n")) {
+    logLineWithTab(line, { numTabs });
+  }
+};
+
+const formatDatabaseName = (database) => (database ? ` for '${database}'` : "");
+
 async function doStatus(argv) {
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
@@ -48,19 +63,35 @@ async function doStatus(argv) {
   }
 
   // Output the status response
-  logger.stdout(`Staged changes: ${chalk.bold(statusResponse.status)}`);
-  if (statusResponse.pending_summary !== "") {
-    logger.stdout(statusResponse.pending_summary);
-  }
-  if (statusResponse.diff) {
-    logger.stdout("Staged changes:\n");
-    logger.stdout(statusResponse.diff.split("\n").join("\n  "));
+  switch (statusResponse.status) {
+    case "none":
+      logger.stdout(`No staged changes${formatDatabaseName(argv.database)}.`);
+      break;
+    case "pending":
+    case "ready":
+      logger.stdout(
+        `Staged changes${formatDatabaseName(argv.database)} are ${chalk.bold(statusResponse.status)}:`,
+      );
+      if (statusResponse.status === "ready" && statusResponse.diff) {
+        logLineWithTab("(use `fauna schema commit` to commit staged changes)");
+        logBlockWithTab(statusResponse.diff);
+      } else if (statusResponse.pending_summary) {
+        logBlockWithTab(statusResponse.pending_summary, 1);
+      }
+      break;
+    case "failed":
+      logger.stdout(
+        `Staged changes${formatDatabaseName(argv.database)} have ${chalk.bold(statusResponse.status)}.`,
+      );
+      break;
+    default:
+      logLineWithTab(`Staged changes: ${statusResponse.status}`);
   }
 
-  // Output the diff response
+  // Handle local changes
   if (!hasLocalSchema) {
     logger.stdout(
-      `Local changes: ${chalk.bold(`no schema files found in '${absoluteDirPath}'`)}\n`,
+      `\nNo local changes. No schema files found in '${absoluteDirPath}'.\n`,
     );
     return;
   }
@@ -70,14 +101,18 @@ async function doStatus(argv) {
   }
 
   if (diffResponse.diff === "") {
-    logger.stdout(`Local changes: ${chalk.bold("none")}\n`);
+    logger.stdout(
+      `\nNo local changes${argv.dir !== "." ? ` in '${argv.dir}'` : ""}.\n`,
+    );
     return;
   }
 
-  logger.stdout(`Local changes:\n`);
-  logger.stdout(`  ${diffResponse.diff.split("\n").join("\n  ")}`);
-  logger.stdout("(use `fauna schema diff` to display local changes)");
-  logger.stdout("(use `fauna schema push` to stage local changes)");
+  const dirInfo = argv.dir !== "." ? ` in '${argv.dir}'` : "";
+  logger.stdout(`\nLocal changes${dirInfo}:`);
+  logLineWithTab("(use `fauna schema diff` to display local changes)");
+  logLineWithTab("(use `fauna schema push` to stage local changes)");
+  logBlockWithTab(diffResponse.diff);
+  logger.stdout("");
 }
 
 function buildStatusCommand(yargs) {
