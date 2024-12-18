@@ -167,7 +167,7 @@ function buildLocalCommand(yargs) {
       },
       typechecked: {
         describe:
-          "Enable typechecking for the database. Valid only if --database is set.",
+          "Enable typechecking for the database. Use --no-typechecked to disable. Defaults to enabled for top-level databases. Inherits the parent database's setting for child databases. Valid only if --database is set.",
         type: "boolean",
       },
       protected: {
