@@ -6,9 +6,9 @@ name: Lint and prettify
 on:
   # temporarily "v3"; change to "main" after merge
   push:
-    branches: ["v3"]
+    branches: ["main"]
   pull_request:
-    branches: ["v3"]
+    branches: ["main"]
 
 jobs:
   lint:
