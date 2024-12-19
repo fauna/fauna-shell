@@ -121,7 +121,9 @@ export const formatError = (err, { apiVersion, color }) => {
  * @param {*} argv
  */
 export const isQueryable = async (argv) => {
-  const runQueryFromString = container.resolve("runQueryFromString");
+  // resolve runQueryFromString at runtime, not necessarily from this module.
+  const runQueryFromString =
+    container.resolve("faunaClient").runQueryFromString;
   try {
     await runQueryFromString("1+1", argv);
   } catch (err) {

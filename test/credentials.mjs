@@ -275,9 +275,9 @@ describe("credentials", function () {
       // We need to use the original implementation of runQueryFromString to ensure it hits
       //   faunaClientV10.runQueryFromString which is where we force the 401 and test the refresh
       //   logic.
-      container.register({
-        runQueryFromString: awilix.asValue(originalRunQueryFromString),
-      });
+      const faunaClient = container.resolve("faunaClient");
+      faunaClient.runQueryFromString = originalRunQueryFromString;
+
       v10runQueryFromString =
         container.resolve("faunaClientV10").runQueryFromString;
     });
