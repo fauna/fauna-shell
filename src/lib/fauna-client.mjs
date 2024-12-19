@@ -1,12 +1,18 @@
 //@ts-check
 
+import stripAnsi from "strip-ansi";
+
 import { container } from "../cli.mjs";
 import { isUnknownError } from "./errors.mjs";
 import { faunaToCommandError } from "./fauna.mjs";
 import { faunadbToCommandError } from "./faunadb.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
-const SUMMARY_FQL_REGEX = /^(\s\s\|)|(\d\s\|)/;
+/**
+ * Regex to match the FQL diagnostic line.
+ * @type {RegExp}
+ */
+export const FQL_DIAGNOSTIC_REGEX = /^(\s{2,}\|)|(\s*\d{1,}\s\|)/;
 
 /**
  * Gets a secret for the current credentials.
@@ -168,7 +174,7 @@ export const formatQuerySummary = (summary) => {
 
   try {
     const lines = summary.split("\n").map((line) => {
-      if (!line.match(SUMMARY_FQL_REGEX)) {
+      if (!line.match(FQL_DIAGNOSTIC_REGEX)) {
         return line;
       }
       return colorize(line, { format: Format.FQL });
@@ -231,14 +237,16 @@ export const formatQueryInfo = (response, { apiVersion, color, include }) => {
 
     if (Object.keys(queryInfoToDisplay).length === 0) return "";
 
-    const SUMMARY_IN_QUERY_INFO_FQL_REGEX = /^(\s\s\s\s\|)|(\d\s\|)/;
+    // We colorize the entire query info object as YAML, but then need to
+    // colorize the diagnostic lines individually. To simplify this, we
+    // strip the ansi when we're checking if the line is a diagnostic line.
     const colorized = colorize(queryInfoToDisplay, {
       color,
       format: Format.YAML,
     })
       .split("\n")
       .map((line) => {
-        if (!line.match(SUMMARY_IN_QUERY_INFO_FQL_REGEX)) {
+        if (!stripAnsi(line).match(FQL_DIAGNOSTIC_REGEX)) {
           return line;
         }
         return colorize(line, { format: Format.FQL });
