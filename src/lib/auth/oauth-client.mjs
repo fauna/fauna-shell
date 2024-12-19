@@ -1,9 +1,18 @@
 import { createHash, randomBytes } from "crypto";
 import http from "http";
 import url from "url";
+import util from "util";
 
 import { container } from "../../cli.mjs";
 import SuccessPage from "./successPage.mjs";
+
+const ALLOWED_ORIGINS = [
+  "http://localhost:3005",
+  "http://127.0.0.1:3005",
+  "http://dashboard.fauna.com",
+  "http://dashboard.fauna-dev.com",
+  "http://dashboard.fauna-preview.com",
+];
 
 // Default to prod client id and secret
 const CLIENT_ID = process.env.FAUNA_CLIENT_ID ?? "Aq4_G0mOtm_F1fK3PuzE0k-i9F0";
@@ -52,64 +61,73 @@ class OAuthClient {
     return Buffer.from(randomBytes(20)).toString("base64url");
   }
 
+  _handleRedirect({ pathname, res }) {
+    if (pathname === "/success") {
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.write(SuccessPage);
+      res.end();
+      this.closeServer();
+    } else if (pathname !== "/") {
+      throw new Error("Invalid redirect uri");
+    }
+  }
+
+  _handleCode({ authCode, state, res }) {
+    if (!authCode || typeof authCode !== "string") {
+      throw new Error("Invalid authorization code received");
+    } else {
+      this.authCode = authCode;
+      if (state !== this.state) {
+        throw new Error("Invalid state received");
+      }
+      res.writeHead(302, { Location: "/success" });
+      res.end();
+      this.server.emit("auth_code_received");
+    }
+  }
+
   // req: IncomingMessage, res: ServerResponse
   _handleRequest(req, res) {
     const logger = container.resolve("logger");
-    const allowedOrigins = [
-      "http://localhost:3005",
-      "http://127.0.0.1:3005",
-      "http://dashboard.fauna.com",
-      "http://dashboard.fauna-dev.com",
-      "http://dashboard.fauna-preview.com",
-    ];
     const origin = req.headers.origin || "";
 
-    if (allowedOrigins.includes(origin)) {
+    if (ALLOWED_ORIGINS.includes(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin);
       res.setHeader("Access-Control-Allow-Methods", "GET");
       res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     }
 
-    let errorMessage = "";
+    try {
+      // We only expect GET requests
+      if (req.method === "GET") {
+        const { pathname, query } = url.parse(req.url || "", true);
 
-    if (req.method === "GET") {
-      const parsedUrl = url.parse(req.url || "", true);
-      if (parsedUrl.pathname === "/success") {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.write(SuccessPage);
-        res.end();
-        this.closeServer();
-      } else if (parsedUrl.pathname !== "/") {
-        errorMessage = "Invalid redirect uri";
-        this.closeServer();
-      }
-      const query = parsedUrl.query;
-      if (query.error) {
-        errorMessage = `${query.error.toString()} - ${query.error_description}`;
-        this.closeServer();
-      }
-      if (query.code) {
-        const authCode = query.code;
-        if (!authCode || typeof authCode !== "string") {
-          errorMessage = "Invalid authorization code received";
-          this.server.close();
-        } else {
-          this.authCode = authCode;
-          if (query.state !== this.state) {
-            errorMessage = "Invalid state received";
-            this.closeServer();
-          }
-          res.writeHead(302, { Location: "/success" });
-          res.end();
-          this.server.emit("auth_code_received");
+        // If the pathname is not "/", we're handling a redirect
+        if (pathname !== "/") {
+          this._handleRedirect({ pathname, res });
         }
+
+        // If the query contains an error, we're handling an error
+        if (query.error) {
+          throw new Error(
+            `${query.error.toString()} - ${query.error_description}`,
+          );
+        }
+
+        // If the query contains an auth code, we're handling a successful auth
+        if (query.code) {
+          this._handleCode({ authCode: query.code, state: query.state, res });
+        }
+      } else {
+        throw new Error("Invalid request method");
       }
-    } else {
-      errorMessage = "Invalid request method";
+    } catch (e) {
       this.closeServer();
-    }
-    if (errorMessage) {
-      logger.stderr(`Error during authentication: ${errorMessage}`);
+      logger.debug(
+        `Authentication error: ${util.inspect(e, true, 2, false)}`,
+        "creds",
+      );
+      logger.stderr(`Error during authentication: ${e.message}`);
     }
   }
 

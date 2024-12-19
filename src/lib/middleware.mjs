@@ -43,7 +43,6 @@ export function fixPaths(argv) {
 }
 
 export function checkForUpdates(argv) {
-  // TODO: figure out upgrade path for SEA installations
   if (isSea()) return argv;
 
   const __filename = fileURLToPath(import.meta.url);
