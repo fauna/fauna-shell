@@ -33,7 +33,6 @@ async function doLogin(argv) {
 }
 
 /**
- * Passthrough yargs until more functionality is added to the command
  * @param {*} yargs
  * @returns
  */

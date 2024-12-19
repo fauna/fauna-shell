@@ -6,7 +6,7 @@ import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 
-async function listDatabasesWithAccountAPI(argv) {
+export async function listDatabasesWithAccountAPI(argv) {
   const { pageSize, database } = argv;
   const accountClient = new FaunaAccountClient();
   const response = await accountClient.listDatabases({
@@ -14,7 +14,12 @@ async function listDatabasesWithAccountAPI(argv) {
     path: database,
   });
 
-  return response.results.map(({ path, name }) => ({ path, name }));
+  // eslint-disable-next-line camelcase
+  return response.results.map(({ path, name, region_group }) => ({
+    path,
+    name,
+    regionGroup: region_group, // eslint-disable-line camelcase
+  }));
 }
 
 async function listDatabasesWithSecret(argv) {
