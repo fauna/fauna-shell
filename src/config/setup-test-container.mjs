@@ -92,6 +92,7 @@ export function setupTestContainer() {
       modem: {
         followProgress: stub(),
       },
+      ping: stub(),
       pull: stub(),
     }),
     credentials: awilix.asClass(stub()).singleton(),
