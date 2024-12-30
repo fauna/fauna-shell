@@ -28,6 +28,19 @@ export async function ensureContainerRunning({
   color: _color,
 }) {
   color = _color;
+
+  // Check if the docker service is available before we point folks to Support
+  // for any issues later in the process.
+  const docker = container.resolve("docker");
+  try {
+    await docker.ping();
+  } catch (error) {
+    throw new CommandError(
+      `[StartContainer] Docker service is not available. Make sure that Docker is running.`,
+      { cause: error },
+    );
+  }
+
   if (pull) {
     await pullImage(IMAGE_NAME);
   }
