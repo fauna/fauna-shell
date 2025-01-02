@@ -192,6 +192,33 @@ export class FaunaAccountClient {
   }
 
   /**
+   * Creates an export for a given database.
+   *
+   * @param {Object} params - The parameters for creating the export.
+   * @param {string} params.database - The path of the database, including region group.
+   * @param {Object} params.destination - The destination for the export.
+   * @param {Object} params.destination.s3 - The S3 destination for the export.
+   * @param {string} params.destination.s3.bucket - The name of the S3 bucket to export to.
+   * @param {string} params.destination.s3.path - The key prefix to export to.
+   * @param {string} params.format - The format for the export.
+   * @returns {Promise<Object>} - A promise that resolves when the export is created.
+   * @throws {Error} - Throws an error if there is an issue during export creation.
+   */
+  async createExport({ database, destination, format }) {
+    return this.retryableAccountRequest({
+      method: "POST",
+      prefix: "/v2",
+      path: "/exports",
+      body: JSON.stringify({
+        database: FaunaAccountClient.standardizeRegion(database),
+        destination,
+        format,
+      }),
+      secret: this.accountKeys.key,
+    });
+  }
+
+  /**
    * Creates a new key for a specified database.
    *
    * @param {Object} params - The parameters for creating the key.

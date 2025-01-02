@@ -4,6 +4,41 @@ import {
   AuthorizationError,
   CommandError,
 } from "./errors.mjs";
+
+/**
+ * Builds headers for an account API request
+ * @param {Object} opts
+ * @param {string} opts.contentType - The content type of the request
+ * @param {string} opts.secret - The secret key to use for the request
+ * @returns {Object} - The headers for the request
+ */
+function buildHeaders({ contentType, secret }) {
+  const headers = { "content-type": contentType };
+  if (secret) {
+    headers.Authorization = `Bearer ${secret}`;
+  }
+  return headers;
+}
+
+/**
+ * Builds a full URL from the base URL, prefix, path, and params
+ * @param {Object} opts
+ * @param {string} opts.baseUrl - The base URL to use for the request
+ * @param {string} opts.prefix - The prefix to use for the request
+ * @param {string} opts.path - The path to use for the request
+ * @param {any} opts.params - The query parameters to use for the request
+ * @returns {string} - The full URL
+ */
+function buildUrl({ baseUrl, prefix, path, params }) {
+  const paramsString = params ? `?${new URLSearchParams(params)}` : "";
+  try {
+    return new URL(`${prefix}${path}${paramsString}`, baseUrl).href;
+  } catch (e) {
+    e.message = `Could not build valid URL out of base url (${baseUrl}), path (${path}), and params string (${paramsString}) built from params (${JSON.stringify(params)}).`;
+    throw e;
+  }
+}
+
 /**
  *
  * @param {Object} opts
@@ -18,6 +53,7 @@ import {
  */
 export async function makeAccountRequest({
   secret = "",
+  prefix = "/api/v1",
   path,
   params = undefined,
   method,
@@ -27,37 +63,19 @@ export async function makeAccountRequest({
 }) {
   const fetch = container.resolve("fetch");
   const baseUrl = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
-  const paramsString = params ? `?${new URLSearchParams(params)}` : "";
-  let fullUrl;
-  try {
-    fullUrl = new URL(`/api/v1${path}${paramsString}`, baseUrl).href;
-  } catch (e) {
-    e.message = `Could not build valid URL out of base url (${baseUrl}), path (${path}), and params string (${paramsString}) built from params (${JSON.stringify(
-      params,
-    )}).`;
-    throw e;
-  }
-
-  function _getHeaders() {
-    const headers = {
-      "content-type": contentType,
-    };
-    if (secret) {
-      headers.Authorization = `Bearer ${secret}`;
-    }
-    return headers;
-  }
+  const fullUrl = buildUrl({ baseUrl, prefix, path, params });
 
   const fetchArgs = {
     method,
-    headers: _getHeaders(),
+    headers: buildHeaders({ contentType, secret }),
     redirect: "manual",
   };
 
-  if (body) fetchArgs.body = body;
+  if (body) {
+    fetchArgs.body = body;
+  }
 
   const response = await fetch(fullUrl, fetchArgs);
-
   return parseResponse(response, shouldThrow);
 }
 
