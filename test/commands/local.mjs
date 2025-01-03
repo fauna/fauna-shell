@@ -5,10 +5,10 @@ import { expect } from "chai";
 import { AbortError } from "fauna";
 import sinon, { stub } from "sinon";
 
-import { run } from "../src/cli.mjs";
-import { setupTestContainer } from "../src/config/setup-test-container.mjs";
-import { reformatFSL } from "../src/lib/schema.mjs";
-import { f } from "./helpers.mjs";
+import { run } from "../../src/cli.mjs";
+import { setupTestContainer } from "../../src/config/setup-test-container.mjs";
+import { reformatFSL } from "../../src/lib/schema.mjs";
+import { f } from "../helpers.mjs";
 
 describe("local command", () => {
   let container,

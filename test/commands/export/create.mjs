@@ -3,10 +3,10 @@
 import { expect } from "chai";
 import sinon from "sinon";
 
-import { run } from "../../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-import { colorize, Format } from "../../src/lib/formatting/colorize.mjs";
-import { mockAccessKeysFile } from "../helpers.mjs";
+import { run } from "../../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../../src/config/setup-test-container.mjs";
+import { colorize, Format } from "../../../src/lib/formatting/colorize.mjs";
+import { mockAccessKeysFile } from "../../helpers.mjs";
 
 const createExportStub = (opts) => ({
   id: "test-export-id",

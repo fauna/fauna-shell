@@ -5,9 +5,9 @@ import chalk from "chalk";
 import sinon from "sinon";
 import tryToCatch from "try-to-catch";
 
-import { run } from "../../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-import { buildUrl, commonFetchParams, f } from "../helpers.mjs";
+import { run } from "../../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../../src/config/setup-test-container.mjs";
+import { buildUrl, commonFetchParams, f } from "../../helpers.mjs";
 
 describe("schema abandon", function () {
   let diff =

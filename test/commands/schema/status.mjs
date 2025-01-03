@@ -4,10 +4,10 @@ import { expect } from "chai";
 import chalk from "chalk";
 import sinon from "sinon";
 
-import { run } from "../../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-import { reformatFSL } from "../../src/lib/schema.mjs";
-import { buildUrl, commonFetchParams, f } from "../helpers.mjs";
+import { run } from "../../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../../src/config/setup-test-container.mjs";
+import { reformatFSL } from "../../../src/lib/schema.mjs";
+import { buildUrl, commonFetchParams, f } from "../../helpers.mjs";
 
 describe("schema status", function () {
   let container, fetch, logger, gatherFSL;

@@ -3,8 +3,8 @@
 import { expect } from "chai";
 import chalk from "chalk";
 
-import { builtYargs, run } from "../../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { builtYargs, run } from "../../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../../src/config/setup-test-container.mjs";
 
 describe("database", () => {
   let container, logger;

@@ -4,12 +4,12 @@ import { expect } from "chai";
 import chalk from "chalk";
 import sinon from "sinon";
 
-import { builtYargs, run } from "../../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { builtYargs, run } from "../../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../../src/config/setup-test-container.mjs";
 import {
   AUTHENTICATION_ERROR_MESSAGE,
   NETWORK_ERROR_MESSAGE,
-} from "../../src/lib/errors.mjs";
+} from "../../../src/lib/errors.mjs";
 
 describe("schema", function () {
   let container, logger, stderr;

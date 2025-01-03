@@ -5,10 +5,10 @@ import chalk from "chalk";
 import path from "path";
 import sinon from "sinon";
 
-import { builtYargs, run } from "../../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-import { reformatFSL } from "../../src/lib/schema.mjs";
-import { buildUrl, f } from "../helpers.mjs";
+import { builtYargs, run } from "../../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../../src/config/setup-test-container.mjs";
+import { reformatFSL } from "../../../src/lib/schema.mjs";
+import { buildUrl, f } from "../../helpers.mjs";
 
 describe("schema push", function () {
   const diffString =

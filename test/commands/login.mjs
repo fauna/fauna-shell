@@ -4,8 +4,8 @@ import * as awilix from "awilix";
 import { expect } from "chai";
 import sinon, { spy } from "sinon";
 
-import { run } from "../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { run } from "../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
 
 describe("login", function () {
   let container, fs, makeAccountRequest;
