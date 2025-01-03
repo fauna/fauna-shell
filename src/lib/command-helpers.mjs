@@ -4,11 +4,13 @@ import { container } from "../cli.mjs";
 import { ValidationError } from "./errors.mjs";
 import { Format } from "./formatting/colorize.mjs";
 
-const COMMON_OPTIONS = {
-  // hidden
+/**
+ * Options required for any command requiring authentication with the Account API
+ */
+export const ACCOUNT_AUTHENTICATION_OPTIONS = {
   "account-url": {
     type: "string",
-    description: "the Fauna account URL to query",
+    description: "The Fauna account URL to query",
     default: "https://account.fauna.com",
     hidden: true,
   },
@@ -24,10 +26,6 @@ const COMMON_OPTIONS = {
     required: false,
     hidden: true,
   },
-};
-
-// used for queries customers can't configure that are made on their behalf
-const COMMON_QUERY_OPTIONS = {
   user: {
     alias: "u",
     type: "string",
@@ -36,6 +34,44 @@ const COMMON_QUERY_OPTIONS = {
     default: "default",
     group: "API:",
   },
+};
+
+/**
+ * Options required for any command making API requests to the Account API
+ */
+export const ACCOUNT_OPTIONS = {
+  "account-key": {
+    type: "string",
+    description:
+      "Fauna account key used for authentication. Can't be used with --user or --secret.",
+    required: false,
+    group: "API:",
+  },
+  role: {
+    alias: "r",
+    type: "string",
+    description: "Role used to run the command. Can't be used with --secret.",
+    group: "API:",
+  },
+};
+
+/**
+ * Options required for commands relying on a database path
+ */
+export const DATABASE_PATH_OPTIONS = {
+  database: {
+    alias: "d",
+    type: "string",
+    description:
+      "Database, including Region Group and hierarchy, to run the command in. Ex: 'us/my_db', 'eu/parent_db/child_db', 'global/db'.",
+    group: "API:",
+  },
+};
+
+/**
+ * Options required for commands making API requests to the Core API
+ */
+export const CORE_OPTIONS = {
   local: {
     type: "boolean",
     describe:
@@ -56,26 +92,6 @@ const COMMON_QUERY_OPTIONS = {
     required: false,
     group: "API:",
   },
-  "account-key": {
-    type: "string",
-    description:
-      "Fauna account key used for authentication. Can't be used with --user or --secret.",
-    required: false,
-    group: "API:",
-  },
-  database: {
-    alias: "d",
-    type: "string",
-    description:
-      "Database, including Region Group and hierarchy, to run the command in. Ex: 'us/my_db', 'eu/parent_db/child_db', 'global/db'. Can't be used with --secret.",
-    group: "API:",
-  },
-  role: {
-    alias: "r",
-    type: "string",
-    description: "Role used to run the command. Can't be used with --secret.",
-    group: "API:",
-  },
 };
 
 export const QUERY_INFO_CHOICES = [
@@ -86,9 +102,10 @@ export const QUERY_INFO_CHOICES = [
   "stats",
 ];
 
-// used for queries customers can configure
-const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
-  ...COMMON_QUERY_OPTIONS,
+/**
+ * Options required for commands making FQL queries to the Core API
+ */
+export const QUERY_OPTIONS = {
   "api-version": {
     description: "FQL version to use.",
     type: "string",
@@ -136,38 +153,6 @@ const COMMON_CONFIGURABLE_QUERY_OPTIONS = {
       "Query response info to output. Pass values as a space-separated list. Ex: --include summary queryTags.",
   },
 };
-
-export function yargsWithCommonQueryOptions(yargs) {
-  return yargsWithCommonOptions(yargs, COMMON_QUERY_OPTIONS);
-}
-
-export function yargsWithCommonConfigurableQueryOptions(yargs) {
-  return yargsWithCommonOptions(
-    yargs,
-    COMMON_CONFIGURABLE_QUERY_OPTIONS,
-  ).middleware((argv) => {
-    if (argv.include.includes("none")) {
-      if (argv.include.length !== 1) {
-        throw new ValidationError(
-          `'--include none' cannot be used with other include options. Provided options: '${argv.include.join(", ")}'`,
-        );
-      }
-      argv.include = [];
-    }
-
-    if (argv.include.includes("all")) {
-      argv.include = [...QUERY_INFO_CHOICES];
-    }
-
-    if (argv.performanceHints && !argv.include.includes("summary")) {
-      argv.include.push("summary");
-    }
-  });
-}
-
-export function yargsWithCommonOptions(yargs, options) {
-  return yargs.options({ ...options, ...COMMON_OPTIONS });
-}
 
 export const resolveFormat = (argv) => {
   const logger = container.resolve("logger");

@@ -1,7 +1,7 @@
 // @ts-check
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import { DATABASE_PATH_OPTIONS } from "../../lib/command-helpers.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
 import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
@@ -82,7 +82,7 @@ function buildCreateS3ExportCommand(yargs) {
 }
 
 function buildCreateCommand(yargs) {
-  return yargsWithCommonQueryOptions(yargs).command({
+  return yargs.options(DATABASE_PATH_OPTIONS).command({
     command: "s3",
     description: "Create a database export to an S3 bucket.",
     builder: buildCreateS3ExportCommand,

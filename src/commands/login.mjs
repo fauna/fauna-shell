@@ -1,7 +1,7 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { yargsWithCommonOptions } from "../lib/command-helpers.mjs";
+import { ACCOUNT_AUTHENTICATION_OPTIONS } from "../lib/command-helpers.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 
 async function doLogin(argv) {
@@ -38,17 +38,20 @@ async function doLogin(argv) {
  * @returns
  */
 function buildLoginCommand(yargs) {
-  return yargsWithCommonOptions(yargs, {
-    user: {
-      alias: "u",
-      type: "string",
-      description: "User to log in as.",
-      default: "default",
-    },
-  }).example([
-    ["$0 login", "Log in as the 'default' user."],
-    ["$0 login --user john_doe", "Log in as the 'john_doe' user."],
-  ]);
+  return yargs
+    .options(ACCOUNT_AUTHENTICATION_OPTIONS)
+    .options({
+      user: {
+        alias: "u",
+        type: "string",
+        description: "User to log in as.",
+        default: "default",
+      },
+    })
+    .example([
+      ["$0 login", "Log in as the 'default' user."],
+      ["$0 login --user john_doe", "Log in as the 'john_doe' user."],
+    ]);
 }
 
 export default {

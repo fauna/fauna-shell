@@ -4,11 +4,10 @@ import chalk from "chalk";
 import path from "path";
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { CommandError } from "../../lib/errors.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
-import { localSchemaOptions } from "./schema.mjs";
+import { LOCAL_SCHEMA_OPTIONS } from "./schema.mjs";
 
 async function doStatus(argv) {
   const logger = container.resolve("logger");
@@ -81,18 +80,16 @@ async function doStatus(argv) {
 }
 
 function buildStatusCommand(yargs) {
-  return yargsWithCommonQueryOptions(yargs)
-    .options(localSchemaOptions)
-    .example([
-      [
-        "$0 schema status --database us/my_db",
-        "Get the staged schema status for the 'us/my_db' database.",
-      ],
-      [
-        "$0 schema status --secret my-secret",
-        "Get the staged schema status for the database scoped to a secret.",
-      ],
-    ]);
+  return yargs.options(LOCAL_SCHEMA_OPTIONS).example([
+    [
+      "$0 schema status --database us/my_db",
+      "Get the staged schema status for the 'us/my_db' database.",
+    ],
+    [
+      "$0 schema status --secret my-secret",
+      "Get the staged schema status for the database scoped to a secret.",
+    ],
+  ]);
 }
 
 export default {

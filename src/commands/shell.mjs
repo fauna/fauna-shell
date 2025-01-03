@@ -7,10 +7,14 @@ import * as esprima from "esprima";
 
 import { container } from "../cli.mjs";
 import {
+  ACCOUNT_AUTHENTICATION_OPTIONS,
+  ACCOUNT_OPTIONS,
+  CORE_OPTIONS,
+  DATABASE_PATH_OPTIONS,
   QUERY_INFO_CHOICES,
+  QUERY_OPTIONS,
   resolveFormat,
   validateDatabaseOrSecret,
-  yargsWithCommonConfigurableQueryOptions,
 } from "../lib/command-helpers.mjs";
 import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
@@ -219,7 +223,12 @@ async function buildCustomEval(argv) {
 }
 
 function buildShellCommand(yargs) {
-  return yargsWithCommonConfigurableQueryOptions(yargs)
+  return yargs
+    .options(ACCOUNT_AUTHENTICATION_OPTIONS)
+    .options(ACCOUNT_OPTIONS)
+    .options(DATABASE_PATH_OPTIONS)
+    .options(CORE_OPTIONS)
+    .options(QUERY_OPTIONS)
     .example([
       [
         "$0 shell --database us/my_db",

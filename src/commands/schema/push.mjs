@@ -3,11 +3,10 @@
 import path from "path";
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
-import { localSchemaOptions } from "./schema.mjs";
+import { LOCAL_SCHEMA_OPTIONS } from "./schema.mjs";
 
 /**
  * Pushes a schema (FSL) based on argv.
@@ -98,7 +97,8 @@ export async function pushSchema(argv) {
 }
 
 function buildPushCommand(yargs) {
-  return yargsWithCommonQueryOptions(yargs)
+  return yargs
+    .options(LOCAL_SCHEMA_OPTIONS)
     .options({
       input: {
         description: "Prompt for input. Use --no-input to disable.",
@@ -111,7 +111,6 @@ function buildPushCommand(yargs) {
         type: "boolean",
         default: false,
       },
-      ...localSchemaOptions,
     })
     .example([
       [
