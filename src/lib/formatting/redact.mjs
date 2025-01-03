@@ -9,6 +9,10 @@
 export function redact(text) {
   if (!text) return text;
 
+  if (typeof text !== "string") {
+    return "*".repeat(8);
+  }
+
   // If the string is less than 12 characters long, it is completely replaced with asterisks.
   // This is so we can guarantee that the redacted string is at least 8 characters long.
   // This aligns with minimum password lengths.
