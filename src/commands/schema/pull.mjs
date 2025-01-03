@@ -1,9 +1,8 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
-import { localSchemaOptions } from "./schema.mjs";
+import { LOCAL_SCHEMA_OPTIONS } from "./schema.mjs";
 
 async function determineFileState(argv, filenames) {
   const gatherFSL = container.resolve("gatherFSL");
@@ -135,7 +134,8 @@ async function doPull(argv) {
 }
 
 function buildPullCommand(yargs) {
-  return yargsWithCommonQueryOptions(yargs)
+  return yargs
+    .options(LOCAL_SCHEMA_OPTIONS)
     .options({
       delete: {
         description:
@@ -148,7 +148,6 @@ function buildPullCommand(yargs) {
         type: "boolean",
         default: false,
       },
-      ...localSchemaOptions,
     })
     .example([
       [

@@ -2,11 +2,6 @@
 
 import { container } from "../cli.mjs";
 import {
-  resolveFormat,
-  validateDatabaseOrSecret,
-  yargsWithCommonConfigurableQueryOptions,
-} from "../lib/command-helpers.mjs";
-import {
   CommandError,
   isUnknownError,
   ValidationError,
@@ -16,7 +11,17 @@ import {
   formatQueryResponse,
   getSecret,
 } from "../lib/fauna-client.mjs";
-import { isTTY } from "../lib/misc.mjs";
+import {
+  resolveIncludeOptions,
+  validateDatabaseOrSecret,
+} from "../lib/middleware.mjs";
+import {
+  ACCOUNT_OPTIONS,
+  CORE_OPTIONS,
+  DATABASE_PATH_OPTIONS,
+  QUERY_OPTIONS,
+} from "../lib/options.mjs";
+import { isTTY, resolveFormat } from "../lib/utils.mjs";
 
 function validate(argv) {
   const { existsSync, accessSync, constants } = container.resolve("fs");
@@ -149,7 +154,12 @@ async function queryCommand(argv) {
 }
 
 function buildQueryCommand(yargs) {
-  return yargsWithCommonConfigurableQueryOptions(yargs)
+  return yargs
+    .options(ACCOUNT_OPTIONS)
+    .options(DATABASE_PATH_OPTIONS)
+    .options(CORE_OPTIONS)
+    .options(QUERY_OPTIONS)
+    .middleware(resolveIncludeOptions)
     .positional("fql", {
       type: "string",
       description: "FQL query to run. Use - to read from stdin.",

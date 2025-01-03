@@ -3,11 +3,10 @@
 import chalk from "chalk";
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";
-import { localSchemaOptions } from "./schema.mjs";
+import { LOCAL_SCHEMA_OPTIONS } from "./schema.mjs";
 
 /**
  * @returns {[string, string]} An tuple containing the source and target schema
@@ -110,7 +109,8 @@ async function doDiff(argv) {
 }
 
 function buildDiffCommand(yargs) {
-  return yargsWithCommonQueryOptions(yargs)
+  return yargs
+    .options(LOCAL_SCHEMA_OPTIONS)
     .options({
       staged: {
         description: "Show the diff between the active and staged schema.",
@@ -128,7 +128,6 @@ function buildDiffCommand(yargs) {
         default: false,
         type: "boolean",
       },
-      ...localSchemaOptions,
     })
     .example([
       [

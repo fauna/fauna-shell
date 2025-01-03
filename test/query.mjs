@@ -6,9 +6,9 @@ import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import { QUERY_INFO_CHOICES } from "../src/lib/command-helpers.mjs";
 import { NETWORK_ERROR_MESSAGE } from "../src/lib/errors.mjs";
 import { colorize } from "../src/lib/formatting/colorize.mjs";
+import { QUERY_INFO_CHOICES } from "../src/lib/options.mjs";
 import {
   createV4QueryFailure,
   createV4QuerySuccess,

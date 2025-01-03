@@ -1,12 +1,19 @@
 //@ts-check
 
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
+import {
+  ACCOUNT_OPTIONS,
+  CORE_OPTIONS,
+  DATABASE_PATH_OPTIONS,
+} from "../../lib/options.mjs";
 import createCommand from "./create.mjs";
 import deleteCommand from "./delete.mjs";
 import listCommand from "./list.mjs";
 
 function buildDatabase(yargs) {
-  return yargsWithCommonQueryOptions(yargs)
+  return yargs
+    .options(ACCOUNT_OPTIONS)
+    .options(CORE_OPTIONS)
+    .options(DATABASE_PATH_OPTIONS)
     .command(listCommand)
     .command(createCommand)
     .command(deleteCommand)

@@ -6,14 +6,17 @@ import repl from "node:repl";
 import * as esprima from "esprima";
 
 import { container } from "../cli.mjs";
-import {
-  QUERY_INFO_CHOICES,
-  resolveFormat,
-  validateDatabaseOrSecret,
-  yargsWithCommonConfigurableQueryOptions,
-} from "../lib/command-helpers.mjs";
 import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
+import { validateDatabaseOrSecret } from "../lib/middleware.mjs";
+import {
+  ACCOUNT_OPTIONS,
+  CORE_OPTIONS,
+  DATABASE_PATH_OPTIONS,
+  QUERY_INFO_CHOICES,
+  QUERY_OPTIONS,
+} from "../lib/options.mjs";
+import { resolveFormat } from "../lib/utils.mjs";
 
 async function shellCommand(argv) {
   const { query: v4Query } = container.resolve("faunadb");
@@ -219,7 +222,11 @@ async function buildCustomEval(argv) {
 }
 
 function buildShellCommand(yargs) {
-  return yargsWithCommonConfigurableQueryOptions(yargs)
+  return yargs
+    .options(ACCOUNT_OPTIONS)
+    .options(DATABASE_PATH_OPTIONS)
+    .options(CORE_OPTIONS)
+    .options(QUERY_OPTIONS)
     .example([
       [
         "$0 shell --database us/my_db",
