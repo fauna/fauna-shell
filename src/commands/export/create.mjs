@@ -51,21 +51,7 @@ function buildCreateS3ExportCommand(yargs) {
       },
     })
     .check((argv) => {
-      const { secret, local, database } = argv;
-
-      if (local) {
-        throw new ValidationError(
-          "Exports do not support --local and the Fauna docker container.",
-        );
-      }
-
-      if (secret) {
-        throw new ValidationError(
-          "Exports are not supported with --secret. Use --database instead.",
-        );
-      }
-
-      if (!database) {
+      if (!argv.database) {
         throw new ValidationError(
           "--database is required to create an export.",
         );

@@ -140,7 +140,7 @@ describe("database create s3", () => {
     );
   });
 
-  it("should fail if --local is used", async () => {
+  it("should output an error if --local is used", async () => {
     try {
       await run(
         "export create s3 --bucket test-bucket --path test/key --local",
@@ -154,7 +154,7 @@ describe("database create s3", () => {
     );
   });
 
-  it("should fail if --secret is provided", async () => {
+  it("should output an error if --secret is provided", async () => {
     try {
       await run(
         "export create s3 --bucket test-bucket --path test/key --secret=some-test-secret",
@@ -168,7 +168,7 @@ describe("database create s3", () => {
     );
   });
 
-  it("should fail if --database is not provided", async () => {
+  it("should output an error if --database is not provided", async () => {
     try {
       await run(
         "export create s3 --bucket test-bucket --path test/key",

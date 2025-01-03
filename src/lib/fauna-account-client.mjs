@@ -219,6 +219,30 @@ export class FaunaAccountClient {
   }
 
   /**
+   * Lists exports associated with the given account key.
+   *
+   * @param {Object} params - The parameters for listing the exports.
+   * @param {number} [params.maxResults] - The number of exports to return. Default 16.
+   * @param {string} [params.nextToken] - The next token for pagination.
+   * @returns {Promise<Object>} - A promise that resolves when the exports are listed.
+   * @throws {Error} - Throws an error if there is an issue during the request.
+   */
+  async listExports({ maxResults = 16, nextToken }) {
+    return this.retryableAccountRequest({
+      method: "GET",
+      prefix: "/v2",
+      path: "/exports",
+      secret: this.accountKeys.key,
+      params: {
+        /* eslint-disable camelcase */
+        max_results: maxResults,
+        ...(nextToken && { next_token: nextToken }),
+        /* eslint-enable camelcase */
+      },
+    });
+  }
+
+  /**
    * Creates a new key for a specified database.
    *
    * @param {Object} params - The parameters for creating the key.
