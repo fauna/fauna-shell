@@ -47,12 +47,6 @@ export const ACCOUNT_OPTIONS = {
     required: false,
     group: "API:",
   },
-  role: {
-    alias: "r",
-    type: "string",
-    description: "Role used to run the command. Can't be used with --secret.",
-    group: "API:",
-  },
 };
 
 /**
@@ -90,6 +84,12 @@ export const CORE_OPTIONS = {
     description:
       "Secret used for authentication. Can't be used with --database or --role.",
     required: false,
+    group: "API:",
+  },
+  role: {
+    alias: "r",
+    type: "string",
+    description: "Role used to run the command. Can't be used with --secret.",
     group: "API:",
   },
 };
