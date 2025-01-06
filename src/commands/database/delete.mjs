@@ -3,10 +3,10 @@
 import { ServiceError } from "fauna";
 
 import { container } from "../../cli.mjs";
-import { validateDatabaseOrSecret } from "../../lib/command-helpers.mjs";
 import { CommandError } from "../../lib/errors.mjs";
 import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
+import { validateDatabaseOrSecret } from "../../lib/middleware.mjs";
 
 async function runDeleteQuery(secret, argv) {
   const { fql } = container.resolve("fauna");

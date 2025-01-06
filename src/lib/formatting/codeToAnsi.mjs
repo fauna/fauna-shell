@@ -6,7 +6,7 @@ import log from "shiki/langs/log.mjs";
 import yaml from "shiki/langs/yaml.mjs";
 import githubDarkHighContrast from "shiki/themes/github-dark-high-contrast.mjs";
 
-import { isTTY } from "../misc.mjs";
+import { isTTY } from "../utils.mjs";
 import { fql } from "./fql.mjs";
 
 const THEME = "github-dark-high-contrast";
