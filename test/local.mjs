@@ -314,6 +314,25 @@ Please pass a --host-port other than '8443'.",
     );
   });
 
+  it("Fails start if Docker is not running.", async () => {
+    setupCreateContainerMocks();
+    docker.ping.onCall(0).rejects();
+    try {
+      await run("local --no-color", container);
+    } catch (_) {}
+    expect(docker.pull).not.to.have.been.called;
+    expect(docker.modem.followProgress).not.to.have.been.called;
+    expect(startStub).not.to.have.been.called;
+    expect(logsStub).not.to.have.been.called;
+    expect(docker.createContainer).not.to.have.been.called;
+    const written = stderrStream.getWritten();
+    expect(written).to.contain(
+      `[StartContainer] Docker service is not available. Make sure that Docker is running.`,
+    );
+    expect(written).not.to.contain("An unexpected");
+    expect(written).not.to.contain("fauna local"); // help text
+  });
+
   it("Fails start with a prompt to contact Fauna if pull fails.", async () => {
     setupCreateContainerMocks();
     docker.pull.onCall(0).rejects(new Error("Remote repository not found"));
