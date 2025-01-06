@@ -1,7 +1,6 @@
 //@ts-check
 
 import { container } from "../../cli.mjs";
-import { yargsWithCommonQueryOptions } from "../../lib/command-helpers.mjs";
 import { CommandError } from "../../lib/errors.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 
@@ -65,7 +64,7 @@ async function doAbandon(argv) {
 }
 
 function buildAbandonCommand(yargs) {
-  return yargsWithCommonQueryOptions(yargs)
+  return yargs
     .options({
       input: {
         description: "Prompt for input. Use --no-input to disable.",
