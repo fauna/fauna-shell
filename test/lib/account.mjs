@@ -47,10 +47,14 @@ describe("parseResponse", () => {
       v2Error = error;
     }
 
+    // Check that the errors are equal instances of a CommandError
     expect(v1Error).to.be.instanceOf(CommandError);
     expect(v2Error).to.be.instanceOf(CommandError);
     expect(v1Error.message).to.equal(v2Error.message);
     expect(v1Error.cause).to.deep.equal(v2Error.cause);
+
+    // Check that the errors have the correct code and message
+    expect(v1Error.message).to.equal("Database is not specified");
   });
 
   it("should throw AuthenticationError for 401 status", async () => {

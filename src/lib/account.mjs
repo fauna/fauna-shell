@@ -71,7 +71,8 @@ export async function makeAccountRequest({
 const parseErrorResponse = (body) => {
   let { code, message, metadata } = {
     code: "unknown_error",
-    message: "The Account API responded with an error, but no error details were provided.",
+    message:
+      "The Account API responded with an error, but no error details were provided.",
     metadata: {},
   };
 
@@ -79,9 +80,11 @@ const parseErrorResponse = (body) => {
     return { code, message, metadata };
   }
 
+  // v2 endpoints return an error object with code, message, and metadata properties
   if (body.error) {
     ({ code, message, metadata } = body.error);
   } else {
+    // v1 endpoints return code and reason values directly in the body
     ({ code, reason: message } = body);
   }
 
