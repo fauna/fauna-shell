@@ -22,6 +22,37 @@ describe("parseResponse", () => {
     };
   };
 
+  it("should standardize v1 and v2 endpoint errors to the same CommandError", async () => {
+    const v1Response = createMockResponse(400, {
+      code: "bad_request",
+      reason: "Database is not specified",
+    });
+    const v2Response = createMockResponse(400, {
+      error: {
+        code: "bad_request",
+        message: "Database is not specified",
+      },
+    });
+
+    let v1Error, v2Error;
+    try {
+      await parseResponse(v1Response, true);
+    } catch (error) {
+      v1Error = error;
+    }
+
+    try {
+      await parseResponse(v2Response, true);
+    } catch (error) {
+      v2Error = error;
+    }
+
+    expect(v1Error).to.be.instanceOf(CommandError);
+    expect(v2Error).to.be.instanceOf(CommandError);
+    expect(v1Error.message).to.equal(v2Error.message);
+    expect(v1Error.cause).to.deep.equal(v2Error.cause);
+  });
+
   it("should throw AuthenticationError for 401 status", async () => {
     const response = createMockResponse(401, {
       code: "unauthorized",
@@ -77,28 +108,13 @@ describe("parseResponse", () => {
   it("should throw generic Error for other error status codes", async () => {
     const response = createMockResponse(500, {
       code: "internal_error",
-      reason: "Server error",
+      reason: "This is a server error",
     });
 
     try {
       await parseResponse(response, true);
     } catch (error) {
       expect(error).to.be.instanceOf(Error);
-    }
-  });
-
-  it("should include status code in error message", async () => {
-    const response = createMockResponse(500, {
-      code: "internal_error",
-      reason: "Server error",
-    });
-
-    try {
-      await parseResponse(response, true);
-    } catch (error) {
-      expect(error.message).to.include("[500]");
-      expect(error.message).to.include("internal_error");
-      expect(error.message).to.include("Server error");
     }
   });
 
@@ -127,7 +143,9 @@ describe("parseResponse", () => {
       await parseResponse(response, true);
     } catch (error) {
       expect(error).to.be.instanceOf(CommandError);
-      expect(error.message).to.include("[400]");
+      expect(error.message).to.equal(
+        "An unknown error occurred while making a request to the Account API.",
+      );
     }
   });
 
@@ -145,7 +163,7 @@ describe("parseResponse", () => {
       expect(error.cause.status).to.equal(400);
       expect(error.cause.body).to.deep.equal(responseBody);
       expect(error.cause.code).to.equal("bad_request");
-      expect(error.cause.reason).to.equal("Invalid parameters");
+      expect(error.cause.message).to.equal("Invalid parameters");
     }
   });
 
