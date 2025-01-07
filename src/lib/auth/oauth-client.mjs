@@ -3,6 +3,7 @@ import http from "http";
 import url from "url";
 
 import { container } from "../../cli.mjs";
+import { getDashboardUrl } from "../account.mjs";
 import SuccessPage from "./successPage.mjs";
 
 // Default to prod client id and secret
@@ -26,10 +27,14 @@ class OAuthClient {
     this.state = OAuthClient._generateCSRFToken();
   }
 
-  getOAuthParams() {
+  getOAuthParams(noBrowser) {
+    const redirectURI = noBrowser
+      ? `${getDashboardUrl()}/auth/oauth/callback/cli`
+      : `${REDIRECT_URI}:${this.port}`;
     return {
       client_id: CLIENT_ID, // eslint-disable-line camelcase
-      redirect_uri: `${REDIRECT_URI}:${this.port}`, // eslint-disable-line camelcase
+      //`${REDIRECT_URI}:${this.port}`,
+      redirect_uri: redirectURI, // eslint-disable-line camelcase
       code_challenge: this.codeChallenge, // eslint-disable-line camelcase
       code_challenge_method: "S256", // eslint-disable-line camelcase
       response_type: "code", // eslint-disable-line camelcase
@@ -46,6 +51,17 @@ class OAuthClient {
       redirectURI: `${REDIRECT_URI}:${this.port}`,
       codeVerifier: this.codeVerifier,
     };
+  }
+
+  validateAuthorizationCode(authCode, state) {
+    if (!authCode || typeof authCode !== "string") {
+      throw new Error("Invalid authorization code received");
+    } else {
+      this.authCode = authCode;
+      if (state !== this.state) {
+        throw new Error("Invalid state received");
+      }
+    }
   }
 
   static _generateCSRFToken() {
@@ -90,18 +106,14 @@ class OAuthClient {
       }
       if (query.code) {
         const authCode = query.code;
-        if (!authCode || typeof authCode !== "string") {
-          errorMessage = "Invalid authorization code received";
-          this.server.close();
-        } else {
-          this.authCode = authCode;
-          if (query.state !== this.state) {
-            errorMessage = "Invalid state received";
-            this.closeServer();
-          }
+        try {
+          this.validateAuthorizationCode(authCode, query.state);
           res.writeHead(302, { Location: "/success" });
           res.end();
           this.server.emit("auth_code_received");
+        } catch (e) {
+          errorMessage = e.message;
+          this.closeServer();
         }
       }
     } else {
@@ -129,8 +141,10 @@ class OAuthClient {
   }
 
   closeServer() {
-    this.server.closeAllConnections();
-    this.server.close();
+    if (this.server.listening) {
+      this.server.closeAllConnections();
+      this.server.close();
+    }
   }
 }
 

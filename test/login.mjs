@@ -114,7 +114,7 @@ describe("login", function () {
     // We open auth url in the browser and prompt user
     expect(container.resolve("open").calledWith("http://dashboard-url.com"));
     expect(logger.stdout).to.have.been.calledWith(
-      "To login, open your browser to:\nhttp://dashboard-url.com",
+      "To login, a your browser to:\nhttp://dashboard-url.com",
     );
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
