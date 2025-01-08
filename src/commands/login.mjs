@@ -27,11 +27,11 @@ async function doLogin(argv) {
     }
   };
 
-  const authCodeParams = oAuth.getOAuthParams(argv.noBrowser);
+  const authCodeParams = oAuth.getOAuthParams(argv.noRedirect);
   const dashboardOAuthURL =
     await FaunaAccountClient.startOAuthRequest(authCodeParams);
   logger.stdout(`To login, open a browser to:\n${dashboardOAuthURL}`);
-  if (!argv.noBrowser) {
+  if (!argv.noRedirect) {
     oAuth.server.on("ready", async () => {
       open(dashboardOAuthURL);
     });
@@ -77,17 +77,17 @@ function buildLoginCommand(yargs) {
       description: "User to log in as.",
       default: "default",
     },
-    noBrowser: {
+    noRedirect: {
       alias: "n",
       type: "boolean",
       description:
-        "Login without a local callback server. Use this option if you are unable to open a browser on your local machine.",
+        "Login without redirecting to a local callback server. Use this option if you are unable to open a browser on your local machine.",
       default: false,
     },
   }).example([
     ["$0 login", "Log in as the 'default' user."],
     ["$0 login --user john_doe", "Log in as the 'john_doe' user."],
-    ["$0 login --no-browser", "Log in using a link."],
+    ["$0 login --no-redirect", "Log in using a link."],
   ]);
 }
 

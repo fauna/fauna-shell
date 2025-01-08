@@ -27,8 +27,8 @@ class OAuthClient {
     this.state = OAuthClient._generateCSRFToken();
   }
 
-  getOAuthParams(noBrowser) {
-    const redirectURI = noBrowser
+  getOAuthParams(noRedirect) {
+    const redirectURI = noRedirect
       ? `${getDashboardUrl()}/auth/oauth/callback/cli`
       : `${REDIRECT_URI}:${this.port}`;
     return {
