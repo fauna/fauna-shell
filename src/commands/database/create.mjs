@@ -1,7 +1,7 @@
 //@ts-check
 import { ServiceError } from "fauna";
 
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import { CommandError } from "../../lib/errors.mjs";
 import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";

@@ -1,4 +1,4 @@
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import { CommandError } from "../errors.mjs";
 import { SecretKeyStorage } from "../file-util.mjs";
 

@@ -1,7 +1,7 @@
 //@ts-check
 import chalk from "chalk";
 
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 

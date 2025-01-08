@@ -6,7 +6,7 @@
 import chalk from "chalk";
 import { NetworkError, ServiceError } from "fauna";
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import {
   AuthenticationError,
   AuthorizationError,

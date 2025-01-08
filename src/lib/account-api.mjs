@@ -1,9 +1,6 @@
 //@ts-check
 
-import console from "node:console";
-
-import { container } from "../cli.mjs";
-import { retryAuthorizationErrorOnce } from "./auth/credentials.mjs";
+import { container } from "../config/container.mjs";
 import {
   AuthenticationError,
   AuthorizationError,
@@ -44,6 +41,7 @@ export function toResource({
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
   }
+
   return url;
 }
 
@@ -56,27 +54,37 @@ export function toResource({
  * @returns {Promise<Response>} The response from the account API
  */
 export async function fetchWithAccountKey(url, options) {
+  const logger = container.resolve("logger");
   const fetch = container.resolve("fetch");
   const accountKeys = container.resolve("credentials").accountKeys;
 
-  return retryAuthorizationErrorOnce({
-    keyProvider: accountKeys,
-    fn: async (secret) => {
-      const resolvedOptions = {
-        ...options,
-        headers: { ...options.headers, Authorization: `Bearer ${secret}` },
-      };
-
-      // If the response is a 401, we need to refresh the secret. We throw the response
-      // so that the retry mechanism can handle it.
-      const response = await fetch(url, resolvedOptions);
-      if (response.status === 401) {
-        throw response;
-      }
-
-      return response;
-    },
+  let response = await fetch(url, {
+    ...options,
+    headers: { ...options.headers, Authorization: `Bearer ${accountKeys.key}` },
   });
+
+  if (response.status !== 401) {
+    return response;
+  }
+
+  logger.debug("Retryable 401 error, attempting to refresh session", "creds");
+
+  await accountKeys.onInvalidCreds();
+
+  response = await fetch(url, {
+    ...options,
+    headers: { ...options.headers, Authorization: `Bearer ${accountKeys.key}` },
+  });
+
+  if (response.status === 401) {
+    logger.debug(
+      "Failed to refresh session, expired or missing refresh token",
+      "creds",
+    );
+    accountKeys.promptLogin();
+  }
+
+  return response;
 }
 
 /**
@@ -259,12 +267,13 @@ async function refreshSession(refreshToken) {
 /**
  * List all databases for the current account.
  *
- * @param {Object} params - The parameters for listing databases.
- * @param {string | undefined} params.path - The path of the database, including region group
- * @param {number} params.pageSize - The number of databases to return per page
+ * @param {Object} [params] - The parameters for listing databases.
+ * @param {string} [params.path] - The path of the database, including region group
+ * @param {number} [params.pageSize] - The number of databases to return per page
  * @returns {Promise<Object>} - A promise that resolves to the list of databases
  */
-async function listDatabases({ path = undefined, pageSize = 1000 }) {
+async function listDatabases(params = {}) {
+  const { path, pageSize = 1000 } = params;
   const url = toResource({
     endpoint: "/databases",
     params: {

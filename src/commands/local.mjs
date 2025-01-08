@@ -1,8 +1,8 @@
 import chalk from "chalk";
 import { AbortError } from "fauna";
 
-import { container } from "../cli.mjs";
 import { pushSchema } from "../commands/schema/push.mjs";
+import { container } from "../config/container.mjs";
 import { ensureContainerRunning } from "../lib/docker-containers.mjs";
 import { CommandError, ValidationError } from "../lib/errors.mjs";
 import { colorize, Format } from "../lib/formatting/colorize.mjs";

@@ -2,7 +2,7 @@
 
 import stripAnsi from "strip-ansi";
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import { isUnknownError } from "./errors.mjs";
 import { faunaToCommandError } from "./fauna.mjs";
 import { faunadbToCommandError } from "./faunadb.mjs";
