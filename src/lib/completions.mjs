@@ -2,7 +2,7 @@
 
 import * as path from "node:path";
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import { setAccountUrl } from "./account-api.mjs";
 import { buildCredentials } from "./auth/credentials.mjs";
 import { getConfig, locateConfig } from "./config/config.mjs";

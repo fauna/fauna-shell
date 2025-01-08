@@ -1,7 +1,7 @@
 import stripAnsi from "strip-ansi";
 import YAML from "yaml";
 
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import { codeToAnsi } from "./codeToAnsi.mjs";
 
 export const Format = {

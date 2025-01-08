@@ -2,7 +2,7 @@
 
 import * as path from "path";
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import { makeFaunaRequest } from "./core-api.mjs";
 import { getSecret } from "./fauna-client.mjs";
 import { dirExists, dirIsWriteable } from "./file-util.mjs";

@@ -1,6 +1,6 @@
 //@ts-check
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import { getToken, startOAuthRequest } from "../lib/account-api.mjs";
 
 async function doLogin(argv) {

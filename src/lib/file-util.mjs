@@ -1,7 +1,7 @@
 //@ts-check
 import path from "node:path";
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 
 /**
  * Fixes paths by normalizing them (.. => parent directory) and resolving ~ to homedir.

@@ -1,4 +1,4 @@
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import { AuthenticationError, CommandError } from "../errors.mjs";
 import { AccountKeyStorage } from "../file-util.mjs";
 

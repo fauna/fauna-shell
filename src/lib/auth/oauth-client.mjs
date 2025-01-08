@@ -3,7 +3,7 @@ import http from "http";
 import url from "url";
 import util from "util";
 
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import SuccessPage from "./successPage.mjs";
 
 const ALLOWED_ORIGINS = [

@@ -5,7 +5,7 @@ import path from "node:path";
 import { isSea } from "node:sea";
 import { fileURLToPath } from "node:url";
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import { fixPath } from "../lib/file-util.mjs";
 import { setAccountUrl } from "./account-api.mjs";
 import { ValidationError } from "./errors.mjs";

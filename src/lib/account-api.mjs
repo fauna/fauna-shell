@@ -1,9 +1,6 @@
 //@ts-check
 
-import console from "node:console";
-
-import { container } from "../cli.mjs";
-import { retryAuthorizationErrorOnce } from "./auth/credentials.mjs";
+import { container } from "../config/container.mjs";
 import {
   AuthenticationError,
   AuthorizationError,
@@ -18,10 +15,18 @@ const API_VERSIONS = {
 
 let accountUrl = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
 
+/**
+ * References the account URL set in the account-api module.
+ * @returns {string} The account URL
+ */
 export function getAccountUrl() {
   return accountUrl;
 }
 
+/**
+ * Sets the account URL for the account-api module.
+ * @param {string} url - The account URL to set
+ */
 export function setAccountUrl(url) {
   accountUrl = url;
 }
@@ -44,6 +49,7 @@ export function toResource({
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
   }
+
   return url;
 }
 
@@ -56,27 +62,37 @@ export function toResource({
  * @returns {Promise<Response>} The response from the account API
  */
 export async function fetchWithAccountKey(url, options) {
+  const logger = container.resolve("logger");
   const fetch = container.resolve("fetch");
   const accountKeys = container.resolve("credentials").accountKeys;
 
-  return retryAuthorizationErrorOnce({
-    keyProvider: accountKeys,
-    fn: async (secret) => {
-      const resolvedOptions = {
-        ...options,
-        headers: { ...options.headers, Authorization: `Bearer ${secret}` },
-      };
-
-      // If the response is a 401, we need to refresh the secret. We throw the response
-      // so that the retry mechanism can handle it.
-      const response = await fetch(url, resolvedOptions);
-      if (response.status === 401) {
-        throw response;
-      }
-
-      return response;
-    },
+  let response = await fetch(url, {
+    ...options,
+    headers: { ...options.headers, Authorization: `Bearer ${accountKeys.key}` },
   });
+
+  if (response.status !== 401) {
+    return response;
+  }
+
+  logger.debug("Retryable 401 error, attempting to refresh session", "creds");
+
+  await accountKeys.onInvalidCreds();
+
+  response = await fetch(url, {
+    ...options,
+    headers: { ...options.headers, Authorization: `Bearer ${accountKeys.key}` },
+  });
+
+  if (response.status === 401) {
+    logger.debug(
+      "Failed to refresh session, expired or missing refresh token",
+      "creds",
+    );
+    accountKeys.promptLogin();
+  }
+
+  return response;
 }
 
 /**
@@ -154,6 +170,12 @@ export async function accountToCommandError(response) {
   }
 }
 
+/**
+ * Handles the response from the account API.
+ * @param {Response} response - The response from the account API
+ * @returns {Promise<Object>} The JSON body of the response
+ * @throws {AuthorizationError | AuthenticationError | CommandError | Error} If the response is not OK
+ */
 export async function responseHandler(response) {
   if (!response.ok) {
     await accountToCommandError(response);
@@ -162,6 +184,19 @@ export async function responseHandler(response) {
   return await response.json();
 }
 
+/**
+ * Starts an OAuth request.
+ * @param {Object} params - The parameters for the OAuth request
+ * @param {string} params.client_id - The client ID
+ * @param {string} params.redirect_uri - The redirect URI
+ * @param {string} params.code_challenge - The code challenge
+ * @param {string} params.code_challenge_method - The code challenge method
+ * @param {string} params.response_type - The response type
+ * @param {string} params.scope - The scope
+ * @param {string} params.state - The state
+ * @returns {Promise<string>} The URL to redirect the user to
+ * @throws {Error} If the response is not OK
+ */
 export async function startOAuthRequest(params) {
   const fetch = container.resolve("fetch");
   const url = toResource({ endpoint: "/oauth/authorize", params });
@@ -193,6 +228,16 @@ export async function startOAuthRequest(params) {
   return dashboardOAuthURL;
 }
 
+/**
+ * Gets an access token from the account API.
+ * @param {Object} params - The parameters for the access token request
+ * @param {string} params.client_id - The client ID
+ * @param {string} params.client_secret - The client secret
+ * @param {string} params.code - The authorization code
+ * @param {string} params.redirect_uri - The redirect URI
+ * @param {string} params.code_verifier - The code verifier
+ * @returns {Promise<string>} The access token
+ */
 export async function getToken(params) {
   const fetch = container.resolve("fetch");
   const url = toResource({ endpoint: "/oauth/token" });
@@ -221,6 +266,12 @@ export async function getToken(params) {
   return accessToken;
 }
 
+/**
+ * Gets a session from the account API.
+ * @param {string} accessToken - The access token
+ * @returns {Promise<Object>} The session
+ * @throws {AuthorizationError | AuthenticationError | CommandError | Error} If the response is not OK
+ */
 async function getSession(accessToken) {
   const fetch = container.resolve("fetch");
   const url = toResource({ endpoint: "/session" });
@@ -238,6 +289,12 @@ async function getSession(accessToken) {
   return { accountKey, refreshToken };
 }
 
+/**
+ * Refreshes a session from the account API.
+ * @param {string} refreshToken - The refresh token
+ * @returns {Promise<Object>} The session
+ * @throws {AuthorizationError | AuthenticationError | CommandError | Error} If the response is not OK
+ */
 async function refreshSession(refreshToken) {
   const fetch = container.resolve("fetch");
   const url = toResource({ endpoint: "/session/refresh" });
@@ -259,12 +316,14 @@ async function refreshSession(refreshToken) {
 /**
  * List all databases for the current account.
  *
- * @param {Object} params - The parameters for listing databases.
- * @param {string | undefined} params.path - The path of the database, including region group
- * @param {number} params.pageSize - The number of databases to return per page
+ * @param {Object} [params] - The parameters for listing databases.
+ * @param {string} [params.path] - The path of the database, including region group
+ * @param {number} [params.pageSize] - The number of databases to return per page
  * @returns {Promise<Object>} - A promise that resolves to the list of databases
+ * @throws {AuthorizationError | AuthenticationError | CommandError | Error} If the response is not OK
  */
-async function listDatabases({ path = undefined, pageSize = 1000 }) {
+async function listDatabases(params = {}) {
+  const { path, pageSize = 1000 } = params;
   const url = toResource({
     endpoint: "/databases",
     params: {
@@ -288,7 +347,7 @@ async function listDatabases({ path = undefined, pageSize = 1000 }) {
  * @param {string | undefined} params.ttl - ISO String for the key's expiration time, optional
  * @param {string | undefined} params.name - The name for the key, optional
  * @returns {Promise<Object>} - A promise that resolves when the key is created.
- * @throws {Error} - Throws an error if there is an issue during key creation.
+ * @throws {AuthorizationError | AuthenticationError | CommandError | Error} If the response is not OK
  */
 async function createKey({ path, role, ttl, name }) {
   const url = toResource({ endpoint: "/databases/keys" });
@@ -309,6 +368,9 @@ async function createKey({ path, role, ttl, name }) {
   return await responseHandler(response);
 }
 
+/**
+ * The account API module with the currently supported endpoints.
+ */
 const accountAPI = {
   listDatabases,
   createKey,

@@ -1,4 +1,4 @@
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import { Format } from "./formatting/colorize.mjs";
 
 export function isTTY() {

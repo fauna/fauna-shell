@@ -1,11 +1,40 @@
+import * as awilix from "awilix";
 import { expect } from "chai";
+import sinon from "sinon";
 
-import { responseHandler } from "../../src/lib/account-api.mjs";
+import { setContainer } from "../../src/config/container.mjs";
+import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import accountAPI, {
+  fetchWithAccountKey,
+  responseHandler,
+  toResource,
+} from "../../src/lib/account-api.mjs";
 import {
   AuthenticationError,
   AuthorizationError,
   CommandError,
 } from "../../src/lib/errors.mjs";
+import { f } from "../helpers.mjs";
+
+describe("toResource", () => {
+  it("should build a URL with the correct endpoint and parameters", () => {
+    const url = toResource({ endpoint: "/users", params: { limit: 10 } });
+    expect(url.toString()).to.equal(
+      "https://account.fauna.com/api/v1/users?limit=10",
+    );
+  });
+
+  it("should respect v2 endpoints when specified", () => {
+    const url = toResource({
+      endpoint: "/users",
+      params: { limit: 10 },
+      version: "/v2",
+    });
+    expect(url.toString()).to.equal(
+      "https://account.fauna.com/v2/users?limit=10",
+    );
+  });
+});
 
 describe("responseHandler", () => {
   const createMockResponse = (
@@ -165,5 +194,216 @@ describe("responseHandler", () => {
 
     const result = await responseHandler(response);
     expect(result).to.deep.equal(responseBody);
+  });
+});
+
+describe("accountAPI", () => {
+  let container, fetch;
+
+  beforeEach(() => {
+    container = setupContainer();
+    fetch = container.resolve("fetch");
+
+    container.register({
+      credentials: awilix.asValue({
+        accountKeys: {
+          key: "some-account-key",
+          onInvalidCreds: async () => {
+            container.resolve("credentials").accountKeys.key =
+              "new-account-key";
+            return Promise.resolve();
+          },
+          promptLogin: sinon.stub(),
+        },
+      }),
+    });
+
+    setContainer(container);
+  });
+
+  describe("fetchWithAccountKey", () => {
+    it("should call the endpoint with the correct headers", async () => {
+      await fetchWithAccountKey("https://account.fauna.com/api/v1/databases", {
+        method: "GET",
+      });
+
+      expect(fetch).to.have.been.calledWith(
+        "https://account.fauna.com/api/v1/databases",
+        {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer some-account-key",
+          },
+        },
+      );
+    });
+
+    it("should retry once when the response is a 401", async () => {
+      fetch
+        .withArgs("https://account.fauna.com/api/v1/databases")
+        .onCall(0)
+        .resolves(f(null, 401));
+
+      fetch
+        .withArgs("https://account.fauna.com/api/v1/databases")
+        .onCall(1)
+        .resolves(f({ results: [] }, 200));
+
+      const response = await fetchWithAccountKey(
+        "https://account.fauna.com/api/v1/databases",
+        {
+          method: "GET",
+        },
+      );
+
+      expect(fetch).to.have.been.calledWith(
+        "https://account.fauna.com/api/v1/databases",
+        {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer some-account-key",
+          },
+        },
+      );
+      expect(fetch).to.have.been.calledWith(
+        "https://account.fauna.com/api/v1/databases",
+        {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer new-account-key",
+          },
+        },
+      );
+      expect(await response.json()).to.deep.equal({ results: [] });
+    });
+
+    it("should only retry authorization errors once", async () => {
+      fetch
+        .withArgs("https://account.fauna.com/api/v1/databases")
+        .resolves(f(null, 401));
+
+      const response = await fetchWithAccountKey(
+        "https://account.fauna.com/api/v1/databases",
+        {
+          method: "GET",
+        },
+      );
+
+      expect(response.status).to.equal(401);
+      expect(await response.json()).to.deep.equal(null);
+    });
+  });
+
+  describe("listDatabases", () => {
+    it("should call the endpoint", async () => {
+      fetch
+        .withArgs(
+          sinon.match({
+            href: "https://account.fauna.com/api/v1/databases?max_results=1000",
+          }),
+          sinon.match.any,
+        )
+        .resolves(
+          f({
+            results: [{ name: "test-db", path: "us-std/test-db" }],
+          }),
+        );
+
+      const data = await accountAPI.listDatabases({});
+
+      expect(fetch).to.have.been.calledWith(
+        sinon.match({
+          href: "https://account.fauna.com/api/v1/databases?max_results=1000",
+        }),
+        sinon.match({
+          method: "GET",
+          headers: {
+            Authorization: "Bearer some-account-key",
+          },
+        }),
+      );
+
+      expect(data).to.deep.equal({
+        results: [{ name: "test-db", path: "us-std/test-db" }],
+      });
+    });
+
+    it("should call the endpoint with a path", async () => {
+      fetch
+        .withArgs(
+          sinon.match({
+            href: "https://account.fauna.com/api/v1/databases?max_results=1000&path=us-std%2Ftest-db",
+          }),
+        )
+        .resolves(
+          f({
+            results: [{ name: "test-db", path: "us-std/test-db" }],
+          }),
+        );
+
+      const data = await accountAPI.listDatabases({ path: "us-std/test-db" });
+
+      expect(data).to.deep.equal({
+        results: [{ name: "test-db", path: "us-std/test-db" }],
+      });
+    });
+  });
+
+  describe("createKey", () => {
+    it("should call the endpoint", async () => {
+      fetch
+        .withArgs(
+          sinon.match({
+            href: "https://account.fauna.com/api/v1/databases/keys",
+          }),
+          sinon.match.any,
+        )
+        .resolves(
+          f(
+            {
+              id: "key-id",
+              role: "admin",
+              path: "us-std/test-db",
+              ttl: "2025-01-01T00:00:00.000Z",
+              name: "test-key",
+            },
+            201,
+          ),
+        );
+
+      const data = await accountAPI.createKey({
+        path: "us/test-db",
+        role: "admin",
+        ttl: "2025-01-01T00:00:00.000Z",
+        name: "test-key",
+      });
+
+      expect(fetch).to.have.been.calledWith(
+        sinon.match({
+          href: "https://account.fauna.com/api/v1/databases/keys",
+        }),
+        sinon.match({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer some-account-key",
+          },
+          body: JSON.stringify({
+            role: "admin",
+            path: "us-std/test-db",
+            ttl: "2025-01-01T00:00:00.000Z",
+            name: "test-key",
+          }),
+        }),
+      );
+
+      expect(data).to.deep.equal({
+        id: "key-id",
+        role: "admin",
+        path: "us-std/test-db",
+        ttl: "2025-01-01T00:00:00.000Z",
+        name: "test-key",
+      });
+    });
   });
 });
