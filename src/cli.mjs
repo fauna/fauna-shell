@@ -18,6 +18,7 @@ import { getDbCompletions, getProfileCompletions } from "./lib/completions.mjs";
 import { configParser } from "./lib/config/config.mjs";
 import { handleParseYargsError } from "./lib/errors.mjs";
 import {
+  applyAccountUrl,
   applyLocalArg,
   checkForUpdates,
   fixPaths,
@@ -111,7 +112,10 @@ function buildYargs(argvInput) {
     .env("FAUNA")
     .config("config", configParser.bind(null, argvInput))
     .middleware([checkForUpdates, logArgv], true)
-    .middleware([applyLocalArg, fixPaths, buildCredentials], false)
+    .middleware(
+      [applyLocalArg, fixPaths, applyAccountUrl, buildCredentials],
+      false,
+    )
     .command(queryCommand)
     .command(shellCommand)
     .command(loginCommand)

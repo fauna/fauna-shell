@@ -1,6 +1,5 @@
 import { container } from "../../cli.mjs";
 import { AuthenticationError, CommandError } from "../errors.mjs";
-import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { AccountKeyStorage } from "../file-util.mjs";
 
 /**
@@ -100,14 +99,13 @@ export class AccountKeys {
    * credentials file. Updates this.key to the new value. If refresh fails, prompts login
    */
   async refreshKey() {
+    const { refreshSession } = container.resolve("accountAPI");
     const existingCreds = this.keyStore.get();
     if (!existingCreds?.refreshToken) {
       this.promptLogin();
     }
     try {
-      const newAccountKey = await FaunaAccountClient.refreshSession(
-        existingCreds.refreshToken,
-      );
+      const newAccountKey = await refreshSession(existingCreds.refreshToken);
       this.keyStore.save({
         accountKey: newAccountKey.accountKey,
         refreshToken: newAccountKey.refreshToken,

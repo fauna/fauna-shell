@@ -7,10 +7,10 @@ import { fileURLToPath } from "node:url";
 
 import { container } from "../cli.mjs";
 import { fixPath } from "../lib/file-util.mjs";
+import { setAccountUrl } from "./account-api.mjs";
 import { ValidationError } from "./errors.mjs";
 import { redactedStringify } from "./formatting/redact.mjs";
 import { QUERY_OPTIONS } from "./options.mjs";
-
 const LOCAL_URL = "http://0.0.0.0:8443";
 const LOCAL_SECRET = "secret";
 const DEFAULT_URL = "https://db.fauna.com";
@@ -202,3 +202,16 @@ export const validateDatabaseOrSecret = (argv) => {
   }
   return true;
 };
+
+/**
+ * Set the account URL for the current user, changing the base url used for
+ * all Fauna API requests.
+ * @param {import('yargs').Arguments} argv
+ * @returns {import('yargs').Arguments}
+ */
+export function applyAccountUrl(argv) {
+  if (argv.accountUrl) {
+    setAccountUrl(argv.accountUrl);
+  }
+  return argv;
+}

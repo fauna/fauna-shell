@@ -3,13 +3,12 @@ import chalk from "chalk";
 
 import { container } from "../../cli.mjs";
 import { faunaToCommandError } from "../../lib/fauna.mjs";
-import { FaunaAccountClient } from "../../lib/fauna-account-client.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 
 async function listDatabasesWithAccountAPI(argv) {
   const { pageSize, database } = argv;
-  const accountClient = new FaunaAccountClient();
-  const response = await accountClient.listDatabases({
+  const { listDatabases } = container.resolve("accountAPI");
+  const response = await listDatabases({
     pageSize,
     path: database,
   });

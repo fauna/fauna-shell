@@ -1,19 +1,20 @@
 import { expect } from "chai";
 
-import { parseResponse } from "../../src/lib/account.mjs";
+import { responseHandler } from "../../src/lib/account-api.mjs";
 import {
   AuthenticationError,
   AuthorizationError,
   CommandError,
 } from "../../src/lib/errors.mjs";
 
-describe("parseResponse", () => {
+describe("responseHandler", () => {
   const createMockResponse = (
     status,
     body = {},
     contentType = "application/json",
   ) => {
     return {
+      ok: status >= 200 && status < 300,
       status,
       headers: {
         get: () => contentType,
@@ -36,13 +37,13 @@ describe("parseResponse", () => {
 
     let v1Error, v2Error;
     try {
-      await parseResponse(v1Response, true);
+      await responseHandler(v1Response);
     } catch (error) {
       v1Error = error;
     }
 
     try {
-      await parseResponse(v2Response, true);
+      await responseHandler(v2Response);
     } catch (error) {
       v2Error = error;
     }
@@ -64,7 +65,7 @@ describe("parseResponse", () => {
     });
 
     try {
-      await parseResponse(response, true);
+      await responseHandler(response);
     } catch (error) {
       expect(error).to.be.instanceOf(AuthenticationError);
     }
@@ -77,7 +78,7 @@ describe("parseResponse", () => {
     });
 
     try {
-      await parseResponse(response, true);
+      await responseHandler(response);
     } catch (error) {
       expect(error).to.be.instanceOf(AuthorizationError);
     }
@@ -90,7 +91,7 @@ describe("parseResponse", () => {
     });
 
     try {
-      await parseResponse(response, true);
+      await responseHandler(response);
     } catch (error) {
       expect(error).to.be.instanceOf(CommandError);
     }
@@ -103,7 +104,7 @@ describe("parseResponse", () => {
     });
 
     try {
-      await parseResponse(response, true);
+      await responseHandler(response);
     } catch (error) {
       expect(error).to.be.instanceOf(CommandError);
     }
@@ -116,23 +117,10 @@ describe("parseResponse", () => {
     });
 
     try {
-      await parseResponse(response, true);
+      await responseHandler(response);
     } catch (error) {
       expect(error).to.be.instanceOf(Error);
     }
-  });
-
-  it("should not throw error when shouldThrow is false", async () => {
-    const response = createMockResponse(400, {
-      code: "bad_request",
-      reason: "Invalid parameters",
-    });
-
-    const result = await parseResponse(response, false);
-    expect(result).to.deep.equal({
-      code: "bad_request",
-      reason: "Invalid parameters",
-    });
   });
 
   it("should handle non-JSON responses", async () => {
@@ -144,7 +132,7 @@ describe("parseResponse", () => {
     };
 
     try {
-      await parseResponse(response, true);
+      await responseHandler(response);
     } catch (error) {
       expect(error).to.be.instanceOf(CommandError);
       expect(error.message).to.equal(
@@ -161,7 +149,7 @@ describe("parseResponse", () => {
     const response = createMockResponse(400, responseBody);
 
     try {
-      await parseResponse(response, true);
+      await responseHandler(response);
     } catch (error) {
       expect(error.cause).to.exist;
       expect(error.cause.status).to.equal(400);
@@ -175,7 +163,7 @@ describe("parseResponse", () => {
     const responseBody = { data: "success" };
     const response = createMockResponse(200, responseBody);
 
-    const result = await parseResponse(response, true);
+    const result = await responseHandler(response);
     expect(result).to.deep.equal(responseBody);
   });
 });

@@ -2,7 +2,8 @@
 
 import * as path from "node:path";
 
-import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
+import { container } from "../cli.mjs";
+import { setAccountUrl } from "./account-api.mjs";
 import { buildCredentials } from "./auth/credentials.mjs";
 import { getConfig, locateConfig } from "./config/config.mjs";
 
@@ -24,18 +25,29 @@ export async function getDbCompletions(currentWord, argv) {
     return regionGroups;
   } else {
     const { pageSize } = argv;
+    if (argv.accountUrl !== undefined) {
+      setAccountUrl(argv.accountUrl);
+    }
     buildCredentials({ ...argv, user: "default" });
-    const accountClient = new FaunaAccountClient();
+    const { listDatabases } = container.resolve("accountAPI");
     try {
-      const response = await accountClient.listDatabases({
+      // Try the currentWord with any trailing slash removed
+      const databasePath = currentWord.endsWith("/")
+        ? currentWord.slice(0, -1)
+        : currentWord;
+      const response = await listDatabases({
         pageSize,
-        path: currentWord,
+        path: databasePath,
       });
       return response.results.map(({ name }) => path.join(currentWord, name));
     } catch (e) {
-      const response = await accountClient.listDatabases({
+      // If the first try fails, try the currentWord with the directory name.
+      // If this is just a region group, dirname will resolve to '.' and we'll
+      // not get any results.
+      const databasePath = path.dirname(currentWord);
+      const response = await listDatabases({
         pageSize,
-        path: path.dirname(currentWord),
+        path: databasePath,
       });
       return response.results.map(({ name }) =>
         path.join(path.dirname(currentWord), name),
