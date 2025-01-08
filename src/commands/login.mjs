@@ -1,7 +1,5 @@
 //@ts-check
 
-import { input } from "@inquirer/prompts";
-
 import { container } from "../cli.mjs";
 import { yargsWithCommonOptions } from "../lib/command-helpers.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
@@ -15,6 +13,7 @@ async function doLogin(argv) {
   const open = container.resolve("open");
   const credentials = container.resolve("credentials");
   const oAuth = container.resolve("oauthClient");
+  const input = container.resolve("input");
 
   const loginWithToken = async () => {
     try {
@@ -77,7 +76,7 @@ function buildLoginCommand(yargs) {
       description: "User to log in as.",
       default: "default",
     },
-    noRedirect: {
+    "no-redirect": {
       alias: "n",
       type: "boolean",
       description:
@@ -87,7 +86,7 @@ function buildLoginCommand(yargs) {
   }).example([
     ["$0 login", "Log in as the 'default' user."],
     ["$0 login --user john_doe", "Log in as the 'john_doe' user."],
-    ["$0 login --no-redirect", "Log in using a link."],
+    ["$0 login -n", "Log in using a link."],
   ]);
 }
 

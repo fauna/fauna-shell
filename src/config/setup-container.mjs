@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { exit } from "node:process";
 
-import { confirm } from "@inquirer/prompts";
+import { confirm, input } from "@inquirer/prompts";
 import * as awilix from "awilix";
 import { Lifetime } from "awilix";
 import Docker from "dockerode";
@@ -69,6 +69,7 @@ export const injectables = {
 
   // third-party libraries
   confirm: awilix.asValue(confirm),
+  input: awilix.asValue(input),
   open: awilix.asValue(open),
   updateNotifier: awilix.asValue(updateNotifier),
   fauna: awilix.asValue(fauna),
