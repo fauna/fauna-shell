@@ -124,6 +124,32 @@ ${chalk.red("Please use choose a different name using --name or align the --type
   }
 }
 
+function validateContainerArgv(argv) {
+  if (argv.maxAttempts < 1) {
+    throw new ValidationError("--max-attempts must be greater than 0.");
+  }
+  if (argv.interval < 0) {
+    throw new ValidationError("--interval must be greater than or equal to 0.");
+  }
+}
+
+function validateDatabaseArgv(argv) {
+  const dbOnlyArgs = {
+    typechecked: "--typechecked",
+    protected: "--protected",
+    priority: "--priority",
+    directory: "--fsl-directory",
+  };
+
+  for (const [arg, name] of Object.entries(dbOnlyArgs)) {
+    if (argv[arg] !== undefined && !argv.database) {
+      throw new ValidationError(
+        `${name} can only be set if --database is set.`,
+      );
+    }
+  }
+}
+
 /**
  * Builds the yargs command for the local command
  * @param {import('yargs').Argv} yargs The yargs instance
@@ -198,34 +224,8 @@ function buildLocalCommand(yargs) {
       },
     })
     .check((argv) => {
-      if (argv.maxAttempts < 1) {
-        throw new ValidationError("--max-attempts must be greater than 0.");
-      }
-      if (argv.interval < 0) {
-        throw new ValidationError(
-          "--interval must be greater than or equal to 0.",
-        );
-      }
-      if (argv.typechecked !== undefined && !argv.database) {
-        throw new ValidationError(
-          "--typechecked can only be set if --database is set.",
-        );
-      }
-      if (argv.protected && !argv.database) {
-        throw new ValidationError(
-          "--protected can only be set if --database is set.",
-        );
-      }
-      if (argv.priority && !argv.database) {
-        throw new ValidationError(
-          "--priority can only be set if --database is set.",
-        );
-      }
-      if (argv.directory && !argv.database) {
-        throw new ValidationError(
-          "--directory,--dir can only be set if --database is set.",
-        );
-      }
+      validateContainerArgv(argv);
+      validateDatabaseArgv(argv);
       return true;
     })
     .example([

@@ -7,7 +7,9 @@ import { fileURLToPath } from "node:url";
 
 import { container } from "../cli.mjs";
 import { fixPath } from "../lib/file-util.mjs";
+import { ValidationError } from "./errors.mjs";
 import { redactedStringify } from "./formatting/redact.mjs";
+import { QUERY_OPTIONS } from "./options.mjs";
 
 const LOCAL_URL = "http://0.0.0.0:8443";
 const LOCAL_SECRET = "secret";
@@ -43,7 +45,6 @@ export function fixPaths(argv) {
 }
 
 export function checkForUpdates(argv) {
-  // TODO: figure out upgrade path for SEA installations
   if (isSea()) return argv;
 
   const __filename = fileURLToPath(import.meta.url);
@@ -85,7 +86,7 @@ export function applyLocalArg(argv) {
  * container, false otherwise.
  */
 export function isLocal(argv) {
-  return argv.local || argv._[0] === "local";
+  return Boolean(argv.local) || argv._[0] === "local";
 }
 
 /**
@@ -150,3 +151,54 @@ was ${argv.role ? `'${argv.role}'` : "not"}}`,
   }
   return argv;
 }
+
+/**
+ * Mutates argv.include appropriately for query options
+ * @param {Object} argv
+ * @param {Array<string>} argv.include
+ * @param {boolean} argv.performanceHints
+ * @returns {Object}
+ */
+export function resolveIncludeOptions(argv) {
+  if (argv.include.includes("none")) {
+    if (argv.include.length !== 1) {
+      throw new ValidationError(
+        `'--include none' cannot be used with other include options. Provided options: '${argv.include.join(", ")}'`,
+      );
+    }
+    argv.include = [];
+  }
+
+  if (argv.include.includes("all")) {
+    argv.include = [...QUERY_OPTIONS.include.choices];
+  }
+
+  if (argv.performanceHints && !argv.include.includes("summary")) {
+    argv.include.push("summary");
+  }
+
+  return argv;
+}
+
+/**
+ * Validate that the user has specified either a database or a secret.
+ * This check is not required for commands that can operate at a
+ * "root" level.
+ *
+ * @param {object} argv
+ * @param {string} argv.database - The database to use
+ * @param {string} argv.secret - The secret to use
+ * @param {boolean} argv.local - Whether to use a local Fauna container
+ * @param {boolean|undefined} argv.getYargsCompletions - Whether this CLI run is to generate completions
+ */
+export const validateDatabaseOrSecret = (argv) => {
+  // don't validate completion invocations
+  if (argv.getYargsCompletions) return true;
+
+  if (!argv.database && !argv.secret && !argv.local) {
+    throw new ValidationError(
+      "No database or secret specified. Please use either --database, --secret, or --local to connect to your desired Fauna database.",
+    );
+  }
+  return true;
+};

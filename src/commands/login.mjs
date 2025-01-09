@@ -1,7 +1,6 @@
 //@ts-check
 
 import { container } from "../cli.mjs";
-import { yargsWithCommonOptions } from "../lib/command-helpers.mjs";
 import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
 
 async function doLogin(argv) {
@@ -69,25 +68,44 @@ async function doLogin(argv) {
  * @returns
  */
 function buildLoginCommand(yargs) {
-  return yargsWithCommonOptions(yargs, {
-    user: {
-      alias: "u",
-      type: "string",
-      description: "User to log in as.",
-      default: "default",
-    },
-    "no-redirect": {
-      alias: "n",
-      type: "boolean",
-      description:
-        "Login without redirecting to a local callback server. Use this option if you are unable to open a browser on your local machine.",
-      default: false,
-    },
-  }).example([
-    ["$0 login", "Log in as the 'default' user."],
-    ["$0 login --user john_doe", "Log in as the 'john_doe' user."],
-    ["$0 login -n", "Log in using a link."],
-  ]);
+  return yargs
+    .options({
+      "account-url": {
+        type: "string",
+        description: "The Fauna account URL to query",
+        default: "https://account.fauna.com",
+        hidden: true,
+      },
+      "client-id": {
+        type: "string",
+        description: "the client id to use when calling Fauna",
+        required: false,
+        hidden: true,
+      },
+      "client-secret": {
+        type: "string",
+        description: "the client secret to use when calling Fauna",
+        required: false,
+        hidden: true,
+      },
+      "no-redirect": {
+        alias: "n",
+        type: "boolean",
+        description:
+          "Login without redirecting to a local callback server. Use this option if you are unable to open a browser on your local machine.",
+        default: false,
+      },
+      user: {
+        alias: "u",
+        type: "string",
+        description: "User to log in as.",
+        default: "default",
+      },
+    })
+    .example([
+      ["$0 login", "Log in as the 'default' user."],
+      ["$0 login --user john_doe", "Log in as the 'john_doe' user."],
+    ]);
 }
 
 export default {
