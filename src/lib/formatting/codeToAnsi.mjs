@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { createHighlighterCoreSync } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
+import csv from "shiki/langs/csv.mjs";
 import json from "shiki/langs/json.mjs";
 import log from "shiki/langs/log.mjs";
 import yaml from "shiki/langs/yaml.mjs";
@@ -14,7 +15,7 @@ const THEME = "github-dark-high-contrast";
 export const createHighlighter = () => {
   const highlighter = createHighlighterCoreSync({
     themes: [githubDarkHighContrast],
-    langs: [fql, log, json, yaml],
+    langs: [fql, log, json, yaml, csv],
     engine: createJavaScriptRegexEngine(),
   });
 
