@@ -96,6 +96,9 @@ export function setupTestContainer() {
       createKey: stub(),
       refreshSession: stub(),
       getSession: stub(),
+      createExport: stub(),
+      getExport: stub(),
+      listExports: stub(),
     }),
     errorHandler: awilix.asValue((error, exitCode) => {
       error.code = exitCode;
