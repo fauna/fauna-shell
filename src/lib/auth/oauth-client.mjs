@@ -4,8 +4,8 @@ import url from "url";
 import util from "util";
 
 import { container } from "../../config/container.mjs";
-import { getDashboardUrl } from "../account.mjs";
 import SuccessPage from "./successPage.mjs";
+import { getDashboardUrl } from "../account-api.mjs";
 
 const ALLOWED_ORIGINS = [
   "http://localhost:3005",
@@ -47,6 +47,7 @@ class OAuthClient {
     const redirectURI = noRedirect
       ? `${getDashboardUrl()}/auth/oauth/callback/cli`
       : `${REDIRECT_URI}:${this.port}`;
+
     return {
       /* eslint-disable camelcase */
       client_id: clientId ?? CLIENT_ID,
