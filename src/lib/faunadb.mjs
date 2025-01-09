@@ -3,7 +3,7 @@ import { createContext, runInContext } from "node:vm";
 
 import faunadb from "faunadb";
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import {
   AuthenticationError,
   AuthorizationError,

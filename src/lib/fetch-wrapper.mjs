@@ -2,7 +2,7 @@
 
 import { inspect } from "node:util";
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 
 // this wrapper exists for only one reason: logging
 // in the future, it could also be extended for error-handling,

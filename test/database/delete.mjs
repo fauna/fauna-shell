@@ -10,14 +10,14 @@ import { AUTHENTICATION_ERROR_MESSAGE } from "../../src/lib/errors.mjs";
 import { mockAccessKeysFile } from "../helpers.mjs";
 
 describe("database delete", () => {
-  let container, logger, runQuery, makeAccountRequest;
+  let container, logger, runQuery, accountAPI;
 
   beforeEach(() => {
     // reset the container before each test
     container = setupContainer();
     logger = container.resolve("logger");
     runQuery = container.resolve("faunaClientV10").runQuery;
-    makeAccountRequest = container.resolve("makeAccountRequest");
+    accountAPI = container.resolve("accountAPI");
   });
 
   [
@@ -94,7 +94,7 @@ describe("database delete", () => {
 
         // If we are using a user provided secret, we should not
         // need to call the account api to mint or refresh a key.
-        expect(makeAccountRequest).to.not.have.been.called;
+        expect(accountAPI.createKey).to.not.have.been.called;
       });
     });
 
@@ -118,7 +118,7 @@ describe("database delete", () => {
         );
       } catch (e) {}
 
-      expect(makeAccountRequest).to.not.have.been.called;
+      expect(accountAPI.createKey).to.not.have.been.called;
       expect(logger.stderr).to.have.been.calledWith(
         sinon.match(AUTHENTICATION_ERROR_MESSAGE),
       );
@@ -136,16 +136,16 @@ describe("database delete", () => {
         mockAccessKeysFile({ fs: container.resolve("fs") });
         // We will attempt to mint a new database key, mock the response
         // so we can verify that the new key is used.
-        makeAccountRequest.resolves({ secret: "new-secret" });
+        accountAPI.createKey.resolves({ secret: "new-secret" });
 
         await run(`database delete ${args}`, container);
 
         // Verify that we made a request to mint a new database key.
-        expect(makeAccountRequest).to.have.been.calledOnceWith({
-          method: "POST",
-          path: "/databases/keys",
-          body: sinon.match((value) => value.includes(expected.database)),
-          secret: sinon.match.string,
+        expect(accountAPI.createKey).to.have.been.calledOnceWith({
+          path: "us/example",
+          role: "admin",
+          ttl: sinon.match.string,
+          name: sinon.match.string,
         });
 
         // Verify that we made a request to delete the database with the new key.

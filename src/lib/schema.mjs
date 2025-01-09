@@ -2,8 +2,8 @@
 
 import * as path from "path";
 
-import { container } from "../cli.mjs";
-import { makeFaunaRequest } from "../lib/db.mjs";
+import { container } from "../config/container.mjs";
+import { makeFaunaRequest } from "./core-api.mjs";
 import { getSecret } from "./fauna-client.mjs";
 import { dirExists, dirIsWriteable } from "./file-util.mjs";
 
@@ -163,7 +163,7 @@ export async function writeSchemaFiles(dir, filenameToContentsDict) {
   await Promise.all(promises);
 }
 
-/** @typedef {import('./db.mjs').fetchParameters} fetchParameters */
+/** @typedef {import('./core-api.mjs').fetchParameters} fetchParameters */
 
 /**
  * @param {string[]} filenames - A list of schema file names to fetch

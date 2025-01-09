@@ -9,7 +9,7 @@ import { spy, stub } from "sinon";
 
 import { f, InMemoryWritableStream } from "../../test/helpers.mjs";
 import { parseYargs } from "../cli.mjs";
-import { makeRetryableFaunaRequest } from "../lib/db.mjs";
+import { makeRetryableFaunaRequest } from "../lib/core-api.mjs";
 import * as faunaClientV10 from "../lib/fauna.mjs";
 import { formatQueryInfo } from "../lib/fauna-client.mjs";
 import * as faunaClientV4 from "../lib/faunadb.mjs";
@@ -79,11 +79,6 @@ export function setupTestContainer() {
     }),
     codeToAnsi: awilix.asValue(stub().returnsArg(0)),
     logger: awilix.asFunction((cradle) => spy(buildLogger(cradle))).singleton(),
-    AccountClient: awilix.asValue(() => ({
-      startOAuthRequest: stub(),
-      getToken: stub(),
-      getSession: stub(),
-    })),
     oauthClient: awilix.asFunction(stub()),
     docker: awilix.asValue({
       createContainer: stub(),
@@ -96,6 +91,12 @@ export function setupTestContainer() {
       pull: stub(),
     }),
     credentials: awilix.asClass(stub()).singleton(),
+    accountAPI: awilix.asValue({
+      listDatabases: stub(),
+      createKey: stub(),
+      refreshSession: stub(),
+      getSession: stub(),
+    }),
     errorHandler: awilix.asValue((error, exitCode) => {
       error.code = exitCode;
       throw error;
@@ -104,7 +105,6 @@ export function setupTestContainer() {
     fetch: awilix.asValue(stub().resolves(f({}))),
     gatherFSL: awilix.asValue(stub().resolves([])),
     makeFaunaRequest: awilix.asValue(spy(makeRetryableFaunaRequest)),
-    makeAccountRequest: awilix.asValue(stub()),
     runQueryFromString: awilix.asValue(stub().resolves({})),
     isQueryable: awilix.asValue(stub().resolves()),
     formatError: awilix.asValue(stub()),

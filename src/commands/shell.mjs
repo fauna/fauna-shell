@@ -5,7 +5,7 @@ import repl from "node:repl";
 
 import * as esprima from "esprima";
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
 import { validateDatabaseOrSecret } from "../lib/middleware.mjs";

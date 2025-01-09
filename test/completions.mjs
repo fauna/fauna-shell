@@ -152,10 +152,10 @@ describe("shell completion", () => {
         .returns(JSON.stringify(basicConfig));
       mockAccessKeysFile({ fs });
 
-      let makeAccountRequest = container.resolve("makeAccountRequest");
+      const { listDatabases } = container.resolve("accountAPI");
       const stubbedResponse = { results: [{ name: "americacentric" }] };
-      makeAccountRequest
-        .withArgs(match({ path: "/databases", params: { path: "us-std" } }))
+      listDatabases
+        .withArgs(match({ path: "us-std" }))
         .resolves(stubbedResponse);
     });
 
@@ -171,11 +171,11 @@ describe("shell completion", () => {
     });
 
     it("suggests a top level database in the selected region group", async () => {
-      let makeAccountRequest = container.resolve("makeAccountRequest");
-      const stubbedResponse = { results: [{ name: "eurocentric" }] };
-      makeAccountRequest
-        .withArgs(match({ path: "/databases", params: { path: "eu-std" } }))
-        .resolves(stubbedResponse);
+      const { listDatabases } = container.resolve("accountAPI");
+      listDatabases.withArgs(match({ path: "eu-std" })).resolves({
+        results: [{ name: "eurocentric" }],
+      });
+
       await complete({
         container,
         matchFlag: "database",
@@ -189,15 +189,10 @@ describe("shell completion", () => {
     });
 
     it("suggests a nested level database in the selected region group", async () => {
-      let makeAccountRequest = container.resolve("makeAccountRequest");
-      const stubbedResponse = {
+      const { listDatabases } = container.resolve("accountAPI");
+      listDatabases.withArgs(match({ path: "eu-std/a/b/c/d" })).resolves({
         results: [{ name: "1" }, { name: "2" }, { name: "3" }, { name: "4" }],
-      };
-      makeAccountRequest
-        .withArgs(
-          match({ path: "/databases", params: { path: "eu-std/a/b/c/d" } }),
-        )
-        .resolves(stubbedResponse);
+      });
 
       await complete({
         container,

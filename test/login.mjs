@@ -6,9 +6,10 @@ import sinon, { spy, stub } from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
+import { f } from "./helpers.mjs";
 
 describe("login", function () {
-  let container, fs, makeAccountRequest;
+  let container, fs, fetch, getSession;
   const mockOAuth = () => {
     let handlers = {};
 
@@ -54,11 +55,12 @@ describe("login", function () {
       oauthClient: awilix.asFunction(mockOAuth).scoped(),
     });
     fs = container.resolve("fs");
-    makeAccountRequest = container.resolve("makeAccountRequest");
-    makeAccountRequest
+    fetch = container.resolve("fetch");
+    getSession = container.resolve("accountAPI").getSession;
+    fetch
       .withArgs(
+        sinon.match({ pathname: "/api/v1/oauth/authorize" }),
         sinon.match({
-          path: sinon.match(/\/oauth\/authorize/),
           method: "GET",
         }),
       )
@@ -67,24 +69,21 @@ describe("login", function () {
         status: 302,
       })
       .withArgs(
+        sinon.match({ pathname: "/api/v1/oauth/token" }),
         sinon.match({
-          path: sinon.match(/\/oauth\/token/),
           method: "POST",
         }),
       )
-      .resolves({
-        access_token: "access-token",
-      })
-      .withArgs(
-        sinon.match({
-          path: sinon.match(/\/session/),
-          method: "POST",
+      .resolves(
+        f({
+          access_token: "access-token",
         }),
-      )
-      .resolves({
-        account_key: "login-account-key",
-        refresh_token: "login-refresh-token",
-      });
+      );
+
+    getSession.resolves({
+      accountKey: "login-account-key",
+      refreshToken: "login-refresh-token",
+    });
   });
 
   it("can login", async function () {
@@ -117,6 +116,7 @@ describe("login", function () {
     expect(logger.stdout).to.have.been.calledWith(
       "To login, open a browser to:\nhttp://dashboard-url.com",
     );
+
     // Trigger server event with mocked auth code
     await oauthClient._receiveAuthCode();
 

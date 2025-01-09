@@ -3,7 +3,7 @@ import http from "http";
 import url from "url";
 import util from "util";
 
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import { getDashboardUrl } from "../account.mjs";
 import SuccessPage from "./successPage.mjs";
 
@@ -36,26 +36,41 @@ class OAuthClient {
     this.state = OAuthClient._generateCSRFToken();
   }
 
-  getOAuthParams(noRedirect) {
+  /**
+   * Gets the OAuth parameters for the OAuth request.
+   * @param {Object} [overrides] - The parameters for the OAuth request
+   * @param {string} [overrides.clientId] - The client ID
+   * @param {boolean} [overrides.noRedirect] - Whether to disable the redirect
+   * @returns {Object} The OAuth parameters
+   */
+  getOAuthParams({ clientId, noRedirect }) {
     const redirectURI = noRedirect
       ? `${getDashboardUrl()}/auth/oauth/callback/cli`
       : `${REDIRECT_URI}:${this.port}`;
     return {
-      client_id: CLIENT_ID, // eslint-disable-line camelcase
-      //`${REDIRECT_URI}:${this.port}`,
-      redirect_uri: redirectURI, // eslint-disable-line camelcase
-      code_challenge: this.codeChallenge, // eslint-disable-line camelcase
-      code_challenge_method: "S256", // eslint-disable-line camelcase
-      response_type: "code", // eslint-disable-line camelcase
+      /* eslint-disable camelcase */
+      client_id: clientId ?? CLIENT_ID,
+      redirect_uri: redirectURI,
+      code_challenge: this.codeChallenge,
+      code_challenge_method: "S256",
+      response_type: "code",
       scope: "create_session",
       state: this.state,
+      /* eslint-enable camelcase */
     };
   }
 
-  getTokenParams() {
+  /**
+   * Gets the token parameters for the OAuth request.
+   * @param {Object} [overrides] - The parameters for the OAuth request
+   * @param {string} [overrides.clientId] - The client ID
+   * @param {string} [overrides.clientSecret] - The client secret
+   * @returns {Object} The token parameters
+   */
+  getTokenParams({ clientId, clientSecret }) {
     return {
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
+      clientId: clientId ?? CLIENT_ID,
+      clientSecret: clientSecret ?? CLIENT_SECRET,
       authCode: this.authCode,
       redirectURI: `${REDIRECT_URI}:${this.port}`,
       codeVerifier: this.codeVerifier,

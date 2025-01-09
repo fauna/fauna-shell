@@ -1,6 +1,5 @@
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import { CommandError } from "../errors.mjs";
-import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { SecretKeyStorage } from "../file-util.mjs";
 
 const TTL_DEFAULT_MS = 1000 * 60 * 15; // 15 minutes
@@ -113,13 +112,13 @@ export class DatabaseKeys {
    * @returns {string} - The new secret
    */
   async refreshKey() {
+    const { createKey } = container.resolve("accountAPI");
     this.logger.debug(
       `Creating new db key for path ${this.path} and role ${this.role}`,
       "creds",
     );
     const expiration = this.getKeyExpiration();
-    const accountClient = new FaunaAccountClient();
-    const newSecret = await accountClient.createKey({
+    const newSecret = await createKey({
       path: this.path,
       role: this.role,
       name: "System generated shell key",

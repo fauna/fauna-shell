@@ -2,7 +2,7 @@ import chalk from "chalk";
 import hasAnsi from "has-ansi";
 import util from "util";
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 
 const BUG_REPORT_MESSAGE =
   "If you believe this is a bug, please report this issue on GitHub: https://github.com/fauna/fauna-shell/issues";

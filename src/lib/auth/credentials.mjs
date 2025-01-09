@@ -1,8 +1,7 @@
 import { asValue, Lifetime } from "awilix";
 
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import { ValidationError } from "../errors.mjs";
-import { FaunaAccountClient } from "../fauna-account-client.mjs";
 import { isLocal } from "../middleware.mjs";
 import { AccountKeys } from "./accountKeys.mjs";
 import { DatabaseKeys } from "./databaseKeys.mjs";
@@ -59,8 +58,9 @@ export class Credentials {
   }
 
   async login(accessToken) {
-    const { accountKey, refreshToken } =
-      await FaunaAccountClient.getSession(accessToken);
+    const { getSession } = container.resolve("accountAPI");
+    const { accountKey, refreshToken } = await getSession(accessToken);
+
     this.accountKeys.keyStore.save({
       accountKey,
       refreshToken,
