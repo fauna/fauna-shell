@@ -13,21 +13,19 @@ import loginCommand from "./commands/login.mjs";
 import queryCommand from "./commands/query.mjs";
 import schemaCommand from "./commands/schema/schema.mjs";
 import shellCommand from "./commands/shell.mjs";
+import { container, setContainer } from "./config/container.mjs";
 import { buildCredentials } from "./lib/auth/credentials.mjs";
 import { getDbCompletions, getProfileCompletions } from "./lib/completions.mjs";
 import { configParser } from "./lib/config/config.mjs";
 import { handleParseYargsError } from "./lib/errors.mjs";
 import {
+  applyAccountUrl,
   applyLocalArg,
   checkForUpdates,
   fixPaths,
   logArgv,
 } from "./lib/middleware.mjs";
 
-/** @typedef {import('awilix').AwilixContainer<import('./config/setup-container.mjs').modifiedInjectables> } cliContainer */
-
-/** @type {cliContainer} */
-export let container;
 /** @type {import('yargs').Argv} */
 export let builtYargs;
 
@@ -36,10 +34,11 @@ const __dirname = path.dirname(__filename);
 
 /**
  * @param {string|string[]} _argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
- * @param {cliContainer} _container - A built and ready for use awilix container with registered injectables.
+ * @param {import('./config/container.mjs').container} container - A built and ready for use awilix container with registered injectables.
  */
-export async function run(_argvInput, _container) {
-  container = _container;
+export async function run(_argvInput, container) {
+  setContainer(container);
+
   const argvInput = _argvInput;
   const logger = container.resolve("logger");
   const parseYargs = container.resolve("parseYargs");
@@ -111,7 +110,10 @@ function buildYargs(argvInput) {
     .env("FAUNA")
     .config("config", configParser.bind(null, argvInput))
     .middleware([checkForUpdates, logArgv], true)
-    .middleware([applyLocalArg, fixPaths, buildCredentials], false)
+    .middleware(
+      [applyLocalArg, fixPaths, applyAccountUrl, buildCredentials],
+      false,
+    )
     .command(queryCommand)
     .command(shellCommand)
     .command(loginCommand)

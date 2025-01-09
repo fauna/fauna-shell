@@ -2,7 +2,7 @@
 
 import chalk from "chalk";
 
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { reformatFSL } from "../../lib/schema.mjs";

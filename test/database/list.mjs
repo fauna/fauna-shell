@@ -11,7 +11,7 @@ import { colorize } from "../../src/lib/formatting/colorize.mjs";
 import { mockAccessKeysFile } from "../helpers.mjs";
 
 describe("database list", () => {
-  let container, fs, logger, stdout, runQueryFromString, makeAccountRequest;
+  let container, fs, logger, stdout, runQueryFromString, accountAPI;
 
   beforeEach(() => {
     // reset the container before each test
@@ -19,7 +19,7 @@ describe("database list", () => {
     fs = container.resolve("fs");
     logger = container.resolve("logger");
     runQueryFromString = container.resolve("faunaClientV10").runQueryFromString;
-    makeAccountRequest = container.resolve("makeAccountRequest");
+    accountAPI = container.resolve("accountAPI");
     stdout = container.resolve("stdoutStream");
   });
 
@@ -63,7 +63,7 @@ describe("database list", () => {
         await stdout.waitForWritten();
 
         expect(stdout.getWritten()).to.equal("testdb\ntestdb2\n");
-        expect(makeAccountRequest).to.not.have.been.called;
+        expect(accountAPI.listDatabases).to.not.have.been.called;
       });
     });
   });
@@ -92,7 +92,7 @@ describe("database list", () => {
         });
 
         expect(stdout.getWritten()).to.equal("testdb\n");
-        expect(makeAccountRequest).to.not.have.been.called;
+        expect(accountAPI.listDatabases).to.not.have.been.called;
       });
     });
 
@@ -129,7 +129,7 @@ describe("database list", () => {
         expected: { pageSize: 10, regionGroup: "us-std" },
       },
       {
-        args: "--database 'us/example'",
+        args: "--database 'us-std/example'",
         expected: { database: "us-std/example" },
       },
     ].forEach(({ args, expected }) => {
@@ -148,18 +148,13 @@ describe("database list", () => {
             },
           ],
         };
-        makeAccountRequest.resolves(stubbedResponse);
+        accountAPI.listDatabases.resolves(stubbedResponse);
 
         await run(`database list ${args}`, container);
 
-        expect(makeAccountRequest).to.have.been.calledOnceWith({
-          method: "GET",
-          path: "/databases",
-          secret: sinon.match.string,
-          params: {
-            max_results: expected.pageSize ?? 1000,
-            ...(expected.database && { path: expected.database }),
-          },
+        expect(accountAPI.listDatabases).to.have.been.calledOnceWith({
+          pageSize: expected.pageSize ?? 1000,
+          path: expected.database,
         });
 
         expect(stdout.getWritten()).to.equal(
@@ -190,7 +185,7 @@ describe("database list", () => {
               name: "test",
             },
           ];
-          makeAccountRequest.resolves({
+          accountAPI.listDatabases.resolves({
             results: data,
           });
         }

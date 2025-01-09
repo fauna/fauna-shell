@@ -56,15 +56,12 @@ The `Credentials` class builds an `AccountKeys` and `DatabaseKeys` class. By the
 
 Every command is scoped 1:1 with a `profile`, `database`, and `role`. These classes will be scoped to those variables and use them when getting, or refreshing credentials.
 
-As such, no command should need to pull out `argv.secret` and send it around. We only need the `Fauna Client` and `Account Client` to leverage the correct key:
+As such, no command should need to pull out `argv.secret` and send it around. We only need the Fauna clients and `accountApi` to leverage the correct key. The `accountApi` does this automatically already through
+the `fetchWithAccountKey` helper function.
 
 ```javascript
-const credentials = container.resolve("credentials");
-const secret = credentials.databaseKeys.getOrRefreshKey();
-const faunaClient = new FaunaClient({ ...options, secret });
-
-const accountKey = credentials.accountKeys.getOrRefreshKey();
-const accountClient = new FaunaAccountClient({ ...options, secret });
+const { listDatabases } = container.resolve("accountAPI");
+const results = await listDatabases({ path: "my-db" });
 ```
 
 But instead of getting the key and passing it into the every client instance, we can build the key resolution and refresh logic into the client classes directly:

@@ -15,10 +15,10 @@ import open from "open";
 import updateNotifier from "update-notifier";
 
 import { parseYargs } from "../cli.mjs";
-import { makeAccountRequest } from "../lib/account.mjs";
+import accountAPI from "../lib/account-api.mjs";
 import { Credentials } from "../lib/auth/credentials.mjs";
 import OAuthClient from "../lib/auth/oauth-client.mjs";
-import { makeRetryableFaunaRequest } from "../lib/db.mjs";
+import { makeRetryableFaunaRequest } from "../lib/core-api.mjs";
 import * as faunaV10 from "../lib/fauna.mjs";
 import {
   formatError,
@@ -73,7 +73,6 @@ export const injectables = {
   updateNotifier: awilix.asValue(updateNotifier),
   fauna: awilix.asValue(fauna),
   faunadb: awilix.asValue(faunadb),
-  codeToAnsi: awilix.asValue(codeToAnsi),
 
   // generic lib (homemade utilities)
   parseYargs: awilix.asValue(parseYargs),
@@ -86,8 +85,9 @@ export const injectables = {
     },
     { lifetime: Lifetime.SINGLETON },
   ),
+  codeToAnsi: awilix.asValue(codeToAnsi),
   oauthClient: awilix.asClass(OAuthClient, { lifetime: Lifetime.SCOPED }),
-  makeAccountRequest: awilix.asValue(makeAccountRequest),
+  accountAPI: awilix.asValue(accountAPI),
   makeFaunaRequest: awilix.asValue(makeRetryableFaunaRequest),
   errorHandler: awilix.asValue((_error, exitCode) => exit(exitCode)),
 
@@ -96,6 +96,7 @@ export const injectables = {
   credentials: awilix.asClass(Credentials, {
     lifetime: Lifetime.SINGLETON,
   }),
+
   // utilities for interacting with Fauna
   runQueryFromString: awilix.asValue(runQueryFromString),
   formatError: awilix.asValue(formatError),

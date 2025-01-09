@@ -1,4 +1,4 @@
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import { CommandError, SUPPORT_MESSAGE } from "./errors.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 

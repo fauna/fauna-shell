@@ -3,11 +3,12 @@ import * as nodeFs from "node:fs";
 import * as awilix from "awilix";
 import { expect } from "chai";
 import path from "path";
-import sinon, { spy } from "sinon";
+import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
 import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import { makeAccountRequest as originalMakeAccountRequest } from "../src/lib/account.mjs";
+import originalAccountAPI from "../src/lib/account-api.mjs";
+import { AuthenticationError } from "../src/lib/errors.mjs";
 import { runQueryFromString as originalRunQueryFromString } from "../src/lib/fauna-client.mjs";
 import { f } from "./helpers.mjs";
 
@@ -27,7 +28,7 @@ const defaultDatabaseKeysFile = {
 
 // Ensure the credentials middleware correctly sets and refreshes account and database keys
 describe("credentials", function () {
-  let container, stderr, fs, fetch, credsDir, makeAccountRequest;
+  let container, stderr, fs, credsDir, accountAPI, fetch;
 
   // Instead of mocking `fs` to return certain values in each test, let the middleware
   //   read files in the actual filesystem.
@@ -50,12 +51,13 @@ describe("credentials", function () {
       fs: awilix.asValue(nodeFs),
     });
     fs = container.resolve("fs");
+    accountAPI = container.resolve("accountAPI");
     fetch = container.resolve("fetch");
-    makeAccountRequest = container.resolve("makeAccountRequest");
 
     const homedir = container.resolve("homedir")();
     credsDir = path.join(homedir, ".fauna/credentials");
     setCredsFiles(defaultAccountKeysFile, defaultDatabaseKeysFile);
+
     delete process.env.FAUNA_ACCOUNT_KEY;
     delete process.env.FAUNA_SECRET;
   });
@@ -160,11 +162,6 @@ describe("credentials", function () {
 
   // Test various network-dependent functionality of the credentials middleware around account keys
   describe("account keys", () => {
-    beforeEach(() => {
-      container.register({
-        makeAccountRequest: awilix.asValue(spy(originalMakeAccountRequest)),
-      });
-    });
     it("prompts login when account key and refresh token are empty", async () => {
       try {
         setCredsFiles({}, {});
@@ -181,12 +178,8 @@ describe("credentials", function () {
 
     it("prompts login when refresh token is invalid", async () => {
       setCredsFiles(defaultAccountKeysFile, {});
-      fetch
-        .withArgs(
-          sinon.match(/\/session\/refresh/),
-          sinon.match({ method: "POST" }),
-        )
-        .resolves(f({}, 401));
+      accountAPI.refreshSession.rejects(new AuthenticationError());
+
       try {
         await run(
           `query "Database.all()" -d us-std --no-color --json`,
@@ -201,43 +194,29 @@ describe("credentials", function () {
 
     it("refreshes account key", async () => {
       setCredsFiles(defaultAccountKeysFile, {});
-      fetch
-        .withArgs(
-          sinon.match(/\/databases\/keys/),
-          sinon.match({ method: "POST" }),
-        )
-        .onCall(0)
-        .resolves(f({}, 401));
+      // We want to test the refresh logic, so we need to can't mock the createKey function
+      const refreshSession = sinon.stub();
+      container.register({
+        accountAPI: awilix.asValue({
+          createKey: originalAccountAPI.createKey,
+          refreshSession,
+        }),
+      });
 
-      fetch
-        .withArgs(
-          sinon.match(/\/session\/refresh/),
-          sinon.match({ method: "POST" }),
-        )
-        .resolves(
-          f(
-            {
-              account_key: "new-account-key",
-              refresh_token: "new-refresh-token",
-            },
-            200,
-          ),
-        );
+      fetch.onCall(0).resolves(f({}, 401));
+
+      refreshSession.resolves({
+        accountKey: "new-account-key",
+        refreshToken: "new-refresh-token",
+      });
+
+      fetch.onCall(1).resolves(f({ secret: "new-secret" }));
+
       await run(
         `query "Database.all()" -d us-std --no-color --json`,
         container,
       );
-      const makeAccountRequest = container.resolve("makeAccountRequest");
-      [
-        ["/databases/keys", "some-account-key"],
-        ["/session/refresh", "some-refresh-token"],
-        ["/databases/keys", "new-account-key"],
-      ].forEach((args, i) => {
-        sinon.assert.calledWithMatch(
-          makeAccountRequest.getCall(i),
-          sinon.match({ path: args[0], secret: args[1] }),
-        );
-      });
+
       const credentials = container.resolve("credentials");
       expect(credentials.accountKeys).to.deep.include({
         key: "new-account-key",
@@ -313,20 +292,15 @@ describe("credentials", function () {
         .resolves({
           data: [],
         });
-      makeAccountRequest
-        .withArgs(
-          sinon.match({
-            path: sinon.match(/\/databases\/keys/),
-            method: "POST",
-          }),
-        )
-        .resolves({
-          secret: "new-secret",
-        });
+      accountAPI.createKey.onCall(0).resolves({
+        secret: "new-secret",
+      });
+
       await run(
         `query "Database.all()" -d us-std --no-color --json`,
         container,
       );
+
       sinon.assert.calledWithMatch(
         v10runQueryFromString.getCall(0),
         sinon.match({
@@ -334,6 +308,7 @@ describe("credentials", function () {
           secret: "some-database-secret",
         }),
       );
+
       const credentials = container.resolve("credentials");
       expect(credentials.databaseKeys).to.deep.include({
         role: "admin",

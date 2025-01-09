@@ -1,6 +1,6 @@
 //@ts-check
 
-import { container } from "../cli.mjs";
+import { container } from "../config/container.mjs";
 import {
   CommandError,
   isUnknownError,

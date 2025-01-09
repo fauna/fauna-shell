@@ -1,6 +1,6 @@
 //@ts-check
 
-import { container } from "../../cli.mjs";
+import { container } from "../../config/container.mjs";
 import { getSecret } from "../../lib/fauna-client.mjs";
 import { LOCAL_SCHEMA_OPTIONS } from "./schema.mjs";
 

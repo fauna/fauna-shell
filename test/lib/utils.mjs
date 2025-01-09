@@ -2,9 +2,9 @@
 
 import { expect } from "chai";
 
-import { FaunaAccountClient } from "../src/lib/fauna-account-client.mjs";
+import { standardizeRegion } from "../../src/lib/utils.mjs";
 
-describe("FaunaAccountClient", () => {
+describe("standardizeRegion", () => {
   [
     // Edge cases
     { original: undefined, expected: undefined },
@@ -28,7 +28,7 @@ describe("FaunaAccountClient", () => {
     { original: "global/example", expected: "global/example" },
   ].forEach(({ original, expected }) => {
     it(`standardizes ${original} to ${expected}`, () => {
-      expect(FaunaAccountClient.standardizeRegion(original)).to.equal(expected);
+      expect(standardizeRegion(original)).to.equal(expected);
     });
   });
 });

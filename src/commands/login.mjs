@@ -1,7 +1,7 @@
 //@ts-check
 
-import { container } from "../cli.mjs";
-import { FaunaAccountClient } from "../lib/fauna-account-client.mjs";
+import { container } from "../config/container.mjs";
+import { getToken, startOAuthRequest } from "../lib/account-api.mjs";
 
 async function doLogin(argv) {
   const logger = container.resolve("logger");
@@ -13,16 +13,29 @@ async function doLogin(argv) {
   const credentials = container.resolve("credentials");
   const oAuth = container.resolve("oauthClient");
   oAuth.server.on("ready", async () => {
-    const authCodeParams = oAuth.getOAuthParams();
-    const dashboardOAuthURL =
-      await FaunaAccountClient.startOAuthRequest(authCodeParams);
+    const authCodeParams = oAuth.getOAuthParams({ clientId: argv.clientId });
+    const dashboardOAuthURL = await startOAuthRequest(authCodeParams);
     open(dashboardOAuthURL);
     logger.stdout(`To login, open your browser to:\n${dashboardOAuthURL}`);
   });
   oAuth.server.on("auth_code_received", async () => {
     try {
-      const tokenParams = oAuth.getTokenParams();
-      const accessToken = await FaunaAccountClient.getToken(tokenParams);
+      const { clientId, clientSecret, authCode, redirectURI, codeVerifier } =
+        oAuth.getTokenParams({
+          clientId: argv.clientId,
+          clientSecret: argv.clientSecret,
+        });
+
+      /* eslint-disable camelcase */
+      const accessToken = await getToken({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code: authCode,
+        redirect_uri: redirectURI,
+        code_verifier: codeVerifier,
+      });
+      /* eslint-enable camelcase */
+
       await credentials.login(accessToken);
     } catch (err) {
       logger.stderr(err);
