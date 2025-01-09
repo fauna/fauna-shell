@@ -44,11 +44,13 @@ function buildCreateS3ExportCommand(yargs) {
         type: "string",
         required: true,
         description: "Name of the bucket to export to.",
+        group: "API:",
       },
       path: {
         type: "string",
         required: true,
         description: "Key prefix to export to.",
+        group: "API:",
       },
       format: {
         type: "string",
@@ -56,6 +58,7 @@ function buildCreateS3ExportCommand(yargs) {
         description: "Format to export to.",
         choices: ["simple", "tagged"],
         default: "simple",
+        group: "API:",
       },
     })
     .check((argv) => {
@@ -73,7 +76,7 @@ function buildCreateS3ExportCommand(yargs) {
         "Create an export of collections to the 'my-bucket' bucket with the 'my-prefix' key prefix in simple format.",
       ],
       [
-        "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix --collections my-collection",
+        "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix --collection my-collection",
         "Create an export of the 'my-collection' collection to the 'my-bucket' bucket with the 'my-prefix' key prefix in simple format.",
       ],
       [
@@ -93,6 +96,7 @@ function buildCreateCommand(yargs) {
         description:
           "The name of the collections to export. If empty, all collections will be exported.",
         default: [],
+        group: "API:",
       },
     })
     .command({
