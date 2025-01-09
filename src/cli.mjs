@@ -34,14 +34,14 @@ const __dirname = path.dirname(__filename);
 
 /**
  * @param {string|string[]} _argvInput - The command string provided by the user or test. Parsed by yargs into an argv object.
- * @param {import('./config/container.mjs').container} _container - A built and ready for use awilix container with registered injectables.
+ * @param {import('./config/container.mjs').container} container - A built and ready for use awilix container with registered injectables.
  */
-export async function run(_argvInput, _container) {
-  setContainer(_container);
+export async function run(_argvInput, container) {
+  setContainer(container);
 
   const argvInput = _argvInput;
-  const logger = _container.resolve("logger");
-  const parseYargs = _container.resolve("parseYargs");
+  const logger = container.resolve("logger");
+  const parseYargs = container.resolve("parseYargs");
   if (process.env.NODE_ENV === "production") {
     process.removeAllListeners("warning");
   }

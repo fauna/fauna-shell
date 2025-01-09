@@ -13,7 +13,7 @@ async function doLogin(argv) {
   const credentials = container.resolve("credentials");
   const oAuth = container.resolve("oauthClient");
   oAuth.server.on("ready", async () => {
-    const authCodeParams = oAuth.getOAuthParams();
+    const authCodeParams = oAuth.getOAuthParams({ clientId: argv.clientId });
     const dashboardOAuthURL = await startOAuthRequest(authCodeParams);
     open(dashboardOAuthURL);
     logger.stdout(`To login, open your browser to:\n${dashboardOAuthURL}`);
@@ -21,7 +21,10 @@ async function doLogin(argv) {
   oAuth.server.on("auth_code_received", async () => {
     try {
       const { clientId, clientSecret, authCode, redirectURI, codeVerifier } =
-        oAuth.getTokenParams();
+        oAuth.getTokenParams({
+          clientId: argv.clientId,
+          clientSecret: argv.clientSecret,
+        });
 
       /* eslint-disable camelcase */
       const accessToken = await getToken({
