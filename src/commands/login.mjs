@@ -43,7 +43,6 @@ async function doLogin(argv) {
     noRedirect: argv.noRedirect,
   });
   const dashboardOAuthURL = await startOAuthRequest(authCodeParams);
-  open(dashboardOAuthURL);
   logger.stdout(`To login, open a browser to:\n${dashboardOAuthURL}`);
   if (!argv.noRedirect) {
     oAuth.server.on("ready", async () => {

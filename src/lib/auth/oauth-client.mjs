@@ -4,8 +4,8 @@ import url from "url";
 import util from "util";
 
 import { container } from "../../config/container.mjs";
-import SuccessPage from "./successPage.mjs";
 import { getDashboardUrl } from "../account-api.mjs";
+import SuccessPage from "./successPage.mjs";
 
 const ALLOWED_ORIGINS = [
   "http://localhost:3005",
