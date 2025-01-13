@@ -159,7 +159,6 @@ export function scopeSecret(argv) {
       const debuggableSecret = `${redact(argv.secret)}:${argv.database}:${role}`;
       argv.secret = `${argv.secret}:${argv.database}:${role}`;
 
-
       logger.debug(
         `Applying scope to secret '${debuggableSecret}', since --database was '${argv.database}' ${argv.role ? `with --role '${argv.role}'` : "with default role 'admin'"}`,
         "argv",
@@ -169,7 +168,6 @@ export function scopeSecret(argv) {
       // If --role is provided with --secret, scope the secret to the role
       const debuggableSecret = `${redact(argv.secret)}:${argv.role}`;
       argv.secret = `${argv.secret}:${argv.role}`;
-
 
       logger.debug(
         `Applying scope to secret '${debuggableSecret}', since --role was '${argv.role}'"`,
