@@ -146,7 +146,7 @@ was ${argv.role ? `'${argv.role}'` : "not"}}`,
 /**
  * Mutates argv.secret appropriately when --database and/or --role are
  * provided along with --secret.
- * @param {import('yargs').Arguments & { secret?: string, database?: string, role?: string}} argv
+ * @param {import('yargs').Arguments} argv
  * @returns {import('yargs').Arguments}
  */
 export function scopeSecret(argv) {
@@ -235,7 +235,7 @@ export const validateDatabaseOrSecret = (argv) => {
 /**
  * Set the account URL for the current user, changing the base url used for
  * all Fauna API requests.
- * @param {import('yargs').Arguments & { accountUrl?: string}} argv
+ * @param {import('yargs').Arguments} argv
  * @returns {import('yargs').Arguments}
  */
 export function applyAccountUrl(argv) {

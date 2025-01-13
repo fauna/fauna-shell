@@ -2,7 +2,6 @@
 
 import { expect } from "chai";
 
-import { setupTestContainer } from "../../src/config/setup-test-container.mjs";
 import { applyLocalArg, scopeSecret } from "../../src/lib/middleware.mjs";
 
 describe("middlewares", function () {
