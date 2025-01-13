@@ -18,7 +18,7 @@ export async function pushSchema(argv) {
   const gatherFSL = container.resolve("gatherFSL");
 
   const isStagedPush = !argv.active;
-  const secret = argv.secret ?? (await getSecret());
+  const secret = await getSecret(argv);
   const fslFiles = await gatherFSL(argv.dir);
   const hasLocalSchema = fslFiles.length > 0;
   const absoluteDirPath = path.resolve(argv.dir);

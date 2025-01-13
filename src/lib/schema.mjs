@@ -181,7 +181,7 @@ export async function getAllSchemaFileContents(
   const promises = [];
   /** @type Record<string, string> */
   const fileContentCollection = {};
-  const secret = argv.secret ?? (await getSecret());
+  const secret = await getSecret(argv);
 
   const params = new URLSearchParams({
     version: version,

@@ -25,7 +25,7 @@ async function shellCommand(argv) {
 
   // Fast fail if the database is not queryable
   const isQueryable = container.resolve("isQueryable");
-  await isQueryable({ ...argv, secret: await getSecret() });
+  await isQueryable({ ...argv, secret: await getSecret(argv) });
 
   const logger = container.resolve("logger");
   let completionPromise;
@@ -176,7 +176,7 @@ async function buildCustomEval(argv) {
 
       let res;
       try {
-        const secret = argv.secret ?? (await getSecret());
+        const secret = await getSecret(argv);
         const { color, timeout, typecheck, url } = argv;
 
         res = await runQueryFromString(cmd, {

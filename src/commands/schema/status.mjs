@@ -13,7 +13,7 @@ async function doStatus(argv) {
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
 
-  const secret = argv.secret ?? (await getSecret());
+  const secret = await getSecret(argv);
   const absoluteDirPath = path.resolve(argv.dir);
   const gatherFSL = container.resolve("gatherFSL");
   const fslFiles = await gatherFSL(argv.dir);

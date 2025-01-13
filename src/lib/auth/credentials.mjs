@@ -63,6 +63,17 @@ export class Credentials {
     });
     this.accountKeys.key = accountKey;
   }
+
+  /**
+   * Gets a secret for the current credentials.
+   * @return {Promise<string>} the secret
+   */
+  async getSecret() {
+    if (!this.databaseKeys.key) {
+      return await this.databaseKeys.getOrRefreshKey();
+    }
+    return this.databaseKeys.key;
+  }
 }
 
 /**
