@@ -87,7 +87,7 @@ async function queryCommand(argv) {
 
   // get the query handler and run the query
   try {
-    const secret = await getSecret();
+    const secret = argv.secret ?? (await getSecret());
     const {
       url,
       timeout,

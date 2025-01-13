@@ -8,7 +8,7 @@ async function doCommit(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
-  const secret = await getSecret();
+  const secret = argv.secret ?? (await getSecret());
 
   if (!argv.input) {
     const params = new URLSearchParams({

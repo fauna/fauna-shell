@@ -176,7 +176,7 @@ async function buildCustomEval(argv) {
 
       let res;
       try {
-        const secret = await getSecret();
+        const secret = argv.secret ?? (await getSecret());
         const { color, timeout, typecheck, url } = argv;
 
         res = await runQueryFromString(cmd, {

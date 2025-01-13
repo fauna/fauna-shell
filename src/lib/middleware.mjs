@@ -9,7 +9,7 @@ import { container } from "../config/container.mjs";
 import { fixPath } from "../lib/file-util.mjs";
 import { setAccountUrl } from "./account-api.mjs";
 import { ValidationError } from "./errors.mjs";
-import { redactedStringify } from "./formatting/redact.mjs";
+import { redact, redactedStringify } from "./formatting/redact.mjs";
 import { QUERY_OPTIONS } from "./options.mjs";
 const LOCAL_URL = "http://0.0.0.0:8443";
 const LOCAL_SECRET = "secret";
@@ -131,16 +131,7 @@ function applyLocalToUrl(argv) {
 function applyLocalToSecret(argv) {
   const logger = container.resolve("logger");
   if (!argv.secret && isLocal(argv)) {
-    if (argv.role && argv.database) {
-      argv.secret = `${LOCAL_SECRET}:${argv.database}:${argv.role}`;
-    } else if (argv.role) {
-      argv.secret = `${LOCAL_SECRET}:${argv.role}`;
-    } else if (argv.database) {
-      // no role
-      argv.secret = `${LOCAL_SECRET}:${argv.database}:admin`;
-    } else {
-      argv.secret = LOCAL_SECRET;
-    }
+    argv.secret = LOCAL_SECRET;
     logger.debug(
       `Set secret to '${argv.secret}' as --local was given, --secret was not, \
 --database was ${argv.database ? `'${argv.database}'` : "not"}, and --role \
@@ -148,6 +139,44 @@ was ${argv.role ? `'${argv.role}'` : "not"}}`,
       "argv",
       argv,
     );
+  }
+  return argv;
+}
+
+/**
+ * Mutates argv.secret appropriately when --database and/or --role are
+ * provided along with --secret.
+ * @param {import('yargs').Arguments & { secret?: string, database?: string, role?: string}} argv
+ * @returns {import('yargs').Arguments}
+ */
+export function scopeSecret(argv) {
+  const logger = container.resolve("logger");
+  if (argv.secret) {
+    if (argv.database) {
+      // If --database path is provided with --secret, scope the secret.
+      // A default role must be provided.
+      const role = argv.role || "admin";
+      argv.secret = `${argv.secret}:${argv.database}:${role}`;
+
+      const debuggableSecret = `${redact(argv.secret)}:${argv.database}:${role}`;
+
+      logger.debug(
+        `Applying scope to secret '${debuggableSecret}', since --database was '${argv.database}' ${argv.role ? `with --role '${argv.role}'` : "with default role 'admin'"}`,
+        "argv",
+        argv,
+      );
+    } else if (argv.role) {
+      // If --role is provided with --secret, scope the secret to the role
+      argv.secret = `${argv.secret}:${argv.role}`;
+
+      const debuggableSecret = `${redact(argv.secret)}:${argv.role}`;
+
+      logger.debug(
+        `Applying scope to secret '${debuggableSecret}', since --role was '${argv.role}'"`,
+        "argv",
+        argv,
+      );
+    }
   }
   return argv;
 }
@@ -206,7 +235,7 @@ export const validateDatabaseOrSecret = (argv) => {
 /**
  * Set the account URL for the current user, changing the base url used for
  * all Fauna API requests.
- * @param {import('yargs').Arguments} argv
+ * @param {import('yargs').Arguments & { accountUrl?: string}} argv
  * @returns {import('yargs').Arguments}
  */
 export function applyAccountUrl(argv) {

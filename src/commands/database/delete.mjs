@@ -19,7 +19,7 @@ async function runDeleteQuery(secret, argv) {
 }
 
 async function deleteDatabase(argv) {
-  const secret = await getSecret();
+  const secret = argv.secret ?? (await getSecret());
   const logger = container.resolve("logger");
 
   try {
