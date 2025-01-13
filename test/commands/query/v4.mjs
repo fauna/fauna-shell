@@ -48,7 +48,7 @@ describe("query v4", function () {
       depth: null,
     });
     expect(logger.stdout).to.have.been.calledWith(
-      colorize(output, { format: "fql_v4", color: true }),
+      colorize(output, { format: "fql", color: true }),
     );
     expect(logger.stderr).to.not.be.called;
   });
@@ -72,7 +72,7 @@ describe("query v4", function () {
       runQueryFromString.resolves(createV4QuerySuccess(query));
       await run(`query "null" --apiVersion 4 --secret=foo`, container);
       expect(logger.stdout).to.have.been.calledWith(
-        colorize(util.inspect(query), { format: "fql_v4", color: true }),
+        colorize(util.inspect(query), { format: "fql", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     }),

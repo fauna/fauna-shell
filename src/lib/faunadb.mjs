@@ -189,7 +189,7 @@ export const formatQueryResponse = (res, opts = {}) => {
 
   if (!format || format === Format.FQL) {
     resolvedOutput = util.inspect(data, { showHidden: false, depth: null });
-    resolvedFormat = Format.FQL_V4;
+    resolvedFormat = Format.FQL;
   } else {
     resolvedOutput = data;
     resolvedFormat = Format.JSON;

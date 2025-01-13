@@ -6,7 +6,6 @@ import { codeToAnsi } from "./codeToAnsi.mjs";
 
 export const Format = {
   FQL: "fql",
-  FQL_V4: "fql_v4",
   LOG: "log",
   JSON: "json",
   TEXT: "text",
@@ -31,18 +30,6 @@ const fqlToAnsi = (obj) => {
   const raw = stripAnsi(obj);
   const codeToAnsi = container.resolve("codeToAnsi");
   const res = codeToAnsi(raw, "fql");
-
-  return res.trim();
-};
-
-const fqlV4ToAnsi = (obj) => {
-  if (typeof obj !== "string") {
-    throw new Error("Unable to format FQL unless it is already a string.");
-  }
-
-  const raw = stripAnsi(obj);
-  const codeToAnsi = container.resolve("codeToAnsi");
-  const res = codeToAnsi(raw, "js");
 
   return res.trim();
 };
@@ -90,8 +77,6 @@ export const toAnsi = (obj, { format = Format.TEXT } = {}) => {
   switch (format) {
     case Format.FQL:
       return fqlToAnsi(obj);
-    case Format.FQL_V4:
-      return fqlV4ToAnsi(obj);
     case Format.JSON:
       return jsonToAnsi(obj);
     case Format.LOG:
