@@ -1,7 +1,10 @@
 //@ts-check
 
+import util from "node:util";
+
 import { expect } from "chai";
 import { NetworkError, ServiceError } from "fauna";
+import faunadb from "faunadb";
 import sinon from "sinon";
 
 import { run } from "../src/cli.mjs";
@@ -422,36 +425,60 @@ describe("query", function () {
   });
 
   describe("v4", function () {
-    it("can output the result of a query", async function () {
-      const testData = {
-        "@ref": {
-          id: "test",
-          collection: {
-            "@ref": {
-              id: "collections",
-            },
-          },
-        },
-      };
-      const testResponse = createV4QuerySuccess(testData);
-      runQueryFromString.resolves(testResponse);
+    const testResponseWireProtocol = {
+      "@ref": { id: "test", collection: { "@ref": { id: "collections" } } },
+    };
+    const testResponseFQL = faunadb.parseJSON(
+      JSON.stringify(testResponseWireProtocol),
+    );
+    const testResponse = createV4QuerySuccess(testResponseFQL);
+    const runQueryExpectArgs = [
+      "\"Collection('test')\"",
+      sinon.match({ apiVersion: "4" }),
+    ];
 
+    it("can output the result of a query as FQL", async function () {
+      runQueryFromString.resolves(testResponse);
       await run(
         `query "Collection('test')" --apiVersion 4 --secret=foo`,
         container,
       );
 
-      expect(runQueryFromString).to.have.been.calledWith(
-        "\"Collection('test')\"",
-        sinon.match({
-          apiVersion: "4",
-        }),
-      );
+      expect(runQueryFromString).to.have.been.calledWith(...runQueryExpectArgs);
+      const output = util.inspect(testResponseFQL, {
+        showHidden: false,
+        depth: null,
+      });
       expect(logger.stdout).to.have.been.calledWith(
-        colorize(testData, { format: "json", color: true }),
+        colorize(output, { format: "fql_v4", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     });
+
+    it("can output the result of a query as JSON", async function () {
+      runQueryFromString.resolves(testResponse);
+      await run(
+        `query "Collection('test')" --apiVersion 4 --secret=foo --json`,
+        container,
+      );
+
+      expect(runQueryFromString).to.have.been.calledWith(...runQueryExpectArgs);
+      expect(logger.stdout).to.have.been.calledWith(
+        colorize(testResponseWireProtocol, { format: "json", color: true }),
+      );
+      expect(logger.stderr).to.not.be.called;
+    });
+
+    ["true", "fale", null, { foo: "bar" }].forEach((query) =>
+      it(`can query basic value '${query}'`, async function () {
+        runQueryFromString.resolves(createV4QuerySuccess(query));
+        await run(`query "null" --apiVersion 4 --secret=foo`, container);
+        expect(logger.stdout).to.have.been.calledWith(
+          colorize(util.inspect(query), { format: "fql_v4", color: true }),
+        );
+        expect(logger.stderr).to.not.be.called;
+      }),
+    );
 
     it("can output an error message", async function () {
       const testError = createV4QueryFailure({

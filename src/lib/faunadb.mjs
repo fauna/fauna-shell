@@ -1,4 +1,5 @@
 // @ts-check
+import util from "node:util";
 import { createContext, runInContext } from "node:vm";
 
 import faunadb from "faunadb";
@@ -46,11 +47,15 @@ export const getClient = async (argv) => {
  */
 export async function stringExpressionToQuery(expression) {
   const faunadb = (await import("faunadb")).default;
-  return runInContext(expression, createContext(faunadb.query));
+
+  const wrappedCode = `(function() { return ${expression} })()`;
+
+  return runInContext(wrappedCode, createContext(faunadb.query));
 }
 
 const validateQueryParams = ({ query, client, url, secret }) => {
-  if (!query) {
+  // `null` is an acceptable query
+  if (query === undefined) {
     throw new Error("A query is required.");
   } else if (!client && (!url || !secret)) {
     throw new Error("A client or url and secret are required.");
@@ -177,9 +182,19 @@ export const faunadbToCommandError = ({ err, handler, color }) => {
  */
 export const formatQueryResponse = (res, opts = {}) => {
   const { color, format } = opts;
+
   const data = res.value;
-  const resolvedFormat = format ?? Format.JSON;
-  return colorize(data, { format: resolvedFormat, color });
+  let resolvedOutput;
+  let resolvedFormat;
+
+  if (!format || format === Format.FQL) {
+    resolvedOutput = util.inspect(data, { showHidden: false, depth: null });
+    resolvedFormat = Format.FQL_V4;
+  } else {
+    resolvedOutput = data;
+    resolvedFormat = Format.JSON;
+  }
+  return colorize(resolvedOutput, { format: resolvedFormat, color });
 };
 
 /**
