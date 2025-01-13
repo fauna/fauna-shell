@@ -2,10 +2,10 @@
 
 import { expect } from "chai";
 
-import { run } from "../../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-import { reformatFSL } from "../../src/lib/schema.mjs";
-import { buildUrl, commonFetchParams, f } from "../helpers.mjs";
+import { run } from "../../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../../src/config/setup-test-container.mjs";
+import { reformatFSL } from "../../../src/lib/schema.mjs";
+import { buildUrl, commonFetchParams, f } from "../../helpers.mjs";
 
 describe("schema diff", function () {
   const colorDiffString =
