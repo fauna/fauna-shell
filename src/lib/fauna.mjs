@@ -2,9 +2,9 @@
 /**
  * @fileoverview Fauna V10 client utilities for query execution and error handling.
  */
-
 import chalk from "chalk";
 import { NetworkError, ServiceError } from "fauna";
+import stripAnsi from "strip-ansi";
 
 import { container } from "../config/container.mjs";
 import {
@@ -14,8 +14,13 @@ import {
   NETWORK_ERROR_MESSAGE,
   ValidationError,
 } from "./errors.mjs";
-import { formatQuerySummary } from "./fauna-client.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
+
+/**
+ * Regex to match the FQL diagnostic line.
+ * @type {RegExp}
+ */
+export const FQL_DIAGNOSTIC_REGEX = /^(\s{2,}\|)|(\s*\d{1,}\s\|)/;
 
 /**
  * Interprets a string as a FQL expression and returns a query.
@@ -121,6 +126,89 @@ export const runQueryFromString = async ({
 };
 
 /**
+ * Formats a summary of a query from a fauna
+ * @param {string} summary - The summary of the query
+ * @returns {string}
+ */
+export const formatQuerySummary = (summary) => {
+  if (!summary || typeof summary !== "string") {
+    return "";
+  }
+
+  try {
+    const lines = summary.split("\n").map((line) => {
+      if (!line.match(FQL_DIAGNOSTIC_REGEX)) {
+        return line;
+      }
+      return colorize(line, { format: Format.FQL });
+    });
+    return lines.join("\n");
+  } catch (err) {
+    const logger = container.resolve("logger");
+    logger.debug(`Unable to parse performance hint: ${err}`);
+    return summary;
+  }
+};
+
+const getQueryInfoValue = (response, field) => {
+  switch (field) {
+    case "txnTs":
+      return response.txn_ts;
+    case "schemaVersion":
+      return response.schema_version?.toString();
+    case "summary":
+      return response.summary;
+    case "queryTags":
+      return response.query_tags;
+    case "stats":
+      return response.stats;
+    default:
+      return undefined;
+  }
+};
+
+const getIncludedQueryInfo = (response, include) => {
+  const queryInfo = {};
+  include.forEach((field) => {
+    const value = getQueryInfoValue(response, field);
+    if (value) queryInfo[field] = value;
+  });
+  return queryInfo;
+};
+
+/**
+ *
+ * @param {object} response - The v4 or v10 query response with query info
+ * @param {object} opts
+ * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
+ * @returns
+ */
+export const formatQueryInfo = (response, { color, include }) => {
+  const queryInfoToDisplay = getIncludedQueryInfo(response, include);
+
+  if (Object.keys(queryInfoToDisplay).length === 0) return "";
+
+  // We colorize the entire query info object as YAML, but then need to
+  // colorize the diagnostic lines individually. To simplify this, we
+  // strip the ansi when we're checking if the line is a diagnostic line.
+  const colorized = colorize(queryInfoToDisplay, {
+    color,
+    format: Format.YAML,
+  })
+    .split("\n")
+    .map((line) => {
+      if (!stripAnsi(line).match(FQL_DIAGNOSTIC_REGEX)) {
+        return line;
+      }
+      return colorize(line, { format: Format.FQL });
+    })
+    .join("\n");
+
+  return `${colorized}\n`;
+};
+
+/**
  * Formats a V10 Fauna error for display.
  *
  * @param {any} err - An error to format
@@ -132,6 +220,7 @@ export const runQueryFromString = async ({
 export const formatError = (err, _opts = {}) => {
   // If the error has a queryInfo object with a summary property, we can format it.
   // Doing this check allows this code to avoid a fauna direct dependency.
+
   if (
     err &&
     typeof err.queryInfo === "object" &&
