@@ -4,9 +4,9 @@ import * as awilix from "awilix";
 import { expect } from "chai";
 import sinon, { spy, stub } from "sinon";
 
-import { run } from "../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import { f } from "./helpers.mjs";
+import { run } from "../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { f } from "../helpers.mjs";
 
 describe("login", function () {
   let container, fs, fetch, getSession;
