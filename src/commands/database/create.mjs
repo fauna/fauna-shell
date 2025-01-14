@@ -25,7 +25,7 @@ async function runCreateQuery(secret, argv) {
 }
 
 async function createDatabase(argv) {
-  const secret = await getSecret();
+  const secret = await getSecret(argv);
   const logger = container.resolve("logger");
 
   try {

@@ -8,11 +8,7 @@ import { DatabaseKeys } from "./databaseKeys.mjs";
 
 const validateCredentialArgs = (argv) => {
   const logger = container.resolve("logger");
-  const illegalArgCombos = [
-    ["accountKey", "secret", isLocal],
-    ["secret", "database", isLocal],
-    ["secret", "role", isLocal],
-  ];
+  const illegalArgCombos = [["accountKey", "secret", isLocal]];
   for (const [first, second, conditional] of illegalArgCombos) {
     if (argv[first] && argv[second] && !conditional(argv)) {
       throw new ValidationError(
@@ -66,6 +62,17 @@ export class Credentials {
       refreshToken,
     });
     this.accountKeys.key = accountKey;
+  }
+
+  /**
+   * Gets a secret for the current credentials.
+   * @return {Promise<string>} the secret
+   */
+  async getSecret() {
+    if (!this.databaseKeys.key) {
+      return await this.databaseKeys.getOrRefreshKey();
+    }
+    return this.databaseKeys.key;
   }
 }
 

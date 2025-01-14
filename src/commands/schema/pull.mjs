@@ -52,7 +52,7 @@ async function doPull(argv) {
   const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
-  const secret = await getSecret();
+  const secret = await getSecret(argv);
 
   // Get the staged schema status
   /** @type {{ status: "none" | "pending" | "ready" | "failed", version: string }} */
