@@ -48,7 +48,7 @@ export const getClient = async (argv) => {
 export async function stringExpressionToQuery(expression) {
   const faunadb = (await import("faunadb")).default;
 
-  // the `runInContext` function from node:vm does not work with all valid FQL
+  // The `runInContext` function from node:vm does not work with all valid FQL
   // expressions, including `null` and objects. Wrapping the provided expression
   // in an IIFE ensure that all expressions are supported.
   const wrappedCode = `(function() { return ${expression} })()`;
@@ -57,7 +57,7 @@ export async function stringExpressionToQuery(expression) {
 }
 
 const validateQueryParams = ({ query, client, url, secret }) => {
-  // `null` is an acceptable query
+  // `null` and other falsy values are acceptable queries
   if (query === undefined) {
     throw new Error("A query is required.");
   } else if (!client && (!url || !secret)) {
