@@ -19,6 +19,8 @@ const createExportStub = (opts) => ({
     },
   },
   created_at: "2025-01-02T22:59:51",
+  updated_at: "2025-01-02T22:59:51",
+  destination_uri: "",
   ...opts,
 });
 

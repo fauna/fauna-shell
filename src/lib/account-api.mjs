@@ -392,6 +392,15 @@ async function createKey({ path, role, ttl, name }) {
   return await responseHandler(response);
 }
 
+const getExportUri = (data) => {
+  const { destination, state } = data;
+  if (!destination || !state || state.toUpperCase() !== "COMPLETE") {
+    return "";
+  }
+  const path = destination.s3.path.replace(/^\/+/, "");
+  return `s3://${destination.s3.bucket}/${path}`;
+};
+
 /**
  * Creates an export for a given database.
  *
@@ -425,7 +434,9 @@ async function createExport({
       ...(collections && collections.length > 0 ? { collections } : {}),
     }),
   });
-  return await responseHandler(response);
+
+  const data = await responseHandler(response);
+  return { ...data.response, destination_uri: getExportUri(data.response) }; // eslint-disable-line camelcase
 }
 
 /**
@@ -454,8 +465,15 @@ async function listExports({ maxResults = 100, nextToken, state } = {}) {
   const response = await fetchWithAccountKey(url, {
     method: "GET",
   });
-  const data = await responseHandler(response);
-  return data.response;
+  const { response: data } = await responseHandler(response);
+
+  if (data.results && Array.isArray(data.results)) {
+    data.results.forEach((r) => {
+      r.destination_uri = getExportUri(r); // eslint-disable-line camelcase
+    });
+  }
+
+  return data;
 }
 
 /**
@@ -473,7 +491,10 @@ async function getExport({ exportId }) {
   });
   const response = await fetchWithAccountKey(url, { method: "GET" });
   const data = await responseHandler(response);
-  return data.response;
+  return {
+    ...data.response,
+    destination_uri: getExportUri(data.response), // eslint-disable-line camelcase
+  };
 }
 
 /**

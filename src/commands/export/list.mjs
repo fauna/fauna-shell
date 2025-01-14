@@ -1,48 +1,15 @@
 import { container } from "../../config/container.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 
-/* eslint-disable camelcase */
-/**
- * Converts an export object to a CSV string.
- * @param {{ id: string, database: string, created_at: string, updated_at: string, state: string }} export
- * @returns {string}
- */
-function exportToCSV({ id, database, created_at, updated_at, state }) {
-  return `${database},${id},${created_at},${updated_at},${state}`;
-}
-/* eslint-enable camelcase */
-
-/**
- * Outputs the exports to the console.
- * @param {Object} params - The parameters for outputting the exports.
- * @param {Function} params.stdout - The function to use for outputting the exports.
- * @param {string[]} params.exports - The exports to output.
- * @param {boolean} params.color - Whether to colorize the output.
- */
-export function outputExports({ stdout, exports, color }) {
-  if (!exports || exports.length === 0) {
-    return;
-  }
-
-  stdout(
-    colorize(
-      exportToCSV({
-        id: "id",
-        database: "database",
-        state: "state",
-        /* eslint-disable camelcase */
-        created_at: "created_at",
-        updated_at: "updated_at",
-        /* eslint-enable camelcase */
-      }),
-      { color, format: Format.CSV },
-    ),
-  );
-
-  exports.forEach((r) => {
-    stdout(colorize(exportToCSV(r), { color, format: Format.CSV }));
-  });
-}
+const COLUMN_SEPARATOR = "\t";
+const COLLECTION_SEPARATOR = ", ";
+const COLUMN_HEADERS = [
+  "id",
+  "database",
+  "collections",
+  "destination_uri",
+  "state",
+];
 
 async function listExports(argv) {
   const logger = container.resolve("logger");
@@ -57,23 +24,30 @@ async function listExports(argv) {
   if (json) {
     logger.stdout(colorize(results, { color, format: Format.JSON }));
   } else {
+    if (!results.length) {
+      return;
+    }
+
     logger.stdout(
-      colorize(
-        ["database", "id", "created_at", "updated_at", "state"].join(","),
-        { color, format: Format.CSV },
-      ),
+      colorize(COLUMN_HEADERS.join(COLUMN_SEPARATOR), {
+        color,
+        format: Format.TSV,
+      }),
     );
 
     results.forEach((r) => {
-      const { database, id, state, created_at, updated_at } = r; // eslint-disable-line camelcase
+      const row = [
+        r.id,
+        r.database,
+        (r.collections ?? []).join(COLLECTION_SEPARATOR),
+        r.destination_uri,
+        r.state,
+      ];
       logger.stdout(
-        colorize(
-          [database, id, created_at, updated_at, state].join(","), // eslint-disable-line camelcase
-          {
-            color,
-            format: Format.CSV,
-          },
-        ),
+        colorize(row.join(COLUMN_SEPARATOR), {
+          color,
+          format: Format.TSV,
+        }),
       );
     });
   }
