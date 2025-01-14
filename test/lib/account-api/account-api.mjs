@@ -287,7 +287,9 @@ describe("accountAPI", () => {
             href: sinon.match(/exports/),
           }),
         )
-        .resolves(f({ results: [testExport], next_token: "456" }, 200));
+        .resolves(
+          f({ response: { results: [testExport], next_token: "456" } }, 200),
+        );
     });
 
     it("should call the endpoint and return its data", async () => {
@@ -370,7 +372,7 @@ describe("accountAPI", () => {
           }),
           sinon.match({ method: "GET" }),
         )
-        .resolves(f(testExport, 200));
+        .resolves(f({ response: testExport }, 200));
 
       const data = await accountAPI.getExport({
         exportId: "419633606504219216",
