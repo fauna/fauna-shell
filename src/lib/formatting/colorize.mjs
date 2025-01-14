@@ -10,7 +10,7 @@ export const Format = {
   JSON: "json",
   TEXT: "text",
   YAML: "yaml",
-  CSV: "csv",
+  TSV: "tsv",
 };
 
 const objToString = (obj) => JSON.stringify(obj, null, 2);
@@ -67,13 +67,13 @@ const yamlToAnsi = (obj) => {
   return res.trim();
 };
 
-const csvToAnsi = (obj) => {
+const tsvToAnsi = (obj) => {
   if (typeof obj !== "string") {
-    throw new Error("Unable to format CSV unless it is already a string.");
+    throw new Error("Unable to format TSV unless it is already a string.");
   }
 
   const codeToAnsi = container.resolve("codeToAnsi");
-  const res = codeToAnsi(obj, "csv");
+  const res = codeToAnsi(obj, "tsv");
 
   if (!res) {
     return "";
@@ -99,8 +99,8 @@ export const toAnsi = (obj, { format = Format.TEXT } = {}) => {
       return logToAnsi(obj);
     case Format.YAML:
       return yamlToAnsi(obj);
-    case Format.CSV:
-      return csvToAnsi(obj);
+    case Format.TSV:
+      return tsvToAnsi(obj);
     default:
       return textToAnsi(obj);
   }

@@ -278,6 +278,12 @@ describe("accountAPI", () => {
       database: "us-std/demo",
       created_at: "2025-01-09T19:07:25.642703Z",
       updated_at: "2025-01-09T19:07:25.642703Z",
+      destination: {
+        s3: {
+          bucket: "test-bucket",
+          path: "some/key",
+        },
+      },
     };
 
     beforeEach(() => {
@@ -288,7 +294,15 @@ describe("accountAPI", () => {
           }),
         )
         .resolves(
-          f({ response: { results: [testExport], next_token: "456" } }, 200),
+          f(
+            {
+              response: {
+                results: [testExport, { ...testExport, state: "Complete" }],
+                next_token: "456",
+              },
+            },
+            200,
+          ),
         );
     });
 
@@ -308,7 +322,14 @@ describe("accountAPI", () => {
       );
 
       expect(data).to.deep.equal({
-        results: [testExport],
+        results: [
+          { ...testExport, destination_uri: "" },
+          {
+            ...testExport,
+            state: "Complete",
+            destination_uri: "s3://test-bucket/some/key",
+          },
+        ],
         next_token: "456",
       });
     });
@@ -351,7 +372,7 @@ describe("accountAPI", () => {
   describe("getExport", () => {
     const testExport = {
       id: "419633606504219216",
-      state: "Pending",
+      state: "Complete",
       database: "us-std/demo",
       format: "simple",
       destination: {
@@ -389,7 +410,10 @@ describe("accountAPI", () => {
           },
         }),
       );
-      expect(data).to.deep.equal(testExport);
+      expect(data).to.deep.equal({
+        ...testExport,
+        destination_uri: "s3://test-bucket/some/key",
+      });
     });
   });
 });

@@ -7,11 +7,19 @@ import { setupTestContainer as setupContainer } from "../../../src/config/setup-
 import { colorize, Format } from "../../../src/lib/formatting/colorize.mjs";
 
 const listExportStub = (opts) => ({
-  id: "test-export-id",
+  id: "419630463817089613",
   state: "Pending",
-  database: "us-std/example",
-  created_at: "2025-01-02T22:59:51",
-  updated_at: "2025-01-02T22:59:51",
+  database: "us-std/demo",
+  format: "simple",
+  destination: {
+    s3: {
+      bucket: "test-bucket",
+      path: "some/key/prefix",
+    },
+  },
+  created_at: "2025-01-09T19:07:25.642703Z",
+  updated_at: "2025-01-09T19:07:25.642703Z",
+  destination_uri: "",
   ...opts,
 });
 
@@ -26,7 +34,7 @@ describe("export list", () => {
 
   it("lists exports", async () => {
     const stubbedResponse = listExportStub({
-      id: "tid",
+      id: "419630463817089613",
       database: "us-std/test",
     });
     listExports.resolves({ results: [stubbedResponse] });
@@ -36,8 +44,8 @@ describe("export list", () => {
 
     expect(stdout.getWritten()).to.equal(
       `${[
-        "database,id,created_at,updated_at,state",
-        "us-std/test,tid,2025-01-02T22:59:51,2025-01-02T22:59:51,Pending",
+        "id\tdatabase\tcollections\tdestination_uri\tstate",
+        "419630463817089613\tus-std/test\t\t\tPending",
       ].join("\n")}\n`,
     );
     expect(listExports).to.have.been.calledWith({
@@ -54,7 +62,7 @@ describe("export list", () => {
     await stdout.waitForWritten();
 
     expect(stdout.getWritten()).to.equal(
-      `${colorize([stubbedResponse], { format: Format.JSON })}\n`,
+      `${colorize([{ ...stubbedResponse }], { format: Format.JSON })}\n`,
     );
   });
 

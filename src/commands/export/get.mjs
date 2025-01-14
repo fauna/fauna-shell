@@ -5,6 +5,7 @@ async function getExport(argv) {
   const logger = container.resolve("logger");
   const { getExport } = container.resolve("accountAPI");
   const { exportId, json, color } = argv;
+
   const response = await getExport({ exportId });
 
   if (json) {
