@@ -212,15 +212,13 @@ export const formatQueryInfo = (response, { color, include }) => {
  * Formats a V10 Fauna error for display.
  *
  * @param {any} err - An error to format
- * @param {object} [opts]
- * @param {boolean} [opts.color] - Whether to colorize the error
+ * @param {object} opts
+ * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
  * @returns {string} The formatted error message
  */
 // eslint-disable-next-line no-unused-vars
-export const formatError = (err, _opts = {}) => {
-  // If the error has a queryInfo object with a summary property, we can format it.
-  // Doing this check allows this code to avoid a fauna direct dependency.
-
+export const formatError = (err, { color, include }) => {
   if (
     err &&
     typeof err.queryInfo === "object" &&
@@ -228,13 +226,11 @@ export const formatError = (err, _opts = {}) => {
   ) {
     // Otherwise, return the summary and fall back to the message.
     return `${chalk.red("The query failed with the following error:")}\n\n${formatQuerySummary(err.queryInfo?.summary) ?? err.message}`;
-  } else {
-    if (err.name === "NetworkError") {
-      return `The query failed unexpectedly with the following error:\n\n${NETWORK_ERROR_MESSAGE}`;
-    }
-
-    return `The query failed unexpectedly with the following error:\n\n${err.message}`;
+  } else if (err.name === "NetworkError") {
+    return `The query failed unexpectedly with the following error:\n\n${NETWORK_ERROR_MESSAGE}`;
   }
+
+  return `The query failed unexpectedly with the following error:\n\n${err.message}`;
 };
 
 /**
@@ -260,12 +256,13 @@ export const formatQueryResponse = (res, opts = {}) => {
  * @param {object} opts
  * @param {import("fauna").FaunaError} opts.err - The Fauna error to handle
  * @param {(e: import("fauna").FaunaError) => void} [opts.handler] - Optional error handler to handle and throw in
- * @param {boolean} [opts.color] - Whether to colorize the error
+ * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
  * @throws {Error} Always throws an error with a message based on the error code or handler response
  * @returns {never} This function always throws an error
  */
 
-export const faunaToCommandError = ({ err, handler, color }) => {
+export const faunaToCommandError = ({ err, handler, color, include }) => {
   if (handler) {
     handler(err);
   }
@@ -279,7 +276,9 @@ export const faunaToCommandError = ({ err, handler, color }) => {
       case "permission_denied":
         throw new AuthorizationError({ cause: err });
       default:
-        throw new CommandError(formatError(err, { color }), { cause: err });
+        throw new CommandError(formatError(err, { color, include }), {
+          cause: err,
+        });
     }
   }
 

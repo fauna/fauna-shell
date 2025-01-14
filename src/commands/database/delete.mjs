@@ -33,6 +33,7 @@ async function deleteDatabase(argv) {
     faunaToCommandError({
       err,
       color: argv.color,
+      include: argv.include,
       handler: (err) => {
         if (err instanceof ServiceError && err.code === "document_not_found") {
           throw new CommandError(

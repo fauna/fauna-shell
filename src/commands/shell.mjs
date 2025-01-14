@@ -202,7 +202,7 @@ async function buildCustomEval(argv) {
           }
         }
       } catch (err) {
-        logger.stderr(formatError(err, { apiVersion, color }));
+        logger.stderr(formatError(err, { apiVersion, color, include }));
         return cb(null);
       }
 

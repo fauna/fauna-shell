@@ -97,14 +97,14 @@ export const runQueryFromString = (expression, argv) => {
  * @param {string[]} opts.include - The query info fields to include
  * @returns {string}
  */
-export const formatError = (err, { apiVersion, color }) => {
+export const formatError = (err, { apiVersion, color, include }) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
     return faunaV4.formatError(err, { color });
   } else {
-    return faunaV10.formatError(err, { color });
+    return faunaV10.formatError(err, { color, include });
   }
 };
 
@@ -124,11 +124,11 @@ export const isQueryable = async (argv) => {
       throw err;
     }
 
-    const { color } = argv;
+    const { color, include } = argv;
     if (argv.apiVersion === "4") {
       faunadbToCommandError({ err, color });
     } else {
-      faunaToCommandError({ err, color });
+      faunaToCommandError({ err, color, include });
     }
   }
 
