@@ -48,6 +48,9 @@ export const getClient = async (argv) => {
 export async function stringExpressionToQuery(expression) {
   const faunadb = (await import("faunadb")).default;
 
+  // the `runInContext` function from node:vm does not work with all valid FQL
+  // expressions, including `null` and objects. Wrapping the provided expression
+  // in an IIFE ensure that all expressions are supported.
   const wrappedCode = `(function() { return ${expression} })()`;
 
   return runInContext(wrappedCode, createContext(faunadb.query));
