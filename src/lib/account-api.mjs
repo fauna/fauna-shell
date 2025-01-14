@@ -454,8 +454,8 @@ async function listExports({ maxResults = 100, nextToken, state } = {}) {
   const response = await fetchWithAccountKey(url, {
     method: "GET",
   });
-
-  return await responseHandler(response);
+  const data = await responseHandler(response);
+  return data.response;
 }
 
 /**
@@ -472,7 +472,8 @@ async function getExport({ exportId }) {
     version: API_VERSIONS.v2,
   });
   const response = await fetchWithAccountKey(url, { method: "GET" });
-  return await responseHandler(response);
+  const data = await responseHandler(response);
+  return data.response;
 }
 
 /**
