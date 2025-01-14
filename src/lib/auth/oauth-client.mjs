@@ -4,6 +4,7 @@ import url from "url";
 import util from "util";
 
 import { container } from "../../config/container.mjs";
+import { getDashboardUrl } from "../account-api.mjs";
 import SuccessPage from "./successPage.mjs";
 
 const ALLOWED_ORIGINS = [
@@ -39,13 +40,18 @@ class OAuthClient {
    * Gets the OAuth parameters for the OAuth request.
    * @param {Object} [overrides] - The parameters for the OAuth request
    * @param {string} [overrides.clientId] - The client ID
+   * @param {boolean} [overrides.noRedirect] - Whether to disable the redirect
    * @returns {Object} The OAuth parameters
    */
-  getOAuthParams({ clientId }) {
+  getOAuthParams({ clientId, noRedirect }) {
+    const redirectURI = noRedirect
+      ? `${getDashboardUrl()}/auth/oauth/callback/cli`
+      : `${REDIRECT_URI}:${this.port}`;
+
     return {
       /* eslint-disable camelcase */
       client_id: clientId ?? CLIENT_ID,
-      redirect_uri: `${REDIRECT_URI}:${this.port}`,
+      redirect_uri: redirectURI,
       code_challenge: this.codeChallenge,
       code_challenge_method: "S256",
       response_type: "code",
@@ -72,6 +78,17 @@ class OAuthClient {
     };
   }
 
+  validateAuthorizationCode(authCode, state) {
+    if (!authCode || typeof authCode !== "string") {
+      throw new Error("Invalid authorization code received");
+    } else {
+      this.authCode = authCode;
+      if (state !== this.state) {
+        throw new Error("Invalid state received");
+      }
+    }
+  }
+
   static _generateCSRFToken() {
     return Buffer.from(randomBytes(20)).toString("base64url");
   }
@@ -88,17 +105,10 @@ class OAuthClient {
   }
 
   _handleCode({ authCode, state, res }) {
-    if (!authCode || typeof authCode !== "string") {
-      throw new Error("Invalid authorization code received");
-    } else {
-      this.authCode = authCode;
-      if (state !== this.state) {
-        throw new Error("Invalid state received");
-      }
-      res.writeHead(302, { Location: "/success" });
-      res.end();
-      this.server.emit("auth_code_received");
-    }
+    this.validateAuthorizationCode(authCode, state);
+    res.writeHead(302, { Location: "/success" });
+    res.end();
+    this.server.emit("auth_code_received");
   }
 
   // req: IncomingMessage, res: ServerResponse
@@ -162,8 +172,10 @@ class OAuthClient {
   }
 
   closeServer() {
-    this.server.closeAllConnections();
-    this.server.close();
+    if (this.server.listening) {
+      this.server.closeAllConnections();
+      this.server.close();
+    }
   }
 }
 
