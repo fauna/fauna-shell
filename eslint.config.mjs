@@ -1,4 +1,4 @@
-import { config as defaultConfig } from "@fauna/typescript/config/js/eslint.config.js";
+import { config as defaultConfig } from "@fauna/ts-dev-utils/config/js/eslint.config.js";
 import * as espree from "espree";
 import globals from "globals";
 
