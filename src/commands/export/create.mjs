@@ -73,15 +73,19 @@ function buildCreateS3ExportCommand(yargs) {
     .example([
       [
         "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix",
-        "Create an export of collections to the 'my-bucket' bucket with the 'my-prefix' key prefix in simple format.",
+        "Output the ID of a new export for the database us-std/my_db to the 'my-bucket' bucket with the 'my-prefix' key prefix in simple format.",
+      ],
+      [
+        "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix --json",
+        "Output the full JSON of a new export for the database us-std/my_db to the 'my-bucket' bucket with the 'my-prefix' key prefix in simple format.",
       ],
       [
         "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix --collection my-collection",
-        "Create an export of the 'my-collection' collection to the 'my-bucket' bucket with the 'my-prefix' key prefix in simple format.",
+        "Output the ID of a new export for my-collection in us-std/my_db database to the 'my-bucket' bucket with the 'my-prefix' key prefix in simple format.",
       ],
       [
-        "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix --collection my-collection --format tagged",
-        "Create an export of the 'my-collection' collection to the 'my-bucket' bucket with the 'my-prefix' key prefix in tagged format.",
+        "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix --format tagged",
+        "Output the ID of a new export in the tagged format for the database us-std/my_db to the 'my-bucket' bucket with the 'my-prefix' key prefix.",
       ],
     ]);
 }

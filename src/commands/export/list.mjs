@@ -72,10 +72,10 @@ function buildListExportsCommand(yargs) {
       },
     })
     .example([
-      ["$0 export list", "List exports in CSV format."],
+      ["$0 export list", "List exports in TSV format."],
       ["$0 export list --max-results 100", "List a max of 100 exports."],
       ["$0 export list --json", "List exports in JSON format."],
-      ["$0 export list --states Pending", "List exports in Pending state."],
+      ["$0 export list --states Pending", "List exports in the Pending state."],
     ]);
 }
 
