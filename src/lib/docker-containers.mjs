@@ -165,8 +165,8 @@ async function findContainer({ containerName, hostPort }) {
   if (diffPort) {
     throw new CommandError(
       `[FindContainer] Container '${containerName}' is already \
-in use on hostPort '${diffPort.PublicPort}'. Please use a new name via \
-arguments --name <newName> --hostPort ${hostPort} to start the container.`,
+in use on host-port '${diffPort.PublicPort}'. Please use a new name via \
+arguments --name <newName> --host-port ${hostPort} to start the container.`,
     );
   }
   return result;
@@ -222,7 +222,7 @@ async function createContainer({
   const occupied = await isPortOccupied({ hostIp, hostPort });
   if (occupied) {
     throw new CommandError(
-      `[StartContainer] The hostPort '${hostPort}' on IP '${hostIp}' is already occupied. \
+      `[StartContainer] The host-port '${hostPort}' on IP '${hostIp}' is already occupied. \
 Please pass a --host-port other than '${hostPort}'.`,
     );
   }
