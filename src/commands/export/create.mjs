@@ -116,7 +116,8 @@ function buildCreateCommand(yargs) {
 
 export default {
   command: "create <destination-type>",
-  description: "Start the export of a database or collections. Outputs the export ID.",
+  description:
+    "Start the export of a database or collections. Outputs the export ID.",
   builder: buildCreateCommand,
   // eslint-disable-next-line no-empty-function
   handler: () => {},
