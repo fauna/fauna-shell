@@ -100,7 +100,7 @@ function buildCreateCommand(yargs) {
         type: "array",
         required: false,
         description:
-          "Used-defined collections to export. to export. Pass values as a space-separated list. If omitted, all user-defined collections are exported.",
+          "Used-defined collections to export. Pass values as a space-separated list. If omitted, all user-defined collections are exported.",
         default: [],
         group: "API:",
       },
