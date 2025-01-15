@@ -110,7 +110,8 @@ function buildCreateCommand(yargs) {
       description: "Create a database export to an S3 bucket.",
       builder: buildCreateS3ExportCommand,
       handler: createS3Export,
-    });
+    })
+    .demandCommand();
 }
 
 export default {

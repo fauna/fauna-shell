@@ -33,7 +33,8 @@ function buildExportCommand(yargs) {
     .check(validateAccountOnlyOptions)
     .command(createCommand)
     .command(listCommand)
-    .command(getCommand);
+    .command(getCommand)
+    .demandCommand();
 }
 
 export default {
