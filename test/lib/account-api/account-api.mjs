@@ -151,7 +151,7 @@ describe("accountAPI", () => {
           sinon.match({ href: "https://account.fauna.com/v2/exports" }),
           sinon.match({ method: "POST" }),
         )
-        .resolves(f(testExport, 201));
+        .resolves(f({ response: testExport }, 201));
 
       const data = await accountAPI.createExport({
         database: "us/demo",
@@ -181,7 +181,10 @@ describe("accountAPI", () => {
           }),
         }),
       );
-      expect(data).to.deep.equal(testExport);
+      expect(data).to.deep.equal({
+        ...testExport,
+        destination_uri: "",
+      });
     });
 
     it("should support collections", async () => {
@@ -190,7 +193,12 @@ describe("accountAPI", () => {
           sinon.match({ href: "https://account.fauna.com/v2/exports" }),
           sinon.match({ method: "POST" }),
         )
-        .resolves(f({ ...testExport, collections: ["test-collection"] }, 201));
+        .resolves(
+          f(
+            { response: { ...testExport, collections: ["test-collection"] } },
+            201,
+          ),
+        );
 
       const data = await accountAPI.createExport({
         database: "us/demo",
@@ -225,6 +233,7 @@ describe("accountAPI", () => {
       expect(data).to.deep.equal({
         ...testExport,
         collections: ["test-collection"],
+        destination_uri: "",
       });
     });
 
@@ -234,7 +243,7 @@ describe("accountAPI", () => {
           sinon.match({ href: "https://account.fauna.com/v2/exports" }),
           sinon.match({ method: "POST" }),
         )
-        .resolves(f({ ...testExport, format: "tagged" }, 201));
+        .resolves(f({ response: { ...testExport, format: "tagged" } }, 201));
 
       const data = await accountAPI.createExport({
         database: "us/demo",
@@ -267,6 +276,7 @@ describe("accountAPI", () => {
       expect(data).to.deep.equal({
         ...testExport,
         format: "tagged",
+        destination_uri: "",
       });
     });
   });

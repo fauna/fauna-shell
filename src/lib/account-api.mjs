@@ -1,4 +1,5 @@
 //@ts-check
+/* eslint-disable max-lines */
 
 import { container } from "../config/container.mjs";
 import {
