@@ -32,6 +32,26 @@ export function setAccountUrl(url) {
 }
 
 /**
+ * Infer the dashboard URL to use for login redirect URI
+ * @returns {string} The dashboard URL
+ */
+export function getDashboardUrl() {
+  if (process.env.FAUNA_DASHBOARD_URL) {
+    return process.env.FAUNA_DASHBOARD_URL;
+  }
+  switch (accountUrl) {
+    case "https://account.fauna-dev.com":
+      return "https://dashboard.fauna-dev.com";
+    case "https://account.fauna-preview.com":
+      return "https://dashboard.fauna-preview.com";
+    case "http://localhost:8000":
+      return "http://localhost:3005";
+    default:
+      return "https://dashboard.fauna.com";
+  }
+}
+
+/**
  * Builds a URL for the account API
  *
  * @param {Object} opts

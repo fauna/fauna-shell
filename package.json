@@ -30,7 +30,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.16.0",
-    "@fauna/typescript": "^0.0.12",
+    "@fauna/ts-dev-utils": "^0.0.16",
     "@inquirer/testing": "^2.1.7",
     "@types/chai": "^5.0.0",
     "@types/mocha": "^10.0.1",
