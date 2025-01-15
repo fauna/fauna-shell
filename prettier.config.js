@@ -1,4 +1,4 @@
-import basePrettierConfig from "@fauna/typescript/config/prettierrc.js";
+import basePrettierConfig from "@fauna/ts-dev-utils/config/prettierrc.js";
 
 /**
  * @type {import("prettier").Config}
