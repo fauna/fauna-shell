@@ -130,7 +130,7 @@ describe("local command", () => {
 
     // Assertions
     expect(written).to.contain(
-      "[StartContainer] The hostPort '8443' on IP '0.0.0.0' is already occupied. \
+      "[StartContainer] The host-port '8443' on IP '0.0.0.0' is already occupied. \
 Please pass a --host-port other than '8443'.",
     );
     expect(written).not.to.contain("fauna local");
@@ -567,8 +567,8 @@ https://support.fauna.com/hc/en-us/requests/new`,
     expect(logsStub).not.to.have.been.called;
     const written = stderrStream.getWritten();
     expect(written).to.contain(
-      `[FindContainer] Container 'faunadb' is already in use on hostPort '9999'. \
-Please use a new name via arguments --name <newName> --hostPort ${desiredPort} \
+      `[FindContainer] Container 'faunadb' is already in use on host-port '9999'. \
+Please use a new name via arguments --name <newName> --host-port ${desiredPort} \
 to start the container.`,
     );
     expect(written).not.to.contain("An unexpected");
