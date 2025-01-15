@@ -3,12 +3,7 @@
  * @fileoverview Fauna V10 client utilities for query execution and error handling.
  */
 import chalk from "chalk";
-import {
-  AbortError,
-  ConstraintFailureError,
-  NetworkError,
-  ServiceError,
-} from "fauna";
+import { NetworkError, ServiceError } from "fauna";
 import stripAnsi from "strip-ansi";
 
 import { container } from "../config/container.mjs";
@@ -222,11 +217,18 @@ export const formatQueryInfo = (response, { color, include }) => {
  * @param {string[]} opts.include - The query info fields to include
  * @returns {string} The formatted error message
  */
- 
+
 export const formatError = (err, { color, include }) => {
   let message = "";
-
-  if (err instanceof ServiceError) {
+  // If the error has a queryInfo object with a summary property, we can format it.
+  // Doing this check allows this code to avoid a fauna direct dependency.
+  if (
+    err &&
+    typeof err.queryInfo === "object" &&
+    typeof err.queryInfo.summary === "string"
+  ) {
+    // Remove the summary from the include list. We will always show the summary
+    // under the error, so we don't want to include it in the query info.
     const _include = include.filter((i) => i !== "summary");
     const queryInfo = formatQueryInfo(err.queryInfo, {
       color,
@@ -234,19 +236,15 @@ export const formatError = (err, { color, include }) => {
     });
     message = queryInfo === "" ? "" : `${queryInfo}\n`;
 
-    // The summary will be displayed in the queryInfo as YAML if the user asks
-    // for it. This is to be consistent with the output from successful queries.
-    // We will always show it at the bottom of the error message as well, since
-    // all error contain the detailed stack and error informatino in the
-    // summary.
     const summary = formatQuerySummary(err.queryInfo?.summary ?? "");
-
     message += `${chalk.red("The query failed with the following error:")}\n\n${summary}`;
 
-    if (err instanceof AbortError) {
+    // err.abort could be `null`, if that's what the user returns
+    if (err.abort !== undefined) {
       const abort = colorize(err.abort, { format: "fql", color });
       message += `\n\n${chalk.red("Abort value:")}\n${abort}`;
-    } else if (err instanceof ConstraintFailureError) {
+    }
+    if (err.constraint_failures !== undefined) {
       const contraintFailures = colorize(
         JSON.stringify(err.constraint_failures, null, 2),
         {
