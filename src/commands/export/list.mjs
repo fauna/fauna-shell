@@ -73,15 +73,18 @@ function buildListExportsCommand(yargs) {
     })
     .example([
       ["$0 export list", "List exports in TSV format."],
-      ["$0 export list --max-results 100", "List a max of 100 exports."],
       ["$0 export list --json", "List exports in JSON format."],
-      ["$0 export list --states Pending", "List exports in the Pending state."],
+      ["$0 export list --max-results 50", "List up to 50 exports."],
+      [
+        "$0 export list --states Pending Complete",
+        "List exports in the 'Pending' or 'Complete' state.",
+      ],
     ]);
 }
 
 export default {
   command: "list",
-  describe: "List database exports.",
+  describe: "List exports.",
   builder: buildListExportsCommand,
   handler: listExports,
 };

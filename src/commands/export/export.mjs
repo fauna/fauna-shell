@@ -16,12 +16,12 @@ function validateAccountOnlyOptions(argv) {
 
   if (local) {
     throw new ValidationError(
-      "Exports do not support --local and the Fauna docker container.",
+      "Exports do not support --local or Fauna containers.",
     );
   }
 
   if (secret) {
-    throw new ValidationError("Exports are not supported with --secret.");
+    throw new ValidationError("Exports do not support --secret.");
   }
 
   return true;
@@ -38,7 +38,7 @@ function buildExportCommand(yargs) {
 
 export default {
   command: "export <method>",
-  description: "Create and manage database exports.",
+  description: "Create and manage exports.",
   builder: buildExportCommand,
   // eslint-disable-next-line no-empty-function
   handler: () => {},

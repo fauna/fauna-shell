@@ -25,7 +25,7 @@ describe("export", () => {
 
       await stderr.waitForWritten();
       expect(stderr.getWritten()).to.contain(
-        "Exports do not support --local and the Fauna docker container.",
+        "Exports do not support --local or Fauna containers.",
       );
     });
   });
@@ -42,7 +42,7 @@ describe("export", () => {
 
       await stderr.waitForWritten();
       expect(stderr.getWritten()).to.contain(
-        "Exports are not supported with --secret.",
+        "Exports do not support --secret.",
       );
     });
   });
