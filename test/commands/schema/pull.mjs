@@ -4,14 +4,14 @@ import * as awilix from "awilix";
 import { expect } from "chai";
 import sinon from "sinon";
 
-import { run } from "../../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { run } from "../../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../../src/config/setup-test-container.mjs";
 import {
   deleteUnusedSchemaFiles,
   getAllSchemaFileContents,
   writeSchemaFiles,
-} from "../../src/lib/schema.mjs";
-import { buildUrl, commonFetchParams, f } from "../helpers.mjs";
+} from "../../../src/lib/schema.mjs";
+import { buildUrl, commonFetchParams, f } from "../../helpers.mjs";
 
 describe("schema pull", function () {
   let container, logger, confirm, fetch, fs, fsp, gatherFSL;

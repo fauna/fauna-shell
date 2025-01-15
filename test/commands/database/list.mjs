@@ -4,11 +4,11 @@ import { expect } from "chai";
 import { ServiceError } from "fauna";
 import sinon from "sinon";
 
-import { run } from "../../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
-import { AUTHENTICATION_ERROR_MESSAGE } from "../../src/lib/errors.mjs";
-import { colorize } from "../../src/lib/formatting/colorize.mjs";
-import { mockAccessKeysFile } from "../helpers.mjs";
+import { run } from "../../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../../src/config/setup-test-container.mjs";
+import { AUTHENTICATION_ERROR_MESSAGE } from "../../../src/lib/errors.mjs";
+import { colorize } from "../../../src/lib/formatting/colorize.mjs";
+import { mockAccessKeysFile } from "../../helpers.mjs";
 
 describe("database list", () => {
   let container, fs, logger, stdout, runQueryFromString, accountAPI;

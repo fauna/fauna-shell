@@ -9,13 +9,16 @@ import { expect } from "chai";
 import { NetworkError } from "fauna";
 import sinon, { stub } from "sinon";
 
-import { run } from "../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import { NETWORK_ERROR_MESSAGE, ValidationError } from "../src/lib/errors.mjs";
-import { isQueryable } from "../src/lib/fauna-client.mjs";
-import { dirExists } from "../src/lib/file-util.mjs";
-import { colorize } from "../src/lib/formatting/colorize.mjs";
-import { createV4QuerySuccess, createV10QuerySuccess } from "./helpers.mjs";
+import { run } from "../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import {
+  NETWORK_ERROR_MESSAGE,
+  ValidationError,
+} from "../../src/lib/errors.mjs";
+import { isQueryable } from "../../src/lib/fauna-client.mjs";
+import { dirExists } from "../../src/lib/file-util.mjs";
+import { colorize } from "../../src/lib/formatting/colorize.mjs";
+import { createV4QuerySuccess, createV10QuerySuccess } from "../helpers.mjs";
 
 // this is defined up here so the indentation doesn't make it harder to use :(
 const v10Object1 = createV10QuerySuccess({
@@ -132,7 +135,7 @@ describe("shell", function () {
 
       const registerHomedir = (container, subdir = "") => {
         const __dirname = import.meta.dirname;
-        const homedir = path.join(__dirname, "../test/test-homedir", subdir);
+        const homedir = path.join(__dirname, "../../test/test-homedir", subdir);
 
         container.register({
           homedir: awilix.asValue(stub().returns(homedir)),

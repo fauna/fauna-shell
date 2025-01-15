@@ -2,11 +2,11 @@
 
 import * as awilix from "awilix";
 import { expect } from "chai";
-import sinon, { spy } from "sinon";
+import sinon, { spy, stub } from "sinon";
 
-import { run } from "../src/cli.mjs";
-import { setupTestContainer as setupContainer } from "../src/config/setup-test-container.mjs";
-import { f } from "./helpers.mjs";
+import { run } from "../../src/cli.mjs";
+import { setupTestContainer as setupContainer } from "../../src/config/setup-test-container.mjs";
+import { f } from "../helpers.mjs";
 
 describe("login", function () {
   let container, fs, fetch, getSession;
@@ -40,6 +40,7 @@ describe("login", function () {
           codeVerifier: "code-verifier",
         };
       },
+      validateAuthorizationCode: stub(),
       server: {
         on: (eventName, handler) => {
           handlers[eventName] = handler;
@@ -113,7 +114,7 @@ describe("login", function () {
     // We open auth url in the browser and prompt user
     expect(container.resolve("open").calledWith("http://dashboard-url.com"));
     expect(logger.stdout).to.have.been.calledWith(
-      "To login, open your browser to:\nhttp://dashboard-url.com",
+      "To login, open a browser to:\nhttp://dashboard-url.com",
     );
 
     // Trigger server event with mocked auth code
@@ -161,5 +162,29 @@ describe("login", function () {
     expect(logger.stdout).to.have.been.calledWith(
       "Using a local Fauna container does not require login.\n",
     );
+  });
+
+  it("doesn't run loopback server with --no-redirect flag", async function () {
+    const input = container.resolve("input");
+    const sampleCreds = btoa(JSON.stringify({ code: "asdf", state: "state" }));
+    input.resolves(sampleCreds);
+
+    await run(`login --no-redirect=true`, container);
+    const oauthClient = container.resolve("oauthClient");
+    const logger = container.resolve("logger");
+    const credentials = container.resolve("credentials");
+    expect(oauthClient.start.called).to.be.false;
+    expect(container.resolve("open").called).to.be.false;
+    expect(logger.stdout).to.have.been.calledWith(
+      "To login, open a browser to:\nhttp://dashboard-url.com",
+    );
+    expect(input).to.have.been.calledWith({
+      message: "Authorization Code:",
+    });
+    expect(oauthClient.validateAuthorizationCode).to.have.been.calledWith(
+      "asdf",
+      "state",
+    );
+    expect(credentials.accountKeys.key).to.equal("login-account-key");
   });
 });
