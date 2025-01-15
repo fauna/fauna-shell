@@ -43,19 +43,21 @@ function buildCreateS3ExportCommand(yargs) {
       bucket: {
         type: "string",
         required: true,
-        description: "Name of the bucket to export to.",
+        description: "Name of the S3 bucket where the export will be stored.",
         group: "API:",
       },
       path: {
         type: "string",
         required: true,
-        description: "Key prefix to export to.",
+        description:
+          "Path prefix for the S3 bucket. Separate subfolders using a slash (`/`).",
         group: "API:",
       },
       format: {
         type: "string",
         required: true,
-        description: "Format to export to.",
+        description:
+          "Data format used to encode the exported FQL document data as JSON.",
         choices: ["simple", "tagged"],
         default: "simple",
         group: "API:",
@@ -72,20 +74,20 @@ function buildCreateS3ExportCommand(yargs) {
     })
     .example([
       [
-        "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix",
-        "Output the ID of a new export for the database us-std/my_db to the 'my-bucket' bucket with the 'my-prefix' key prefix in simple format.",
+        "$0 export create s3 --database us/my_db --bucket my-bucket --path exports/my_db",
+        "Export the 'us-std/my_db' database to the 'exports/my_db' path of the 'my-bucket' S3 bucket. Outputs the export ID.",
       ],
       [
-        "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix --json",
-        "Output the full JSON of a new export for the database us-std/my_db to the 'my-bucket' bucket with the 'my-prefix' key prefix in simple format.",
+        "$0 export create s3 --database us/my_db --bucket my-bucket --path my-prefix --json",
+        "Output the full JSON of the export request.",
       ],
       [
-        "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix --collection my-collection",
-        "Output the ID of a new export for my-collection in us-std/my_db database to the 'my-bucket' bucket with the 'my-prefix' key prefix in simple format.",
+        "$0 export create s3 --database us/my_db --bucket my-bucket --path my-prefix --collection my-collection",
+        "Export the 'my-collection' collection only.",
       ],
       [
-        "$0 export create s3 -d us/my_db --bucket my-bucket --path my-prefix --format tagged",
-        "Output the ID of a new export in the tagged format for the database us-std/my_db to the 'my-bucket' bucket with the 'my-prefix' key prefix.",
+        "$0 export create s3 --database us/my_db --bucket my-bucket --path my-prefix --format tagged",
+        "Encode the export's document data using the 'tagged' format.",
       ],
     ]);
 }
@@ -98,7 +100,7 @@ function buildCreateCommand(yargs) {
         type: "array",
         required: false,
         description:
-          "The name of the collections to export. If empty, all collections will be exported.",
+          "Used-defined collections to export. to export. Pass values as a space-separated list. If omitted, all user-defined collections are exported.",
         default: [],
         group: "API:",
       },
@@ -113,7 +115,7 @@ function buildCreateCommand(yargs) {
 
 export default {
   command: "create <destination>",
-  description: "Create a database export to a given destination.",
+  description: "Start the export of a database or collections to an S3 bucket.",
   builder: buildCreateCommand,
   // eslint-disable-next-line no-empty-function
   handler: () => {},

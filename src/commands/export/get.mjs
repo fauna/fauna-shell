@@ -19,19 +19,16 @@ function buildGetExportCommand(yargs) {
   return yargs
     .positional("exportId", {
       type: "string",
-      description: "The ID of the export to get.",
+      description: "ID of the export to retrieve.",
       nargs: 1,
       required: true,
     })
     .example([
       [
-        "$0 export get 420099555438101069",
-        "Output the YAML for the export with an ID of 420099555438101069.",
+        "$0 export get 123456789",
+        "Output the YAML for the export with an ID of '123456789'.",
       ],
-      [
-        "$0 export get 420099555438101069 --json",
-        "Output the JSON for the export with an ID of 420099555438101069.",
-      ],
+      ["$0 export get 123456789 --json", "Output the export as JSON."],
     ]);
 }
 
