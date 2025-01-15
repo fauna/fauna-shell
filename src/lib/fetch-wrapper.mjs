@@ -3,6 +3,7 @@
 import { inspect } from "node:util";
 
 import { container } from "../config/container.mjs";
+import { redactedStringify } from "./formatting/redact.mjs";
 
 // this wrapper exists for only one reason: logging
 // in the future, it could also be extended for error-handling,
@@ -24,7 +25,7 @@ export default async function fetchWrapper(url, options) {
     let body;
     if (isJSON) {
       body = await response.json();
-      logMessage += ` with body:\n${JSON.stringify(body, null, 2)}`;
+      logMessage += ` with body:\n${redactedStringify(body, null, 2)}`;
     }
 
     logger.debug(logMessage, "fetch");
