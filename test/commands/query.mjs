@@ -473,7 +473,7 @@ describe("query", function () {
       expect(logger.stdout).to.not.be.called;
       expect(logger.stderr).to.have.been.calledWith(
         sinon.match(
-          "invalid argument: Database Ref or Null expected, String provided. at paginate, collections",
+          "invalid argument: Database Ref or Null expected, String provided.\nat *query*:paginate, collections",
         ),
       );
     });

@@ -174,7 +174,7 @@ export const createV4QueryFailure = (error) => ({
     }),
     responseContent: { errors: [error] },
     statusCode: 400,
-    headers: {},
+    responseHeaders: {},
     method: "POST",
     path: "/",
     query: "",

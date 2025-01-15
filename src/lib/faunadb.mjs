@@ -98,7 +98,7 @@ export const runQuery = async ({
  * @returns
  */
 export const formatQueryInfo = (response, { color, include }) => {
-  if (!include.includes("stats")) {
+  if (include && !include.includes("stats")) {
     return "";
   }
 
