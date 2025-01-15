@@ -3,7 +3,12 @@
  * @fileoverview Fauna V10 client utilities for query execution and error handling.
  */
 import chalk from "chalk";
-import { NetworkError, ServiceError } from "fauna";
+import {
+  AbortError,
+  ConstraintFailureError,
+  NetworkError,
+  ServiceError,
+} from "fauna";
 import stripAnsi from "strip-ansi";
 
 import { container } from "../config/container.mjs";
@@ -178,7 +183,7 @@ const getIncludedQueryInfo = (response, include) => {
 
 /**
  *
- * @param {object} response - The v4 or v10 query response with query info
+ * @param {object} response - The v10 query response with query info
  * @param {object} opts
  * @param {boolean} opts.color - Whether to colorize the error
  * @param {string[]} opts.include - The query info fields to include
@@ -217,20 +222,47 @@ export const formatQueryInfo = (response, { color, include }) => {
  * @param {string[]} opts.include - The query info fields to include
  * @returns {string} The formatted error message
  */
-// eslint-disable-next-line no-unused-vars
+ 
 export const formatError = (err, { color, include }) => {
-  if (
-    err &&
-    typeof err.queryInfo === "object" &&
-    typeof err.queryInfo.summary === "string"
-  ) {
-    // Otherwise, return the summary and fall back to the message.
-    return `${chalk.red("The query failed with the following error:")}\n\n${formatQuerySummary(err.queryInfo?.summary) ?? err.message}`;
+  let message = "";
+
+  if (err instanceof ServiceError) {
+    const _include = include.filter((i) => i !== "summary");
+    const queryInfo = formatQueryInfo(err.queryInfo, {
+      color,
+      include: _include,
+    });
+    message = queryInfo === "" ? "" : `${queryInfo}\n`;
+
+    // The summary will be displayed in the queryInfo as YAML if the user asks
+    // for it. This is to be consistent with the output from successful queries.
+    // We will always show it at the bottom of the error message as well, since
+    // all error contain the detailed stack and error informatino in the
+    // summary.
+    const summary = formatQuerySummary(err.queryInfo?.summary ?? "");
+
+    message += `${chalk.red("The query failed with the following error:")}\n\n${summary}`;
+
+    if (err instanceof AbortError) {
+      const abort = colorize(err.abort, { format: "fql", color });
+      message += `\n\n${chalk.red("Abort value:")}\n${abort}`;
+    } else if (err instanceof ConstraintFailureError) {
+      const contraintFailures = colorize(
+        JSON.stringify(err.constraint_failures, null, 2),
+        {
+          format: "fql",
+          color,
+        },
+      );
+      message += `\n\n${chalk.red("Constraint failures:")}\n${contraintFailures}`;
+    }
   } else if (err.name === "NetworkError") {
-    return `The query failed unexpectedly with the following error:\n\n${NETWORK_ERROR_MESSAGE}`;
+    message = `${chalk.red("The query failed unexpectedly with the following error:")}\n\n${NETWORK_ERROR_MESSAGE}`;
+  } else {
+    message = `${chalk.red("The query failed unexpectedly with the following error:")}\n\n${err.message}`;
   }
 
-  return `The query failed unexpectedly with the following error:\n\n${err.message}`;
+  return message;
 };
 
 /**

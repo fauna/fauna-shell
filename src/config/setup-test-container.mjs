@@ -122,6 +122,7 @@ export function setupTestContainer() {
       runQuery: stub(),
       runQueryFromString: stub(),
       formatQueryResponse: faunaClientV4.formatQueryResponse,
+      formatQueryInfo: faunaClientV4.formatQueryInfo,
       formatError: faunaClientV4.formatError,
     }),
   };

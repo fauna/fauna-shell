@@ -4,7 +4,7 @@ import { container } from "../config/container.mjs";
 import { isUnknownError } from "./errors.mjs";
 import { faunaToCommandError } from "./fauna.mjs";
 import { faunadbToCommandError } from "./faunadb.mjs";
-import { colorize, Format } from "./formatting/colorize.mjs";
+import { Format } from "./formatting/colorize.mjs";
 
 /**
  * Gets a secret for the current credentials.
@@ -102,7 +102,7 @@ export const formatError = (err, { apiVersion, color, include }) => {
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return faunaV4.formatError(err, { color });
+    return faunaV4.formatError(err, { color, include });
   } else {
     return faunaV10.formatError(err, { color, include });
   }
@@ -126,7 +126,7 @@ export const isQueryable = async (argv) => {
 
     const { color, include } = argv;
     if (argv.apiVersion === "4") {
-      faunadbToCommandError({ err, color });
+      faunadbToCommandError({ err, color, include });
     } else {
       faunaToCommandError({ err, color, include });
     }
@@ -164,19 +164,11 @@ export const formatQueryResponse = (res, { apiVersion, color, format }) => {
  * @returns
  */
 export const formatQueryInfo = (response, { apiVersion, color, include }) => {
-  if (apiVersion === "4" && include.includes("stats")) {
-    /** @type {import("faunadb").MetricsResponse} */
-    const metricsResponse = response;
-    const colorized = colorize(
-      { metrics: metricsResponse.metrics },
-      { color, format: Format.YAML },
-    );
-
-    return `${colorized}\n`;
-  } else if (apiVersion === "10") {
+  if (apiVersion === "4") {
+    const faunaV4 = container.resolve("faunaClientV4");
+    return faunaV4.formatQueryInfo(response, { color, include });
+  } else {
     const faunaV10 = container.resolve("faunaClientV10");
     return faunaV10.formatQueryInfo(response, { color, include });
   }
-
-  return "";
 };

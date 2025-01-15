@@ -1,6 +1,7 @@
 // @ts-check
 import { createContext, runInContext } from "node:vm";
 
+import chalk from "chalk";
 import faunadb from "faunadb";
 
 import { container } from "../config/container.mjs";
@@ -89,14 +90,36 @@ export const runQuery = async ({
 };
 
 /**
+ *
+ * @param {object} response - The v4 query response with query info
+ * @param {object} opts
+ * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
+ * @returns
+ */
+export const formatQueryInfo = (response, { color, include }) => {
+  if (!include.includes("stats")) {
+    return "";
+  }
+
+  const colorized = colorize(
+    { stats: response.metrics },
+    { color, format: Format.YAML },
+  );
+
+  return `${colorized}\n`;
+};
+
+/**
  * Formats a V4 Fauna error for display.
  * @param {any} err - An error to format
- * @param {object} [opts]
- * @param {boolean} [opts.color] - Whether to colorize the error
+ * @param {object} opts
+ * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
  * @returns {string} The formatted error message
  */
-export const formatError = (err, opts = {}) => {
-  const { color } = opts;
+export const formatError = (err, { color, include }) => {
+  let message = "";
 
   // By doing this we can avoid requiring a faunadb direct dependency
   if (
@@ -105,31 +128,43 @@ export const formatError = (err, opts = {}) => {
     typeof err.requestResult.responseContent === "object" &&
     Array.isArray(err.requestResult.responseContent.errors)
   ) {
-    const errorPrefix = "The query failed with the following error:\n\n";
-    const { errors } = err.requestResult.responseContent;
-    if (!errors) {
-      return colorize(errorPrefix + err.message, { color });
-    }
+    // Get query info from the response headers.
+    const metricsHeaders = [
+      "x-compute-ops",
+      "x-byte-read-ops",
+      "x-byte-write-ops",
+      "x-query-time",
+      "x-txn-retries",
+    ];
+    const metricsResponse = {
+      metrics: Object.fromEntries(
+        Array.from(Object.entries(err.requestResult.responseHeaders))
+          .filter(([k]) => metricsHeaders.includes(k))
+          .map(([k, v]) => [k, parseInt(v)]),
+      ),
+    };
+    const queryInfo = formatQueryInfo(metricsResponse, { color, include });
 
-    const messages = [];
-    errors.forEach(({ code, description, position }) => {
-      messages.push(`${code}: ${description} at ${position.join(", ")}\n`);
-    });
+    message = queryInfo === "" ? "" : `${queryInfo}\n`;
 
-    return colorize(errorPrefix + messages.join("\n").trim(), {
-      color,
-    });
+    const subMessages = [];
+    err.requestResult.responseContent.errors.forEach(
+      ({ code, description, position }) => {
+        // add `*query*` so it looks more like the v10 error summaries.
+        const summary = `${code}: ${description}\nat *query*:${position.join(", ")}`;
+        let subMessage = `${chalk.red("The query failed with the following error:")}\n\n${summary}`;
+        subMessages.push(subMessage);
+      },
+    );
+
+    message += subMessages.join("\n\n");
+  } else if (err.name === "TypeError" && err.message.includes("fetch failed")) {
+    message = `${chalk.red("The query failed unexpectedly with the following error:")}\n\n${NETWORK_ERROR_MESSAGE}`;
+  } else {
+    message = `${chalk.red("The query failed unexpectedly with the following error:")}\n\n${err.message}`;
   }
 
-  const errorPrefix =
-    "The query failed unexpectedly with the following error:\n\n";
-
-  // When fetch fails, we get a TypeError with a "fetch failed" message.
-  if (err.name === "TypeError" && err.message.includes("fetch failed")) {
-    return colorize(errorPrefix + NETWORK_ERROR_MESSAGE, { color });
-  }
-
-  return colorize(errorPrefix + err.message, { color });
+  return message;
 };
 
 /**
@@ -137,10 +172,11 @@ export const formatError = (err, opts = {}) => {
  * @param {object} opts
  * @param {any} opts.err - The error to convert
  * @param {(e: import("fauna").FaunaError) => void} [opts.handler] - Optional error handler to handle and throw in
- * @param {boolean} [opts.color] - Whether to colorize the error
+ * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
  * @returns {void}
  */
-export const faunadbToCommandError = ({ err, handler, color }) => {
+export const faunadbToCommandError = ({ err, handler, color, include }) => {
   if (handler) {
     handler(err);
   }
@@ -153,7 +189,9 @@ export const faunadbToCommandError = ({ err, handler, color }) => {
         throw new AuthorizationError({ cause: err });
       case "BadRequest":
       case "NotFound":
-        throw new CommandError(formatError(err, { color }), { cause: err });
+        throw new CommandError(formatError(err, { color, include }), {
+          cause: err,
+        });
       default:
         throw err;
     }
