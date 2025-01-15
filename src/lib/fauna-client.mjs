@@ -157,7 +157,7 @@ export const formatQueryResponse = (res, { apiVersion, color, format }) => {
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return faunaV4.formatQueryResponse(res, { color });
+    return faunaV4.formatQueryResponse(res, { format, color });
   } else {
     return faunaV10.formatQueryResponse(res, { format, color });
   }
