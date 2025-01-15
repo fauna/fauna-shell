@@ -71,6 +71,27 @@ function buildCreateS3ExportCommand(yargs) {
       }
 
       return true;
+    });
+}
+
+function buildCreateCommand(yargs) {
+  return yargs
+    .options(DATABASE_PATH_OPTIONS)
+    .options({
+      collection: {
+        type: "array",
+        required: false,
+        description:
+          "Used-defined collections to export. Pass values as a space-separated list. If omitted, all user-defined collections are exported.",
+        default: [],
+        group: "API:",
+      },
+    })
+    .command({
+      command: "s3",
+      description: "Export to an S3 bucket.",
+      builder: buildCreateS3ExportCommand,
+      handler: createS3Export,
     })
     .example([
       [
@@ -89,34 +110,13 @@ function buildCreateS3ExportCommand(yargs) {
         "$0 export create s3 --database us/my_db --bucket my-bucket --path my-prefix --format tagged",
         "Encode the export's document data using the 'tagged' format.",
       ],
-    ]);
-}
-
-function buildCreateCommand(yargs) {
-  return yargs
-    .options(DATABASE_PATH_OPTIONS)
-    .options({
-      collection: {
-        type: "array",
-        required: false,
-        description:
-          "Used-defined collections to export. Pass values as a space-separated list. If omitted, all user-defined collections are exported.",
-        default: [],
-        group: "API:",
-      },
-    })
-    .command({
-      command: "s3",
-      description: "Create a database export to an S3 bucket.",
-      builder: buildCreateS3ExportCommand,
-      handler: createS3Export,
-    })
+    ])
     .demandCommand();
 }
 
 export default {
-  command: "create <destination>",
-  description: "Start the export of a database or collections to an S3 bucket.",
+  command: "create <destination-type>",
+  description: "Start the export of a database or collections. Outputs the export ID.",
   builder: buildCreateCommand,
   // eslint-disable-next-line no-empty-function
   handler: () => {},
