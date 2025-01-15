@@ -34,6 +34,17 @@ function buildExportCommand(yargs) {
     .command(createCommand)
     .command(listCommand)
     .command(getCommand)
+    .example([
+      [
+        "$0 export create s3 --database us/my_db --bucket my-bucket --path exports/my_db",
+        "Export the 'us-std/my_db' database to the 'exports/my_db' path of the 'my-bucket' S3 bucket. Outputs the export ID.",
+      ],
+      [
+        "$0 export get 123456789",
+        "Output the YAML for the export with an ID of '123456789'.",
+      ],
+      ["$0 export list", "List exports in TSV format."],
+    ])
     .demandCommand();
 }
 
