@@ -111,6 +111,8 @@ describe("login", function () {
 
     // We start the loopback server
     expect(oauthClient.start.called).to.be.true;
+    expect(oauthClient.start.calledBefore(oauthClient.getOAuthParams)).to.be
+      .true;
     // We open auth url in the browser and prompt user
     expect(container.resolve("open").calledWith("http://dashboard-url.com"));
     expect(logger.stdout).to.have.been.calledWith(
