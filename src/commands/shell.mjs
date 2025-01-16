@@ -193,8 +193,7 @@ async function buildCustomEval(argv) {
         });
 
         // If any query info should be displayed, print to stderr.
-        // This is only supported in v10.
-        if (include.length > 0 && apiVersion === "10") {
+        if (include.length > 0) {
           const queryInfo = formatQueryInfo(res, {
             apiVersion,
             color,
