@@ -181,7 +181,7 @@ export async function waitAndCheckExportState({
   const nextInterval = Math.min(interval * 2, MAX_INTERVAL_MS);
   statusHandler(
     colorize(
-      `${id} is ${data.state} and not ready. Waiting for ${nextInterval}ms before checking again.`,
+      `${id} is ${data.state} and not ready. Waiting for ${nextInterval / 1000}s before checking again.`,
       {
         format: Format.LOG,
         color,
