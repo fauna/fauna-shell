@@ -15,12 +15,13 @@ export const WAIT_OPTIONS = {
   wait: {
     type: "boolean",
     required: false,
-    description: "Wait for the export to complete before exiting.",
+    description:
+      "Wait for the export to complete or fail before exiting. Use '--max-wait' to set a timeout.",
   },
   maxWait: {
     type: "number",
     required: false,
-    description: "The maximum wait time in minutes. Maximum is 0 minutes.",
+    description: "Maximum wait time in minutes. Defaults to 120 minutes.",
     default: MAX_WAIT_MINS,
   },
 };

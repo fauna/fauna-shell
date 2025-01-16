@@ -43,7 +43,7 @@ function buildGetExportCommand(yargs) {
       ["$0 export get 123456789 --json", "Output the export as JSON."],
       [
         "$0 export get 123456789 --wait",
-        "Wait for the export to be in a terminal state before exiting.",
+        "Wait for the export to complete or fail before exiting.",
       ],
     ]);
 }

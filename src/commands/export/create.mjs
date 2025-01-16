@@ -69,6 +69,10 @@ const sharedExamples = [
     "$0 export create s3 --database us/my_db --bucket my-bucket --path my-prefix --format tagged",
     "Encode the export's document data using the 'tagged' format.",
   ],
+  [
+    "$0 export create s3 --database us/my_db --bucket my-bucket --path my-prefix --wait --max-wait 180",
+    "Wait for the export to complete or fail before exiting. Waits up to 180 minutes.",
+  ],
 ];
 
 function buildCreateS3ExportCommand(yargs) {
