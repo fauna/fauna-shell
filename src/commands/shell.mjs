@@ -8,7 +8,10 @@ import * as esprima from "esprima";
 import { container } from "../config/container.mjs";
 import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
-import { validateDatabaseOrSecret } from "../lib/middleware.mjs";
+import {
+  resolveIncludeOptions,
+  validateDatabaseOrSecret,
+} from "../lib/middleware.mjs";
 import {
   ACCOUNT_OPTIONS,
   CORE_OPTIONS,
@@ -227,6 +230,7 @@ function buildShellCommand(yargs) {
     .options(DATABASE_PATH_OPTIONS)
     .options(CORE_OPTIONS)
     .options(QUERY_OPTIONS)
+    .middleware(resolveIncludeOptions)
     .example([
       [
         "$0 shell --database us/my_db",
