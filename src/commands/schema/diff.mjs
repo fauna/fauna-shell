@@ -48,8 +48,6 @@ function buildValidateParams(argv, version) {
   });
   if (version) {
     params.set("version", version);
-  } else {
-    params.set("force", "true");
   }
 
   return params;
