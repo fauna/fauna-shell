@@ -183,7 +183,7 @@ describe("accountAPI", () => {
       );
       expect(data).to.deep.equal({
         ...testExport,
-        destination_uri: "",
+        destination_uri: "s3://test-bucket/some/key",
       });
     });
 
@@ -233,7 +233,7 @@ describe("accountAPI", () => {
       expect(data).to.deep.equal({
         ...testExport,
         collections: ["test-collection"],
-        destination_uri: "",
+        destination_uri: "s3://test-bucket/some/key",
       });
     });
 
@@ -276,7 +276,7 @@ describe("accountAPI", () => {
       expect(data).to.deep.equal({
         ...testExport,
         format: "tagged",
-        destination_uri: "",
+        destination_uri: "s3://test-bucket/some/key",
       });
     });
   });
@@ -333,7 +333,7 @@ describe("accountAPI", () => {
 
       expect(data).to.deep.equal({
         results: [
-          { ...testExport, destination_uri: "" },
+          { ...testExport, destination_uri: "s3://test-bucket/some/key" },
           {
             ...testExport,
             state: "Complete",

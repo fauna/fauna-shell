@@ -43,13 +43,10 @@ describe("export list", () => {
     await stdout.waitForWritten();
 
     expect(stdout.getWritten()).to.equal(
-      `${[
-        "id\tdatabase\tcollections\tdestination_uri\tstate",
-        "419630463817089613\tus-std/test\t\t\tPending",
-      ].join("\n")}\n`,
+      `${["419630463817089613\tus-std/test\t\t\tPending"].join("\n")}\n`,
     );
     expect(listExports).to.have.been.calledWith({
-      maxResults: 100,
+      maxResults: 10,
       state: [],
     });
   });
@@ -83,7 +80,7 @@ describe("export list", () => {
     await run(`export list --state Pending --state InProgress`, container);
 
     expect(listExports).to.have.been.calledWith({
-      maxResults: 100,
+      maxResults: 10,
       state: ["Pending", "InProgress"],
     });
   });

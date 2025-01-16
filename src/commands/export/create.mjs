@@ -1,12 +1,13 @@
 // @ts-check
 
 import { container } from "../../config/container.mjs";
+import { EXPORT_TERMINAL_STATES } from "../../lib/account-api.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 import { DATABASE_PATH_OPTIONS } from "../../lib/options.mjs";
+import { WAIT_OPTIONS, waitUntilExportIsReady } from "./wait.mjs";
 
 async function createS3Export(argv) {
-  const logger = container.resolve("logger");
   const {
     database,
     path,
@@ -15,10 +16,14 @@ async function createS3Export(argv) {
     json,
     color,
     collection: collections,
+    wait,
+    maxWait,
+    quiet,
   } = argv;
+  const logger = container.resolve("logger");
   const { createExport } = container.resolve("accountAPI");
 
-  const response = await createExport({
+  let createdExport = await createExport({
     database,
     collections,
     destination: {
@@ -30,10 +35,20 @@ async function createS3Export(argv) {
     format,
   });
 
+  if (wait && !EXPORT_TERMINAL_STATES.includes(createdExport.state)) {
+    createdExport = await waitUntilExportIsReady({
+      id: createdExport.id,
+      opts: {
+        maxWait,
+        quiet,
+      },
+    });
+  }
+
   if (json) {
-    logger.stdout(colorize(response, { color, format: Format.JSON }));
+    logger.stdout(colorize(createdExport, { color, format: Format.JSON }));
   } else {
-    logger.stdout(response.id);
+    logger.stdout(colorize(createdExport, { color, format: Format.YAML }));
   }
 }
 
@@ -82,7 +97,7 @@ function buildCreateS3ExportCommand(yargs) {
         group: "API:",
       },
     })
-    .example(sharedExamples)
+    .options(WAIT_OPTIONS)
     .check((argv) => {
       if (!argv.database) {
         throw new ValidationError(
@@ -91,7 +106,8 @@ function buildCreateS3ExportCommand(yargs) {
       }
 
       return true;
-    });
+    })
+    .example(sharedExamples);
 }
 
 function buildCreateCommand(yargs) {
@@ -122,6 +138,4 @@ export default {
   description:
     "Start the export of a database or collections. Outputs the export ID.",
   builder: buildCreateCommand,
-  // eslint-disable-next-line no-empty-function
-  handler: () => {},
 };

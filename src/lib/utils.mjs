@@ -46,3 +46,13 @@ export function standardizeRegion(databasePath) {
   const standardRegion = regionMap[region] || region;
   return rest ? `${standardRegion}/${rest}` : standardRegion;
 }
+
+/**
+ * @param {number} ms - The number of milliseconds to sleep.
+ * @returns {Promise<void>} A promise that resolves after the specified number of milliseconds.
+ */
+export async function sleep(ms) {
+  return await new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}

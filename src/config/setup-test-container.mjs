@@ -126,6 +126,7 @@ export function setupTestContainer() {
       formatQueryResponse: faunaClientV4.formatQueryResponse,
       formatError: faunaClientV4.formatError,
     }),
+    sleep: awilix.asValue(stub().resolves()),
   };
 
   confirmManualMocks(manualMocks, thingsToManuallyMock);

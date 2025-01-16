@@ -56,7 +56,18 @@ describe("export create s3", () => {
     );
     await stdout.waitForWritten();
 
-    expect(stdout.getWritten()).to.equal("test-export-id\n");
+    expect(stdout.getWritten()).to.equal(`id: test-export-id
+state: Pending
+database: us-std/example
+format: simple
+destination:
+  s3:
+    path: /test/key
+    bucket: test-bucket
+created_at: 2025-01-02T22:59:51
+updated_at: 2025-01-02T22:59:51
+destination_uri: ""
+`);
     expect(createExport).to.have.been.calledWith({
       database,
       collections: [],

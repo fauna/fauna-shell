@@ -1,15 +1,8 @@
 import { container } from "../../config/container.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
-
+import { EXPORT_STATES } from "../../lib/account-api.mjs";
 const COLUMN_SEPARATOR = "\t";
-const COLLECTION_SEPARATOR = ", ";
-const COLUMN_HEADERS = [
-  "id",
-  "database",
-  "collections",
-  "destination_uri",
-  "state",
-];
+const COLLECTION_SEPARATOR = ",";
 
 async function listExports(argv) {
   const logger = container.resolve("logger");
@@ -27,13 +20,6 @@ async function listExports(argv) {
     if (!results.length) {
       return;
     }
-
-    logger.stdout(
-      colorize(COLUMN_HEADERS.join(COLUMN_SEPARATOR), {
-        color,
-        format: Format.TSV,
-      }),
-    );
 
     results.forEach((r) => {
       const row = [
@@ -59,8 +45,8 @@ function buildListExportsCommand(yargs) {
       "max-results": {
         alias: "max",
         type: "number",
-        description: "Maximum number of exports to return. Defaults to 100.",
-        default: 100,
+        description: "Maximum number of exports to return. Defaults to 10.",
+        default: 10,
         group: "API:",
       },
       state: {
@@ -68,11 +54,14 @@ function buildListExportsCommand(yargs) {
         description: "Filter exports by state.",
         default: [],
         group: "API:",
-        choices: ["Pending", "InProgress", "Complete", "Failed"],
+        choices: EXPORT_STATES,
       },
     })
     .example([
-      ["$0 export list", "List exports in TSV format."],
+      [
+        "$0 export list",
+        "List exports in TSV format with export ID, database, collections, destination, and state as the columns.",
+      ],
       ["$0 export list --json", "List exports in JSON format."],
       ["$0 export list --max-results 50", "List up to 50 exports."],
       [

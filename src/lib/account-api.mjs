@@ -14,6 +14,19 @@ const API_VERSIONS = {
   v2: "/v2",
 };
 
+export const ExportState = {
+  Pending: "Pending",
+  InProgress: "InProgress",
+  Complete: "Complete",
+  Failed: "Failed",
+};
+
+export const EXPORT_STATES = Object.values(ExportState);
+export const EXPORT_TERMINAL_STATES = [
+  ExportState.Complete,
+  ExportState.Failed,
+];
+
 let accountUrl = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
 
 /**
@@ -395,7 +408,7 @@ async function createKey({ path, role, ttl, name }) {
 
 const getExportUri = (data) => {
   const { destination, state } = data;
-  if (!destination || !state || state.toUpperCase() !== "COMPLETE") {
+  if (!destination || !state) {
     return "";
   }
   const path = destination.s3.path.replace(/^\/+/, "");

@@ -37,7 +37,7 @@ function buildExportCommand(yargs) {
       const logger = container.resolve("logger");
       logger.stderr(
         chalk.yellow(
-          `Warning: fauna export is currently in beta. To learn more, visit https://docs.fauna.com/fauna/current/build/cli/v4/commands/export/`,
+          `Warning: fauna export is currently in beta. To learn more, visit https://docs.fauna.com/fauna/current/build/cli/v4/commands/export/\n`,
         ),
       );
     })
@@ -61,6 +61,6 @@ function buildExportCommand(yargs) {
 
 export default {
   command: "export <method>",
-  description: "Create and manage exports.",
+  description: "Create and manage exports. Currently in beta.",
   builder: buildExportCommand,
 };
