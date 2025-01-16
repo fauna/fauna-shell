@@ -114,7 +114,7 @@ function buildLoginCommand(yargs) {
         alias: "n",
         type: "boolean",
         description:
-          "Log in without redirecting to a local callback server. Use this option if you are unable to open a browser on your local machine.",
+          "Log in without redirecting to a local callback server. Use `--no-redirect=true` if you are unable to open a browser on your local machine. You must use the `=` syntax.",
         default: false,
       },
       user: {
@@ -128,7 +128,7 @@ function buildLoginCommand(yargs) {
       ["$0 login", "Log in as the 'default' user."],
       ["$0 login --user john_doe", "Log in as the 'john_doe' user."],
       [
-        "$0 login --user john_doe --no-redirect",
+        "$0 login --user john_doe --no-redirect=true",
         "Log in without redirecting to a local callback server.",
       ],
     ]);
