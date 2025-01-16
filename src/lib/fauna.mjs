@@ -208,6 +208,43 @@ export const formatQueryInfo = (response, { color, include }) => {
   return `${colorized}\n`;
 };
 
+const formatServiceError = (err, { color, include }) => {
+  let message = "";
+  // Remove the summary from the include list. We will always show the summary
+  // under the error, so we don't want to include it in the query info.
+  const _include = include.filter((i) => i !== "summary");
+  const queryInfo = formatQueryInfo(err.queryInfo, {
+    color,
+    include: _include,
+  });
+  message = queryInfo === "" ? "" : `${queryInfo}\n`;
+
+  const summary = formatQuerySummary(err.queryInfo?.summary ?? "");
+  message += `${chalk.red("The query failed with the following error:")}\n\n${summary}`;
+
+  // err.abort could be `null`, if that's what the user returns
+  if (err.abort !== undefined) {
+    const abort = colorize(err.abort, { format: "fql", color });
+    message += `\n\n${chalk.red("Abort value:")}\n${abort}`;
+  }
+
+  if (
+    err.constraint_failures !== undefined &&
+    err.constraint_failures.length > 0
+  ) {
+    const contraintFailures = colorize(
+      JSON.stringify(err.constraint_failures, null, 2),
+      {
+        format: "fql",
+        color,
+      },
+    );
+    message += `\n\n${chalk.red("Constraint failures:")}\n${contraintFailures}`;
+  }
+
+  return message;
+};
+
 /**
  * Formats a V10 Fauna error for display.
  *
@@ -217,7 +254,6 @@ export const formatQueryInfo = (response, { color, include }) => {
  * @param {string[]} opts.include - The query info fields to include
  * @returns {string} The formatted error message
  */
-
 export const formatError = (err, { color, include }) => {
   let message = "";
   // If the error has a queryInfo object with a summary property, we can format it.
@@ -227,33 +263,7 @@ export const formatError = (err, { color, include }) => {
     typeof err.queryInfo === "object" &&
     typeof err.queryInfo.summary === "string"
   ) {
-    // Remove the summary from the include list. We will always show the summary
-    // under the error, so we don't want to include it in the query info.
-    const _include = include.filter((i) => i !== "summary");
-    const queryInfo = formatQueryInfo(err.queryInfo, {
-      color,
-      include: _include,
-    });
-    message = queryInfo === "" ? "" : `${queryInfo}\n`;
-
-    const summary = formatQuerySummary(err.queryInfo?.summary ?? "");
-    message += `${chalk.red("The query failed with the following error:")}\n\n${summary}`;
-
-    // err.abort could be `null`, if that's what the user returns
-    if (err.abort !== undefined) {
-      const abort = colorize(err.abort, { format: "fql", color });
-      message += `\n\n${chalk.red("Abort value:")}\n${abort}`;
-    }
-    if (err.constraint_failures !== undefined) {
-      const contraintFailures = colorize(
-        JSON.stringify(err.constraint_failures, null, 2),
-        {
-          format: "fql",
-          color,
-        },
-      );
-      message += `\n\n${chalk.red("Constraint failures:")}\n${contraintFailures}`;
-    }
+    message = formatServiceError(err, { color, include });
   } else if (err.name === "NetworkError") {
     message = `${chalk.red("The query failed unexpectedly with the following error:")}\n\n${NETWORK_ERROR_MESSAGE}`;
   } else {

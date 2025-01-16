@@ -149,20 +149,31 @@ export const createV10QueryFailure = (summary) => {
     error: {
       code: "test_error",
       message: "test error",
-      constraint_failures: [],
     },
     httpStatus: 400,
     summary,
+    txn_ts: 1732664445755210,
+    stats: {
+      compute_ops: 1,
+      read_ops: 9,
+      write_ops: 0,
+      query_time_ms: 15,
+      contention_retries: 0,
+      storage_bytes_read: 510,
+      storage_bytes_write: 0,
+      rate_limits_hit: [],
+      attempts: 1,
+    },
   };
 };
 
 export const createV4QuerySuccess = (data) => ({
   value: data,
   metrics: {
-    "x-byte-read-ops": 8,
+    "x-byte-read-ops": 0,
     "x-byte-write-ops": 0,
-    "x-compute-ops": 1,
-    "x-query-time": 15,
+    "x-compute-ops": 0,
+    "x-query-time": 0,
     "x-txn-retries": 0,
   },
 });
@@ -174,7 +185,13 @@ export const createV4QueryFailure = (error) => ({
     }),
     responseContent: { errors: [error] },
     statusCode: 400,
-    responseHeaders: {},
+    responseHeaders: {
+      "x-byte-read-ops": 0,
+      "x-byte-write-ops": 0,
+      "x-compute-ops": 0,
+      "x-query-time": 0,
+      "x-txn-retries": 0,
+    },
     method: "POST",
     path: "/",
     query: "",
