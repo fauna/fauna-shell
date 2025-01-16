@@ -42,14 +42,14 @@ async function doLogin(argv) {
   const promptLoginUrl = async () => {
     const authCodeParams = oAuth.getOAuthParams({
       clientId: argv.clientId,
-      noRedirect: argv.noRedirect,
+      redirect: argv.redirect,
     });
     const dashboardOAuthURL = await startOAuthRequest(authCodeParams);
     logger.stdout(`To login, open a browser to:\n${dashboardOAuthURL}`);
     return dashboardOAuthURL;
   };
 
-  if (!argv.noRedirect) {
+  if (argv.redirect) {
     oAuth.server.on("ready", async () => {
       const dashboardOAuthURL = await promptLoginUrl();
       open(dashboardOAuthURL);
@@ -110,12 +110,12 @@ function buildLoginCommand(yargs) {
         required: false,
         hidden: true,
       },
-      "no-redirect": {
-        alias: "n",
+      redirect: {
+        alias: "r",
         type: "boolean",
         description:
-          "Log in without redirecting to a local callback server. Use this option if you are unable to open a browser on your local machine.",
-        default: false,
+          "Set the method of authenticating. Use 'false' or '--no-redirect' if you are unable to open a browser on your local machine.",
+        default: true,
       },
       user: {
         alias: "u",

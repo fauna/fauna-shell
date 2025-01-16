@@ -171,7 +171,7 @@ describe("login", function () {
     const sampleCreds = btoa(JSON.stringify({ code: "asdf", state: "state" }));
     input.resolves(sampleCreds);
 
-    await run(`login --no-redirect=true`, container);
+    await run(`login --no-redirect`, container);
     const oauthClient = container.resolve("oauthClient");
     const logger = container.resolve("logger");
     const credentials = container.resolve("credentials");
