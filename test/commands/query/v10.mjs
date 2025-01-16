@@ -1,7 +1,12 @@
 //@ts-check
 
 import { expect } from "chai";
-import { AbortError, ConstraintFailureError, NetworkError, ServiceError } from "fauna";
+import {
+  AbortError,
+  ConstraintFailureError,
+  NetworkError,
+  ServiceError,
+} from "fauna";
 import sinon from "sinon";
 
 import { run } from "../../../src/cli.mjs";

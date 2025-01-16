@@ -118,7 +118,9 @@ describe("query v4", function () {
       expect(logger.stderr).to.have.been.calledWith(
         sinon.match("  x-byte-read-ops: 0"),
       );
-      expect(logger.stdout).to.have.been.calledWith(sinon.match("test response"));
+      expect(logger.stdout).to.have.been.calledWith(
+        sinon.match("test response"),
+      );
     });
 
     it("can display query info with an error", async function () {
