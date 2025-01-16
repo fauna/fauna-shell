@@ -38,22 +38,29 @@ async function doLogin(argv) {
       logger.stderr(err);
     }
   };
-  const authCodeParams = oAuth.getOAuthParams({
-    clientId: argv.clientId,
-    noRedirect: argv.noRedirect,
-  });
-  const dashboardOAuthURL = await startOAuthRequest(authCodeParams);
-  logger.stdout(`To login, open a browser to:\n${dashboardOAuthURL}`);
+
+  const promptLoginUrl = async () => {
+    const authCodeParams = oAuth.getOAuthParams({
+      clientId: argv.clientId,
+      noRedirect: argv.noRedirect,
+    });
+    const dashboardOAuthURL = await startOAuthRequest(authCodeParams);
+    logger.stdout(`To login, open a browser to:\n${dashboardOAuthURL}`);
+    return dashboardOAuthURL;
+  };
+
   if (!argv.noRedirect) {
     oAuth.server.on("ready", async () => {
+      const dashboardOAuthURL = await promptLoginUrl();
       open(dashboardOAuthURL);
+      logger.stdout("Waiting for authentication in browser to complete...");
     });
     oAuth.server.on("auth_code_received", async () => {
       await loginWithToken();
     });
     await oAuth.start();
-    logger.stdout("Waiting for authentication in browser to complete...");
   } else {
+    await promptLoginUrl();
     try {
       const userCode = await input({
         message: "Authorization Code:",

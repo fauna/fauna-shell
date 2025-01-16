@@ -147,7 +147,7 @@ export const isQueryable = async (argv) => {
 export const formatQueryResponse = (res, { apiVersion, color, format }) => {
   if (apiVersion === "4") {
     const faunaV4 = container.resolve("faunaClientV4");
-    return faunaV4.formatQueryResponse(res, { color });
+    return faunaV4.formatQueryResponse(res, { format, color });
   } else {
     const faunaV10 = container.resolve("faunaClientV10");
     return faunaV10.formatQueryResponse(res, { format, color });
