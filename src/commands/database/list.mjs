@@ -3,13 +3,22 @@ import chalk from "chalk";
 
 import { container } from "../../config/container.mjs";
 import { faunaToCommandError } from "../../lib/fauna.mjs";
-import { colorize, Format } from "../../lib/formatting/colorize.mjs";
+import { createFormatter } from "../../lib/formatting/formatter.mjs";
+import { FORMATTABLE_OPTIONS } from "../../lib/options.mjs";
+
+const formatter = createFormatter({
+  header: "fauna database list",
+  columns: ["name", "path"],
+  short: {
+    formatter: ({ path, name }) => `${path ?? name}`,
+  },
+});
 
 async function listDatabasesWithAccountAPI(argv) {
-  const { pageSize, database } = argv;
+  const { maxSize, database } = argv;
   const { listDatabases } = container.resolve("accountAPI");
   const response = await listDatabases({
-    pageSize,
+    pageSize: maxSize,
     path: database,
   });
 
@@ -17,7 +26,7 @@ async function listDatabasesWithAccountAPI(argv) {
 }
 
 async function listDatabasesWithSecret(argv) {
-  const { url, secret, pageSize } = argv;
+  const { url, secret, maxSize, color } = argv;
   const { runQueryFromString } = container.resolve("faunaClientV10");
 
   try {
@@ -26,11 +35,11 @@ async function listDatabasesWithSecret(argv) {
       secret,
       // This gives us back an array of database names. If we want to
       // provide the after token at some point this query will need to be updated.
-      expression: `Database.all().paginate(${pageSize}).data { name }`,
+      expression: `Database.all().paginate(${maxSize}).data { name }`,
     });
     return res.data;
   } catch (e) {
-    return faunaToCommandError({ err: e, color: argv.color });
+    return faunaToCommandError({ err: e, color });
   }
 }
 
@@ -54,22 +63,19 @@ async function doListDatabases(argv) {
     );
   }
 
-  if (argv.json) {
-    logger.stdout(colorize(res, { format: Format.JSON, color: argv.color }));
-  } else {
-    res.forEach(({ path, name }) => {
-      logger.stdout(path ?? name);
-    });
-  }
+  const { format, color } = argv;
+  logger.stdout(formatter({ data: res, format, color }));
 }
 
 function buildListCommand(yargs) {
   return yargs
+    .options(FORMATTABLE_OPTIONS)
     .options({
-      "page-size": {
+      "max-size": {
+        alias: "max",
         type: "number",
         description: "Maximum number of databases to return.",
-        default: 1000,
+        default: 10,
       },
     })
     .example([
@@ -83,12 +89,12 @@ function buildListCommand(yargs) {
         "List all child databases directly under a database scoped to a secret.",
       ],
       [
-        "$0 database list --json",
+        "$0 database list -f json",
         "List all top-level databases and output as JSON.",
       ],
       [
-        "$0 database list --page-size 10",
-        "List the first 10 top-level databases.",
+        "$0 database list --max-size 100",
+        "List the first 100 top-level databases.",
       ],
     ]);
 }

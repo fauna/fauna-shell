@@ -21,7 +21,7 @@ import {
   DATABASE_PATH_OPTIONS,
   QUERY_OPTIONS,
 } from "../lib/options.mjs";
-import { isTTY, resolveFormat } from "../lib/utils.mjs";
+import { isTTY } from "../lib/utils.mjs";
 
 function validate(argv) {
   const { existsSync, accessSync, constants } = container.resolve("fs");
@@ -96,13 +96,11 @@ async function queryCommand(argv) {
       performanceHints,
       color,
       include,
+      format,
     } = argv;
 
     // If we're writing to a file, don't colorize the output regardless of the user's preference
     const useColor = argv.output || !isTTY() ? false : color;
-
-    // Using --json takes precedence over --format
-    const outputFormat = resolveFormat(argv);
 
     const results = await container.resolve("runQueryFromString")(expression, {
       apiVersion,
@@ -111,7 +109,7 @@ async function queryCommand(argv) {
       timeout,
       typecheck,
       performanceHints,
-      format: outputFormat,
+      format,
       color: useColor,
     });
 
@@ -130,7 +128,7 @@ async function queryCommand(argv) {
 
     const output = formatQueryResponse(results, {
       apiVersion,
-      format: outputFormat,
+      format,
       color: useColor,
     });
 

@@ -1,6 +1,15 @@
 import { table } from "table";
 
-import { colorize, Format } from "./colorize.mjs";
+import { colorize, Language } from "./colorize.mjs";
+
+export const Format = {
+  TABLE: "table",
+  YAML: "yaml",
+  FQL: "fql",
+  TSV: "tsv",
+  SHORT: "short",
+  JSON: "json",
+};
 
 /** Returns an array of objects as a ascii table
  * @param {object|Array<object>} objectOrArray - The array of objects to format.
@@ -57,7 +66,7 @@ const toTSV = (objectOrArray, { color, columns }) => {
     columns.map((column) => row[column]).join("\t"),
   );
 
-  return colorize(rows.join("\n"), { color, format: Format.TSV });
+  return colorize(rows.join("\n"), { color, format: Language.TSV });
 };
 
 /**
@@ -69,7 +78,7 @@ const toTSV = (objectOrArray, { color, columns }) => {
  */
 const toShort = (objectOrArray, { formatter }) => {
   const data = Array.isArray(objectOrArray) ? objectOrArray : [objectOrArray];
-  return formatter(data);
+  return data.map(formatter).join("\n");
 };
 
 /**
@@ -86,15 +95,15 @@ const toFormat = ({ data, format, color, config }) => {
     case Format.TABLE:
       return toTable(data, { ...config.table });
     case Format.YAML:
-      return colorize(data, { color, format: Format.YAML });
+      return colorize(data, { color, language: Language.YAML });
     case Format.FQL:
-      return colorize(data, { color, format: Format.FQL });
+      return colorize(data, { color, language: Language.FQL });
     case Format.TSV:
       return toTSV(data, { color, ...config.tsv });
-    case "short":
+    case Format.SHORT:
       return toShort(data, { color, ...config.short });
     case Format.JSON:
-      return colorize(data, { color, format: Format.JSON });
+      return colorize(data, { color, language: Language.JSON });
     default:
       throw new Error(`Unknown output format requested: ${format}`);
   }
@@ -102,11 +111,15 @@ const toFormat = ({ data, format, color, config }) => {
 
 /**
  * Creates a formatter function that curries the config object for toFormat
- * @param {object} config The configuration object.
- * @param {string} [config.header] - The header to display.
- * @param {Array<string>} config.columns - The columns to display.
- * @param {(Array<object>) => string} config.short.formatter - The formatter function.
- * @returns {(Array<object>) => string} - The formatter function.
+ * @param {object} options The configuration object.
+ * @param {string} [options.header] - The header to display.
+ * @param {Array<string>} options.columns - The columns to display.\
+ * @param {object} [options.config] - The configuration object.
+ * @param {string} [options.config.format] - The format to use.
+ * @param {object} [options.config.tsv] - The TSV formatter object.
+ * @param {object} [options.config.table] - The table formatter object.
+ * @param {object} [options.config.short] - The short formatter object.
+ * @param {function} options.config.short.formatter - The formatter function.
  */
 export const createFormatter = (config) => {
   const { header, columns, short } = config;
@@ -134,6 +147,13 @@ export const createFormatter = (config) => {
     config.tsv = { columns };
   }
 
+  /**
+   * @param {object} params The parameters for the formatter.
+   * @param {object|Array<object>} params.data - The array of objects to format.
+   * @param {import('./formatter.mjs').Format} params.format - The format to use.
+   * @param {boolean} [params.color] - Whether to colorize the output.
+   * @returns {string} - The formatted string.
+   */
   return ({ data, format, color }) => {
     return toFormat({ data, format, color, config });
   };

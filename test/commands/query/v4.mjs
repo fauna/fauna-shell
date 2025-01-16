@@ -48,7 +48,7 @@ describe("query v4", function () {
       depth: null,
     });
     expect(logger.stdout).to.have.been.calledWith(
-      colorize(output, { format: "fql", color: true }),
+      colorize(output, { language: "fql", color: true }),
     );
     expect(logger.stderr).to.not.be.called;
   });
@@ -56,13 +56,13 @@ describe("query v4", function () {
   it("can output the result of a query as JSON", async function () {
     runQueryFromString.resolves(testResponse);
     await run(
-      `query "Collection('test')" --apiVersion 4 --secret=foo --json`,
+      `query "Collection('test')" --apiVersion 4 --secret=foo -f json`,
       container,
     );
 
     expect(runQueryFromString).to.have.been.calledWith(...runQueryExpectArgs);
     expect(logger.stdout).to.have.been.calledWith(
-      colorize(testResponseWireProtocol, { format: "json", color: true }),
+      colorize(testResponseWireProtocol, { language: "json", color: true }),
     );
     expect(logger.stderr).to.not.be.called;
   });
@@ -72,7 +72,7 @@ describe("query v4", function () {
       runQueryFromString.resolves(createV4QuerySuccess(query));
       await run(`query "null" --apiVersion 4 --secret=foo`, container);
       expect(logger.stdout).to.have.been.calledWith(
-        colorize(util.inspect(query), { format: "fql", color: true }),
+        colorize(util.inspect(query), { language: "fql", color: true }),
       );
       expect(logger.stderr).to.not.be.called;
     }),

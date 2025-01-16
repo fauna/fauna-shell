@@ -5,8 +5,25 @@ import { container } from "../../config/container.mjs";
 import { CommandError } from "../../lib/errors.mjs";
 import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
-import { colorize, Format } from "../../lib/formatting/colorize.mjs";
+import { createFormatter } from "../../lib/formatting/formatter.mjs";
 import { validateDatabaseOrSecret } from "../../lib/middleware.mjs";
+import { FORMATTABLE_OPTIONS } from "../../lib/options.mjs";
+
+const formatter = createFormatter({
+  header: "fauna database create",
+  columns: [
+    "global_id",
+    "name",
+    "coll",
+    "ts",
+    "protected",
+    "typechecked",
+    "priority",
+  ],
+  short: {
+    formatter: ({ global_id, name }) => `${name} (${global_id})`, // eslint-disable-line camelcase
+  },
+});
 
 async function runCreateQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
@@ -29,20 +46,18 @@ async function createDatabase(argv) {
   const logger = container.resolve("logger");
 
   try {
-    await retryInvalidCredsOnce(secret, async (secret) =>
+    const { data } = await retryInvalidCredsOnce(secret, async (secret) =>
       runCreateQuery(secret, argv),
     );
+    const dataWithAllFields = {
+      protected: undefined,
+      typechecked: undefined,
+      priority: undefined,
+      ...data,
+    };
 
-    logger.stderr(`Database successfully created.`);
-
-    const { color, json } = argv;
-    if (json) {
-      logger.stdout(
-        colorize({ name: argv.name }, { color, format: Format.JSON }),
-      );
-    } else {
-      logger.stdout(argv.name);
-    }
+    const { color, format } = argv;
+    logger.stdout(formatter({ data: dataWithAllFields, color, format }));
   } catch (e) {
     faunaToCommandError({
       err: e,
@@ -76,6 +91,7 @@ async function createDatabase(argv) {
 
 function buildCreateCommand(yargs) {
   return yargs
+    .options(FORMATTABLE_OPTIONS)
     .options({
       name: {
         type: "string",

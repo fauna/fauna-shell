@@ -154,11 +154,11 @@ describe("query common", function () {
   it("does not colorize output if --no-color is used", async function () {
     runQueryFromString.resolves({ data: [] });
     await run(
-      `query "Database.all()" --secret=foo --no-color --json`,
+      `query "Database.all()" --secret=foo --no-color -f json`,
       container,
     );
     expect(logger.stdout).to.have.been.calledWith(
-      colorize([], { format: "json", color: false }),
+      colorize([], { language: "json", color: false }),
     );
   });
 

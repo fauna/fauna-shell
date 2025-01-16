@@ -11,7 +11,7 @@ import {
   CommandError,
   NETWORK_ERROR_MESSAGE,
 } from "./errors.mjs";
-import { colorize, Format } from "./formatting/colorize.mjs";
+import { colorize, Language } from "./formatting/colorize.mjs";
 
 /**
  * Creates a V4 Fauna client.
@@ -190,14 +190,14 @@ export const formatQueryResponse = (res, opts = {}) => {
   let resolvedOutput;
   let resolvedFormat;
 
-  if (!format || format === Format.FQL) {
+  if (!format || format === Language.FQL) {
     resolvedOutput = util.inspect(data, { showHidden: false, depth: null });
-    resolvedFormat = Format.FQL;
+    resolvedFormat = Language.FQL;
   } else {
     resolvedOutput = data;
-    resolvedFormat = Format.JSON;
+    resolvedFormat = Language.JSON;
   }
-  return colorize(resolvedOutput, { format: resolvedFormat, color });
+  return colorize(resolvedOutput, { language: resolvedFormat, color });
 };
 
 /**

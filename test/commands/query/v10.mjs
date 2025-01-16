@@ -46,7 +46,7 @@ describe("query v10", function () {
       }),
     );
     expect(logger.stdout).to.have.been.calledWith(
-      colorize(testData, { format: "json", color: true }),
+      colorize(testData, { language: "json", color: true }),
     );
     expect(logger.stderr).to.not.be.called;
   });

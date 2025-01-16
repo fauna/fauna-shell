@@ -16,7 +16,6 @@ import {
   QUERY_INFO_CHOICES,
   QUERY_OPTIONS,
 } from "../lib/options.mjs";
-import { resolveFormat } from "../lib/utils.mjs";
 
 async function shellCommand(argv) {
   const { query: v4Query } = container.resolve("faunadb");
@@ -159,12 +158,9 @@ async function buildCustomEval(argv) {
       if (cmd.trim() === "") return cb();
 
       // These are options used for querying and formatting the response
-      const { apiVersion, color } = argv;
+      const { apiVersion, color, format } = argv;
       const include = getArgvOrCtx("include", argv, ctx);
       const performanceHints = getArgvOrCtx("performanceHints", argv, ctx);
-
-      // Using --json output takes precedence over --format
-      const outputFormat = resolveFormat({ ...argv });
 
       if (apiVersion === "4") {
         try {
@@ -177,7 +173,7 @@ async function buildCustomEval(argv) {
       let res;
       try {
         const secret = await getSecret();
-        const { color, timeout, typecheck, url } = argv;
+        const { color, timeout, typecheck, url, format } = argv;
 
         res = await runQueryFromString(cmd, {
           apiVersion,
@@ -186,7 +182,7 @@ async function buildCustomEval(argv) {
           timeout,
           typecheck,
           performanceHints,
-          format: outputFormat,
+          format,
         });
 
         // If any query info should be displayed, print to stderr.
@@ -209,7 +205,7 @@ async function buildCustomEval(argv) {
       const output = formatQueryResponse(res, {
         apiVersion,
         color,
-        format: outputFormat,
+        format,
       });
 
       logger.stdout(output);

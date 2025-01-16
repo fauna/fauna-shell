@@ -6,7 +6,7 @@ import { container } from "../config/container.mjs";
 import { isUnknownError } from "./errors.mjs";
 import { faunaToCommandError } from "./fauna.mjs";
 import { faunadbToCommandError } from "./faunadb.mjs";
-import { colorize, Format } from "./formatting/colorize.mjs";
+import { colorize, Language } from "./formatting/colorize.mjs";
 
 /**
  * Regex to match the FQL diagnostic line.
@@ -73,7 +73,7 @@ export const runQueryFromString = (expression, argv) => {
   } else {
     const { secret, url, timeout, format, performanceHints, ...rest } = argv;
     let apiFormat = "decorated";
-    if (format === Format.JSON) {
+    if (format === Language.JSON) {
       apiFormat = "simple";
     }
 
@@ -177,7 +177,7 @@ export const formatQuerySummary = (summary) => {
       if (!line.match(FQL_DIAGNOSTIC_REGEX)) {
         return line;
       }
-      return colorize(line, { format: Format.FQL });
+      return colorize(line, { language: Language.FQL });
     });
     return lines.join("\n");
   } catch (err) {
@@ -228,7 +228,7 @@ export const formatQueryInfo = (response, { apiVersion, color, include }) => {
     const metricsResponse = response;
     const colorized = colorize(
       { metrics: metricsResponse.metrics },
-      { color, format: Format.YAML },
+      { color, language: Language.YAML },
     );
 
     return `${colorized}\n`;
@@ -242,14 +242,14 @@ export const formatQueryInfo = (response, { apiVersion, color, include }) => {
     // strip the ansi when we're checking if the line is a diagnostic line.
     const colorized = colorize(queryInfoToDisplay, {
       color,
-      format: Format.YAML,
+      language: Language.YAML,
     })
       .split("\n")
       .map((line) => {
         if (!stripAnsi(line).match(FQL_DIAGNOSTIC_REGEX)) {
           return line;
         }
-        return colorize(line, { format: Format.FQL });
+        return colorize(line, { language: Language.FQL });
       })
       .join("\n");
 

@@ -1,6 +1,6 @@
 //@ts-check
 
-import { Format } from "./formatting/colorize.mjs";
+import { Format } from "./formatting/formatter.mjs";
 
 /**
  * Options required for any command making API requests to the Account API
@@ -82,6 +82,17 @@ export const QUERY_INFO_CHOICES = [
   "stats",
 ];
 
+export const FORMATTABLE_OPTIONS = {
+  format: {
+    alias: "f",
+    type: "string",
+    description: "Output format for the command.",
+    choices: [Format.TABLE, Format.YAML, Format.TSV, Format.SHORT, Format.JSON],
+    default: Format.TABLE,
+    group: "Output:",
+  },
+};
+
 /**
  * Options required for commands making FQL queries to the Core API
  */
@@ -98,8 +109,7 @@ export const QUERY_OPTIONS = {
   format: {
     type: "string",
     alias: "f",
-    description:
-      "Output format for the query. When present, --json takes precedence over --format. Only applies to v10 queries.",
+    description: "Output format for the query. Only applies to v10 queries.",
     choices: [Format.FQL, Format.JSON],
     default: Format.FQL,
     group: "API:",
