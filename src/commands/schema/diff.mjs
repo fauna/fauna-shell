@@ -32,18 +32,18 @@ function parseTarget(argv) {
 function buildStatusParams(argv) {
   const params = new URLSearchParams({});
   const [, target] = parseTarget(argv);
-  const diffKind = argv.text ? "textual" : "semantic";
+  const format = argv.text ? "textual" : "semantic";
 
-  if (target === "staged") params.set("diff", diffKind);
+  if (target === "staged") params.set("format", format);
 
   return params;
 }
 
 function buildValidateParams(argv, version) {
   const [source] = parseTarget(argv);
-  const diffKind = argv.text ? "textual" : "semantic";
+  const format = argv.text ? "textual" : "semantic";
   const params = new URLSearchParams({
-    diff: diffKind,
+    format,
     staged: String(source === "staged"),
   });
   if (version) {
