@@ -254,7 +254,7 @@ const formatServiceError = (err, { color, include }) => {
  * @param {string[]} opts.include - The query info fields to include
  * @returns {string} The formatted error message
  */
-export const formatError = (err, { color, include }) => {
+export const formatError = (err, opts) => {
   let message = "";
   // If the error has a queryInfo object with a summary property, we can format it.
   // Doing this check allows this code to avoid a fauna direct dependency.
@@ -263,7 +263,7 @@ export const formatError = (err, { color, include }) => {
     typeof err.queryInfo === "object" &&
     typeof err.queryInfo.summary === "string"
   ) {
-    message = formatServiceError(err, { color, include });
+    message = formatServiceError(err, opts);
   } else if (err.name === "NetworkError") {
     message = `${chalk.red("The query failed unexpectedly with the following error:")}\n\n${NETWORK_ERROR_MESSAGE}`;
   } else {
