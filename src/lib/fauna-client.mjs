@@ -18,12 +18,13 @@ export const FQL_DIAGNOSTIC_REGEX = /^(\s{2,}\|)|(\s*\d{1,}\s\|)/;
  * Gets a secret for the current credentials.
  * @return {Promise<string>} the secret
  */
-export async function getSecret() {
-  const credentials = container.resolve("credentials");
-  if (!credentials.databaseKeys.key) {
-    return await credentials.databaseKeys.getOrRefreshKey();
+export async function getSecret(argv) {
+  if (argv.secret) {
+    return argv.secret;
   }
-  return credentials.databaseKeys.key;
+
+  const credentials = container.resolve("credentials");
+  return await credentials.getSecret();
 }
 
 export const retryInvalidCredsOnce = async (initialSecret, fn) => {

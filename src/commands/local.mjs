@@ -45,8 +45,6 @@ async function createDatabaseSchema(argv) {
       },
     ),
   );
-  // hack to let us push schema to the local database
-  argv.secret = `secret:${argv.database}:admin`;
   await pushSchema({ ...argv, active: true, input: false });
   logger.stderr(
     colorize(
