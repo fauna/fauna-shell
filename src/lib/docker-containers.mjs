@@ -1,6 +1,6 @@
 import { container } from "../config/container.mjs";
 import { CommandError, SUPPORT_MESSAGE } from "./errors.mjs";
-import { colorize, Format } from "./formatting/colorize.mjs";
+import { colorize, Language } from "./formatting/colorize.mjs";
 
 const IMAGE_NAME = "fauna/faunadb:latest";
 let color = false;
@@ -413,5 +413,5 @@ async function waitForHealthCheck({
  */
 function stderr(log) {
   const logger = container.resolve("logger");
-  logger.stderr(colorize(log, { format: Format.LOG, color }));
+  logger.stderr(colorize(log, { language: Language.LOG, color }));
 }

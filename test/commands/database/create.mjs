@@ -135,6 +135,8 @@ describe("database create", () => {
       },
     ].forEach(({ args, expected }) => {
       it(`calls fauna with the correct args: ${args}`, async () => {
+        runQuery.resolves({ data: { name: "testdb" } });
+
         await run(`database create ${args}`, container);
 
         expect(runQuery).to.have.been.calledOnceWith({
@@ -215,6 +217,7 @@ describe("database create", () => {
         // We will attempt to mint a new database key, mock the response
         // so we can verify that the new key is used.
         accountAPI.createKey.resolves({ secret: "new-secret" });
+        runQuery.resolves({ data: { name: "testdb" } });
 
         await run(`database create ${args}`, container);
 

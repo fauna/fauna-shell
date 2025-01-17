@@ -38,10 +38,10 @@ describe("database list", () => {
         expected: { secret: "taco", url: "http://0.0.0.0:8443" },
       },
       {
-        args: "--local --pageSize 10",
+        args: "--local --max-size 10",
         expected: {
           secret: "secret",
-          pageSize: 10,
+          maxSize: 10,
           url: "http://0.0.0.0:8443",
         },
       },
@@ -52,12 +52,12 @@ describe("database list", () => {
         };
         runQueryFromString.resolves(stubbedResponse);
 
-        await run(`database list ${args}`, container);
+        await run(`database list ${args} -f short`, container);
 
         expect(runQueryFromString).to.have.been.calledOnceWith({
           url: expected.url,
           secret: expected.secret,
-          expression: `Database.all().paginate(${expected.pageSize ?? 1000}).data { name }`,
+          expression: `Database.all().paginate(${expected.maxSize ?? 10}).data { name }`,
         });
 
         await stdout.waitForWritten();
@@ -75,20 +75,20 @@ describe("database list", () => {
         expected: { secret: "secret" },
       },
       {
-        args: "--secret 'secret' --pageSize 10",
-        expected: { secret: "secret", pageSize: 10 },
+        args: "--secret 'secret' --max-size 10",
+        expected: { secret: "secret", maxSize: 10 },
       },
     ].forEach(({ args, expected }) => {
       it(`calls fauna with the correct args: ${args}`, async () => {
         const stubbedResponse = { data: [{ name: "testdb" }] };
         runQueryFromString.resolves(stubbedResponse);
 
-        await run(`database list ${args}`, container);
+        await run(`database list ${args} -f short`, container);
 
         expect(runQueryFromString).to.have.been.calledOnceWith({
           url: sinon.match.string,
           secret: expected.secret,
-          expression: `Database.all().paginate(${expected.pageSize ?? 1000}).data { name }`,
+          expression: `Database.all().paginate(${expected.maxSize ?? 10}).data { name }`,
         });
 
         expect(stdout.getWritten()).to.equal("testdb\n");
@@ -108,7 +108,7 @@ describe("database list", () => {
         runQueryFromString.rejects(error);
 
         try {
-          await run(`database list --secret 'secret'`, container);
+          await run(`database list --secret 'secret' -f short`, container);
         } catch (e) {}
 
         expect(logger.stderr).to.have.been.calledWith(
@@ -125,8 +125,8 @@ describe("database list", () => {
         expected: { regionGroup: "us-std" },
       },
       {
-        args: "--pageSize 10",
-        expected: { pageSize: 10, regionGroup: "us-std" },
+        args: "--max-size 10",
+        expected: { maxSize: 10, regionGroup: "us-std" },
       },
       {
         args: "--database 'us-std/example'",
@@ -150,10 +150,10 @@ describe("database list", () => {
         };
         accountAPI.listDatabases.resolves(stubbedResponse);
 
-        await run(`database list ${args}`, container);
+        await run(`database list ${args} -f short`, container);
 
         expect(accountAPI.listDatabases).to.have.been.calledOnceWith({
-          pageSize: expected.pageSize ?? 1000,
+          pageSize: expected.maxSize ?? 10,
           path: expected.database,
         });
 
@@ -169,7 +169,7 @@ describe("database list", () => {
       "--local",
       "--secret=test-secret",
       "--database=us/example",
-      "--pageSize 10",
+      "--maxSize 10",
     ].forEach((args) => {
       it(`outputs json when using ${args}`, async () => {
         mockAccessKeysFile({ fs });
@@ -190,11 +190,11 @@ describe("database list", () => {
           });
         }
 
-        await run(`database list ${args} --json`, container);
+        await run(`database list ${args} -f json`, container);
         await stdout.waitForWritten();
 
         expect(stdout.getWritten().trim()).to.equal(
-          `${colorize(data, { format: "json" })}`,
+          `${colorize(data, { language: "json" })}`,
         );
       });
     });

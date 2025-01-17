@@ -5,7 +5,7 @@ import { pushSchema } from "../commands/schema/push.mjs";
 import { container } from "../config/container.mjs";
 import { ensureContainerRunning } from "../lib/docker-containers.mjs";
 import { CommandError, ValidationError } from "../lib/errors.mjs";
-import { colorize, Format } from "../lib/formatting/colorize.mjs";
+import { colorize, Language } from "../lib/formatting/colorize.mjs";
 
 /**
  * Starts the local Fauna container
@@ -40,7 +40,7 @@ async function createDatabaseSchema(argv) {
     colorize(
       `[CreateDatabaseSchema] Creating schema for database '${argv.database}' from directory '${argv.directory}'...`,
       {
-        format: Format.LOG,
+        language: Language.LOG,
         color: argv.color,
       },
     ),
@@ -52,7 +52,7 @@ async function createDatabaseSchema(argv) {
     colorize(
       `[CreateDatabaseSchema] Schema for database '${argv.database}' created from directory '${argv.directory}'.`,
       {
-        format: Format.LOG,
+        language: Language.LOG,
         color: argv.color,
       },
     ),
@@ -66,7 +66,7 @@ async function createDatabase(argv) {
   const color = argv.color;
   logger.stderr(
     colorize(`[CreateDatabase] Creating database '${argv.database}'...`, {
-      format: Format.LOG,
+      language: Language.LOG,
       color,
     }),
   );
@@ -105,17 +105,17 @@ async function createDatabase(argv) {
     });
     logger.stderr(
       colorize(`[CreateDatabase] Database '${argv.database}' created.`, {
-        format: Format.LOG,
+        language: Language.LOG,
         color,
       }),
     );
-    logger.stderr(colorize(db.data, { format: Format.FQL, color }));
+    logger.stderr(colorize(db.data, { language: Language.FQL, color }));
   } catch (e) {
     if (e instanceof AbortError) {
       throw new CommandError(
         `${chalk.red(`[CreateDatabase] Database '${argv.database}' already exists but with differrent properties than requested:\n`)}
 -----------------
-${colorize(e.abort, { format: Format.FQL, color })}
+${colorize(e.abort, { language: Language.FQL, color })}
 -----------------
 ${chalk.red("Please use choose a different name using --name or align the --typechecked, --priority, and --protected with what is currently present.")}`,
       );

@@ -72,7 +72,7 @@ describe("credentials", function () {
     };
     [
       {
-        command: `query "Database.all()" -d us-std --no-color --json`,
+        command: `query "Database.all()" -d us-std --no-color -f json`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -87,7 +87,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" --secret user-secret --no-color --json`,
+        command: `query "Database.all()" --secret user-secret --no-color -f json`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -102,7 +102,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" -d us-std --accountKey user-account-key --no-color --json`,
+        command: `query "Database.all()" -d us-std --accountKey user-account-key --no-color -f json`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -117,7 +117,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" -d us-std -r myrole --no-color --json`,
+        command: `query "Database.all()" -d us-std -r myrole --no-color -f json`,
         localCreds: defaultLocalCreds,
         expected: {
           accountKeys: {
@@ -132,7 +132,7 @@ describe("credentials", function () {
         },
       },
       {
-        command: `query "Database.all()" -d us-std/test:badpath --no-color --json`,
+        command: `query "Database.all()" -d us-std/test:badpath --no-color -f json`,
         localCreds: defaultLocalCreds,
         expected: {
           databaseKeys: {
@@ -166,7 +166,7 @@ describe("credentials", function () {
       try {
         setCredsFiles({}, {});
         await run(
-          `query "Database.all()" -d us-std --no-color --json`,
+          `query "Database.all()" -d us-std --no-color -f json`,
           container,
         );
       } catch (e) {
@@ -182,7 +182,7 @@ describe("credentials", function () {
 
       try {
         await run(
-          `query "Database.all()" -d us-std --no-color --json`,
+          `query "Database.all()" -d us-std --no-color -f json`,
           container,
         );
       } catch (e) {
@@ -213,7 +213,7 @@ describe("credentials", function () {
       fetch.onCall(1).resolves(f({ secret: "new-secret" }));
 
       await run(
-        `query "Database.all()" -d us-std --no-color --json`,
+        `query "Database.all()" -d us-std --no-color -f json`,
         container,
       );
 
@@ -235,7 +235,7 @@ describe("credentials", function () {
         .resolves(f({}, 401));
       try {
         await run(
-          `query "Database.all()" -d us-std --no-color --json`,
+          `query "Database.all()" -d us-std --no-color -f json`,
           container,
         );
       } catch (e) {
@@ -268,7 +268,7 @@ describe("credentials", function () {
         httpStatus: 401,
       });
       try {
-        await run(`query "Database.all()" --no-color --json`, container);
+        await run(`query "Database.all()" --no-color -f json`, container);
       } catch (e) {
         expect(stderr.getWritten()).to.contain("Invalid credentials");
         sinon.assert.calledWithMatch(
@@ -297,7 +297,7 @@ describe("credentials", function () {
       });
 
       await run(
-        `query "Database.all()" -d us-std --no-color --json`,
+        `query "Database.all()" -d us-std --no-color -f json`,
         container,
       );
 

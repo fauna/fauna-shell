@@ -15,7 +15,7 @@ import {
   ValidationError,
 } from "./errors.mjs";
 import { formatQuerySummary } from "./fauna-client.mjs";
-import { colorize, Format } from "./formatting/colorize.mjs";
+import { colorize, Language } from "./formatting/colorize.mjs";
 
 /**
  * Interprets a string as a FQL expression and returns a query.
@@ -157,10 +157,10 @@ export const formatError = (err, _opts = {}) => {
  * @returns {string} The formatted response
  */
 export const formatQueryResponse = (res, opts = {}) => {
-  const { format = Format.JSON, color } = opts;
+  const { format = Language.JSON, color } = opts;
 
   const data = res.data;
-  return colorize(data, { format, color });
+  return colorize(data, { language: format, color });
 };
 
 /**
