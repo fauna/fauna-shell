@@ -1,7 +1,12 @@
 //@ts-check
 
 import { expect } from "chai";
-import { NetworkError, ServiceError } from "fauna";
+import {
+  AbortError,
+  ConstraintFailureError,
+  NetworkError,
+  ServiceError,
+} from "fauna";
 import sinon from "sinon";
 
 import { run } from "../../../src/cli.mjs";
@@ -61,6 +66,60 @@ describe("query v10", function () {
 
     expect(logger.stdout).to.not.be.called;
     expect(logger.stderr).to.have.been.calledWith(sinon.match(/test query/));
+  });
+  it("can display additional info for abort errors", async function () {
+    const testSummary = createV10QueryFailure("test query");
+    runQueryFromString.rejects(
+      new AbortError({
+        ...testSummary,
+        error: { ...testSummary.error, abort: `"oops"` },
+      }),
+    );
+
+    try {
+      await run(`query "abort('oops')" --secret=foo`, container);
+    } catch (e) {}
+
+    expect(logger.stdout).to.not.be.called;
+    expect(logger.stderr).to.have.been.calledWith(sinon.match(/test query/));
+    // sample individual output lines to avoid matching with color codes
+    expect(logger.stderr).to.have.been.calledWith(sinon.match("Abort value:"));
+    expect(logger.stderr).to.have.been.calledWith(sinon.match('"oops"'));
+  });
+
+  it("can display additional info for constraint failure errors", async function () {
+    const testSummary = createV10QueryFailure("test query");
+    runQueryFromString.rejects(
+      new ConstraintFailureError({
+        ...testSummary,
+        error: {
+          ...testSummary.error,
+          constraint_failures: [
+            {
+              paths: [["name"]],
+              message: "A Collection already exists with the name `foo`",
+            },
+          ],
+        },
+      }),
+    );
+
+    try {
+      await run(
+        `query "Collection.create({name: 'foo'})" --secret=foo`,
+        container,
+      );
+    } catch (e) {}
+
+    expect(logger.stdout).to.not.be.called;
+    expect(logger.stderr).to.have.been.calledWith(sinon.match(/test query/));
+    // sample individual output lines to avoid matching with color codes
+    expect(logger.stderr).to.have.been.calledWith(
+      sinon.match("Constraint failures:"),
+    );
+    expect(logger.stderr).to.have.been.calledWith(
+      sinon.match("A Collection already exists with the name `foo`"),
+    );
   });
 
   it("can set the typecheck option to true", async function () {
@@ -168,6 +227,26 @@ describe("query v10", function () {
           );
         }
       });
+    });
+
+    it("can display query info with an error", async function () {
+      const testSummary = createV10QueryFailure("test query");
+      runQueryFromString.rejects(new ServiceError(testSummary));
+
+      try {
+        await run(
+          `query "Database.all()" --secret=foo --include all`,
+          container,
+        );
+      } catch (e) {}
+
+      expect(logger.stdout).to.not.be.called;
+      // sample individual output lines to avoid matching with color codes
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match("txnTs: 1732664445755210"),
+      );
+      expect(logger.stderr).to.have.been.calledWith(sinon.match("stats:"));
+      expect(logger.stderr).to.have.been.calledWith(sinon.match(/test query/));
     });
   });
 

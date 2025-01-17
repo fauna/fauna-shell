@@ -30,7 +30,11 @@ async function listDatabasesWithSecret(argv) {
     });
     return res.data;
   } catch (e) {
-    return faunaToCommandError({ err: e, color: argv.color });
+    return faunaToCommandError({
+      err: e,
+      color: argv.color,
+      include: argv.include,
+    });
   }
 }
 

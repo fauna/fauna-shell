@@ -8,7 +8,10 @@ import * as esprima from "esprima";
 import { container } from "../config/container.mjs";
 import { formatQueryResponse, getSecret } from "../lib/fauna-client.mjs";
 import { clearHistoryStorage, initHistoryStorage } from "../lib/file-util.mjs";
-import { validateDatabaseOrSecret } from "../lib/middleware.mjs";
+import {
+  resolveIncludeOptions,
+  validateDatabaseOrSecret,
+} from "../lib/middleware.mjs";
 import {
   ACCOUNT_OPTIONS,
   CORE_OPTIONS,
@@ -190,8 +193,7 @@ async function buildCustomEval(argv) {
         });
 
         // If any query info should be displayed, print to stderr.
-        // This is only supported in v10.
-        if (include.length > 0 && apiVersion === "10") {
+        if (include.length > 0) {
           const queryInfo = formatQueryInfo(res, {
             apiVersion,
             color,
@@ -202,7 +204,7 @@ async function buildCustomEval(argv) {
           }
         }
       } catch (err) {
-        logger.stderr(formatError(err, { apiVersion, color }));
+        logger.stderr(formatError(err, { apiVersion, color, include }));
         return cb(null);
       }
 
@@ -227,6 +229,7 @@ function buildShellCommand(yargs) {
     .options(DATABASE_PATH_OPTIONS)
     .options(CORE_OPTIONS)
     .options(QUERY_OPTIONS)
+    .middleware(resolveIncludeOptions)
     .example([
       [
         "$0 shell --database us/my_db",

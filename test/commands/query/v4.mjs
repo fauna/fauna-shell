@@ -98,8 +98,59 @@ describe("query v4", function () {
     expect(logger.stdout).to.not.be.called;
     expect(logger.stderr).to.have.been.calledWith(
       sinon.match(
-        "invalid argument: Database Ref or Null expected, String provided. at paginate, collections",
+        "invalid argument: Database Ref or Null expected, String provided.\nat *query*:paginate, collections",
       ),
     );
+  });
+
+  describe("query info", function () {
+    it("displays metrics if `--include stats` is used", async function () {
+      const testResponse = createV4QuerySuccess("test response");
+      runQueryFromString.resolves(testResponse);
+
+      await run(
+        `query "Collection('test')" --apiVersion 4 --secret=foo --include stats`,
+        container,
+      );
+
+      // sample individual output lines to avoid matching with color codes
+      expect(logger.stderr).to.have.been.calledWith(sinon.match("stats:"));
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match("  x-byte-read-ops: 0"),
+      );
+      expect(logger.stdout).to.have.been.calledWith(
+        sinon.match("test response"),
+      );
+    });
+
+    it("can display query info with an error", async function () {
+      const testError = createV4QueryFailure({
+        position: ["paginate", "collections"],
+        code: "invalid argument",
+        description: "Database Ref or Null expected, String provided.",
+      });
+
+      // @ts-ignore
+      runQueryFromString.rejects(testError);
+
+      try {
+        await run(
+          `query "Paginate(Collection('x'))" --apiVersion 4 --secret=foo --include stats`,
+          container,
+        );
+      } catch (e) {}
+
+      expect(logger.stdout).to.not.be.called;
+      // sample individual output lines to avoid matching with color codes
+      expect(logger.stderr).to.have.been.calledWith(sinon.match("stats:"));
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match("  x-byte-read-ops: 0"),
+      );
+      expect(logger.stderr).to.have.been.calledWith(
+        sinon.match(
+          "invalid argument: Database Ref or Null expected, String provided.\nat *query*:paginate, collections",
+        ),
+      );
+    });
   });
 });

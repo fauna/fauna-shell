@@ -82,22 +82,22 @@ async function queryCommand(argv) {
   validateDatabaseOrSecret(argv);
   validate(argv);
 
+  const secret = await getSecret(argv);
+  const {
+    url,
+    timeout,
+    typecheck,
+    apiVersion,
+    performanceHints,
+    color,
+    include,
+  } = argv;
+
   // resolve the input
   const expression = resolveInput(argv);
 
   // get the query handler and run the query
   try {
-    const secret = await getSecret(argv);
-    const {
-      url,
-      timeout,
-      typecheck,
-      apiVersion,
-      performanceHints,
-      color,
-      include,
-    } = argv;
-
     // If we're writing to a file, don't colorize the output regardless of the user's preference
     const useColor = argv.output || !isTTY() ? false : color;
 
@@ -115,9 +115,7 @@ async function queryCommand(argv) {
       color: useColor,
     });
 
-    // If any query info should be displayed, print to stderr.
-    // This is only supported in v10.
-    if (include.length > 0 && apiVersion === "10") {
+    if (include.length > 0) {
       const queryInfo = formatQueryInfo(results, {
         apiVersion,
         color: useColor,
@@ -147,7 +145,7 @@ async function queryCommand(argv) {
     }
 
     const { apiVersion, color } = argv;
-    throw new CommandError(formatError(err, { apiVersion, color }), {
+    throw new CommandError(formatError(err, { apiVersion, color, include }), {
       cause: err,
     });
   }

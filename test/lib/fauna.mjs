@@ -7,7 +7,10 @@ import {
   CommandError,
   NETWORK_ERROR_MESSAGE,
 } from "../../src/lib/errors.mjs";
-import { faunaToCommandError } from "../../src/lib/fauna.mjs";
+import {
+  faunaToCommandError,
+  FQL_DIAGNOSTIC_REGEX,
+} from "../../src/lib/fauna.mjs";
 
 describe("faunaToCommandError", () => {
   it("should convert unauthorized ServiceError to AuthenticationError", () => {
@@ -116,5 +119,32 @@ describe("faunaToCommandError", () => {
       expect(handlerCalled).to.be.true;
       expect(error).to.be.instanceOf(AuthenticationError);
     }
+  });
+});
+
+describe("FQL_DIAGNOSTIC_REGEX", () => {
+  const validLines = ["1 |", "12 |", "123 |", "  |", "   |", "    |", " 1 |"];
+
+  const invalidLines = [
+    "normal text",
+    "1  |",
+    "| invalid",
+    "abc |",
+    "|",
+    "1|",
+    " | ",
+    "text | more",
+  ];
+
+  validLines.forEach((line) => {
+    it(`should match diagnostic line: "${line}"`, () => {
+      expect(line).to.match(FQL_DIAGNOSTIC_REGEX);
+    });
+  });
+
+  invalidLines.forEach((line) => {
+    it(`should not match non-diagnostic line: "${line}"`, () => {
+      expect(line).to.not.match(FQL_DIAGNOSTIC_REGEX);
+    });
   });
 });

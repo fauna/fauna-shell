@@ -1,18 +1,10 @@
 //@ts-check
 
-import stripAnsi from "strip-ansi";
-
 import { container } from "../config/container.mjs";
 import { isUnknownError } from "./errors.mjs";
 import { faunaToCommandError } from "./fauna.mjs";
 import { faunadbToCommandError } from "./faunadb.mjs";
-import { colorize, Format } from "./formatting/colorize.mjs";
-
-/**
- * Regex to match the FQL diagnostic line.
- * @type {RegExp}
- */
-export const FQL_DIAGNOSTIC_REGEX = /^(\s{2,}\|)|(\s*\d{1,}\s\|)/;
+import { Format } from "./formatting/colorize.mjs";
 
 /**
  * Gets a secret for the current credentials.
@@ -103,16 +95,17 @@ export const runQueryFromString = (expression, argv) => {
  * @param {object} opts
  * @param {string} opts.apiVersion - The API version
  * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
  * @returns {string}
  */
-export const formatError = (err, { apiVersion, color }) => {
+export const formatError = (err, { apiVersion, color, include }) => {
   const faunaV4 = container.resolve("faunaClientV4");
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (apiVersion === "4") {
-    return faunaV4.formatError(err, { color });
+    return faunaV4.formatError(err, { color, include });
   } else {
-    return faunaV10.formatError(err, { color });
+    return faunaV10.formatError(err, { color, include });
   }
 };
 
@@ -132,11 +125,11 @@ export const isQueryable = async (argv) => {
       throw err;
     }
 
-    const { color } = argv;
+    const { color, include } = argv;
     if (argv.apiVersion === "4") {
-      faunadbToCommandError({ err, color });
+      faunadbToCommandError({ err, color, include });
     } else {
-      faunaToCommandError({ err, color });
+      faunaToCommandError({ err, color, include });
     }
   }
 
@@ -153,65 +146,13 @@ export const isQueryable = async (argv) => {
  * @returns {string}
  */
 export const formatQueryResponse = (res, { apiVersion, color, format }) => {
-  const faunaV4 = container.resolve("faunaClientV4");
-  const faunaV10 = container.resolve("faunaClientV10");
-
   if (apiVersion === "4") {
+    const faunaV4 = container.resolve("faunaClientV4");
     return faunaV4.formatQueryResponse(res, { format, color });
   } else {
+    const faunaV10 = container.resolve("faunaClientV10");
     return faunaV10.formatQueryResponse(res, { format, color });
   }
-};
-
-/**
- * Formats a summary of a query from a fauna
- * @param {string} summary - The summary of the query
- * @returns {string}
- */
-export const formatQuerySummary = (summary) => {
-  if (!summary || typeof summary !== "string") {
-    return "";
-  }
-
-  try {
-    const lines = summary.split("\n").map((line) => {
-      if (!line.match(FQL_DIAGNOSTIC_REGEX)) {
-        return line;
-      }
-      return colorize(line, { format: Format.FQL });
-    });
-    return lines.join("\n");
-  } catch (err) {
-    const logger = container.resolve("logger");
-    logger.debug(`Unable to parse performance hint: ${err}`);
-    return summary;
-  }
-};
-
-const getQueryInfoValue = (response, field) => {
-  switch (field) {
-    case "txnTs":
-      return response.txn_ts;
-    case "schemaVersion":
-      return response.schema_version?.toString();
-    case "summary":
-      return response.summary;
-    case "queryTags":
-      return response.query_tags;
-    case "stats":
-      return response.stats;
-    default:
-      return undefined;
-  }
-};
-
-const getIncludedQueryInfo = (response, include) => {
-  const queryInfo = {};
-  include.forEach((field) => {
-    const value = getQueryInfoValue(response, field);
-    if (value) queryInfo[field] = value;
-  });
-  return queryInfo;
 };
 
 /**
@@ -224,38 +165,11 @@ const getIncludedQueryInfo = (response, include) => {
  * @returns
  */
 export const formatQueryInfo = (response, { apiVersion, color, include }) => {
-  if (apiVersion === "4" && include.includes("stats")) {
-    /** @type {import("faunadb").MetricsResponse} */
-    const metricsResponse = response;
-    const colorized = colorize(
-      { metrics: metricsResponse.metrics },
-      { color, format: Format.YAML },
-    );
-
-    return `${colorized}\n`;
-  } else if (apiVersion === "10") {
-    const queryInfoToDisplay = getIncludedQueryInfo(response, include);
-
-    if (Object.keys(queryInfoToDisplay).length === 0) return "";
-
-    // We colorize the entire query info object as YAML, but then need to
-    // colorize the diagnostic lines individually. To simplify this, we
-    // strip the ansi when we're checking if the line is a diagnostic line.
-    const colorized = colorize(queryInfoToDisplay, {
-      color,
-      format: Format.YAML,
-    })
-      .split("\n")
-      .map((line) => {
-        if (!stripAnsi(line).match(FQL_DIAGNOSTIC_REGEX)) {
-          return line;
-        }
-        return colorize(line, { format: Format.FQL });
-      })
-      .join("\n");
-
-    return `${colorized}\n`;
+  if (apiVersion === "4") {
+    const faunaV4 = container.resolve("faunaClientV4");
+    return faunaV4.formatQueryInfo(response, { color, include });
+  } else {
+    const faunaV10 = container.resolve("faunaClientV10");
+    return faunaV10.formatQueryInfo(response, { color, include });
   }
-
-  return "";
 };
