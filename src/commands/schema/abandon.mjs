@@ -11,7 +11,6 @@ async function doAbandon(argv) {
   const secret = await getSecret(argv);
 
   if (!argv.input) {
-
     await makeFaunaRequest({
       argv,
       path: "/schema/1/staged/abandon",
