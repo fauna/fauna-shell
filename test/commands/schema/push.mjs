@@ -54,7 +54,7 @@ describe("schema push", function () {
     expect(gatherFSL).to.have.been.calledWith(".");
 
     expect(fetch).to.have.been.calledWith(
-      buildUrl("/schema/1/update", { force: "true", staged: "true" }),
+      buildUrl("/schema/1/update", { staged: "true" }),
       {
         method: "POST",
         headers: { AUTHORIZATION: "Bearer secret" },
