@@ -96,6 +96,9 @@ export function setupTestContainer() {
       createKey: stub(),
       refreshSession: stub(),
       getSession: stub(),
+      createExport: stub(),
+      getExport: stub(),
+      listExports: stub(),
     }),
     errorHandler: awilix.asValue((error, exitCode) => {
       error.code = exitCode;
@@ -125,6 +128,7 @@ export function setupTestContainer() {
       formatQueryInfo: faunaClientV4.formatQueryInfo,
       formatError: faunaClientV4.formatError,
     }),
+    sleep: awilix.asValue(stub().resolves()),
   };
 
   confirmManualMocks(manualMocks, thingsToManuallyMock);

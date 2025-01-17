@@ -62,7 +62,9 @@ async function doListDatabases(argv) {
     logger.stdout(colorize(res, { format: Format.JSON, color: argv.color }));
   } else {
     res.forEach(({ path, name }) => {
-      logger.stdout(path ?? name);
+      logger.stdout(
+        colorize(path ?? name, { format: Format.CSV, color: argv.color }),
+      );
     });
   }
 }

@@ -10,6 +10,7 @@ export const Format = {
   JSON: "json",
   TEXT: "text",
   YAML: "yaml",
+  TSV: "tsv",
 };
 
 const objToString = (obj) => JSON.stringify(obj, null, 2);
@@ -66,6 +67,21 @@ const yamlToAnsi = (obj) => {
   return res.trim();
 };
 
+const tsvToAnsi = (obj) => {
+  if (typeof obj !== "string") {
+    throw new Error("Unable to format TSV unless it is already a string.");
+  }
+
+  const codeToAnsi = container.resolve("codeToAnsi");
+  const res = codeToAnsi(obj, "tsv");
+
+  if (!res) {
+    return "";
+  }
+
+  return res.trim();
+};
+
 /**
  * Formats an object for display with ANSI color codes.
  * @param {any} obj - The object to format
@@ -83,6 +99,8 @@ export const toAnsi = (obj, { format = Format.TEXT } = {}) => {
       return logToAnsi(obj);
     case Format.YAML:
       return yamlToAnsi(obj);
+    case Format.TSV:
+      return tsvToAnsi(obj);
     default:
       return textToAnsi(obj);
   }

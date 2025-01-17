@@ -1,4 +1,5 @@
 //@ts-check
+/* eslint-disable max-lines */
 
 import { container } from "../config/container.mjs";
 import {
@@ -12,6 +13,19 @@ const API_VERSIONS = {
   v1: "/api/v1",
   v2: "/v2",
 };
+
+export const ExportState = {
+  Pending: "Pending",
+  InProgress: "InProgress",
+  Complete: "Complete",
+  Failed: "Failed",
+};
+
+export const EXPORT_STATES = Object.values(ExportState);
+export const EXPORT_TERMINAL_STATES = [
+  ExportState.Complete,
+  ExportState.Failed,
+];
 
 let accountUrl = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
 
@@ -67,7 +81,11 @@ export function toResource({
 }) {
   const url = new URL(`${version}${endpoint}`, getAccountUrl());
   for (const [key, value] of Object.entries(params)) {
-    url.searchParams.set(key, value);
+    if (Array.isArray(value)) {
+      value.forEach((v) => url.searchParams.append(key, v));
+    } else {
+      url.searchParams.set(key, value);
+    }
   }
 
   return url;
@@ -388,6 +406,111 @@ async function createKey({ path, role, ttl, name }) {
   return await responseHandler(response);
 }
 
+const getExportUri = (data) => {
+  const { destination, state } = data;
+  if (!destination || !state) {
+    return "";
+  }
+  const path = destination.s3.path.replace(/^\/+/, "");
+  return `s3://${destination.s3.bucket}/${path}`;
+};
+
+/**
+ * Creates an export for a given database.
+ *
+ * @param {Object} params - The parameters for creating the export.
+ * @param {string} params.database - The path of the database, including region group.
+ * @param {string[] | undefined} [params.collections] - The collections to export.
+ * @param {Object} params.destination - The destination for the export.
+ * @param {Object} params.destination.s3 - The S3 destination for the export.
+ * @param {string} params.destination.s3.bucket - The name of the S3 bucket to export to.
+ * @param {string} params.destination.s3.path - The key prefix to export to.
+ * @param {string} params.format - The format for the export.
+ * @returns {Promise<Object>} - A promise that resolves when the export is created.
+ * @throws {AuthorizationError | AuthenticationError | CommandError | Error} If the response is not OK
+ */
+async function createExport({
+  database,
+  destination,
+  format,
+  collections = undefined,
+}) {
+  const url = toResource({ endpoint: "/exports", version: API_VERSIONS.v2 });
+  const response = await fetchWithAccountKey(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      database: standardizeRegion(database),
+      destination,
+      format,
+      ...(collections && collections.length > 0 ? { collections } : {}),
+    }),
+  });
+
+  const data = await responseHandler(response);
+  return { ...data.response, destination_uri: getExportUri(data.response) }; // eslint-disable-line camelcase
+}
+
+/**
+ * Lists exports associated with the given account key.
+ *
+ * @param {Object} [params] - The parameters for listing the exports.
+ * @param {number} [params.maxResults] - The number of exports to return. Default 16.
+ * @param {string} [params.nextToken] - The next token for pagination.
+ * @param {string[]} [params.state] - The states to filter exports by.
+ * @returns {Promise<Object>} - A promise that resolves when the exports are listed.
+ * @throws {AuthorizationError | AuthenticationError | CommandError | Error} If the response is not OK
+ */
+async function listExports({ maxResults = 100, nextToken, state } = {}) {
+  const url = toResource({
+    endpoint: "/exports",
+    version: API_VERSIONS.v2,
+    params: {
+      /* eslint-disable camelcase */
+      max_results: maxResults,
+      ...(nextToken && { next_token: nextToken }),
+      ...(state && state.length > 0 ? { state } : {}),
+      /* eslint-enable camelcase */
+    },
+  });
+
+  const response = await fetchWithAccountKey(url, {
+    method: "GET",
+  });
+  const { response: data } = await responseHandler(response);
+
+  if (data.results && Array.isArray(data.results)) {
+    data.results.forEach((r) => {
+      r.destination_uri = getExportUri(r); // eslint-disable-line camelcase
+    });
+  }
+
+  return data;
+}
+
+/**
+ * Get an export by ID.
+ *
+ * @param {Object} params - The parameters for getting the export.
+ * @param {string} params.exportId - The ID of the export to get.
+ * @returns {Promise<Object>} - A promise that resolves when the export is retrieved.
+ * @throws {AuthorizationError | AuthenticationError | CommandError | Error} If the response is not OK
+ */
+async function getExport({ exportId }) {
+  const url = toResource({
+    endpoint: `/exports/${exportId}`,
+    version: API_VERSIONS.v2,
+  });
+  const response = await fetchWithAccountKey(url, { method: "GET" });
+  const data = await responseHandler(response);
+  return {
+    ...data.response,
+    destination_uri: getExportUri(data.response), // eslint-disable-line camelcase
+  };
+}
+
 /**
  * The account API module with the currently supported endpoints.
  */
@@ -396,6 +519,9 @@ const accountAPI = {
   createKey,
   refreshSession,
   getSession,
+  createExport,
+  listExports,
+  getExport,
 };
 
 export default accountAPI;
