@@ -11,21 +11,17 @@ async function doAbandon(argv) {
   const secret = await getSecret(argv);
 
   if (!argv.input) {
-    const params = new URLSearchParams({
-      force: "true", // Just abandon, don't pass a schema version through.
-    });
 
     await makeFaunaRequest({
       argv,
       path: "/schema/1/staged/abandon",
-      params,
       method: "POST",
       secret,
     });
     logger.stdout("Schema has been abandoned.");
   } else {
     // Show status to confirm.
-    const params = new URLSearchParams({ diff: "true" });
+    const params = new URLSearchParams({ format: "semantic" });
 
     const response = await makeFaunaRequest({
       argv,

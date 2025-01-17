@@ -30,7 +30,6 @@ export async function pushSchema(argv) {
     );
   } else if (!argv.input) {
     const params = new URLSearchParams({
-      force: "true",
       staged: argv.active ? "false" : "true",
     });
 
