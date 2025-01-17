@@ -13,12 +13,13 @@ const MAX_WAIT_MINS = 60 * 2; // 2 hours
 const WAITING_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 export const WAIT_OPTIONS = {
   wait: {
+    alias: ["w", "watch"],
     type: "boolean",
     required: false,
     description:
       "Wait for the export to complete or fail before exiting. Use '--max-wait' to set a timeout.",
   },
-  maxWait: {
+  "max-wait": {
     type: "number",
     required: false,
     description: "Maximum wait time in minutes. Defaults to 120 minutes.",
