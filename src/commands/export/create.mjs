@@ -54,23 +54,23 @@ async function createS3Export(argv) {
 
 const sharedExamples = [
   [
-    "$0 export create s3 --database us/my_db --bucket my-bucket --path exports/my_db",
-    "Export the 'us-std/my_db' database to the 'exports/my_db' path of the 'my-bucket' S3 bucket. Outputs the export ID.",
+    "$0 export create s3 --database us/my_db --bucket doc-example-bucket --path exports/my_db",
+    "Export the 'us-std/my_db' database to the 'exports/my_db' path of the 'doc-example-bucket' S3 bucket. Outputs the export ID.",
   ],
   [
-    "$0 export create s3 --database us/my_db --bucket my-bucket --path my-prefix --json",
+    "$0 export create s3 --database us/my_db --bucket doc-example-bucket --path my-prefix --json",
     "Output the full JSON of the export request.",
   ],
   [
-    "$0 export create s3 --database us/my_db --bucket my-bucket --path my-prefix --collection my-collection",
+    "$0 export create s3 --database us/my_db --bucket doc-example-bucket --path my-prefix --collection my-collection",
     "Export the 'my-collection' collection only.",
   ],
   [
-    "$0 export create s3 --database us/my_db --bucket my-bucket --path my-prefix --format tagged",
+    "$0 export create s3 --database us/my_db --bucket doc-example-bucket --path my-prefix --format tagged",
     "Encode the export's document data using the 'tagged' format.",
   ],
   [
-    "$0 export create s3 --database us/my_db --bucket my-bucket --path my-prefix --wait --max-wait 180",
+    "$0 export create s3 --database us/my_db --bucket doc-example-bucket --path my-prefix --wait --max-wait 180",
     "Wait for the export to complete or fail before exiting. Waits up to 180 minutes.",
   ],
 ];
