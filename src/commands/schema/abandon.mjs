@@ -8,7 +8,7 @@ async function doAbandon(argv) {
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
   const logger = container.resolve("logger");
   const confirm = container.resolve("confirm");
-  const secret = await getSecret();
+  const secret = await getSecret(argv);
 
   if (!argv.input) {
     const params = new URLSearchParams({

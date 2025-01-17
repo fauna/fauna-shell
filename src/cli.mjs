@@ -25,6 +25,7 @@ import {
   checkForUpdates,
   fixPaths,
   logArgv,
+  scopeSecret,
 } from "./lib/middleware.mjs";
 
 /** @type {import('yargs').Argv} */
@@ -112,7 +113,7 @@ function buildYargs(argvInput) {
     .config("config", configParser.bind(null, argvInput))
     .middleware([checkForUpdates, logArgv], true)
     .middleware(
-      [applyLocalArg, fixPaths, applyAccountUrl, buildCredentials],
+      [applyLocalArg, fixPaths, applyAccountUrl, buildCredentials, scopeSecret],
       false,
     )
     .command(loginCommand)

@@ -61,7 +61,7 @@ async function doDiff(argv) {
   const gatherFSL = container.resolve("gatherFSL");
   const logger = container.resolve("logger");
   const makeFaunaRequest = container.resolve("makeFaunaRequest");
-  const secret = await getSecret();
+  const secret = await getSecret(argv);
   const files = reformatFSL(await gatherFSL(argv.dir));
 
   const { version, status, diff } = await makeFaunaRequest({

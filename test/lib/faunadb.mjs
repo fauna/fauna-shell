@@ -39,6 +39,7 @@ describe("faunadbToCommandError", () => {
       responseContent: {
         errors: [],
       },
+      responseHeaders: {},
     });
 
     expect(() => faunadbToCommandError({ err: faunaError })).to.throw(
@@ -51,6 +52,7 @@ describe("faunadbToCommandError", () => {
       responseContent: {
         errors: [],
       },
+      responseHeaders: {},
     });
 
     expect(() => faunadbToCommandError({ err: faunaError })).to.throw(

@@ -117,6 +117,7 @@ export function setupTestContainer() {
       runQuery: stub(),
       runQueryFromString: stub(),
       formatQueryResponse: faunaClientV10.formatQueryResponse,
+      formatQueryInfo: faunaClientV10.formatQueryInfo,
       formatError: faunaClientV10.formatError,
     }),
     faunaClientV4: awilix.asValue({
@@ -124,6 +125,7 @@ export function setupTestContainer() {
       runQuery: stub(),
       runQueryFromString: stub(),
       formatQueryResponse: faunaClientV4.formatQueryResponse,
+      formatQueryInfo: faunaClientV4.formatQueryInfo,
       formatError: faunaClientV4.formatError,
     }),
     sleep: awilix.asValue(stub().resolves()),
