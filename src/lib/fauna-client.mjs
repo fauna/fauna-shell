@@ -64,7 +64,17 @@ export const runQueryFromString = (expression, argv) => {
       }),
     );
   } else {
-    const { secret, url, timeout, format, performanceHints, ...rest } = argv;
+    const {
+      secret,
+      url,
+      timeout,
+      format,
+      performanceHints,
+      maxAttempts,
+      maxBackoff,
+      ...rest
+    } = argv;
+
     let apiFormat = "decorated";
     if (format === Format.JSON) {
       apiFormat = "simple";
@@ -80,6 +90,8 @@ export const runQueryFromString = (expression, argv) => {
           /* eslint-disable camelcase */
           query_timeout_ms: timeout,
           performance_hints: performanceHints,
+          max_attempts: maxAttempts,
+          max_backoff: maxBackoff,
           /* eslint-enable camelcase */
           format: apiFormat,
           ...rest,

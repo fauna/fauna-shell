@@ -180,7 +180,8 @@ async function buildCustomEval(argv) {
       let res;
       try {
         const secret = await getSecret(argv);
-        const { color, timeout, typecheck, url } = argv;
+        const { color, timeout, typecheck, url, maxAttempts, maxBackoff } =
+          argv;
 
         res = await runQueryFromString(cmd, {
           apiVersion,
@@ -190,6 +191,8 @@ async function buildCustomEval(argv) {
           typecheck,
           performanceHints,
           format: outputFormat,
+          maxAttempts,
+          maxBackoff,
         });
 
         // If any query info should be displayed, print to stderr.
