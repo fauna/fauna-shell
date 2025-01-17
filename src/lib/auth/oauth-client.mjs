@@ -40,11 +40,11 @@ class OAuthClient {
    * Gets the OAuth parameters for the OAuth request.
    * @param {Object} [overrides] - The parameters for the OAuth request
    * @param {string} [overrides.clientId] - The client ID
-   * @param {boolean} [overrides.noRedirect] - Whether to disable the redirect
+   * @param {boolean} [overrides.redirect] - Whether to disable the redirect
    * @returns {Object} The OAuth parameters
    */
-  getOAuthParams({ clientId, noRedirect }) {
-    const redirectURI = noRedirect
+  getOAuthParams({ clientId, redirect }) {
+    const redirectURI = !redirect
       ? `${getDashboardUrl()}/auth/oauth/callback/cli`
       : `${REDIRECT_URI}:${this.port}`;
 

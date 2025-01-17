@@ -82,7 +82,7 @@ async function queryCommand(argv) {
   validateDatabaseOrSecret(argv);
   validate(argv);
 
-  const secret = await getSecret();
+  const secret = await getSecret(argv);
   const {
     url,
     timeout,
