@@ -1,4 +1,4 @@
-# Fauna CLI v4 (beta)
+# Fauna CLI
 
 <!-- [![Version](https://img.shields.io/npm/v/fauna.svg)](https://npmjs.org/package/fauna)
 [![CircleCI](https://circleci.com/gh/fauna/fauna/tree/master.svg?style=shield)](https://circleci.com/gh/fauna/fauna/tree/master)
@@ -6,10 +6,6 @@
 [![Codecov](https://codecov.io/gh/fauna/fauna/branch/master/graph/badge.svg)](https://codecov.io/gh/fauna/fauna)
 [![Downloads/week](https://img.shields.io/npm/dw/fauna.svg)](https://npmjs.org/package/fauna)
 [![License](https://img.shields.io/npm/l/fauna.svg)](https://github.com/fauna/fauna/blob/master/package.json) -->
-
-> [!IMPORTANT]
-> v4 of the Fauna CLI is in beta. For the latest GA version, see the [Fauna CLI v3
-> docs](https://docs.fauna.com/fauna/current/build/cli/).
 
 The Fauna CLI lets you access [Fauna](http://fauna.com/) from your terminal.
 You can use the CLI to:
@@ -36,7 +32,7 @@ To get started:
 1. Install the CLI:
 
    ```shell
-   npm install -g fauna-shell@">=4.0.0-beta"
+   npm install -g fauna-shell
    ```
 
 2. If you're using bash or zsh, enable auto-complete by appending the output of
@@ -66,10 +62,10 @@ To get started:
 
 ## Installation
 
-During the beta, you can install v4 of the Fauna CLI globally using npm:
+You can install the Fauna CLI globally using npm:
 
 ```sh
-npm install -g fauna-shell@">=4.0.0-beta"
+npm install -g fauna-shell
 ```
 
 ## Documentation
