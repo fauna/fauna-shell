@@ -30,7 +30,11 @@ async function listDatabasesWithSecret(argv) {
     });
     return res.data;
   } catch (e) {
-    return faunaToCommandError({ err: e, color: argv.color });
+    return faunaToCommandError({
+      err: e,
+      color: argv.color,
+      include: argv.include,
+    });
   }
 }
 
@@ -58,7 +62,9 @@ async function doListDatabases(argv) {
     logger.stdout(colorize(res, { format: Format.JSON, color: argv.color }));
   } else {
     res.forEach(({ path, name }) => {
-      logger.stdout(path ?? name);
+      logger.stdout(
+        colorize(path ?? name, { format: Format.CSV, color: argv.color }),
+      );
     });
   }
 }

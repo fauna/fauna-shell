@@ -38,22 +38,29 @@ async function doLogin(argv) {
       logger.stderr(err);
     }
   };
-  const authCodeParams = oAuth.getOAuthParams({
-    clientId: argv.clientId,
-    noRedirect: argv.noRedirect,
-  });
-  const dashboardOAuthURL = await startOAuthRequest(authCodeParams);
-  logger.stdout(`To login, open a browser to:\n${dashboardOAuthURL}`);
-  if (!argv.noRedirect) {
+
+  const promptLoginUrl = async () => {
+    const authCodeParams = oAuth.getOAuthParams({
+      clientId: argv.clientId,
+      redirect: argv.redirect,
+    });
+    const dashboardOAuthURL = await startOAuthRequest(authCodeParams);
+    logger.stdout(`To login, open a browser to:\n${dashboardOAuthURL}`);
+    return dashboardOAuthURL;
+  };
+
+  if (argv.redirect) {
     oAuth.server.on("ready", async () => {
+      const dashboardOAuthURL = await promptLoginUrl();
       open(dashboardOAuthURL);
+      logger.stdout("Waiting for authentication in browser to complete...");
     });
     oAuth.server.on("auth_code_received", async () => {
       await loginWithToken();
     });
     await oAuth.start();
-    logger.stdout("Waiting for authentication in browser to complete...");
   } else {
+    await promptLoginUrl();
     try {
       const userCode = await input({
         message: "Authorization Code:",
@@ -103,12 +110,12 @@ function buildLoginCommand(yargs) {
         required: false,
         hidden: true,
       },
-      "no-redirect": {
-        alias: "n",
+      redirect: {
+        alias: "r",
         type: "boolean",
         description:
-          "Log in without redirecting to a local callback server. Use this option if you are unable to open a browser on your local machine.",
-        default: false,
+          "Set the method of authenticating. Use 'false' or '--no-redirect' if you are unable to open a browser on your local machine.",
+        default: true,
       },
       user: {
         alias: "u",

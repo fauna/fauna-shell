@@ -25,7 +25,7 @@ async function runCreateQuery(secret, argv) {
 }
 
 async function createDatabase(argv) {
-  const secret = await getSecret();
+  const secret = await getSecret(argv);
   const logger = container.resolve("logger");
 
   try {
@@ -47,6 +47,7 @@ async function createDatabase(argv) {
     faunaToCommandError({
       err: e,
       color: argv.color,
+      include: argv.include,
       handler: (err) => {
         if (err instanceof ServiceError && err.code === "constraint_failure") {
           const cf = err.constraint_failures;

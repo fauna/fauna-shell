@@ -37,6 +37,7 @@ import {
   getAllSchemaFileContents,
   writeSchemaFiles,
 } from "../lib/schema.mjs";
+import { sleep } from "../lib/utils.mjs";
 
 export function setupCommonContainer() {
   const container = awilix.createContainer({
@@ -91,6 +92,7 @@ export const injectables = {
   accountAPI: awilix.asValue(accountAPI),
   makeFaunaRequest: awilix.asValue(makeRetryableFaunaRequest),
   errorHandler: awilix.asValue((_error, exitCode) => exit(exitCode)),
+  sleep: awilix.asValue(sleep),
 
   // While we inject the class instance before this in middleware,
   //  we need to register it here to resolve types.

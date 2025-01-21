@@ -2,9 +2,9 @@
 /**
  * @fileoverview Fauna V10 client utilities for query execution and error handling.
  */
-
 import chalk from "chalk";
 import { NetworkError, ServiceError } from "fauna";
+import stripAnsi from "strip-ansi";
 
 import { container } from "../config/container.mjs";
 import {
@@ -14,8 +14,13 @@ import {
   NETWORK_ERROR_MESSAGE,
   ValidationError,
 } from "./errors.mjs";
-import { formatQuerySummary } from "./fauna-client.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
+
+/**
+ * Regex to match the FQL diagnostic line.
+ * @type {RegExp}
+ */
+export const FQL_DIAGNOSTIC_REGEX = /^(\s{2,}\|)|(\s*\d{1,}\s\|)/;
 
 /**
  * Interprets a string as a FQL expression and returns a query.
@@ -121,15 +126,136 @@ export const runQueryFromString = async ({
 };
 
 /**
+ * Formats a summary of a query from a fauna
+ * @param {string} summary - The summary of the query
+ * @returns {string}
+ */
+export const formatQuerySummary = (summary) => {
+  if (!summary || typeof summary !== "string") {
+    return "";
+  }
+
+  try {
+    const lines = summary.split("\n").map((line) => {
+      if (!line.match(FQL_DIAGNOSTIC_REGEX)) {
+        return line;
+      }
+      return colorize(line, { format: Format.FQL });
+    });
+    return lines.join("\n");
+  } catch (err) {
+    const logger = container.resolve("logger");
+    logger.debug(`Unable to parse performance hint: ${err}`);
+    return summary;
+  }
+};
+
+const getQueryInfoValue = (response, field) => {
+  switch (field) {
+    case "txnTs":
+      return response.txn_ts;
+    case "schemaVersion":
+      return response.schema_version?.toString();
+    case "summary":
+      return response.summary;
+    case "queryTags":
+      return response.query_tags;
+    case "stats":
+      return response.stats;
+    default:
+      return undefined;
+  }
+};
+
+const getIncludedQueryInfo = (response, include) => {
+  const queryInfo = {};
+  include.forEach((field) => {
+    const value = getQueryInfoValue(response, field);
+    if (value) queryInfo[field] = value;
+  });
+  return queryInfo;
+};
+
+/**
+ *
+ * @param {object} response - The v10 query response with query info
+ * @param {object} opts
+ * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
+ * @returns
+ */
+export const formatQueryInfo = (response, { color, include }) => {
+  const queryInfoToDisplay = getIncludedQueryInfo(response, include);
+
+  if (Object.keys(queryInfoToDisplay).length === 0) return "";
+
+  // We colorize the entire query info object as YAML, but then need to
+  // colorize the diagnostic lines individually. To simplify this, we
+  // strip the ansi when we're checking if the line is a diagnostic line.
+  const colorized = colorize(queryInfoToDisplay, {
+    color,
+    format: Format.YAML,
+  })
+    .split("\n")
+    .map((line) => {
+      if (!stripAnsi(line).match(FQL_DIAGNOSTIC_REGEX)) {
+        return line;
+      }
+      return colorize(line, { format: Format.FQL });
+    })
+    .join("\n");
+
+  return `${colorized}\n`;
+};
+
+const formatServiceError = (err, { color, include }) => {
+  let message = "";
+  // Remove the summary from the include list. We will always show the summary
+  // under the error, so we don't want to include it in the query info.
+  const _include = include.filter((i) => i !== "summary");
+  const queryInfo = formatQueryInfo(err.queryInfo, {
+    color,
+    include: _include,
+  });
+  message = queryInfo === "" ? "" : `${queryInfo}\n`;
+
+  const summary = formatQuerySummary(err.queryInfo?.summary ?? "");
+  message += `${chalk.red("The query failed with the following error:")}\n\n${summary}`;
+
+  // err.abort could be `null`, if that's what the user returns
+  if (err.abort !== undefined) {
+    const abort = colorize(err.abort, { format: "fql", color });
+    message += `\n\n${chalk.red("Abort value:")}\n${abort}`;
+  }
+
+  if (
+    err.constraint_failures !== undefined &&
+    err.constraint_failures.length > 0
+  ) {
+    const contraintFailures = colorize(
+      JSON.stringify(err.constraint_failures, null, 2),
+      {
+        format: "fql",
+        color,
+      },
+    );
+    message += `\n\n${chalk.red("Constraint failures:")}\n${contraintFailures}`;
+  }
+
+  return message;
+};
+
+/**
  * Formats a V10 Fauna error for display.
  *
  * @param {any} err - An error to format
- * @param {object} [opts]
- * @param {boolean} [opts.color] - Whether to colorize the error
+ * @param {object} opts
+ * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
  * @returns {string} The formatted error message
  */
-// eslint-disable-next-line no-unused-vars
-export const formatError = (err, _opts = {}) => {
+export const formatError = (err, opts) => {
+  let message = "";
   // If the error has a queryInfo object with a summary property, we can format it.
   // Doing this check allows this code to avoid a fauna direct dependency.
   if (
@@ -137,15 +263,14 @@ export const formatError = (err, _opts = {}) => {
     typeof err.queryInfo === "object" &&
     typeof err.queryInfo.summary === "string"
   ) {
-    // Otherwise, return the summary and fall back to the message.
-    return `${chalk.red("The query failed with the following error:")}\n\n${formatQuerySummary(err.queryInfo?.summary) ?? err.message}`;
+    message = formatServiceError(err, opts);
+  } else if (err.name === "NetworkError") {
+    message = `${chalk.red("The query failed unexpectedly with the following error:")}\n\n${NETWORK_ERROR_MESSAGE}`;
   } else {
-    if (err.name === "NetworkError") {
-      return `The query failed unexpectedly with the following error:\n\n${NETWORK_ERROR_MESSAGE}`;
-    }
-
-    return `The query failed unexpectedly with the following error:\n\n${err.message}`;
+    message = `${chalk.red("The query failed unexpectedly with the following error:")}\n\n${err.message}`;
   }
+
+  return message;
 };
 
 /**
@@ -171,12 +296,13 @@ export const formatQueryResponse = (res, opts = {}) => {
  * @param {object} opts
  * @param {import("fauna").FaunaError} opts.err - The Fauna error to handle
  * @param {(e: import("fauna").FaunaError) => void} [opts.handler] - Optional error handler to handle and throw in
- * @param {boolean} [opts.color] - Whether to colorize the error
+ * @param {boolean} opts.color - Whether to colorize the error
+ * @param {string[]} opts.include - The query info fields to include
  * @throws {Error} Always throws an error with a message based on the error code or handler response
  * @returns {never} This function always throws an error
  */
 
-export const faunaToCommandError = ({ err, handler, color }) => {
+export const faunaToCommandError = ({ err, handler, color, include }) => {
   if (handler) {
     handler(err);
   }
@@ -190,7 +316,9 @@ export const faunaToCommandError = ({ err, handler, color }) => {
       case "permission_denied":
         throw new AuthorizationError({ cause: err });
       default:
-        throw new CommandError(formatError(err, { color }), { cause: err });
+        throw new CommandError(formatError(err, { color, include }), {
+          cause: err,
+        });
     }
   }
 

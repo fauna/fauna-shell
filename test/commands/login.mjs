@@ -111,6 +111,8 @@ describe("login", function () {
 
     // We start the loopback server
     expect(oauthClient.start.called).to.be.true;
+    expect(oauthClient.start.calledBefore(oauthClient.getOAuthParams)).to.be
+      .true;
     // We open auth url in the browser and prompt user
     expect(container.resolve("open").calledWith("http://dashboard-url.com"));
     expect(logger.stdout).to.have.been.calledWith(
@@ -169,7 +171,7 @@ describe("login", function () {
     const sampleCreds = btoa(JSON.stringify({ code: "asdf", state: "state" }));
     input.resolves(sampleCreds);
 
-    await run(`login --no-redirect=true`, container);
+    await run(`login --no-redirect`, container);
     const oauthClient = container.resolve("oauthClient");
     const logger = container.resolve("logger");
     const credentials = container.resolve("credentials");

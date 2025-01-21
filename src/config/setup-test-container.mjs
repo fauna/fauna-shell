@@ -96,6 +96,9 @@ export function setupTestContainer() {
       createKey: stub(),
       refreshSession: stub(),
       getSession: stub(),
+      createExport: stub(),
+      getExport: stub(),
+      listExports: stub(),
     }),
     errorHandler: awilix.asValue((error, exitCode) => {
       error.code = exitCode;
@@ -114,6 +117,7 @@ export function setupTestContainer() {
       runQuery: stub(),
       runQueryFromString: stub(),
       formatQueryResponse: faunaClientV10.formatQueryResponse,
+      formatQueryInfo: faunaClientV10.formatQueryInfo,
       formatError: faunaClientV10.formatError,
     }),
     faunaClientV4: awilix.asValue({
@@ -121,8 +125,10 @@ export function setupTestContainer() {
       runQuery: stub(),
       runQueryFromString: stub(),
       formatQueryResponse: faunaClientV4.formatQueryResponse,
+      formatQueryInfo: faunaClientV4.formatQueryInfo,
       formatError: faunaClientV4.formatError,
     }),
+    sleep: awilix.asValue(stub().resolves()),
   };
 
   confirmManualMocks(manualMocks, thingsToManuallyMock);
