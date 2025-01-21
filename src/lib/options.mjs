@@ -146,4 +146,11 @@ export const QUERY_OPTIONS = {
     default: undefined,
     group: "API:",
   },
+  "max-contention-retries": {
+    type: "number",
+    description:
+      "Maximum number of retry attempts when queries fail with contention errors.",
+    default: undefined,
+    group: "API:",
+  },
 };

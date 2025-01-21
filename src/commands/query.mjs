@@ -93,6 +93,7 @@ async function queryCommand(argv) {
     include,
     maxAttempts,
     maxBackoff,
+    maxContentionRetries,
   } = argv;
 
   // resolve the input
@@ -117,9 +118,10 @@ async function queryCommand(argv) {
       color: useColor,
       maxAttempts,
       maxBackoff,
+      maxContentionRetries,
     });
 
-    if (include.length > 0) {
+    if (include && include.length > 0) {
       const queryInfo = formatQueryInfo(results, {
         apiVersion,
         color: useColor,

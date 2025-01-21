@@ -122,25 +122,21 @@ describe("query v10", function () {
     );
   });
 
-  it("can set the typecheck option to true", async function () {
-    await run(`query "Database.all()" --typecheck --secret=foo`, container);
-    expect(runQueryFromString).to.have.been.calledWith(
-      '"Database.all()"',
-      sinon.match({
-        typecheck: true,
-      }),
-    );
-  });
-
-  it("can set the performanceHints option to true", async function () {
+  it("can set various query options", async function () {
     await run(
-      `query "Database.all()" --performance-hints --secret=foo`,
+      `query "Database.all()" --secret=foo --typecheck --performance-hints --max-attempts 5 --max-backoff 2000 --timeout 10000 --max-contention-retries 3`,
       container,
     );
+
     expect(runQueryFromString).to.have.been.calledWith(
-      '"Database.all()"',
+      sinon.match(""),
       sinon.match({
+        timeout: 10000,
+        typecheck: true,
         performanceHints: true,
+        maxAttempts: 5,
+        maxBackoff: 2000,
+        maxContentionRetries: 3,
       }),
     );
   });

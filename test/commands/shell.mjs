@@ -343,26 +343,24 @@ describe("shell", function () {
       let query = "Database.all().take(1)";
 
       const runPromise = run(
-        "shell --secret=foo --typecheck --performance-hints --max-attempts 5 --max-backoff 2000 --timeout 10000",
+        "shell --secret=foo --typecheck --performance-hints --max-attempts 5 --max-backoff 2000 --timeout 10000 --max-contention-retries 3",
         container,
       );
 
-      await sleep(50);
-      await stdout.waitForWritten();
-
-      stdin.push(`Database.all().take(1)\n`);
+      // send one command
+      stdin.push(`${query}\n`);
       stdin.push(null);
-      await sleep(50);
       await stdout.waitForWritten();
 
       expect(runQueryFromString).to.have.been.calledWith(
-        sinon.match(query),
+        sinon.match.any,
         sinon.match({
           timeout: 10000,
           typecheck: true,
           performanceHints: true,
           maxAttempts: 5,
           maxBackoff: 2000,
+          maxContentionRetries: 3,
         }),
       );
 

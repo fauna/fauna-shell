@@ -53,17 +53,24 @@ export const runQueryFromString = (expression, argv) => {
   const faunaV10 = container.resolve("faunaClientV10");
 
   if (argv.apiVersion === "4") {
-    const { secret, url, timeout } = argv;
+    const { secret, url, timeout, maxContentionRetries } = argv;
+    let headers;
+    if (maxContentionRetries) {
+      headers = {
+        "x-fauna-max-contention-retries": maxContentionRetries,
+      };
+    }
     return retryInvalidCredsOnce(secret, (secret) =>
       faunaV4.runQueryFromString({
         expression,
         secret,
         url,
         client: undefined,
-        options: { queryTimeout: timeout },
+        options: { queryTimeout: timeout, headers },
       }),
     );
   } else {
+
     const {
       secret,
       url,
@@ -72,6 +79,7 @@ export const runQueryFromString = (expression, argv) => {
       performanceHints,
       maxAttempts,
       maxBackoff,
+      maxContentionRetries,
       ...rest
     } = argv;
 
@@ -92,6 +100,7 @@ export const runQueryFromString = (expression, argv) => {
           performance_hints: performanceHints,
           max_attempts: maxAttempts,
           max_backoff: maxBackoff,
+          max_contention_retries: maxContentionRetries,
           /* eslint-enable camelcase */
           format: apiFormat,
           ...rest,
