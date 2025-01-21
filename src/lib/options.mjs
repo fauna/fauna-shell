@@ -124,14 +124,6 @@ export const QUERY_OPTIONS = {
     default: false,
     group: "API:",
   },
-  include: {
-    type: "array",
-    choices: ["all", "none", ...QUERY_INFO_CHOICES],
-    default: ["summary"],
-    description:
-      "Query response info to output. Pass values as a space-separated list. Ex: --include summary queryTags.",
-    group: "API:",
-  },
   "max-attempts": {
     type: "number",
     description:
@@ -152,5 +144,12 @@ export const QUERY_OPTIONS = {
       "Maximum number of retry attempts when queries fail with contention errors.",
     default: undefined,
     group: "API:",
+  },
+  include: {
+    type: "array",
+    choices: ["all", "none", ...QUERY_INFO_CHOICES],
+    default: ["summary"],
+    description:
+      "Query response info to output. Pass values as a space-separated list. Ex: --include summary queryTags.",
   },
 };
