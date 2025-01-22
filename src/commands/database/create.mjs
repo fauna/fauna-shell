@@ -102,7 +102,7 @@ function buildCreateCommand(yargs) {
     .example([
       [
         "$0 database create --name my_db --database us",
-        "Create the top-level 'my_db' database in the 'us' Region Group.",
+        "Create the top-level 'my_db' database in the 'us' region group.",
       ],
       [
         "$0 database create --name child_db --database us/parent_db",

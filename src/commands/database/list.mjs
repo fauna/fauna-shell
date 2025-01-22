@@ -53,7 +53,7 @@ async function doListDatabases(argv) {
   if (argv.secret) {
     logger.stderr(
       chalk.yellow(
-        "Warning: Full database paths are not available when using --secret. Use --database if a full path, including the Region Group identified and hierarchy, is needed.",
+        "Warning: Full database paths are not available when using --secret. Use --database if a full path, including the region group identifier and hierarchy, is needed.",
       ),
     );
   }
