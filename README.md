@@ -22,7 +22,7 @@ You can use the CLI to:
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/en/download/package-manager) v20.x or later.
+- [Node.js](https://nodejs.org/en/download/package-manager) v22.x or later.
 - A Fauna account. You can sign up for a free account at https://dashboard.fauna.com/register.
 
 ## Quick start
