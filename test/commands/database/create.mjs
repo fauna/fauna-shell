@@ -115,6 +115,16 @@ describe("database create", () => {
     });
   });
 
+  it("supports --json", async () => {
+    await run(
+      'database create --name "testdb" --secret "secret" --json',
+      container,
+    );
+    expect(logger.stdout).to.have.been.calledWith(
+      JSON.stringify({ name: "testdb" }, null, 2),
+    );
+  });
+
   describe("if --secret is provided", () => {
     [
       {
