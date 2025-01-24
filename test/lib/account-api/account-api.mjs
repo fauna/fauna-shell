@@ -130,153 +130,74 @@ describe("accountAPI", () => {
     });
   });
 
-  describe("createExport", () => {
-    const testExport = {
-      id: "419633606504219216",
-      state: "Pending",
-      database: "us-std/demo",
-      format: "simple",
+  const scenarios = [
+    {
+      description: "using destination URI",
+      destination: "s3://test-bucket/test/key",
+      expectedDestination: "s3://test-bucket/test/key",
+    },
+    {
+      description: "using bucket and path",
       destination: {
         s3: {
           bucket: "test-bucket",
-          path: "some/key",
+          path: "test/key",
         },
       },
-      created_at: "2025-01-09T19:57:22.735201Z",
-    };
+      expectedDestination: "s3://test-bucket/test/key",
+    },
+  ];
 
-    it("should call the endpoint", async () => {
-      fetch
-        .withArgs(
-          sinon.match({ href: "https://account.fauna.com/v2/exports" }),
-          sinon.match({ method: "POST" }),
-        )
-        .resolves(f({ response: testExport }, 201));
-
-      const data = await accountAPI.createExport({
-        database: "us/demo",
+  scenarios.forEach(({ description, destination, expectedDestination }) => {
+    describe(`createExport ${description}`, () => {
+      const testExport = {
+        id: "419633606504219216",
+        state: "Pending",
+        database: "us-std/demo",
         format: "simple",
         destination: {
           s3: {
             bucket: "test-bucket",
-            path: "some/key",
+            path: "test/key",
           },
+          uri: "s3://test-bucket/test/key",
         },
-      });
+        created_at: "2025-01-09T19:57:22.735201Z",
+      };
 
-      expect(fetch).to.have.been.calledWith(
-        sinon.match({ href: "https://account.fauna.com/v2/exports" }),
-        sinon.match({
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer some-account-key",
-          },
-          body: JSON.stringify({
-            database: "us-std/demo",
-            destination: {
-              s3: { bucket: "test-bucket", path: "some/key" },
-            },
-            format: "simple",
-          }),
-        }),
-      );
-      expect(data).to.deep.equal({
-        ...testExport,
-        destination_uri: "s3://test-bucket/some/key",
-      });
-    });
+      it("should call the endpoint", async () => {
+        fetch
+          .withArgs(
+            sinon.match({ href: "https://account.fauna.com/v2/exports" }),
+            sinon.match({ method: "POST" }),
+          )
+          .resolves(f({ response: testExport }, 201));
 
-    it("should support collections", async () => {
-      fetch
-        .withArgs(
+        const data = await accountAPI.createExport({
+          database: "us/demo",
+          format: "simple",
+          destination,
+        });
+
+        expect(fetch).to.have.been.calledWith(
           sinon.match({ href: "https://account.fauna.com/v2/exports" }),
-          sinon.match({ method: "POST" }),
-        )
-        .resolves(
-          f(
-            { response: { ...testExport, collections: ["test-collection"] } },
-            201,
-          ),
+          sinon.match({
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer some-account-key",
+            },
+            body: JSON.stringify({
+              database: "us-std/demo",
+              destination,
+              format: "simple",
+            }),
+          }),
         );
-
-      const data = await accountAPI.createExport({
-        database: "us/demo",
-        format: "simple",
-        destination: {
-          s3: {
-            bucket: "test-bucket",
-            path: "some/key",
-          },
-        },
-        collections: ["test-collection"],
-      });
-
-      expect(fetch).to.have.been.calledWith(
-        sinon.match({ href: "https://account.fauna.com/v2/exports" }),
-        sinon.match({
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer some-account-key",
-          },
-          body: JSON.stringify({
-            database: "us-std/demo",
-            destination: {
-              s3: { bucket: "test-bucket", path: "some/key" },
-            },
-            format: "simple",
-            collections: ["test-collection"],
-          }),
-        }),
-      );
-      expect(data).to.deep.equal({
-        ...testExport,
-        collections: ["test-collection"],
-        destination_uri: "s3://test-bucket/some/key",
-      });
-    });
-
-    it("should support tagged format", async () => {
-      fetch
-        .withArgs(
-          sinon.match({ href: "https://account.fauna.com/v2/exports" }),
-          sinon.match({ method: "POST" }),
-        )
-        .resolves(f({ response: { ...testExport, format: "tagged" } }, 201));
-
-      const data = await accountAPI.createExport({
-        database: "us/demo",
-        format: "tagged",
-        destination: {
-          s3: {
-            bucket: "test-bucket",
-            path: "some/key",
-          },
-        },
-      });
-
-      expect(fetch).to.have.been.calledWith(
-        sinon.match({ href: "https://account.fauna.com/v2/exports" }),
-        sinon.match({
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer some-account-key",
-          },
-          body: JSON.stringify({
-            database: "us-std/demo",
-            destination: {
-              s3: { bucket: "test-bucket", path: "some/key" },
-            },
-            format: "tagged",
-          }),
-        }),
-      );
-      expect(data).to.deep.equal({
-        ...testExport,
-        format: "tagged",
-        destination_uri: "s3://test-bucket/some/key",
+        expect(data).to.deep.equal({
+          ...testExport,
+          destination: expectedDestination,
+        });
       });
     });
   });

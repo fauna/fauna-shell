@@ -450,7 +450,7 @@ async function createExport({
   });
 
   const data = await responseHandler(response);
-  return { ...data.response, destination_uri: getExportUri(data.response) }; // eslint-disable-line camelcase
+  return { ...data.response, destination: data.response.destination.uri };
 }
 
 /**

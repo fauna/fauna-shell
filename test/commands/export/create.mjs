@@ -20,7 +20,6 @@ const createExportStub = (opts) => ({
   },
   created_at: "2025-01-02T22:59:51",
   updated_at: "2025-01-02T22:59:51",
-  destination_uri: "",
   ...opts,
 });
 
@@ -34,113 +33,109 @@ describe("export create s3", () => {
     ({ createExport } = container.resolve("accountAPI"));
   });
 
-  it("creates an export", async () => {
-    const database = "us-std/example";
-    const bucket = "test-bucket";
-    const path = "/test/key";
-    const stubbedResponse = createExportStub({
-      database,
-      destination: {
-        s3: {
-          path,
-          bucket,
-        },
-      },
-      format: "simple",
-    });
-    createExport.resolves(stubbedResponse);
+  const scenarios = [
+    {
+      description: "using --destination",
+      args: "--destination 's3://test-bucket/test/key'",
+      expectedDestination: "s3://test-bucket/test/key",
+      expectedDestArgs: "s3://test-bucket/test/key",
+    },
+    {
+      description: "using --bucket and --path",
+      args: "--bucket 'test-bucket' --path '/test/key'",
+      expectedDestination: "s3://test-bucket/test/key",
+      expectedDestArgs: { s3: { bucket: "test-bucket", path: "/test/key" } },
+    },
+  ];
 
-    await run(
-      `export create s3 --database '${database}' --bucket '${bucket}' --path '${path}'`,
-      container,
-    );
-    await stdout.waitForWritten();
+  scenarios.forEach(
+    ({ description, args, expectedDestination, expectedDestArgs }) => {
+      it(`creates an export ${description}`, async () => {
+        const database = "us-std/example";
+        const stubbedResponse = createExportStub({
+          database,
+          destination: expectedDestination,
+          format: "simple",
+        });
+        createExport.resolves(stubbedResponse);
 
-    expect(stdout.getWritten()).to.equal(`id: test-export-id
+        await run(
+          `export create s3 --database '${database}' ${args}`,
+          container,
+        );
+        await stdout.waitForWritten();
+
+        expect(stdout.getWritten()).to.equal(`id: test-export-id
 state: Pending
 database: us-std/example
 format: simple
-destination:
-  s3:
-    path: /test/key
-    bucket: test-bucket
+destination: s3://test-bucket/test/key
 created_at: 2025-01-02T22:59:51
 updated_at: 2025-01-02T22:59:51
-destination_uri: ""
 `);
-    expect(createExport).to.have.been.calledWith({
-      database,
-      collections: [],
-      destination: {
-        s3: {
-          bucket,
-          path,
-        },
-      },
-      format: "simple",
-    });
-  });
+        expect(createExport).to.have.been.calledWith({
+          database,
+          collections: [],
+          destination: expectedDestArgs,
+          format: "simple",
+        });
+      });
 
-  it("outputs the full response with --json", async () => {
-    const database = "us-std/example";
-    const bucket = "test-bucket";
-    const path = "/test/key";
-    const stubbedResponse = createExportStub({
-      database,
-      destination: {
-        s3: {
-          path,
-          bucket,
-        },
-      },
-      format: "simple",
-    });
-    createExport.resolves(stubbedResponse);
+      it(`outputs the full response with --json ${description}`, async () => {
+        const database = "us-std/example";
+        const stubbedResponse = createExportStub({
+          database,
+          destination: expectedDestination,
+          format: "simple",
+        });
+        createExport.resolves(stubbedResponse);
 
-    await run(
-      `export create s3 --database '${database}' --bucket '${bucket}' --path '${path}' --json`,
-      container,
-    );
-    await stdout.waitForWritten();
+        await run(
+          `export create s3 --database '${database}' ${args} --json`,
+          container,
+        );
+        await stdout.waitForWritten();
 
-    expect(stdout.getWritten()).to.equal(
-      `${colorize(stubbedResponse, { format: Format.JSON })}\n`,
-    );
-  });
+        expect(stdout.getWritten()).to.equal(
+          `${colorize(stubbedResponse, { format: Format.JSON })}\n`,
+        );
+      });
 
-  it("passes the format to the account api", async () => {
-    createExport.resolves(createExportStub({ format: "tagged" }));
-    await run(
-      `export create s3 --database 'us-std/example' --bucket 'test-bucket' --path 'test/key' --format 'tagged'`,
-      container,
-    );
-    expect(createExport).to.have.been.calledWith(
-      sinon.match({
-        format: "tagged",
-      }),
-    );
-  });
+      it(`passes the format to the account api ${description}`, async () => {
+        createExport.resolves(createExportStub({ format: "tagged" }));
+        await run(
+          `export create s3 --database 'us-std/example' ${args} --format 'tagged'`,
+          container,
+        );
+        expect(createExport).to.have.been.calledWith(
+          sinon.match({
+            format: "tagged",
+          }),
+        );
+      });
 
-  it("should allow providing multiple collections", async () => {
-    createExport.resolves(createExportStub({ collections: ["foo", "bar"] }));
-    await run(
-      `export create s3 --database 'us-std/example' --bucket 'test-bucket' --path 'test/key' --collection foo --collection bar`,
-      container,
-    );
-    expect(createExport).to.have.been.calledWith(
-      sinon.match({
-        database: "us-std/example",
-        collections: ["foo", "bar"],
-      }),
-    );
-  });
+      it(`should allow providing multiple collections ${description}`, async () => {
+        createExport.resolves(
+          createExportStub({ collections: ["foo", "bar"] }),
+        );
+        await run(
+          `export create s3 --database 'us-std/example' ${args} --collection foo --collection bar`,
+          container,
+        );
+        expect(createExport).to.have.been.calledWith(
+          sinon.match({
+            database: "us-std/example",
+            collections: ["foo", "bar"],
+          }),
+        );
+      });
+    },
+  );
 
   it("should output an error if --database is not provided", async () => {
+    const destination = "s3://test-bucket/test/key";
     try {
-      await run(
-        "export create s3 --bucket test-bucket --path test/key",
-        container,
-      );
+      await run(`export create s3 --destination '${destination}'`, container);
     } catch {}
 
     await stderr.waitForWritten();
