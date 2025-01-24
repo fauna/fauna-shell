@@ -58,7 +58,7 @@ function buildDeleteCommand(yargs) {
     .example([
       [
         "$0 database delete --name my_db --database us",
-        "Delete the top-level 'my_db' database in the 'us' Region Group.",
+        "Delete the top-level 'my_db' database in the 'us' region group.",
       ],
       [
         "$0 database delete --name child_db --database us/parent_db",
