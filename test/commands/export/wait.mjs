@@ -24,7 +24,11 @@ describe("export wait helpers", () => {
   describe("waitUntilExportIsReady", () => {
     it("should return export data when export completes successfully", async () => {
       const exportId = "test-export-id";
-      const exportData = { id: exportId, is_terminal: true, state: ExportState.Complete };
+      const exportData = {
+        id: exportId,
+        is_terminal: true,
+        state: ExportState.Complete,
+      };
       const statusHandler = sinon.stub();
 
       getExport.resolves(exportData);
@@ -89,9 +93,17 @@ describe("export wait helpers", () => {
 
       getExport
         .onFirstCall()
-        .resolves({ id: exportId, is_terminal: false, state: ExportState.Pending })
+        .resolves({
+          id: exportId,
+          is_terminal: false,
+          state: ExportState.Pending,
+        })
         .onSecondCall()
-        .resolves({ id: exportId, is_terminal: true, state: ExportState.Complete });
+        .resolves({
+          id: exportId,
+          is_terminal: true,
+          state: ExportState.Complete,
+        });
 
       const result = await waitAndCheckExportState({
         id: exportId,
