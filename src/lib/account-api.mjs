@@ -22,10 +22,6 @@ export const ExportState = {
 };
 
 export const EXPORT_STATES = Object.values(ExportState);
-export const EXPORT_TERMINAL_STATES = [
-  ExportState.Complete,
-  ExportState.Failed,
-];
 
 let accountUrl = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
 

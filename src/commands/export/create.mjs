@@ -1,7 +1,6 @@
 // @ts-check
 
 import { container } from "../../config/container.mjs";
-import { EXPORT_TERMINAL_STATES } from "../../lib/account-api.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 import { DATABASE_PATH_OPTIONS } from "../../lib/options.mjs";
@@ -40,7 +39,7 @@ async function createS3Export(argv) {
     format,
   });
 
-  if (wait && !EXPORT_TERMINAL_STATES.includes(createdExport.state)) {
+  if (wait && !createdExport.is_terminal) {
     createdExport = await waitUntilExportIsReady({
       id: createdExport.id,
       opts: {

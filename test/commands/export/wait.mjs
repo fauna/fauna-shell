@@ -24,7 +24,7 @@ describe("export wait helpers", () => {
   describe("waitUntilExportIsReady", () => {
     it("should return export data when export completes successfully", async () => {
       const exportId = "test-export-id";
-      const exportData = { id: exportId, state: ExportState.Complete };
+      const exportData = { id: exportId, is_terminal: true, state: ExportState.Complete };
       const statusHandler = sinon.stub();
 
       getExport.resolves(exportData);
@@ -41,16 +41,13 @@ describe("export wait helpers", () => {
         `test-export-id is Pending and not yet started.`,
       );
       expect(statusHandler).to.have.been.calledWith(
-        "test-export-id is Pending and not yet started.",
-      );
-      expect(statusHandler).to.have.been.calledWith(
         "test-export-id has a terminal state of Complete.",
       );
     });
 
     it("should not print status when quiet is true", async () => {
       const exportId = "test-export-id";
-      const exportData = { id: exportId, state: ExportState.Complete };
+      const exportData = { id: exportId, is_terminal: true };
       const statusHandler = sinon.stub();
 
       getExport.resolves(exportData);
@@ -92,9 +89,9 @@ describe("export wait helpers", () => {
 
       getExport
         .onFirstCall()
-        .resolves({ id: exportId, state: ExportState.Pending })
+        .resolves({ id: exportId, is_terminal: false, state: ExportState.Pending })
         .onSecondCall()
-        .resolves({ id: exportId, state: ExportState.Complete });
+        .resolves({ id: exportId, is_terminal: true, state: ExportState.Complete });
 
       const result = await waitAndCheckExportState({
         id: exportId,
@@ -134,11 +131,11 @@ describe("export wait helpers", () => {
 
       getExport
         .onFirstCall()
-        .resolves({ id: exportId, state: ExportState.Pending })
+        .resolves({ id: exportId, is_terminal: false })
         .onSecondCall()
-        .resolves({ id: exportId, state: ExportState.Pending })
+        .resolves({ id: exportId, is_terminal: false })
         .onThirdCall()
-        .resolves({ id: exportId, state: ExportState.Complete });
+        .resolves({ id: exportId, is_terminal: true });
 
       await waitAndCheckExportState({
         id: exportId,
