@@ -148,10 +148,44 @@ updated_at: 2025-01-02T22:59:51
     },
   );
 
+  const invalidScenarios = [
+    {
+      description: "an invalid S3 URI is given as the --destination input",
+      args: "--destination invalid-uri",
+      expectedError: "Invalid S3 URI format. Expected format: s3://bucket/path",
+    },
+    {
+      description: "both --destination and --bucket are given",
+      args: "--destination s3://test-bucket/test/key --bucket test-bucket",
+      expectedError:
+        "Cannot specify --destination with --bucket or --path. Use either --destination or both --bucket and --path.",
+    },
+    {
+      description: "both --destination and --path are given",
+      args: "--destination s3://test-bucket/test/key --path /test/key",
+      expectedError:
+        "Cannot specify --destination with --bucket or --path. Use either --destination or both --bucket and --path.",
+    },
+  ];
+
+  invalidScenarios.forEach(({ description, args, expectedError }) => {
+    it(`should display an error when ${description}`, async () => {
+      try {
+        await run(
+          `export create s3 --database us-std/example ${args}`,
+          container,
+        );
+      } catch {}
+
+      await stderr.waitForWritten();
+      expect(stderr.getWritten()).to.contain(expectedError);
+    });
+  });
+
   it("should output an error if --database is not provided", async () => {
     const destination = "s3://test-bucket/test/key";
     try {
-      await run(`export create s3 --destination '${destination}'`, container);
+      await run(`export create s3 --destination ${destination}`, container);
     } catch {}
 
     await stderr.waitForWritten();
