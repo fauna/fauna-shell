@@ -134,7 +134,6 @@ describe("accountAPI", () => {
     {
       description: "using destination URI",
       destination: "s3://test-bucket/test/key",
-      expectedDestination: "s3://test-bucket/test/key",
     },
     {
       description: "using bucket and path",
@@ -144,11 +143,10 @@ describe("accountAPI", () => {
           path: "test/key",
         },
       },
-      expectedDestination: "s3://test-bucket/test/key",
     },
   ];
 
-  scenarios.forEach(({ description, destination, expectedDestination }) => {
+  scenarios.forEach(({ description, destination }) => {
     describe(`createExport ${description}`, () => {
       const testExport = {
         id: "419633606504219216",
@@ -194,10 +192,7 @@ describe("accountAPI", () => {
             }),
           }),
         );
-        expect(data).to.deep.equal({
-          ...testExport,
-          destination: expectedDestination,
-        });
+        expect(data).to.deep.equal(testExport);
       });
     });
   });
@@ -254,11 +249,10 @@ describe("accountAPI", () => {
 
       expect(data).to.deep.equal({
         results: [
-          { ...testExport, destination_uri: "s3://test-bucket/some/key" },
+          testExport,
           {
             ...testExport,
             state: "Complete",
-            destination_uri: "s3://test-bucket/some/key",
           },
         ],
         next_token: "456",
@@ -341,10 +335,7 @@ describe("accountAPI", () => {
           },
         }),
       );
-      expect(data).to.deep.equal({
-        ...testExport,
-        destination_uri: "s3://test-bucket/some/key",
-      });
+      expect(data).to.deep.equal(testExport);
     });
   });
 });

@@ -37,13 +37,25 @@ describe("export create s3", () => {
     {
       description: "using --destination",
       args: "--destination 's3://test-bucket/test/key'",
-      expectedDestination: "s3://test-bucket/test/key",
+      expectedDestination: {
+        s3: {
+          bucket: "test-bucket",
+          path: "/test/key",
+        },
+        uri: "s3://test-bucket/test/key",
+      },
       expectedDestArgs: "s3://test-bucket/test/key",
     },
     {
       description: "using --bucket and --path",
       args: "--bucket 'test-bucket' --path '/test/key'",
-      expectedDestination: "s3://test-bucket/test/key",
+      expectedDestination: {
+        s3: {
+          bucket: "test-bucket",
+          path: "/test/key",
+        },
+        uri: "s3://test-bucket/test/key",
+      },
       expectedDestArgs: { s3: { bucket: "test-bucket", path: "/test/key" } },
     },
   ];
@@ -69,7 +81,11 @@ describe("export create s3", () => {
 state: Pending
 database: us-std/example
 format: simple
-destination: s3://test-bucket/test/key
+destination:
+  s3:
+    bucket: test-bucket
+    path: /test/key
+  uri: s3://test-bucket/test/key
 created_at: 2025-01-02T22:59:51
 updated_at: 2025-01-02T22:59:51
 `);

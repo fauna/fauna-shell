@@ -27,7 +27,7 @@ async function listExports(argv) {
         r.id,
         r.database,
         (r.collections ?? []).join(COLLECTION_SEPARATOR),
-        r.destination_uri,
+        r.destination.uri,
         r.state,
       ];
       logger.stdout(

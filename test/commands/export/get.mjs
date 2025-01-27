@@ -13,10 +13,10 @@ const getExportStub = (opts) => ({
       bucket: "test-bucket",
       path: "some/key/prefix",
     },
+    uri: "s3://test-bucket/some/key/prefix",
   },
   created_at: "2025-01-09T19:07:25.642703Z",
   updated_at: "2025-01-09T19:07:25.642703Z",
-  destination_uri: "",
   ...opts,
 });
 
@@ -51,9 +51,9 @@ destination:
   s3:
     bucket: test-bucket
     path: some/key/prefix
+  uri: s3://test-bucket/some/key/prefix
 created_at: 2025-01-09T19:07:25.642703Z
 updated_at: 2025-01-09T19:07:25.642703Z
-destination_uri: ""
 failure:
   code: validation_error
   message: "failed to get bucket region: bucket not found"
