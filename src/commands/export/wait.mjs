@@ -1,7 +1,6 @@
 // @ts-check
 
 import { container } from "../../config/container.mjs";
-import { EXPORT_TERMINAL_STATES } from "../../lib/account-api.mjs";
 import { CommandError } from "../../lib/errors.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 import { isTTY } from "../../lib/utils.mjs";
@@ -169,7 +168,7 @@ export async function waitAndCheckExportState({
   const data = await getExport({ exportId: id });
 
   // If the export is ready, return the data
-  if (EXPORT_TERMINAL_STATES.includes(data.state)) {
+  if (data.is_terminal) {
     statusHandler(
       colorize(`${id} has a terminal state of ${data.state}.`, {
         format: Format.LOG,

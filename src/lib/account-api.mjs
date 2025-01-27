@@ -22,10 +22,6 @@ export const ExportState = {
 };
 
 export const EXPORT_STATES = Object.values(ExportState);
-export const EXPORT_TERMINAL_STATES = [
-  ExportState.Complete,
-  ExportState.Failed,
-];
 
 let accountUrl = process.env.FAUNA_ACCOUNT_URL ?? "https://account.fauna.com";
 
@@ -406,15 +402,6 @@ async function createKey({ path, role, ttl, name }) {
   return await responseHandler(response);
 }
 
-const getExportUri = (data) => {
-  const { destination, state } = data;
-  if (!destination || !state) {
-    return "";
-  }
-  const path = destination.s3.path.replace(/^\/+/, "");
-  return `s3://${destination.s3.bucket}/${path}`;
-};
-
 /**
  * Creates an export for a given database.
  *
@@ -450,7 +437,7 @@ async function createExport({
   });
 
   const data = await responseHandler(response);
-  return { ...data.response, destination_uri: getExportUri(data.response) }; // eslint-disable-line camelcase
+  return data.response;
 }
 
 /**
@@ -481,12 +468,6 @@ async function listExports({ maxResults = 100, nextToken, state } = {}) {
   });
   const { response: data } = await responseHandler(response);
 
-  if (data.results && Array.isArray(data.results)) {
-    data.results.forEach((r) => {
-      r.destination_uri = getExportUri(r); // eslint-disable-line camelcase
-    });
-  }
-
   return data;
 }
 
@@ -505,10 +486,7 @@ async function getExport({ exportId }) {
   });
   const response = await fetchWithAccountKey(url, { method: "GET" });
   const data = await responseHandler(response);
-  return {
-    ...data.response,
-    destination_uri: getExportUri(data.response), // eslint-disable-line camelcase
-  };
+  return data.response;
 }
 
 /**
