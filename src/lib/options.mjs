@@ -43,7 +43,7 @@ export const DATABASE_PATH_OPTIONS = {
     alias: "d",
     type: "string",
     description:
-      "Database, including Region Group and hierarchy, to run the command in. Ex: 'us/my_db', 'eu/parent_db/child_db', 'global/db'.",
+      "Database, including region group and hierarchy, to run the command in. Ex: 'us/my_db', 'eu/parent_db/child_db', 'global/db'.",
     group: "API:",
   },
 };

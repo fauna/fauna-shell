@@ -1,7 +1,6 @@
 // @ts-check
 
 import { container } from "../../config/container.mjs";
-import { EXPORT_TERMINAL_STATES } from "../../lib/account-api.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 import { DATABASE_PATH_OPTIONS } from "../../lib/options.mjs";
@@ -19,23 +18,28 @@ async function createS3Export(argv) {
     wait,
     maxWait,
     quiet,
+    destination,
   } = argv;
   const logger = container.resolve("logger");
   const { createExport } = container.resolve("accountAPI");
-
-  let createdExport = await createExport({
-    database,
-    collections,
-    destination: {
+  let destinationInput = destination;
+  if (!destinationInput) {
+    destinationInput = {
       s3: {
         bucket,
         path,
       },
-    },
+    };
+  }
+
+  let createdExport = await createExport({
+    database,
+    collections,
+    destination: destinationInput,
     format,
   });
 
-  if (wait && !EXPORT_TERMINAL_STATES.includes(createdExport.state)) {
+  if (wait && !createdExport.is_terminal) {
     createdExport = await waitUntilExportIsReady({
       id: createdExport.id,
       opts: {
@@ -44,7 +48,6 @@ async function createS3Export(argv) {
       },
     });
   }
-
   if (json) {
     logger.stdout(colorize(createdExport, { color, format: Format.JSON }));
   } else {
@@ -54,39 +57,52 @@ async function createS3Export(argv) {
 
 const sharedExamples = [
   [
-    "$0 export create s3 --database us/my_db --bucket doc-example-bucket --path exports/my_db",
-    "Export the 'us-std/my_db' database to the 'exports/my_db' path of the 'doc-example-bucket' S3 bucket. Outputs the export ID.",
+    "$0 export create s3 --destination s3://doc-example-bucket/exports/my_db",
+    "Export the 'us-std/my_db' database to the S3 URI 's3://doc-example-bucket/exports/my_db'.",
   ],
   [
-    "$0 export create s3 --database us/my_db --bucket doc-example-bucket --path my-prefix --json",
+    "$0 export create s3 --bucket doc-example-bucket --path exports/my_db",
+    "You can also specify the S3 location using --bucket and --path options rather than --destination.",
+  ],
+  [
+    "$0 export create s3 --destination s3://doc-example-bucket/my-prefix --json",
     "Output the full JSON of the export request.",
   ],
   [
-    "$0 export create s3 --database us/my_db --bucket doc-example-bucket --path my-prefix --collection my-collection",
+    "$0 export create s3 --destination s3://doc-example-bucket/my-prefix --collection my-collection",
     "Export the 'my-collection' collection only.",
   ],
   [
-    "$0 export create s3 --database us/my_db --bucket doc-example-bucket --path my-prefix --format tagged",
+    "$0 export create s3 --destination s3://doc-example-bucket/my-prefix --format tagged",
     "Encode the export's document data using the 'tagged' format.",
   ],
   [
-    "$0 export create s3 --database us/my_db --bucket doc-example-bucket --path my-prefix --wait --max-wait 180",
+    "$0 export create s3 --destination s3://doc-example-bucket/my-prefix --wait --max-wait 180",
     "Wait for the export to complete or fail before exiting. Waits up to 180 minutes.",
   ],
 ];
 
+const S3_URI_REGEX = /^s3:\/\/[^/]+\/.+$/;
+
 function buildCreateS3ExportCommand(yargs) {
   return yargs
     .options({
+      destination: {
+        alias: ["uri", "destination-uri"],
+        type: "string",
+        required: false,
+        description: "S3 URI in the format s3://bucket/path.",
+        group: "API:",
+      },
       bucket: {
         type: "string",
-        required: true,
+        required: false,
         description: "Name of the S3 bucket where the export will be stored.",
         group: "API:",
       },
       path: {
         type: "string",
-        required: true,
+        required: false,
         description:
           "Path prefix for the S3 bucket. Separate subfolders using a slash (`/`).",
         group: "API:",
@@ -108,7 +124,22 @@ function buildCreateS3ExportCommand(yargs) {
           "--database is required to create an export.",
         );
       }
-
+      if (argv.destination) {
+        if (argv.bucket || argv.path) {
+          throw new ValidationError(
+            "Cannot specify --destination with --bucket or --path. Use either --destination or both --bucket and --path.",
+          );
+        }
+        if (!S3_URI_REGEX.test(argv.destination)) {
+          throw new ValidationError(
+            "Invalid S3 URI format. Expected format: s3://bucket/path",
+          );
+        }
+      } else if (!argv.bucket || !argv.path) {
+        throw new ValidationError(
+          "Either --destination or both --bucket and --path are required to create an export.",
+        );
+      }
       return true;
     })
     .example(sharedExamples);

@@ -1,5 +1,4 @@
 import { container } from "../../config/container.mjs";
-import { EXPORT_TERMINAL_STATES } from "../../lib/account-api.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 import { WAIT_OPTIONS, waitUntilExportIsReady } from "./wait.mjs";
 
@@ -9,7 +8,7 @@ async function getExport(argv) {
   const { exportId, json, color, wait, maxWait, quiet } = argv;
 
   let response = await getExport({ exportId });
-  if (wait && !EXPORT_TERMINAL_STATES.includes(response.state)) {
+  if (wait && !response.is_terminal) {
     response = await waitUntilExportIsReady({
       id: exportId,
       opts: {

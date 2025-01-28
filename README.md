@@ -22,7 +22,8 @@ You can use the CLI to:
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/en/download/package-manager) v20.x or later.
+- [Node.js](https://nodejs.org/en/download/package-manager) v20.18 or later.
+  - [Node.js](https://nodejs.org/en/download/package-manager) v22 or later recommended.
 - A Fauna account. You can sign up for a free account at https://dashboard.fauna.com/register.
 
 ## Quick start
@@ -55,7 +56,7 @@ To get started:
 
    ```shell
    # Runs a query in the top-level 'my_db' database
-   # in the 'us' Region Group. Use the default admin role.
+   # in the 'us' region group. Use the default admin role.
    fauna query "Collection.all()" \
      --database us/my_db
    ```
