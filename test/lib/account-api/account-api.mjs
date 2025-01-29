@@ -192,7 +192,88 @@ describe("accountAPI", () => {
             }),
           }),
         );
-        expect(data).to.deep.equal(testExport);
+        expect(data).to.deep.equal({
+          ...testExport,
+          idempotent_replayed: false,
+        });
+      });
+
+      it("should call the endpoint and handle idempotent replay", async () => {
+        fetch
+          .withArgs(
+            sinon.match({ href: "https://account.fauna.com/v2/exports" }),
+            sinon.match({ method: "POST" }),
+          )
+          .resolves(
+            f({ response: testExport }, 201, { "Idempotent-Replayed": "true" }),
+          );
+
+        const data = await accountAPI.createExport({
+          database: "us/demo",
+          format: "simple",
+          destination: {
+            s3: {
+              bucket: "test-bucket",
+              path: "test/key",
+            },
+          },
+          idempotency: "Foo",
+        });
+
+        expect(fetch).to.have.been.calledWith(
+          sinon.match({ href: "https://account.fauna.com/v2/exports" }),
+          sinon.match({
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer some-account-key",
+              "Idempotency-Key": "Foo",
+            },
+            body: JSON.stringify({
+              database: "us-std/demo",
+              destination: {
+                s3: {
+                  bucket: "test-bucket",
+                  path: "test/key",
+                },
+              },
+              format: "simple",
+            }),
+          }),
+        );
+        expect(data).to.deep.equal({
+          ...testExport,
+          idempotent_replayed: true,
+        });
+      });
+
+      it("should handle non-idempotent replay", async () => {
+        fetch
+          .withArgs(
+            sinon.match({ href: "https://account.fauna.com/v2/exports" }),
+            sinon.match({ method: "POST" }),
+          )
+          .resolves(
+            f({ response: testExport }, 201, {
+              "Idempotent-Replayed": "false",
+            }),
+          );
+
+        const data = await accountAPI.createExport({
+          database: "us/demo",
+          format: "simple",
+          destination: {
+            s3: {
+              bucket: "test-bucket",
+              path: "test/key",
+            },
+          },
+        });
+
+        expect(data).to.deep.equal({
+          ...testExport,
+          idempotent_replayed: false,
+        });
       });
     });
   });

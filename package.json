@@ -87,7 +87,8 @@
     "build:sea": "node ./sea/build.cjs",
     "format": "prettier -w --log-level silent .",
     "format:check": "prettier -c .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "pr-check": "npm run format:check && npm run lint && npm run test"
   },
   "husky": {
     "hooks": {
