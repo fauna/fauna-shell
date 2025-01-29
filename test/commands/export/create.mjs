@@ -68,6 +68,7 @@ describe("export create s3", () => {
           database,
           destination: expectedDestination,
           format: "simple",
+          idempotent_replayed: false,
         });
         createExport.resolves(stubbedResponse);
 
@@ -88,13 +89,46 @@ destination:
   uri: s3://test-bucket/test/key
 created_at: 2025-01-02T22:59:51
 updated_at: 2025-01-02T22:59:51
+idempotent_replayed: false
 `);
         expect(createExport).to.have.been.calledWith({
           database,
           collections: [],
           destination: expectedDestArgs,
           format: "simple",
+          idempotency: undefined,
         });
+      });
+
+      it(`handles idempotent replay with idempotent_replayed: true ${description}`, async () => {
+        const database = "us-std/example";
+        const stubbedResponse = createExportStub({
+          database,
+          destination: expectedDestination,
+          format: "simple",
+          idempotent_replayed: true,
+        });
+        createExport.resolves(stubbedResponse);
+
+        await run(
+          `export create s3 --database '${database}' ${args} --idempotency XYZ`,
+          container,
+        );
+        await stdout.waitForWritten();
+
+        expect(stdout.getWritten()).to.equal(`id: test-export-id
+state: Pending
+database: us-std/example
+format: simple
+destination:
+  s3:
+    bucket: test-bucket
+    path: /test/key
+  uri: s3://test-bucket/test/key
+created_at: 2025-01-02T22:59:51
+updated_at: 2025-01-02T22:59:51
+idempotent_replayed: true
+`);
       });
 
       it(`outputs the full response with --json ${description}`, async () => {

@@ -19,6 +19,7 @@ async function createS3Export(argv) {
     maxWait,
     quiet,
     destination,
+    idempotency,
   } = argv;
   const logger = container.resolve("logger");
   const { createExport } = container.resolve("accountAPI");
@@ -37,6 +38,7 @@ async function createS3Export(argv) {
     collections,
     destination: destinationInput,
     format,
+    idempotency,
   });
 
   if (wait && !createdExport.is_terminal) {
@@ -63,6 +65,10 @@ const sharedExamples = [
   [
     "$0 export create s3 --bucket doc-example-bucket --path exports/my_db",
     "You can also specify the S3 location using --bucket and --path options rather than --destination.",
+  ],
+  [
+    "$0 export create s3 --destination s3://doc-example-bucket/my-prefix --idempotency f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "Set the idempotency key for the request, prevents replaying the same requests within 24 hours.",
   ],
   [
     "$0 export create s3 --destination s3://doc-example-bucket/my-prefix --json",
@@ -115,6 +121,13 @@ function buildCreateS3ExportCommand(yargs) {
           "Data format used to encode the exported FQL document data as JSON.",
         choices: ["simple", "tagged"],
         default: "simple",
+        group: "API:",
+      },
+      idempotency: {
+        type: "string",
+        required: false,
+        description:
+          "Set the idempotency key for the request, prevents replaying the same requests within 24 hours.",
         group: "API:",
       },
     })
