@@ -203,12 +203,12 @@ idempotent_replayed: true
     {
       description: "an empty string is given as the --idempotency input",
       args: "--destination s3://test-bucket/test/key --idempotency ",
-      expectedError: "--idempotency cannot be an empty string.",
+      expectedError: "--idempotency can't be an empty string.",
     },
     {
       description: "an blank string is given as the --idempotency input",
       args: "--destination s3://test-bucket/test/key --idempotency '  '",
-      expectedError: "--idempotency cannot be an empty string.",
+      expectedError: "--idempotency can't be an empty string.",
     },
   ];
 
