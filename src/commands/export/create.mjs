@@ -68,7 +68,7 @@ const sharedExamples = [
   ],
   [
     "$0 export create s3 --destination s3://doc-example-bucket/my-prefix --idempotency f47ac10b-58cc-4372-a567-0e02b2c3d479",
-    "Set the idempotency key for the request, prevents replaying the same requests within 24 hours.",
+    "Set an idempotency key. Avoids reprocessing successful requests with the same key for 24 hours",
   ],
   [
     "$0 export create s3 --destination s3://doc-example-bucket/my-prefix --json",
@@ -127,7 +127,7 @@ function buildCreateS3ExportCommand(yargs) {
         type: "string",
         required: false,
         description:
-          "Set the idempotency key for the request, prevents replaying the same requests within 24 hours.",
+          "Idempotency key. Avoids reprocessing successful requests with the same key for 24 hours.",
         group: "API:",
       },
     })
@@ -155,7 +155,7 @@ function buildCreateS3ExportCommand(yargs) {
         );
       }
       if (argv.idempotency?.trim() === "") {
-        throw new ValidationError("--idempotency cannot be an empty string.");
+        throw new ValidationError("--idempotency can't be an empty string.");
       }
       return true;
     })
