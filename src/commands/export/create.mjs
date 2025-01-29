@@ -3,7 +3,7 @@
 import { container } from "../../config/container.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
-import { DATABASE_PATH_OPTIONS } from "../../lib/options.mjs";
+import { DATABASE_PATH_OPTIONS, FORMAT_OPTIONS } from "../../lib/options.mjs";
 import { WAIT_OPTIONS, waitUntilExportIsReady } from "./wait.mjs";
 
 async function createS3Export(argv) {
@@ -86,6 +86,7 @@ const S3_URI_REGEX = /^s3:\/\/[^/]+\/.+$/;
 
 function buildCreateS3ExportCommand(yargs) {
   return yargs
+    .options(FORMAT_OPTIONS)
     .options({
       destination: {
         alias: ["uri", "destination-uri"],

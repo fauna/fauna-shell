@@ -2,6 +2,15 @@
 
 import { Format } from "./formatting/colorize.mjs";
 
+export const FORMAT_OPTIONS = {
+  json: {
+    type: "boolean",
+    description: "Output the results as JSON.",
+    default: false,
+    group: "Output:",
+  },
+};
+
 /**
  * Options required for any command making API requests to the Account API
  */

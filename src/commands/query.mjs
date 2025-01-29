@@ -19,6 +19,7 @@ import {
   ACCOUNT_OPTIONS,
   CORE_OPTIONS,
   DATABASE_PATH_OPTIONS,
+  FORMAT_OPTIONS,
   QUERY_OPTIONS,
 } from "../lib/options.mjs";
 import { isTTY, resolveFormat } from "../lib/utils.mjs";
@@ -157,6 +158,7 @@ function buildQueryCommand(yargs) {
     .options(DATABASE_PATH_OPTIONS)
     .options(CORE_OPTIONS)
     .options(QUERY_OPTIONS)
+    .options(FORMAT_OPTIONS)
     .middleware(resolveIncludeOptions)
     .positional("fql", {
       type: "string",

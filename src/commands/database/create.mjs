@@ -7,6 +7,7 @@ import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { getSecret, retryInvalidCredsOnce } from "../../lib/fauna-client.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
 import { validateDatabaseOrSecret } from "../../lib/middleware.mjs";
+import { FORMAT_OPTIONS } from "../../lib/options.mjs";
 
 async function runCreateQuery(secret, argv) {
   const { fql } = container.resolve("fauna");
@@ -77,6 +78,7 @@ async function createDatabase(argv) {
 
 function buildCreateCommand(yargs) {
   return yargs
+    .options(FORMAT_OPTIONS)
     .options({
       name: {
         type: "string",
