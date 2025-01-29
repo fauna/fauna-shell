@@ -200,6 +200,16 @@ idempotent_replayed: true
       expectedError:
         "Cannot specify --destination with --bucket or --path. Use either --destination or both --bucket and --path.",
     },
+    {
+      description: "an empty string is given as the --idempotency input",
+      args: "--destination s3://test-bucket/test/key --idempotency ",
+      expectedError: "--idempotency cannot be an empty string.",
+    },
+    {
+      description: "an blank string is given as the --idempotency input",
+      args: "--destination s3://test-bucket/test/key --idempotency '  '",
+      expectedError: "--idempotency cannot be an empty string.",
+    },
   ];
 
   invalidScenarios.forEach(({ description, args, expectedError }) => {

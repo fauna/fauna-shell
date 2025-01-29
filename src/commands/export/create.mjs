@@ -154,6 +154,9 @@ function buildCreateS3ExportCommand(yargs) {
           "Either --destination or both --bucket and --path are required to create an export.",
         );
       }
+      if (argv.idempotency?.trim() === "") {
+        throw new ValidationError("--idempotency cannot be an empty string.");
+      }
       return true;
     })
     .example(sharedExamples);
