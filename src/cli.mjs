@@ -8,6 +8,7 @@ import chalk from "chalk";
 import yargs from "yargs";
 
 import databaseCommand from "./commands/database/database.mjs";
+import initCommand from "./commands/init.mjs";
 import localCommand from "./commands/local.mjs";
 import loginCommand from "./commands/login.mjs";
 import queryCommand from "./commands/query.mjs";
@@ -118,6 +119,7 @@ function buildYargs(argvInput) {
     .command(schemaCommand)
     .command(databaseCommand)
     .command(localCommand)
+    .command(initCommand)
     .demandCommand()
     .strictCommands(true)
     .completion(
@@ -200,7 +202,15 @@ function buildYargs(argvInput) {
           "Components to emit logs for. Overrides the --verbosity flag. Pass values as a space-separated list. Ex: --verbose-component fetch error.",
         type: "array",
         default: [],
-        choices: ["argv", "completion", "config", "creds", "error", "fetch"],
+        choices: [
+          "argv",
+          "command",
+          "completion",
+          "config",
+          "creds",
+          "error",
+          "fetch",
+        ],
         group: "Debug:",
       },
       verbosity: {
