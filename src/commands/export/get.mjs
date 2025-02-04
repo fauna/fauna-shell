@@ -1,5 +1,6 @@
 import { container } from "../../config/container.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
+import { FORMAT_OPTIONS } from "../../lib/options.mjs";
 import { WAIT_OPTIONS, waitUntilExportIsReady } from "./wait.mjs";
 
 async function getExport(argv) {
@@ -34,6 +35,7 @@ function buildGetExportCommand(yargs) {
       required: true,
     })
     .options(WAIT_OPTIONS)
+    .options(FORMAT_OPTIONS)
     .example([
       [
         "$0 export get 123456789",

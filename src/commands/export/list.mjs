@@ -1,6 +1,7 @@
 import { container } from "../../config/container.mjs";
 import { EXPORT_STATES } from "../../lib/account-api.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
+import { FORMAT_OPTIONS } from "../../lib/options.mjs";
 
 const COLUMN_SEPARATOR = "\t";
 const COLLECTION_SEPARATOR = ",";
@@ -42,6 +43,7 @@ async function listExports(argv) {
 
 function buildListExportsCommand(yargs) {
   return yargs
+    .options(FORMAT_OPTIONS)
     .options({
       "max-results": {
         alias: "max",

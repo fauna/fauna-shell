@@ -187,12 +187,6 @@ function buildYargs(argvInput) {
         description: "Profile from the CLI config file to use.",
         group: "Config:",
       },
-      json: {
-        type: "boolean",
-        description: "Output the results as JSON.",
-        default: false,
-        group: "Output:",
-      },
       quiet: {
         type: "boolean",
         description:

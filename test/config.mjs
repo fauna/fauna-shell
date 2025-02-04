@@ -363,7 +363,6 @@ describe("configuration file", function () {
         pathMatcher: path.join(__dirname, "../fauna.config.yaml"),
         argvMatcher: sinon.match({
           color: true,
-          json: false,
           quiet: false,
         }),
         configToReturn: defaultConfig,

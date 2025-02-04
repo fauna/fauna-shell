@@ -3,7 +3,7 @@
 import { container } from "../../config/container.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
-import { DATABASE_PATH_OPTIONS } from "../../lib/options.mjs";
+import { DATABASE_PATH_OPTIONS, FORMAT_OPTIONS } from "../../lib/options.mjs";
 import { WAIT_OPTIONS, waitUntilExportIsReady } from "./wait.mjs";
 
 async function createS3Export(argv) {
@@ -19,6 +19,7 @@ async function createS3Export(argv) {
     maxWait,
     quiet,
     destination,
+    idempotency,
   } = argv;
   const logger = container.resolve("logger");
   const { createExport } = container.resolve("accountAPI");
@@ -37,6 +38,7 @@ async function createS3Export(argv) {
     collections,
     destination: destinationInput,
     format,
+    idempotency,
   });
 
   if (wait && !createdExport.is_terminal) {
@@ -65,6 +67,10 @@ const sharedExamples = [
     "You can also specify the S3 location using --bucket and --path options rather than --destination.",
   ],
   [
+    "$0 export create s3 --destination s3://doc-example-bucket/my-prefix --idempotency f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "Set an idempotency key. Avoids reprocessing successful requests with the same key for 24 hours",
+  ],
+  [
     "$0 export create s3 --destination s3://doc-example-bucket/my-prefix --json",
     "Output the full JSON of the export request.",
   ],
@@ -86,6 +92,7 @@ const S3_URI_REGEX = /^s3:\/\/[^/]+\/.+$/;
 
 function buildCreateS3ExportCommand(yargs) {
   return yargs
+    .options(FORMAT_OPTIONS)
     .options({
       destination: {
         alias: ["uri", "destination-uri"],
@@ -116,6 +123,13 @@ function buildCreateS3ExportCommand(yargs) {
         default: "simple",
         group: "API:",
       },
+      idempotency: {
+        type: "string",
+        required: false,
+        description:
+          "Idempotency key. Avoids reprocessing successful requests with the same key for 24 hours.",
+        group: "API:",
+      },
     })
     .options(WAIT_OPTIONS)
     .check((argv) => {
@@ -139,6 +153,9 @@ function buildCreateS3ExportCommand(yargs) {
         throw new ValidationError(
           "Either --destination or both --bucket and --path are required to create an export.",
         );
+      }
+      if (argv.idempotency?.trim() === "") {
+        throw new ValidationError("--idempotency can't be an empty string.");
       }
       return true;
     })

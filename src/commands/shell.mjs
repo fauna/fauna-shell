@@ -16,6 +16,7 @@ import {
   ACCOUNT_OPTIONS,
   CORE_OPTIONS,
   DATABASE_PATH_OPTIONS,
+  FORMAT_OPTIONS,
   QUERY_INFO_CHOICES,
   QUERY_OPTIONS,
 } from "../lib/options.mjs";
@@ -240,6 +241,7 @@ function buildShellCommand(yargs) {
     .options(DATABASE_PATH_OPTIONS)
     .options(CORE_OPTIONS)
     .options(QUERY_OPTIONS)
+    .options(FORMAT_OPTIONS)
     .middleware(resolveIncludeOptions)
     .example([
       [

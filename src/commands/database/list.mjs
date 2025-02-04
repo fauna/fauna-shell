@@ -4,6 +4,7 @@ import chalk from "chalk";
 import { container } from "../../config/container.mjs";
 import { faunaToCommandError } from "../../lib/fauna.mjs";
 import { colorize, Format } from "../../lib/formatting/colorize.mjs";
+import { FORMAT_OPTIONS } from "../../lib/options.mjs";
 
 async function listDatabasesWithAccountAPI(argv) {
   const { pageSize, database } = argv;
@@ -49,8 +50,9 @@ export async function listDatabases(argv) {
 async function doListDatabases(argv) {
   const logger = container.resolve("logger");
   const res = await listDatabases(argv);
+  const { json, color, secret } = argv;
 
-  if (argv.secret) {
+  if (secret) {
     logger.stderr(
       chalk.yellow(
         "Warning: Full database paths are not available when using --secret. Use --database if a full path, including the region group identifier and hierarchy, is needed.",
@@ -58,12 +60,12 @@ async function doListDatabases(argv) {
     );
   }
 
-  if (argv.json) {
-    logger.stdout(colorize(res, { format: Format.JSON, color: argv.color }));
+  if (json) {
+    logger.stdout(colorize(res, { format: Format.JSON, color: color }));
   } else {
     res.forEach(({ path, name }) => {
       logger.stdout(
-        colorize(path ?? name, { format: Format.CSV, color: argv.color }),
+        colorize(path ?? name, { format: Format.CSV, color: color }),
       );
     });
   }
@@ -71,6 +73,7 @@ async function doListDatabases(argv) {
 
 function buildListCommand(yargs) {
   return yargs
+    .options(FORMAT_OPTIONS)
     .options({
       "page-size": {
         type: "number",
