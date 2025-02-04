@@ -413,6 +413,7 @@ async function createKey({ path, role, ttl, name }) {
  * @param {string} params.destination.s3.bucket - The name of the S3 bucket to export to.
  * @param {string} params.destination.s3.path - The key prefix to export to.
  * @param {string} params.format - The format for the export.
+ * @param {string | undefined} params.idempotency - The idempotency key, if any, to use in the request
  * @returns {Promise<Object>} - A promise that resolves when the export is created.
  * @throws {AuthorizationError | AuthenticationError | CommandError | Error} If the response is not OK
  */
@@ -421,12 +422,14 @@ async function createExport({
   destination,
   format,
   collections = undefined,
+  idempotency,
 }) {
   const url = toResource({ endpoint: "/exports", version: API_VERSIONS.v2 });
   const response = await fetchWithAccountKey(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...(idempotency !== undefined && { "Idempotency-Key": idempotency }),
     },
     body: JSON.stringify({
       database: standardizeRegion(database),
@@ -437,7 +440,10 @@ async function createExport({
   });
 
   const data = await responseHandler(response);
-  return data.response;
+  const idempotentReplayed =
+    response.headers.get("Idempotent-Replayed") === "true";
+  // eslint-disable-next-line camelcase
+  return { ...data.response, idempotent_replayed: idempotentReplayed };
 }
 
 /**
