@@ -338,7 +338,7 @@ describe("shell", function () {
 
     it.skip("does not colorize output if --no-color is used", async function () {});
 
-    it("can open a shell and run several queries with options", async function () {
+    it("can open a shell and run queries with options", async function () {
       runQueryFromString.resolves(v10Object1);
       let query = "Database.all().take(1)";
 
