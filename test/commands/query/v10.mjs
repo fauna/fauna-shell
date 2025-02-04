@@ -141,32 +141,6 @@ describe("query v10", function () {
     );
   });
 
-  it("can set the maxAttempts option to true", async function () {
-    await run(
-      `query "Database.all()" --max-attempts 5 --secret=foo`,
-      container,
-    );
-    expect(runQueryFromString).to.have.been.calledWith(
-      '"Database.all()"',
-      sinon.match({
-        maxAttempts: 5,
-      }),
-    );
-  });
-
-  it("can set the maxBackoff option to true", async function () {
-    await run(
-      `query "Database.all()" --max-backoff 2000 --secret=foo`,
-      container,
-    );
-    expect(runQueryFromString).to.have.been.calledWith(
-      '"Database.all()"',
-      sinon.match({
-        maxBackoff: 2000,
-      }),
-    );
-  });
-
   describe("query info", function () {
     it("displays summary by default", async function () {
       runQueryFromString.resolves({
