@@ -68,7 +68,7 @@ function buildListExportsCommand(yargs) {
       ["$0 export list --json", "List exports in JSON format."],
       ["$0 export list --max-results 50", "List up to 50 exports."],
       [
-        "$0 export list --states Pending Complete",
+        "$0 export list --state Pending Complete",
         "List exports in the 'Pending' or 'Complete' state.",
       ],
     ]);
