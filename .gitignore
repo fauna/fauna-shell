@@ -20,9 +20,9 @@ test-results.xml
 /test/test-homedir
 
 # default fauna config file names
-fauna.config.yaml,
-fauna.config.yml,
-fauna.config.json,
-.fauna.config.yaml,
-.fauna.config.yml,
-.fauna.config.json,
+fauna.config.yaml
+fauna.config.yml
+fauna.config.json
+.fauna.config.yaml
+.fauna.config.yml
+.fauna.config.json

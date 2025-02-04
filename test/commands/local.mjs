@@ -184,14 +184,11 @@ Please pass a --host-port other than '8443'.",
       await run(`local --no-color ${args}`, container);
 
       expect(gatherFSL).to.have.been.calledWith("bar");
-      expect(fetch).to.have.been.calledWith(
-        `${baseUrl}/update?force=true&staged=false`,
-        {
-          method: "POST",
-          headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
-          body: reformatFSL(fsl),
-        },
-      );
+      expect(fetch).to.have.been.calledWith(`${baseUrl}/update?staged=false`, {
+        method: "POST",
+        headers: { AUTHORIZATION: "Bearer secret:Foo:admin" },
+        body: reformatFSL(fsl),
+      });
       const written = stderrStream.getWritten();
       expect(written).to.contain(
         "[CreateDatabaseSchema] Schema for database 'Foo' created from directory './bar'.",
