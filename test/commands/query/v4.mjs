@@ -103,6 +103,20 @@ describe("query v4", function () {
     );
   });
 
+  it("can set various query options", async function () {
+    await run(
+      `query "Collection('test')" --apiVersion 4 --secret=foo --timeout 10000 --max-contention-retries 3`,
+      container,
+    );
+    expect(runQueryFromString).to.have.been.calledWith(
+      sinon.match(""),
+      sinon.match({
+        timeout: 10000,
+        maxContentionRetries: 3,
+      }),
+    );
+  });
+
   describe("query info", function () {
     it("displays metrics if `--include stats` is used", async function () {
       const testResponse = createV4QuerySuccess("test response");
