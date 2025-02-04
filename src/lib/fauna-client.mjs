@@ -70,7 +70,6 @@ export const runQueryFromString = (expression, argv) => {
       }),
     );
   } else {
-
     const {
       secret,
       url,
