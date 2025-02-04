@@ -47,8 +47,7 @@ describe("schema diff", function () {
     expect(fetch).to.have.been.calledWith(
       buildUrl("/schema/1/diff", {
         color: "ansi",
-        diff: "semantic",
-        force: "true",
+        format: "semantic",
         staged: "true",
       }),
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
@@ -74,8 +73,7 @@ describe("schema diff", function () {
     expect(fetch).to.have.been.calledWith(
       buildUrl("/schema/1/diff", {
         color: "ansi",
-        diff: "semantic",
-        force: "true",
+        format: "semantic",
         staged: "false",
       }),
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
@@ -100,9 +98,8 @@ describe("schema diff", function () {
     });
     expect(fetch).to.have.been.calledWith(
       buildUrl("/schema/1/diff", {
-        force: "true",
         staged: "true",
-        diff: "semantic",
+        format: "semantic",
       }),
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
@@ -126,10 +123,9 @@ describe("schema diff", function () {
     );
     expect(fetch).to.have.been.calledWith(
       buildUrl("/schema/1/diff", {
-        force: "true",
         color: "ansi",
         staged: "true",
-        diff: "semantic",
+        format: "semantic",
       }),
       { ...commonFetchParams, method: "POST", body: reformatFSL(fsl) },
     );
