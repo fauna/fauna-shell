@@ -124,7 +124,7 @@ describe("query v10", function () {
 
   it("can set various query options", async function () {
     await run(
-      `query "Database.all()" --secret=foo --typecheck --performance-hints --max-attempts 5 --max-backoff 2000 --timeout 10000 --max-contention-retries 3`,
+      `query "Database.all()" --secret=foo --typecheck --performance-hints --max-attempts 5 --max-backoff 2 --timeout 10000 --max-contention-retries 3`,
       container,
     );
 
@@ -135,7 +135,7 @@ describe("query v10", function () {
         typecheck: true,
         performanceHints: true,
         maxAttempts: 5,
-        maxBackoff: 2000,
+        maxBackoff: 2,
         maxContentionRetries: 3,
       }),
     );

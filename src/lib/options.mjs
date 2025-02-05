@@ -143,7 +143,7 @@ export const QUERY_OPTIONS = {
   "max-backoff": {
     type: "number",
     description:
-      "Maximum backoff time (in milliseconds) between retry attempts. Only applies to v10 queries.",
+      "Maximum backoff time, in seconds, between retry attempts. Only applies to v10 queries.",
     default: undefined,
     group: "API:",
   },
