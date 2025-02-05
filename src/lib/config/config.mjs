@@ -3,6 +3,7 @@ import yargsParser from "yargs-parser";
 
 import { container } from "../../config/container.mjs";
 import { ValidationError } from "../errors.mjs";
+import { redactedStringify } from "../formatting/redact.mjs";
 
 export const validDefaultConfigNames = [
   "fauna.config.yaml",
@@ -156,7 +157,7 @@ export function configParser(argvInput, path) {
   validateConfig(profile, parsedProfile, parsedPath);
 
   logger.debug(
-    `Applying config: ${JSON.stringify(parsedProfile, null, 4)}`,
+    `Applying config: ${redactedStringify(parsedProfile, null, 4)}`,
     "config",
   );
 
