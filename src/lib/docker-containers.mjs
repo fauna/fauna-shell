@@ -2,7 +2,7 @@ import { container } from "../config/container.mjs";
 import { CommandError, SUPPORT_MESSAGE } from "./errors.mjs";
 import { colorize, Format } from "./formatting/colorize.mjs";
 
-const IMAGE_NAME = "fauna/faunadb:latest";
+const IMAGE_NAME = "231528013755.dkr.ecr.us-east-2.amazonaws.com/database-core-internal-docker-image:6.0.0";
 let color = false;
 
 /**
@@ -74,7 +74,13 @@ async function pullImage(imageName) {
   stderr(`[PullImage] Pulling image '${imageName}'...`);
 
   try {
-    const stream = await docker.pull(imageName);
+    const stream = await docker.pull(imageName, {
+      authconfig: {
+        username: "AWS",
+        password: "YOUR PASSWORD HERE",
+        serveraddress: "231528013755.dkr.ecr.us-east-2.amazonaws.com"
+      }
+    });
     const layers = {}; // To track progress by layer
     let numLines = 0; // Tracks the number of lines being displayed
     let lastUpdate = 0;

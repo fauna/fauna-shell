@@ -187,7 +187,8 @@ function buildLocalCommand(yargs) {
       name: {
         describe: "Name for the container.",
         type: "string",
-        default: "faunadb",
+        // changed temporarily to allow for new image testing
+        default: "faunadb-new-image",
       },
       pull: {
         describe: "Pull the latest image before starting the container.",
