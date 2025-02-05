@@ -133,11 +133,32 @@ export const QUERY_OPTIONS = {
     default: false,
     group: "API:",
   },
+  "max-attempts": {
+    type: "number",
+    description:
+      "Maximum number of retry attempts when queries fail with throttling errors. Only applies to v10 queries.",
+    default: undefined,
+    group: "API:",
+  },
+  "max-backoff": {
+    type: "number",
+    description:
+      "Maximum backoff time (in milliseconds) between retry attempts. Only applies to v10 queries.",
+    default: undefined,
+    group: "API:",
+  },
+  "max-contention-retries": {
+    type: "number",
+    description:
+      "Maximum number of retry attempts when queries fail with contention errors.",
+    default: undefined,
+    group: "API:",
+  },
   include: {
     type: "array",
     choices: ["all", "none", ...QUERY_INFO_CHOICES],
     default: ["summary"],
-    describe:
+    description:
       "Query response info to output. Pass values as a space-separated list. Ex: --include summary queryTags.",
   },
 };

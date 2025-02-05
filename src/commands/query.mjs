@@ -92,6 +92,9 @@ async function queryCommand(argv) {
     performanceHints,
     color,
     include,
+    maxAttempts,
+    maxBackoff,
+    maxContentionRetries,
   } = argv;
 
   // resolve the input
@@ -114,6 +117,9 @@ async function queryCommand(argv) {
       performanceHints,
       format: outputFormat,
       color: useColor,
+      maxAttempts,
+      maxBackoff,
+      maxContentionRetries,
     });
 
     if (include.length > 0) {

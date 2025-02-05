@@ -338,25 +338,33 @@ describe("shell", function () {
 
     it.skip("does not colorize output if --no-color is used", async function () {});
 
-    it.skip("can eval a query with typechecking enabled", async function () {
-      container.resolve("performV10Query").resolves(v10Object1);
+    it("can open a shell and run queries with options", async function () {
+      runQueryFromString.resolves(v10Object1);
       let query = "Database.all().take(1)";
 
-      // start the shell
-      const runPromise = run(`shell --secret "secret" --typecheck`, container);
+      const runPromise = run(
+        "shell --secret=foo --typecheck --performance-hints --max-attempts 5 --max-backoff 2000 --timeout 10000 --max-contention-retries 3",
+        container,
+      );
 
       // send one command
       stdin.push(`${query}\n`);
       stdin.push(null);
       await stdout.waitForWritten();
-      await runPromise;
 
-      expect(container.resolve("performV10Query")).to.have.been.calledWith(
+      expect(runQueryFromString).to.have.been.calledWith(
         sinon.match.any,
-        sinon.match(query),
-        undefined,
-        sinon.match({ version: "10", typecheck: true }),
+        sinon.match({
+          timeout: 10000,
+          typecheck: true,
+          performanceHints: true,
+          maxAttempts: 5,
+          maxBackoff: 2000,
+          maxContentionRetries: 3,
+        }),
       );
+
+      return runPromise;
     });
 
     it("can display performance hints", async function () {

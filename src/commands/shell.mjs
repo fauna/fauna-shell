@@ -158,12 +158,23 @@ async function buildCustomEval(argv) {
 
   return async (cmd, ctx, _filename, cb) => {
     try {
-      const logger = container.resolve("logger");
-
       if (cmd.trim() === "") return cb();
 
+      const logger = container.resolve("logger");
+
+      const secret = await getSecret(argv);
+
       // These are options used for querying and formatting the response
-      const { apiVersion, color } = argv;
+      const {
+        apiVersion,
+        color,
+        timeout,
+        typecheck,
+        url,
+        maxAttempts,
+        maxBackoff,
+        maxContentionRetries,
+      } = argv;
       const include = getArgvOrCtx("include", argv, ctx);
       const performanceHints = getArgvOrCtx("performanceHints", argv, ctx);
 
@@ -180,9 +191,6 @@ async function buildCustomEval(argv) {
 
       let res;
       try {
-        const secret = await getSecret(argv);
-        const { color, timeout, typecheck, url } = argv;
-
         res = await runQueryFromString(cmd, {
           apiVersion,
           secret,
@@ -191,6 +199,9 @@ async function buildCustomEval(argv) {
           typecheck,
           performanceHints,
           format: outputFormat,
+          maxAttempts,
+          maxBackoff,
+          maxContentionRetries,
         });
 
         // If any query info should be displayed, print to stderr.
