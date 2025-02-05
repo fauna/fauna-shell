@@ -205,7 +205,7 @@ async function buildCustomEval(argv) {
         });
 
         // If any query info should be displayed, print to stderr.
-        if (include && include.length > 0) {
+        if (include.length > 0) {
           const queryInfo = formatQueryInfo(res, {
             apiVersion,
             color,

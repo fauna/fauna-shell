@@ -122,7 +122,7 @@ async function queryCommand(argv) {
       maxContentionRetries,
     });
 
-    if (include && include.length > 0) {
+    if (include.length > 0) {
       const queryInfo = formatQueryInfo(results, {
         apiVersion,
         color: useColor,
