@@ -343,7 +343,7 @@ describe("shell", function () {
       let query = "Database.all().take(1)";
 
       const runPromise = run(
-        "shell --secret=foo --typecheck --performance-hints --max-attempts 5 --max-backoff 2000 --timeout 10000 --max-contention-retries 3",
+        "shell --secret=foo --typecheck --performance-hints --max-attempts 5 --max-backoff 2 --timeout 10000 --max-contention-retries 3",
         container,
       );
 
@@ -359,7 +359,7 @@ describe("shell", function () {
           typecheck: true,
           performanceHints: true,
           maxAttempts: 5,
-          maxBackoff: 2000,
+          maxBackoff: 2,
           maxContentionRetries: 3,
         }),
       );
