@@ -122,7 +122,7 @@ export const QUERY_OPTIONS = {
   timeout: {
     type: "number",
     description:
-      "Maximum query runtime in milliseconds. Only applies to v10 queries.",
+      "Maximum query runtime in milliseconds.",
     default: 5000,
     group: "API:",
   },
