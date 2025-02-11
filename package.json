@@ -28,6 +28,7 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.12",
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.16.0",
     "@fauna/ts-dev-utils": "^0.0.16",
