@@ -2,6 +2,6 @@
 "fauna-shell": patch
 ---
 
-Fix incorrect nodeJS minimum version
+Fix incorrect minimum Node.js version
 
-The documentation and package.json's "engine" field asserted that the CLI could be run with versions of nodeJS >= 20.x.x, but it makes use of APIs (specifically, the single-executable application API) that aren't available until nodeJS >= 20.18.x. This change updates the docs, "engines" field in the package.json file, and changes our test runner to test at 20.18 instead of the latest 20.x to prevent additions of further backwards-incompatible changes.
+The documentation and package.json's "engines" field previously stated that the CLI could be run with Node.js 20.x.x or later. However, the CLI uses APIs, such as the single-executable application (SEA) API, that aren't available until Node.js 20.18.x. This change updates the documentation, the "engines" field of package.json, and the test runner to test against Node.js 20.18.x to prevent further backward-incompatible changes.

@@ -2,9 +2,9 @@
 "fauna-shell": patch
 ---
 
-Remove `--json` flag on commands that don't support it.
+Remove the `--json` flag from commands that don't support it.
 
-The `--json` flag was presented as an option at the top level (modifying all commands), but only has an effect for a subset of commands. After this change, only the following commands have a `--json` field:
+The `--json` flag was implemented as a top-level option, implying it could be used with all commands. However, it only has an effect for a subset of commands. After this change, only the following commands support the `--json` flag:
 
 - database create
 - database list

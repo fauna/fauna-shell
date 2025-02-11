@@ -2,7 +2,7 @@
 "fauna-shell": patch
 ---
 
-Improve export user experience.
+Improve the export user experience.
 
-- Export create now allows users to provide S3 URIs as a target to export to (with the flag `--desination`) in addition to providing each part independently (`--bucket`, `--path`)
-- Export create now supports user-provided idempotency tokens. Customers can use this to retry failed requests without triggering additional export workflows.
+- `fauna export create` allows you to provide a target S3 URI with the `--destination` flag. Previously, you had to provide both the `--bucket` and `--path` separately.
+- `fauna export create` now supports custom idempotency tokens with the `--idempotency` flag. You can use the flag to retry requests without triggering duplicate exports.
