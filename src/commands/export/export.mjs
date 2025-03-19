@@ -1,6 +1,3 @@
-import chalk from "chalk";
-
-import { container } from "../../config/container.mjs";
 import { ValidationError } from "../../lib/errors.mjs";
 import { ACCOUNT_OPTIONS } from "../../lib/options.mjs";
 import createCommand from "./create.mjs";
@@ -33,14 +30,6 @@ function validateAccountOnlyOptions(argv) {
 function buildExportCommand(yargs) {
   return yargs
     .options(ACCOUNT_OPTIONS)
-    .middleware(() => {
-      const logger = container.resolve("logger");
-      logger.stderr(
-        chalk.yellow(
-          `Warning: fauna export is currently in beta. To learn more, visit https://docs.fauna.com/fauna/current/build/cli/v4/commands/export/\n`,
-        ),
-      );
-    })
     .check(validateAccountOnlyOptions)
     .command(createCommand)
     .command(listCommand)
@@ -61,6 +50,6 @@ function buildExportCommand(yargs) {
 
 export default {
   command: "export <method>",
-  description: "Create and manage exports. Currently in beta.",
+  description: "Create and manage exports.",
   builder: buildExportCommand,
 };
